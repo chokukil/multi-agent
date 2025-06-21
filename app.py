@@ -74,6 +74,7 @@ from ui import (
     render_saved_systems,
     render_quick_templates,
     render_system_settings,
+    render_mcp_config_section,
     save_multi_agent_config,
     render_chat_interface,
     render_system_status,
@@ -152,6 +153,16 @@ st.markdown("""
         background-color: #fff3e0;
         border-left: 3px solid #FF9800;
     }
+    .tool-activity {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 10px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -179,6 +190,11 @@ with st.sidebar:
             st.warning("⚠️ **Status**: Not initialized")
     else:
         st.info("📋 No executors created yet")
+    
+    st.markdown("---")
+    
+    # MCP Configuration Section
+    render_mcp_config_section()
     
     st.markdown("---")
     
@@ -223,7 +239,7 @@ with st.sidebar:
 
 # Main area
 st.title("🍒 Cherry AI - Data Science Multi-Agent System")
-st.markdown("### Plan-Execute Pattern with SSOT and Data Lineage Tracking")
+st.markdown("### Plan-Execute Pattern with SSOT, Data Lineage Tracking & MCP Tools")
 
 # System status
 render_system_status()
@@ -255,6 +271,8 @@ if not st.session_state.executors:
     - **Plan-Execute Pattern**: Structured, efficient task execution
     - **SSOT**: All executors access identical data
     - **Data Lineage**: Track all data transformations
+    - **MCP Tools**: Model Context Protocol tool integration
+    - **Real-time Streaming**: Live tool execution monitoring
     - **Hallucination Prevention**: Validate data usage
     """)
 
@@ -272,11 +290,18 @@ if st.session_state.executors:
             prompt = config.get("prompt", "No prompt defined")
             prompt_preview = prompt[:100] + "..." if len(prompt) > 100 else prompt
             
+            # MCP tools info
+            mcp_config = config.get("mcp_config", {})
+            mcp_info = ""
+            if mcp_config and mcp_config.get("selected_tools"):
+                mcp_info = f"<p><b>MCP Tools:</b> {', '.join(mcp_config['selected_tools'])}</p>"
+            
             st.markdown(f"""
             <div class='executor-card'>
                 <h4>🤖 {name}</h4>
                 <p><b>Role:</b> {prompt_preview}</p>
                 <p><b>Tools:</b> {tools_str}</p>
+                {mcp_info}
             </div>
             """, unsafe_allow_html=True)
 
@@ -287,11 +312,13 @@ if st.session_state.executors and not st.session_state.graph_initialized:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("🚀 Create Plan-Execute System", type="primary", use_container_width=True):
-            with st.spinner("🔧 Building Plan-Execute system..."):
+            with st.spinner("🔧 Building Plan-Execute system with MCP tools..."):
                 # Build the graph
                 async def build_plan_execute_system():
-                    """Build the Plan-Execute graph"""
-                    logging.info("Building Plan-Execute system")
+                    """Build the Plan-Execute graph with MCP tools integration"""
+                    from core.tools.mcp_tools import initialize_mcp_tools
+                    
+                    logging.info("Building Plan-Execute system with MCP tools")
                     
                     # Create graph
                     workflow = StateGraph(PlanExecuteState)
@@ -302,16 +329,28 @@ if st.session_state.executors and not st.session_state.graph_initialized:
                     workflow.add_node("replanner", replanner_node)
                     workflow.add_node("final_responder", final_responder_node)
                     
-                    # Add executor nodes
+                    # Add executor nodes with MCP tools
                     llm = create_llm_instance(temperature=0.1)
                     
                     for executor_name, executor_config in st.session_state.executors.items():
                         # Create tools
                         tools = []
+                        
+                        # Add Python tool if configured
                         if "python_repl_ast" in executor_config.get("tools", []):
                             tools.append(create_enhanced_python_tool())
                         
-                        # Create agent
+                        # Add MCP tools if configured
+                        mcp_config = executor_config.get("mcp_config", {})
+                        if mcp_config and mcp_config.get("mcpServers"):
+                            try:
+                                mcp_tools = await initialize_mcp_tools(mcp_config)
+                                tools.extend(mcp_tools)
+                                logging.info(f"Added {len(mcp_tools)} MCP tools to {executor_name}")
+                            except Exception as e:
+                                logging.warning(f"Failed to initialize MCP tools for {executor_name}: {e}")
+                        
+                        # Create agent with all tools
                         agent = create_react_agent(
                             model=llm,
                             tools=tools,
@@ -375,12 +414,13 @@ if st.session_state.executors and not st.session_state.graph_initialized:
                         build_plan_execute_system()
                     )
                     st.session_state.graph_initialized = True
-                    st.success("✅ Plan-Execute System created successfully!")
+                    st.success("✅ Plan-Execute System with MCP tools created successfully!")
                     log_event("system_created", {
                         "executors": list(st.session_state.executors.keys()),
-                        "timestamp": datetime.now().isoformat()
+                        "timestamp": datetime.now().isoformat(),
+                        "mcp_enabled": any(ex.get("mcp_config") for ex in st.session_state.executors.values())
                     })
-                    logging.info("Plan-Execute system created")
+                    logging.info("Plan-Execute system with MCP tools created")
                 except Exception as e:
                     st.error(f"❌ Failed to create system: {e}")
                     logging.error(f"System creation failed: {e}")
@@ -440,7 +480,7 @@ render_bottom_tabs()
 
 # Footer
 st.markdown("---")
-st.caption("🍒Cherry AI - Data Science Multi-Agent System")
+st.caption("🍒Cherry AI - Data Science Multi-Agent System with MCP Integration")
 
 if __name__ == "__main__":
     logging.info("Application started")

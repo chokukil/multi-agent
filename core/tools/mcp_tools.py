@@ -30,6 +30,58 @@ except ImportError:
 from pydantic import BaseModel, Field, RootModel
 from typing import Union
 
+async def check_mcp_server_availability(server_configs: Dict[str, Dict[str, Any]]) -> Dict[str, bool]:
+    """
+    MCP 서버의 현재 동작 상태를 비동기적으로 확인
+    
+    Args:
+        server_configs: 서버 이름과 설정을 담은 딕셔너리
+        
+    Returns:
+        서버 이름과 가용성 상태를 담은 딕셔너리
+    """
+    if not MCP_AVAILABLE:
+        logging.warning("MCP not available, all servers marked as unavailable")
+        return {name: False for name in server_configs.keys()}
+    
+    import aiohttp
+    availability = {}
+    
+    async def check_single_server(server_name: str, server_config: Dict[str, Any]) -> Tuple[str, bool]:
+        """단일 서버 상태 확인"""
+        try:
+            if server_config.get("transport") == "sse" and "url" in server_config:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        server_config["url"], 
+                        timeout=aiohttp.ClientTimeout(total=3)
+                    ) as response:
+                        is_available = response.status == 200
+                        if is_available:
+                            logging.info(f"✅ MCP server '{server_name}' is available")
+                        else:
+                            logging.warning(f"⚠️ MCP server '{server_name}' returned status {response.status}")
+                        return server_name, is_available
+            else:
+                logging.warning(f"⚠️ MCP server '{server_name}' has unsupported transport or missing URL")
+                return server_name, False
+        except Exception as e:
+            logging.warning(f"❌ MCP server '{server_name}' is not available: {e}")
+            return server_name, False
+    
+    # 모든 서버를 병렬로 확인
+    tasks = [check_single_server(name, config) for name, config in server_configs.items()]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    for result in results:
+        if isinstance(result, Exception):
+            logging.error(f"Error checking MCP server: {result}")
+        elif isinstance(result, tuple) and len(result) == 2:
+            server_name, is_available = result
+            availability[server_name] = is_available
+    
+    return availability
+
 def create_mcp_tool_wrapper(mcp_tool) -> Tool:
     """Create a proper LangChain tool wrapper for MCP tools"""
     
@@ -103,29 +155,14 @@ async def initialize_mcp_tools(tool_config: Dict) -> List[Tool]:
         return []
     
     try:
-        # Check if MCP servers are already running
-        import aiohttp
-        
         connections = tool_config.get("mcpServers", tool_config)
-        working_connections = {}
         
-        # Test connections first
-        for server_name, server_config in connections.items():
-            if "url" in server_config and server_config.get("transport") == "sse":
-                try:
-                    # Test connection to SSE endpoint
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(
-                            server_config["url"], 
-                            timeout=aiohttp.ClientTimeout(total=3)
-                        ) as response:
-                            if response.status == 200:
-                                working_connections[server_name] = server_config
-                                logging.info(f"✅ MCP server {server_name} is running")
-                            else:
-                                logging.warning(f"⚠️ MCP server {server_name} returned status {response.status}")
-                except Exception as e:
-                    logging.warning(f"❌ MCP server '{server_name}' is not running: {e}")
+        # 서버 가용성 확인
+        availability = await check_mcp_server_availability(connections)
+        working_connections = {
+            name: config for name, config in connections.items() 
+            if availability.get(name, False)
+        }
         
         if not working_connections:
             logging.warning("No working MCP servers found")
@@ -159,8 +196,6 @@ async def initialize_mcp_tools(tool_config: Dict) -> List[Tool]:
 
 async def test_mcp_server_availability() -> Dict[str, bool]:
     """Test which MCP servers are available"""
-    import aiohttp
-    
     mcp_servers = {
         "task_manager": {"url": "http://localhost:8001/sse", "transport": "sse"},
         "self_critic": {"url": "http://localhost:8002/sse", "transport": "sse"},
@@ -171,20 +206,7 @@ async def test_mcp_server_availability() -> Dict[str, bool]:
         "data_science_tools": {"url": "http://localhost:8007/sse", "transport": "sse"}
     }
     
-    availability = {}
-    
-    for server_name, server_config in mcp_servers.items():
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    server_config["url"], 
-                    timeout=aiohttp.ClientTimeout(total=1)
-                ) as response:
-                    availability[server_name] = response.status == 200
-        except Exception:
-            availability[server_name] = False
-    
-    return availability
+    return await check_mcp_server_availability(mcp_servers)
 
 def get_role_mcp_tools(role_name: str, available_servers: Dict[str, bool]) -> Tuple[List[str], Dict]:
     """Get appropriate MCP tools for a specific role"""
@@ -216,3 +238,46 @@ def get_role_mcp_tools(role_name: str, available_servers: Dict[str, bool]) -> Tu
                 }
     
     return base_tools, {"mcp_configs": mcp_configs}
+
+def get_available_mcp_tools_info(config_name: str = None) -> Dict[str, Any]:
+    """현재 사용 가능한 MCP 도구 정보를 반환합니다."""
+    from core.utils.config import get_mcp_config
+    
+    if config_name:
+        config = get_mcp_config(config_name)
+        if not config:
+            return {"available": False, "tools": [], "error": "Configuration not found"}
+        
+        # 비동기 함수를 동기적으로 실행
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        servers = config.get("mcpServers", {})
+        availability = loop.run_until_complete(check_mcp_server_availability(servers))
+        
+        available_tools = []
+        for server_name, is_available in availability.items():
+            if is_available:
+                available_tools.append({
+                    "server_name": server_name,
+                    "config": servers[server_name],
+                    "status": "available"
+                })
+            else:
+                available_tools.append({
+                    "server_name": server_name,
+                    "config": servers[server_name],
+                    "status": "unavailable"
+                })
+        
+        return {
+            "available": any(availability.values()),
+            "tools": available_tools,
+            "total_servers": len(servers),
+            "available_servers": sum(availability.values())
+        }
+    
+    return {"available": False, "tools": [], "error": "No configuration specified"}
