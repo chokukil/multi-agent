@@ -320,7 +320,12 @@ from ui import (
     render_chat_interface,
     render_system_status,
     visualize_plan_execute_structure,
-    render_bottom_tabs
+    render_bottom_tabs,
+    # New real-time and artifact components
+    render_real_time_dashboard,
+    render_artifact_interface,
+    apply_dashboard_styles,
+    apply_artifact_styles
 )
 
 # Page config
@@ -362,11 +367,27 @@ def initialize_session_state():
         st.session_state.logs = []
     if "generated_code" not in st.session_state:
         st.session_state.generated_code = []
+    
+    # Real-time dashboard states
+    if "current_plan" not in st.session_state:
+        st.session_state.current_plan = []
+    if "current_step" not in st.session_state:
+        st.session_state.current_step = 0
+    if "step_results" not in st.session_state:
+        st.session_state.step_results = {}
+    
+    # Artifact management states  
+    if "selected_artifact_id" not in st.session_state:
+        st.session_state.selected_artifact_id = None
+    if "execution_result" not in st.session_state:
+        st.session_state.execution_result = None
+    if "execution_history" not in st.session_state:
+        st.session_state.execution_history = []
 
 # Initialize
 initialize_session_state()
 
-# Custom CSS
+# Custom CSS and styles
 st.markdown("""
 <style>
     .executor-card {
@@ -409,6 +430,10 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Apply additional styles
+apply_dashboard_styles()
+apply_artifact_styles()
 
 # Sidebar
 with st.sidebar:
@@ -766,9 +791,23 @@ if st.session_state.graph_initialized and st.session_state.executors:
 
 st.markdown("---")
 
-# Chat interface
+# Main Interface Tabs
 if st.session_state.graph_initialized:
-    render_chat_interface()
+    # Create main tabs for enhanced interface
+    tab1, tab2, tab3 = st.tabs(["💬 Chat & Analytics", "🚀 Real-time Dashboard", "🎨 Artifact Canvas"])
+    
+    with tab1:
+        # Traditional chat interface with enhanced analytics
+        render_chat_interface()
+    
+    with tab2:
+        # Real-time process visualization dashboard
+        render_real_time_dashboard()
+    
+    with tab3:
+        # Canvas/Artifact style interface
+        render_artifact_interface()
+
 else:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:

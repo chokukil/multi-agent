@@ -73,7 +73,10 @@ def get_plan_execute_streaming_callback(tool_activity_placeholder) -> Callable:
         "current_executor": None,
         "current_step": 0,
         "total_steps": 0,
-        "tool_outputs": []
+        "tool_outputs": [],
+        "plan": [],
+        "step_results": {},
+        "data_transformations": []
     }
     
     def extract_python_code(content: str) -> Optional[str]:
@@ -166,6 +169,10 @@ def get_plan_execute_streaming_callback(tool_activity_placeholder) -> Callable:
     
     def callback(msg: Dict[str, Any]):
         """메인 콜백 함수"""
+        import streamlit as st
+        from datetime import datetime
+        from ui.artifact_manager import auto_detect_artifacts, notify_artifact_creation
+        
         node = msg.get("node", "")
         content = msg.get("content")
         
@@ -182,11 +189,54 @@ def get_plan_execute_streaming_callback(tool_activity_placeholder) -> Callable:
         else:
             message_content = str(content)
         
+        # Plan-Execute 특별 처리
+        if node == "planner" and isinstance(content, dict) and "plan" in content:
+            execution_state["plan"] = content["plan"]
+            execution_state["total_steps"] = len(content["plan"])
+            # 세션 상태 업데이트
+            st.session_state.current_plan = content["plan"]
+            st.session_state.current_step = 0
+            
+        elif node == "router":
+            # 현재 단계 업데이트
+            current_step = st.session_state.get("current_step", 0)
+            if current_step < len(execution_state["plan"]):
+                st.session_state.current_step = current_step
+                
+        elif "executor" in node.lower() or node in ["Data_Validator", "Preprocessing_Expert", "EDA_Analyst", "Visualization_Expert", "ML_Specialist", "Statistical_Analyst", "Report_Generator"]:
+            # Executor 실행 결과 처리
+            current_step = st.session_state.get("current_step", 0)
+            
+            # 단계 결과 업데이트
+            if "step_results" not in st.session_state:
+                st.session_state.step_results = {}
+                
+            # 작업 완료 여부 확인
+            completed = "TASK COMPLETED:" in str(message_content)
+            
+            st.session_state.step_results[current_step] = {
+                "executor": node,
+                "completed": completed,
+                "timestamp": datetime.now().isoformat(),
+                "content": str(message_content)[:500]  # 요약 저장
+            }
+            
+            # 자동 아티팩트 감지 및 생성
+            if isinstance(message_content, str):
+                created_artifacts = auto_detect_artifacts(message_content, node)
+                if created_artifacts:
+                    notify_artifact_creation(created_artifacts)
+        
+        elif node == "replanner":
+            # 재계획 단계 - 다음 단계로 이동
+            current_step = st.session_state.get("current_step", 0)
+            st.session_state.current_step = current_step + 1
+        
         # 도구 활동 기록에 추가
         execution_state["tool_outputs"].append({
             "node": node,
             "content": message_content,
-            "timestamp": ""
+            "timestamp": datetime.now().strftime("%H:%M:%S")
         })
         
         # 최대 50개 항목만 유지 (메모리 절약)
