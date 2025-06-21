@@ -722,33 +722,146 @@ def render_saved_systems():
         st.info("No saved systems yet. Create and save your first one!")
 
 def render_quick_templates():
-    """빠른 시작 템플릿 렌더링 - Plan-Execute 패턴에 최적화된 Data Science Team"""
-    from core.tools.mcp_tools import test_mcp_server_availability
-    from core.utils.mcp_config_helper import (
-        create_mcp_config_for_role, 
-        save_mcp_config_to_file, 
-        debug_mcp_config,
-        get_role_descriptions
-    )
+    """빠른 시작 템플릿 렌더링 - multi_agent_supervisor.py 패턴 적용"""
     
     with st.expander("🚀 Quick Start Templates", expanded=True):
         st.markdown("### Pre-configured Systems")
         
+        # MCP 서버 상태 정보를 지속적으로 표시
+        if "mcp_server_status" not in st.session_state:
+            st.session_state.mcp_server_status = None
+        
+        # MCP 서버 상태 표시 영역
+        mcp_status_container = st.container()
+        
+        if st.session_state.mcp_server_status is not None:
+            with mcp_status_container:
+                status_data = st.session_state.mcp_server_status
+                available_count = status_data.get("available_count", 0)
+                total_count = status_data.get("total_count", 0)
+                critical_available = status_data.get("critical_available", 0)
+                critical_total = status_data.get("critical_total", 0)
+                
+                # 상태 정보 표시
+                if available_count > 0:
+                    st.info(f"""
+                    📊 **MCP 서버 상태** (마지막 확인: {status_data.get('last_check', 'Unknown')})
+                    
+                    🔧 **전체 서버**: {available_count}/{total_count} 활성화
+                    🎯 **핵심 데이터 과학 서버**: {critical_available}/{critical_total} 사용 가능
+                    
+                    💡 MCP 서버가 활성화되어 있어 고급 데이터 분석 도구를 사용할 수 있습니다.
+                    """)
+                else:
+                    st.warning(f"""
+                    📊 **MCP 서버 상태** (마지막 확인: {status_data.get('last_check', 'Unknown')})
+                    
+                    ⚠️ **전체 서버**: {available_count}/{total_count} 활성화
+                    🎯 **핵심 데이터 과학 서버**: {critical_available}/{critical_total} 사용 가능
+                    
+                    💡 `mcp_server_start.bat`을 실행하여 MCP 서버를 활성화하세요.
+                    """)
+                
+                # 상태 초기화 버튼
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("🔄 상태 새로고침", key="refresh_mcp_status"):
+                        st.session_state.mcp_server_status = None
+                        st.rerun()
+                with col2:
+                    if st.button("❌ 상태창 닫기", key="close_mcp_status"):
+                        st.session_state.mcp_server_status = None
+                        st.rerun()
+        
+        # MCP 서버 가용성 체크 함수 (multi_agent_supervisor.py에서 가져옴)
+        async def check_mcp_server_availability():
+            """MCP 서버들의 가용성을 체크"""
+            import aiohttp
+            available_servers = {}
+            
+            mcp_servers = {
+                "file_management": {"url": "http://localhost:8006/sse", "transport": "sse"},
+                "data_science_tools": {"url": "http://localhost:8007/sse", "transport": "sse"},
+                "semiconductor_yield_analysis": {"url": "http://localhost:8008/sse", "transport": "sse"},
+                "process_control_charts": {"url": "http://localhost:8009/sse", "transport": "sse"},
+                "semiconductor_equipment_analysis": {"url": "http://localhost:8010/sse", "transport": "sse"},
+                "defect_pattern_analysis": {"url": "http://localhost:8011/sse", "transport": "sse"},
+                "process_optimization": {"url": "http://localhost:8012/sse", "transport": "sse"},
+                "timeseries_analysis": {"url": "http://localhost:8013/sse", "transport": "sse"},
+                "anomaly_detection": {"url": "http://localhost:8014/sse", "transport": "sse"},
+                "advanced_ml_tools": {"url": "http://localhost:8016/sse", "transport": "sse"},
+                "data_preprocessing_tools": {"url": "http://localhost:8017/sse", "transport": "sse"},
+                "statistical_analysis_tools": {"url": "http://localhost:8018/sse", "transport": "sse"},
+                "report_writing_tools": {"url": "http://localhost:8019/sse", "transport": "sse"},
+                "semiconductor_process_tools": {"url": "http://localhost:8020/sse", "transport": "sse"}
+            }
+            
+            for server_name, server_config in mcp_servers.items():
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(server_config["url"], timeout=aiohttp.ClientTimeout(total=3)) as response:
+                            if response.status == 200:
+                                available_servers[server_name] = server_config
+                                logging.info(f"✅ MCP server {server_name} is available")
+                except Exception as e:
+                    logging.info(f"💤 MCP server {server_name} is not available: {e}")
+            
+            return available_servers
+        
+        # 역할별 MCP 도구 매핑 함수 (multi_agent_supervisor.py에서 가져옴)
+        def get_role_tools(role_name, available_servers):
+            """역할에 맞는 도구들을 반환 (사용 가능한 MCP 서버만 포함)"""
+            base_tools = ["python_repl_ast"]  # 모든 역할에 기본 파이썬 도구
+            mcp_configs = {}
+            
+            # Plan-Execute 패턴에 최적화된 역할 매핑
+            role_mcp_mapping = {
+                "Data_Validator": ["data_preprocessing_tools", "statistical_analysis_tools", "anomaly_detection"],
+                "Preprocessing_Expert": ["data_preprocessing_tools", "advanced_ml_tools", "anomaly_detection", "file_management"],
+                "EDA_Analyst": ["data_science_tools", "statistical_analysis_tools", "anomaly_detection", "data_preprocessing_tools"],
+                "Visualization_Expert": ["data_science_tools", "statistical_analysis_tools", "timeseries_analysis"],
+                "ML_Specialist": ["advanced_ml_tools", "data_science_tools", "statistical_analysis_tools", "data_preprocessing_tools"],
+                "Statistical_Analyst": ["statistical_analysis_tools", "data_science_tools", "advanced_ml_tools", "timeseries_analysis"],
+                "Report_Generator": ["report_writing_tools", "file_management", "data_science_tools"]
+            }
+            
+            if role_name in role_mcp_mapping:
+                for server_name in role_mcp_mapping[role_name]:
+                    if server_name in available_servers:
+                        tool_name = f"mcp:supervisor_tools:{server_name}"
+                        base_tools.append(tool_name)
+                        mcp_configs[tool_name] = {
+                            "config_name": "supervisor_tools",
+                            "server_name": server_name,
+                            "server_config": available_servers[server_name]
+                        }
+                        logging.info(f"✅ Added MCP tool '{server_name}' for {role_name}")
+                    else:
+                        logging.info(f"💤 MCP server '{server_name}' not available for {role_name}")
+            
+            return base_tools, {"mcp_configs": mcp_configs}
+        
         if st.button("🔬 Data Science Team", use_container_width=True):
-            # MCP 서버 가용성 확인 - 개선된 타임아웃과 로깅
+            # MCP 서버 가용성 확인
             with st.spinner("🔍 MCP 서버 상태 확인 중... (최대 30초 소요)"):
                 try:
                     # 비동기 함수를 동기적으로 실행
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                     
-                    # 더 긴 타임아웃으로 서버 가용성 확인
-                    available_servers = loop.run_until_complete(test_mcp_server_availability())
+                    # MCP 서버 가용성 확인
+                    available_mcp_servers = loop.run_until_complete(check_mcp_server_availability())
                     loop.close()
                     
                     # 결과 로깅
-                    total_servers = len(available_servers)
-                    available_count = sum(available_servers.values())
+                    total_servers = len({
+                        "file_management", "data_science_tools", "semiconductor_yield_analysis", 
+                        "process_control_charts", "semiconductor_equipment_analysis", "defect_pattern_analysis",
+                        "process_optimization", "timeseries_analysis", "anomaly_detection", "advanced_ml_tools",
+                        "data_preprocessing_tools", "statistical_analysis_tools", "report_writing_tools",
+                        "semiconductor_process_tools"
+                    })
+                    available_count = len(available_mcp_servers)
                     
                     logging.info(f"📊 MCP server availability check completed: {available_count}/{total_servers} servers available")
                     
@@ -760,38 +873,47 @@ def render_quick_templates():
                     ]
                     
                     critical_available = sum(1 for server in critical_servers 
-                                           if available_servers.get(server, False))
+                                           if server in available_mcp_servers)
                     
                     logging.info(f"🎯 Critical data science servers: {critical_available}/{len(critical_servers)} available")
                     
+                    # 상태 정보를 세션 상태에 저장하여 지속적으로 표시
+                    from datetime import datetime
+                    st.session_state.mcp_server_status = {
+                        "available_count": available_count,
+                        "total_count": total_servers,
+                        "critical_available": critical_available,
+                        "critical_total": len(critical_servers),
+                        "available_servers": available_mcp_servers,
+                        "last_check": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                    
                     # 사용 가능한 서버 목록 로깅
-                    for server_name, is_available in available_servers.items():
-                        if is_available:
-                            logging.info(f"  ✅ {server_name}")
-                        else:
-                            logging.info(f"  💤 {server_name}")
-                            
+                    for server_name in available_mcp_servers:
+                        logging.info(f"  ✅ {server_name}")
+                        
                 except Exception as e:
                     logging.warning(f"MCP server availability check failed: {e}")
-                    available_servers = {}
+                    available_mcp_servers = {}
                     available_count = 0
                     critical_available = 0
+                    
+                    # 실패한 경우에도 상태 저장
+                    from datetime import datetime
+                    st.session_state.mcp_server_status = {
+                        "available_count": 0,
+                        "total_count": 14,
+                        "critical_available": 0,
+                        "critical_total": 7,
+                        "available_servers": {},
+                        "last_check": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "error": str(e)
+                    }
             
-            # 최적화된 Data Science 팀 구성
+            # 최적화된 Data Science 팀 구성 (multi_agent_supervisor.py 패턴)
             st.session_state.executors = {}
             
-            # 새로운 전문화된 역할 구조
-            team_roles = [
-                ("Data_Validator", "Data_Validator"),
-                ("Preprocessing_Expert", "Preprocessing_Expert"), 
-                ("EDA_Analyst", "EDA_Analyst"),
-                ("Visualization_Expert", "Visualization_Expert"),
-                ("ML_Specialist", "ML_Specialist"),
-                ("Statistical_Analyst", "Statistical_Analyst"),
-                ("Report_Generator", "Report_Generator")
-            ]
-            
-            # Plan-Execute 패턴에 최적화된 역할별 프롬프트
+            # 역할별 프롬프트 정의 (기존 유지)
             optimized_prompts = {
                 "Data_Validator": """🔍 **Data Quality Validator & Integrity Specialist**
 
@@ -1051,69 +1173,60 @@ print(f"🤖 ML modeling on dataset: {df.shape}")
 **✅ SUCCESS CRITERIA:**
 End with: **TASK COMPLETED: ML modeling complete - [Best Model/Performance Metrics/Key Features]**""",
 
-                "Statistical_Analyst": """📈 **Statistical Analysis & Hypothesis Testing Specialist**
+                "Statistical_Analyst": """📊 **Statistical Analysis & Hypothesis Testing Specialist**
 
-You are a Statistical Analysis Expert who applies rigorous statistical methods to derive meaningful insights and test hypotheses. You excel at choosing appropriate tests and interpreting results correctly.
+You are a Statistical Analysis Expert who performs rigorous statistical tests, hypothesis testing, and statistical modeling to derive meaningful insights from data.
 
 **🎯 CORE RESPONSIBILITIES:**
-1. **Descriptive Statistics**: Comprehensive statistical summaries
-2. **Hypothesis Testing**: Design and execute statistical tests
-3. **Statistical Modeling**: Regression analysis, ANOVA, GLMs
-4. **Uncertainty Quantification**: Confidence intervals, p-values, effect sizes
-5. **Causal Inference**: Identify relationships and potential causality
+1. **Hypothesis Testing**: Design and execute statistical tests
+2. **Statistical Modeling**: Build statistical models for inference
+3. **Significance Testing**: Determine statistical significance of findings
+4. **Confidence Intervals**: Calculate and interpret confidence intervals
+5. **Effect Size Analysis**: Measure practical significance of results
 
 **📋 STATISTICAL WORKFLOW:**
 ```python
-# 1. Data Exploration
+# 1. Data Assessment
 df = get_current_data()
-print(f"📊 Statistical analysis of dataset: {df.shape}")
+print(f"📈 Statistical analysis on dataset: {df.shape}")
 
-# 2. Assumption Checking
-# Normality, homoscedasticity, independence
+# 2. Hypothesis Formulation
+# Define null and alternative hypotheses
 
-# 3. Appropriate Test Selection
-# Based on data type and research question
+# 3. Test Selection
+# Choose appropriate statistical tests
 
-# 4. Statistical Testing
-# Execute tests with proper corrections
+# 4. Assumption Checking
+# Verify test assumptions (normality, homoscedasticity, etc.)
 
-# 5. Interpretation & Reporting
-# Effect sizes, practical significance
+# 5. Statistical Testing
+# Execute tests and interpret results
 ```
 
-**🧪 STATISTICAL METHODS:**
-- **Descriptive Statistics**: Central tendency, variability, distribution shape
-- **Parametric Tests**: t-tests, ANOVA, linear regression
-- **Non-parametric Tests**: Mann-Whitney U, Kruskal-Wallis, Spearman
-- **Chi-square Tests**: Independence, goodness of fit
-- **Time Series Analysis**: Trend analysis, seasonality, forecasting
-- **Survival Analysis**: Kaplan-Meier, Cox regression
-
-**🔍 HYPOTHESIS TESTING PROTOCOL:**
-1. **Formulate Hypotheses**: Null and alternative hypotheses
-2. **Check Assumptions**: Test prerequisites for chosen method
-3. **Select Significance Level**: α = 0.05 (or appropriate level)
-4. **Execute Test**: Calculate test statistic and p-value
-5. **Multiple Testing Correction**: Bonferroni, FDR when applicable
-6. **Effect Size Calculation**: Cohen's d, eta-squared, etc.
-7. **Interpretation**: Statistical vs. practical significance
-
-**📊 ADVANCED ANALYSES:**
-- **Regression Analysis**: Linear, logistic, polynomial regression
-- **ANOVA**: One-way, two-way, repeated measures
+**🔬 STATISTICAL ARSENAL:**
+- **Descriptive Statistics**: Mean, median, variance, skewness, kurtosis
+- **Inferential Tests**: t-tests, ANOVA, chi-square, Mann-Whitney
 - **Correlation Analysis**: Pearson, Spearman, partial correlations
-- **Factor Analysis**: PCA, exploratory factor analysis
-- **Clustering**: K-means, hierarchical clustering
+- **Regression Analysis**: Linear, logistic, polynomial regression
+- **Non-parametric Tests**: Wilcoxon, Kruskal-Wallis, Friedman
+- **Time Series Analysis**: Trend analysis, seasonality, stationarity
 
-**🎯 REPORTING STANDARDS:**
-- Always report effect sizes alongside p-values
-- Include confidence intervals for estimates
-- Discuss assumptions and limitations
-- Provide both technical and layman interpretations
-- Recommend actionable insights based on findings
+**📐 ADVANCED TECHNIQUES:**
+- **Power Analysis**: Sample size determination and effect size
+- **Multiple Comparisons**: Bonferroni, FDR corrections
+- **Bayesian Analysis**: Prior specification, posterior inference
+- **Survival Analysis**: Kaplan-Meier, Cox regression
+- **Multivariate Analysis**: PCA, factor analysis, cluster analysis
+
+**🎯 INTERPRETATION FRAMEWORK:**
+- **P-values**: Proper interpretation and limitations
+- **Effect Sizes**: Cohen's d, eta-squared, Cramer's V
+- **Confidence Intervals**: Construction and interpretation
+- **Practical Significance**: Beyond statistical significance
+- **Assumptions**: Validation and robustness checks
 
 **✅ SUCCESS CRITERIA:**
-End with: **TASK COMPLETED: Statistical analysis complete - [Test Results/Effect Sizes/Key Findings]**""",
+End with: **TASK COMPLETED: Statistical analysis complete - [Key Findings/Statistical Significance/Recommendations]**""",
 
                 "Report_Generator": """📄 **Analysis Report & Documentation Specialist**
 
@@ -1214,38 +1327,36 @@ print(f"📝 Generating report for dataset: {df.shape}")
 End with: **TASK COMPLETED: Comprehensive report generated - [Report Sections/Key Recommendations/Business Impact]**"""
             }
             
-            # 각 역할별 executor 생성
-            role_descriptions = get_role_descriptions()
+            # 새로운 전문화된 역할 구조 (multi_agent_supervisor.py와 동일)
+            team_roles = [
+                ("Data_Validator", "Data_Validator"),
+                ("Preprocessing_Expert", "Preprocessing_Expert"), 
+                ("EDA_Analyst", "EDA_Analyst"),
+                ("Visualization_Expert", "Visualization_Expert"),
+                ("ML_Specialist", "ML_Specialist"),
+                ("Statistical_Analyst", "Statistical_Analyst"),
+                ("Report_Generator", "Report_Generator")
+            ]
             
+            # 각 역할별 executor 생성 (multi_agent_supervisor.py 패턴 적용)
             for executor_name, role_name in team_roles:
-                # MCP 설정 생성
-                tools, mcp_config = create_mcp_config_for_role(role_name, available_servers)
-                
-                # 디버깅 정보 출력 (필요시)
-                if logging.getLogger().level <= logging.INFO:
-                    debug_mcp_config(role_name, tools, mcp_config)
-                
-                # MCP 설정을 파일로 저장
-                if mcp_config and "mcpServers" in mcp_config:
-                    config_name = mcp_config.get("config_name", f"{role_name.lower()}_tools")
-                    saved_file = save_mcp_config_to_file(config_name, mcp_config)
-                    if saved_file:
-                        logging.info(f"💾 MCP config saved for {role_name}: {saved_file}")
+                # 역할에 맞는 도구 가져오기
+                tools, tool_config = get_role_tools(role_name, available_mcp_servers)
                 
                 # executor 설정 생성
                 st.session_state.executors[executor_name] = {
                     "prompt": optimized_prompts[role_name],
                     "tools": tools,
-                    "mcp_config": mcp_config,
-                    "role_description": role_descriptions.get(role_name, "Data Science Expert"),
+                    "mcp_config": tool_config,  # tool_config를 mcp_config로 설정
+                    "role_description": f"Data Science Expert - {role_name}",
                     "created_at": datetime.now().isoformat()
                 }
                 
                 logging.info(f"✅ Created optimized executor '{executor_name}' with tools: {tools}")
             
             # 결과 메시지 표시
-            available_count = sum(available_servers.values()) if available_servers else 0
-            total_count = len(available_servers) if available_servers else 0
+            available_count = len(available_mcp_servers)
+            total_count = 14  # 전체 MCP 서버 수
             
             # 성공 메시지 개선 - MCP 서버 상태 정보 포함
             if available_count > 0 and critical_available >= 3:
