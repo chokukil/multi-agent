@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from langchain_community.agent_toolkits import FileManagementToolkit
 from mcp.server.fastmcp import FastMCP
 from tempfile import TemporaryDirectory
@@ -44,7 +45,7 @@ def get_work_directory() -> str:
         return work_dir, args.port
     
     # Default to current workspace directory instead of temporary directory
-    work_dir = os.getcwd()  # 현재 작업 디렉토리 사용
+    work_dir = os.getcwd()  # Use current working directory
     logger.info(f"Using current workspace directory: {work_dir}")
     return work_dir, args.port
 
@@ -86,7 +87,7 @@ mcp = FastMCP(
 
 logger.info("FastMCP server initialized")
 
-@mcp.tool()
+@mcp.tool("read_file")
 async def read_file(file_path: str) -> str:
     """
     Reads the contents of a file.
@@ -112,7 +113,7 @@ async def read_file(file_path: str) -> str:
         logger.error(error_msg)
         return f"ERROR: {error_msg}"
 
-@mcp.tool()
+@mcp.tool("write_file")
 async def write_file(file_path: str, text: str) -> str:
     """
     Writes text to a file.
@@ -139,7 +140,7 @@ async def write_file(file_path: str, text: str) -> str:
         logger.error(error_msg)
         return f"ERROR: {error_msg}"
 
-@mcp.tool()
+@mcp.tool("list_directory")
 async def list_directory(directory_path: str = "") -> str:
     """
     Lists files and directories in the specified directory.
@@ -165,7 +166,7 @@ async def list_directory(directory_path: str = "") -> str:
         logger.error(error_msg)
         return f"ERROR: {error_msg}"
 
-@mcp.tool()
+@mcp.tool("copy_file")
 async def copy_file(source_path: str, destination_path: str) -> str:
     """
     Copies a file from source to destination.
@@ -192,7 +193,7 @@ async def copy_file(source_path: str, destination_path: str) -> str:
         logger.error(error_msg)
         return f"ERROR: {error_msg}"
 
-@mcp.tool()
+@mcp.tool("move_file")
 async def move_file(source_path: str, destination_path: str) -> str:
     """
     Moves a file from source to destination.
@@ -219,7 +220,7 @@ async def move_file(source_path: str, destination_path: str) -> str:
         logger.error(error_msg)
         return f"ERROR: {error_msg}"
 
-@mcp.tool()
+@mcp.tool("delete_file")
 async def delete_file(file_path: str) -> str:
     """
     Deletes a file.
@@ -245,7 +246,7 @@ async def delete_file(file_path: str) -> str:
         logger.error(error_msg)
         return f"ERROR: {error_msg}"
 
-@mcp.tool()
+@mcp.tool("search_files")
 async def search_files(pattern: str, directory_path: str = "") -> str:
     """
     Searches for files matching a pattern.

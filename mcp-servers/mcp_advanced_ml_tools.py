@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 MCP Tool: Advanced ML Tools
 고급 머신러닝 도구 - 모델 구축, 하이퍼파라미터 튜닝, 모델 평가 및 해석
@@ -743,7 +744,7 @@ class AdvancedMLTools:
 
 
 # MCP 도구 등록
-@mcp.tool
+@mcp.tool("build_classification_model")
 def build_classification_model(data: List[List[float]], 
                              target: List[Union[int, str]], 
                              feature_names: List[str] = None,
@@ -765,7 +766,7 @@ def build_classification_model(data: List[List[float]],
     return AdvancedMLTools.build_classification_model(data, target, feature_names, algorithm, test_size)
 
 
-@mcp.tool
+@mcp.tool("build_regression_model")
 def build_regression_model(data: List[List[float]], 
                          target: List[float], 
                          feature_names: List[str] = None,
@@ -787,7 +788,7 @@ def build_regression_model(data: List[List[float]],
     return AdvancedMLTools.build_regression_model(data, target, feature_names, algorithm, test_size)
 
 
-@mcp.tool
+@mcp.tool("hyperparameter_tuning")
 def hyperparameter_tuning(data: List[List[float]], 
                         target: List[Union[int, str, float]], 
                         model_type: str = "random_forest",
@@ -809,7 +810,7 @@ def hyperparameter_tuning(data: List[List[float]],
     return AdvancedMLTools.hyperparameter_tuning(data, target, model_type, task_type, cv_folds)
 
 
-@mcp.tool
+@mcp.tool("model_evaluation")
 def model_evaluation(data: List[List[float]], 
                     target: List[Union[int, str, float]], 
                     predictions: List[Union[int, str, float]],
@@ -829,7 +830,7 @@ def model_evaluation(data: List[List[float]],
     return AdvancedMLTools.model_evaluation(data, target, predictions, task_type)
 
 
-@mcp.tool
+@mcp.tool("feature_selection")
 def feature_selection(data: List[List[float]], 
                      target: List[Union[int, str, float]], 
                      feature_names: List[str] = None,
@@ -851,7 +852,7 @@ def feature_selection(data: List[List[float]],
     return AdvancedMLTools.feature_selection(data, target, feature_names, method, k_features)
 
 
-@mcp.tool
+@mcp.tool("compare_models")
 def compare_models(data: List[List[float]], 
                   target: List[Union[int, str, float]], 
                   algorithms: List[str] = None,

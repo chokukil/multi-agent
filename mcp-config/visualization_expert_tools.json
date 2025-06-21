@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "data_science_tools": {
+      "url": "http://localhost:8007/sse",
+      "transport": "sse",
+      "description": "Comprehensive data science tools"
+    },
+    "statistical_analysis_tools": {
+      "url": "http://localhost:8018/sse",
+      "transport": "sse",
+      "description": "Statistical analysis and hypothesis testing"
+    },
+    "timeseries_analysis": {
+      "url": "http://localhost:8013/sse",
+      "transport": "sse",
+      "description": "Time series analysis and forecasting"
+    }
+  },
+  "config_name": "visualization_expert_tools",
+  "description": "MCP tools for Visualization_Expert",
+  "role": "Visualization_Expert"
+}

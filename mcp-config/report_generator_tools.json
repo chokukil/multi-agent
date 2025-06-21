@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "report_writing_tools": {
+      "url": "http://localhost:8019/sse",
+      "transport": "sse",
+      "description": "Professional report generation"
+    },
+    "file_management": {
+      "url": "http://localhost:8006/sse",
+      "transport": "sse",
+      "description": "Safe file operations and management"
+    },
+    "data_science_tools": {
+      "url": "http://localhost:8007/sse",
+      "transport": "sse",
+      "description": "Comprehensive data science tools"
+    }
+  },
+  "config_name": "report_generator_tools",
+  "description": "MCP tools for Report_Generator",
+  "role": "Report_Generator"
+}

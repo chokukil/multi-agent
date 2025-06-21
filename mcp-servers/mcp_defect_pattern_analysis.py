@@ -1,600 +1,324 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-MCP Tool: Defect Pattern Analysis
-결함 패턴 분석 도구 - 웨이퍼 맵 분석, 결함 분류, 공간 분석
+MCP Tool ▶ Defect Pattern Analysis
+
+웨이퍼 맵·결함·Lot 데이터를 입체적으로 분석해
+패턴 식별, 클러스터링, 밀도·지역 통계, Pareto, Trend 등을 제공합니다.
+깨졌던 한글과 문법 오류를 전면 복구했습니다.
 """
 
+from __future__ import annotations
+
+import json
+import math
 import os
+from collections import Counter
+from typing import Any, Dict, List, Tuple
+
+import numpy as np
 import uvicorn
 from mcp.server.fastmcp import FastMCP
-from typing import Dict, List, Any, Optional, Tuple
-import pandas as pd
-import numpy as np
-from datetime import datetime
-import math
-import json
-from collections import Counter
 
-# 환경변수에서 포트 가져오기 (기본값: 8011)
-SERVER_PORT = int(os.getenv('SERVER_PORT', '8011'))
+# ------------------------------------------------------------
+# 서버 설정
+# ------------------------------------------------------------
+SERVER_PORT = int(os.getenv("SERVER_PORT", "8011"))
 
-# FastMCP 서버 생성
 mcp = FastMCP("Defect Pattern Analysis")
 
+# ------------------------------------------------------------
+# 핵심 분석 클래스
+# ------------------------------------------------------------
 class DefectPatternAnalyzer:
-    """결함 패턴 분석기"""
-    
+    """결함 패턴 분석 유틸리티"""
+
+    # -----------------------------------------------------
+    # 1. 웨이퍼 맵 패턴 분석
+    # -----------------------------------------------------
     @staticmethod
-    def analyze_wafer_map_patterns(wafer_map: List[List[int]], die_size: Tuple[float, float] = (10, 10)) -> Dict[str, Any]:
-        """웨이퍼 맵 패턴 분석"""
-        if not wafer_map or not all(isinstance(row, list) for row in wafer_map):
-            return {"error": "Invalid wafer map format"}
-        
-        wafer_array = np.array(wafer_map)
-        rows, cols = wafer_array.shape
-        total_dies = rows * cols
-        
-        # 기본 통계
-        unique_values, counts = np.unique(wafer_array, return_counts=True)
-        die_counts = dict(zip(unique_values.tolist(), counts.tolist()))
-        
-        # Pass/Fail 분석 (1=Pass, 0=Fail 가정)
-        pass_count = die_counts.get(1, 0)
-        fail_count = total_dies - pass_count
-        yield_percent = (pass_count / total_dies) * 100
-        
-        # 공간 패턴 분석
-        patterns = DefectPatternAnalyzer._detect_spatial_patterns(wafer_array)
-        
-        # 결함 클러스터 분석
-        clusters = DefectPatternAnalyzer._find_defect_clusters(wafer_array)
-        
-        # 웨이퍼 영역별 분석
-        region_analysis = DefectPatternAnalyzer._analyze_wafer_regions(wafer_array)
-        
-        # 결함 밀도 분석
-        defect_density = DefectPatternAnalyzer._calculate_defect_density(wafer_array, die_size)
-        
+    def analyze_wafer_map_patterns(wafer_map: List[List[int]], die_size: Tuple[float, float] = (10.0, 10.0)) -> Dict[str, Any]:
+        if not wafer_map or not all(isinstance(r, list) for r in wafer_map):
+            return {"error": "wafer_map 형식이 잘못되었습니다."}
+        arr = np.asarray(wafer_map, dtype=int)
+        rows, cols = arr.shape
+        total = rows * cols
+        uniques, counts = np.unique(arr, return_counts=True)
+        dist = dict(zip(uniques.tolist(), counts.tolist()))
+        pass_cnt = dist.get(1, 0)
+        fail_cnt = total - pass_cnt
+        yield_pct = pass_cnt / total * 100
+
+        spatial = DefectPatternAnalyzer._detect_spatial_patterns(arr)
+        clusters = DefectPatternAnalyzer._find_defect_clusters(arr)
+        regions = DefectPatternAnalyzer._analyze_wafer_regions(arr)
+        density = DefectPatternAnalyzer._calculate_defect_density(arr, die_size)
+
         return {
             "wafer_statistics": {
-                "total_dies": total_dies,
-                "pass_count": pass_count,
-                "fail_count": fail_count,
-                "yield_percent": round(yield_percent, 2),
-                "die_distribution": die_counts,
-                "wafer_size": f"{rows}x{cols}"
+                "size": f"{rows}x{cols}",
+                "total_dies": total,
+                "pass_count": pass_cnt,
+                "fail_count": fail_cnt,
+                "yield_percent": round(yield_pct, 2),
+                "die_distribution": dist,
             },
-            "spatial_patterns": patterns,
+            "spatial_patterns": spatial,
             "cluster_analysis": clusters,
-            "region_analysis": region_analysis,
-            "defect_density": defect_density
+            "region_analysis": regions,
+            "defect_density": density,
         }
-    
+
+    # -----------------------------------------------------
+    # 1‑1. 공간 패턴 감지
+    # -----------------------------------------------------
     @staticmethod
-    def _detect_spatial_patterns(wafer_array: np.ndarray) -> Dict[str, Any]:
-        """공간 패턴 탐지"""
-        rows, cols = wafer_array.shape
-        patterns = []
-        
-        # 엣지 효과 (Edge effect)
-        edge_width = min(3, min(rows, cols) // 4)
-        edge_mask = np.zeros_like(wafer_array, dtype=bool)
-        edge_mask[:edge_width, :] = True
-        edge_mask[-edge_width:, :] = True
-        edge_mask[:, :edge_width] = True
-        edge_mask[:, -edge_width:] = True
-        
-        edge_fail_rate = np.sum((wafer_array == 0) & edge_mask) / np.sum(edge_mask) if np.sum(edge_mask) > 0 else 0
-        center_fail_rate = np.sum((wafer_array == 0) & ~edge_mask) / np.sum(~edge_mask) if np.sum(~edge_mask) > 0 else 0
-        
-        if edge_fail_rate > center_fail_rate * 1.5:
-            patterns.append({
-                "type": "Edge Effect",
-                "severity": "High" if edge_fail_rate > center_fail_rate * 2 else "Medium",
-                "edge_fail_rate": round(edge_fail_rate * 100, 2),
-                "center_fail_rate": round(center_fail_rate * 100, 2)
-            })
-        
-        # 센터 결함 (Center defect)
-        center_r = min(rows, cols) // 4
-        center_y, center_x = rows // 2, cols // 2
-        center_mask = np.zeros_like(wafer_array, dtype=bool)
-        
-        for i in range(rows):
-            for j in range(cols):
-                if (i - center_y)**2 + (j - center_x)**2 <= center_r**2:
-                    center_mask[i, j] = True
-        
-        center_core_fail_rate = np.sum((wafer_array == 0) & center_mask) / np.sum(center_mask) if np.sum(center_mask) > 0 else 0
-        outer_fail_rate = np.sum((wafer_array == 0) & ~center_mask) / np.sum(~center_mask) if np.sum(~center_mask) > 0 else 0
-        
-        if center_core_fail_rate > outer_fail_rate * 1.5:
-            patterns.append({
-                "type": "Center Defect",
-                "severity": "High" if center_core_fail_rate > outer_fail_rate * 2 else "Medium",
-                "center_fail_rate": round(center_core_fail_rate * 100, 2),
-                "outer_fail_rate": round(outer_fail_rate * 100, 2)
-            })
-        
-        # 링 패턴 (Ring pattern)
-        ring_patterns = DefectPatternAnalyzer._detect_ring_patterns(wafer_array)
-        patterns.extend(ring_patterns)
-        
-        # 선형 패턴 (Linear pattern)
-        linear_patterns = DefectPatternAnalyzer._detect_linear_patterns(wafer_array)
-        patterns.extend(linear_patterns)
-        
+    def _detect_spatial_patterns(arr: np.ndarray) -> Dict[str, Any]:
+        rows, cols = arr.shape
+        patterns: List[Dict[str, Any]] = []
+
+        # Edge vs Center 비교
+        edge_w = max(1, min(rows, cols) // 10)
+        edge_mask = np.zeros_like(arr, dtype=bool)
+        edge_mask[:edge_w, :] = edge_mask[-edge_w:, :] = True
+        edge_mask[:, :edge_w] = edge_mask[:, -edge_w:] = True
+        edge_fail = np.sum((arr == 0) & edge_mask) / edge_mask.sum() if edge_mask.sum() else 0
+        center_fail = np.sum((arr == 0) & ~edge_mask) / (~edge_mask).sum() if (~edge_mask).sum() else 0
+        if edge_fail > center_fail * 1.5:
+            patterns.append({"type": "Edge Effect", "edge_fail_rate_pct": round(edge_fail*100,2), "center_fail_rate_pct": round(center_fail*100,2)})
+
+        # Center core
+        cy, cx = rows // 2, cols // 2
+        r_core = min(rows, cols) // 4
+        yy, xx = np.ogrid[:rows, :cols]
+        mask_core = (yy - cy)**2 + (xx - cx)**2 <= r_core**2
+        core_fail = np.sum((arr == 0) & mask_core) / mask_core.sum() if mask_core.sum() else 0
+        outer_fail = np.sum((arr == 0) & ~mask_core) / (~mask_core).sum() if (~mask_core).sum() else 0
+        if core_fail > outer_fail * 1.5:
+            patterns.append({"type": "Center Defect", "center_fail_rate_pct": round(core_fail*100,2)})
+
+        # Ring pattern
+        patterns.extend(DefectPatternAnalyzer._detect_ring_patterns(arr))
+        # Linear pattern
+        patterns.extend(DefectPatternAnalyzer._detect_linear_patterns(arr))
+
         return {
             "detected_patterns": patterns,
             "pattern_count": len(patterns),
             "dominant_pattern": patterns[0]["type"] if patterns else "Random"
         }
-    
+
+    # Ring 패턴
     @staticmethod
-    def _detect_ring_patterns(wafer_array: np.ndarray) -> List[Dict[str, Any]]:
-        """링 패턴 탐지"""
-        rows, cols = wafer_array.shape
-        center_y, center_x = rows // 2, cols // 2
-        max_radius = min(rows, cols) // 2
-        
+    def _detect_ring_patterns(arr: np.ndarray) -> List[Dict[str, Any]]:
+        rows, cols = arr.shape
+        cy, cx = rows // 2, cols // 2
+        max_r = min(rows, cols) // 2
+        ring_w = max(2, max_r // 10)
+        overall_fail = np.mean(arr == 0)
         patterns = []
-        ring_width = max(2, max_radius // 10)
-        
-        for r in range(ring_width, max_radius, ring_width):
-            ring_mask = np.zeros_like(wafer_array, dtype=bool)
-            
-            for i in range(rows):
-                for j in range(cols):
-                    distance = np.sqrt((i - center_y)**2 + (j - center_x)**2)
-                    if r - ring_width <= distance < r:
-                        ring_mask[i, j] = True
-            
-            if np.sum(ring_mask) == 0:
+        for r in range(ring_w, max_r, ring_w):
+            yy, xx = np.ogrid[:rows, :cols]
+            ring_mask = ((yy - cy)**2 + (xx - cx)**2 < r**2) & ((yy - cy)**2 + (xx - cx)**2 >= (r-ring_w)**2)
+            if not ring_mask.any():
                 continue
-            
-            ring_fail_rate = np.sum((wafer_array == 0) & ring_mask) / np.sum(ring_mask)
-            overall_fail_rate = np.sum(wafer_array == 0) / wafer_array.size
-            
-            if ring_fail_rate > overall_fail_rate * 1.8:
-                patterns.append({
-                    "type": "Ring Pattern",
-                    "radius": r,
-                    "severity": "High" if ring_fail_rate > overall_fail_rate * 2.5 else "Medium",
-                    "ring_fail_rate": round(ring_fail_rate * 100, 2),
-                    "overall_fail_rate": round(overall_fail_rate * 100, 2)
-                })
-        
+            ring_fail = np.sum((arr == 0) & ring_mask) / ring_mask.sum()
+            if ring_fail > overall_fail * 1.8:
+                patterns.append({"type": "Ring Pattern", "radius": r, "ring_fail_rate_pct": round(ring_fail*100,2)})
         return patterns
-    
+
+    # Linear (가로/세로) 패턴
     @staticmethod
-    def _detect_linear_patterns(wafer_array: np.ndarray) -> List[Dict[str, Any]]:
-        """선형 패턴 탐지"""
+    def _detect_linear_patterns(arr: np.ndarray) -> List[Dict[str, Any]]:
         patterns = []
-        
-        # 수평/수직 라인 체크
-        for axis, axis_name in [(0, "Horizontal"), (1, "Vertical")]:
-            line_fail_rates = []
-            
-            for i in range(wafer_array.shape[axis]):
-                if axis == 0:  # 수평 라인
-                    line = wafer_array[i, :]
-                else:  # 수직 라인
-                    line = wafer_array[:, i]
-                
-                fail_rate = np.sum(line == 0) / len(line) if len(line) > 0 else 0
-                line_fail_rates.append(fail_rate)
-            
-            overall_fail_rate = np.sum(wafer_array == 0) / wafer_array.size
-            
-            # 임계치를 넘는 라인 찾기
-            for i, fail_rate in enumerate(line_fail_rates):
-                if fail_rate > overall_fail_rate * 2 and fail_rate > 0.3:
-                    patterns.append({
-                        "type": f"{axis_name} Line Pattern",
-                        "line_index": i,
-                        "severity": "High" if fail_rate > 0.7 else "Medium",
-                        "line_fail_rate": round(fail_rate * 100, 2),
-                        "overall_fail_rate": round(overall_fail_rate * 100, 2)
-                    })
-        
+        overall_fail = np.mean(arr == 0)
+        # Horizontal & Vertical
+        for axis, name in [(0, "Horizontal"), (1, "Vertical")]:
+            for idx in range(arr.shape[axis]):
+                line = arr[idx, :] if axis == 0 else arr[:, idx]
+                fail_rate = np.mean(line == 0)
+                if fail_rate > max(0.3, overall_fail * 2):
+                    patterns.append({"type": f"{name} Line", "index": idx, "fail_rate_pct": round(fail_rate*100,2)})
         return patterns
-    
+
+    # -----------------------------------------------------
+    # 1‑2. 결함 클러스터 탐지
+    # -----------------------------------------------------
     @staticmethod
-    def _find_defect_clusters(wafer_array: np.ndarray) -> Dict[str, Any]:
-        """결함 클러스터 분석"""
-        # 연결된 결함 영역 찾기 (8-connectivity)
-        def flood_fill(arr, start_pos, visited):
-            rows, cols = arr.shape
-            stack = [start_pos]
-            cluster = []
-            
+    def _find_defect_clusters(arr: np.ndarray) -> Dict[str, Any]:
+        visited = np.zeros_like(arr, dtype=bool)
+        clusters: List[List[Tuple[int, int]]] = []
+        rows, cols = arr.shape
+
+        def flood(r: int, c: int):
+            stack, cl = [(r, c)], []
             while stack:
-                r, c = stack.pop()
-                if (r < 0 or r >= rows or c < 0 or c >= cols or 
-                    visited[r, c] or arr[r, c] != 0):
+                y, x = stack.pop()
+                if y < 0 or y >= rows or x < 0 or x >= cols or visited[y, x] or arr[y, x] != 0:
                     continue
-                
-                visited[r, c] = True
-                cluster.append((r, c))
-                
-                # 8방향 탐색
-                for dr in [-1, 0, 1]:
-                    for dc in [-1, 0, 1]:
-                        if dr == 0 and dc == 0:
-                            continue
-                        stack.append((r + dr, c + dc))
-            
-            return cluster
-        
-        visited = np.zeros_like(wafer_array, dtype=bool)
-        clusters = []
-        
-        rows, cols = wafer_array.shape
+                visited[y, x] = True
+                cl.append((y, x))
+                for dy in (-1, 0, 1):
+                    for dx in (-1, 0, 1):
+                        if dy or dx:
+                            stack.append((y+dy, x+dx))
+            return cl
+
         for r in range(rows):
             for c in range(cols):
-                if not visited[r, c] and wafer_array[r, c] == 0:
-                    cluster = flood_fill(wafer_array, (r, c), visited)
-                    if len(cluster) > 1:  # 단일 결함은 제외
-                        clusters.append(cluster)
-        
-        # 클러스터 분석
+                if arr[r, c] == 0 and not visited[r, c]:
+                    cl = flood(r, c)
+                    if len(cl) > 1:
+                        clusters.append(cl)
+
         if not clusters:
-            return {
-                "cluster_count": 0,
-                "largest_cluster_size": 0,
-                "cluster_coverage_percent": 0,
-                "cluster_analysis": []
-            }
-        
-        cluster_sizes = [len(cluster) for cluster in clusters]
-        largest_cluster = max(clusters, key=len)
-        total_clustered_defects = sum(cluster_sizes)
-        total_defects = np.sum(wafer_array == 0)
-        
-        cluster_analysis = []
-        for i, cluster in enumerate(sorted(clusters, key=len, reverse=True)[:5]):  # 상위 5개
-            # 클러스터 중심점
-            center_r = np.mean([pos[0] for pos in cluster])
-            center_c = np.mean([pos[1] for pos in cluster])
-            
-            # 클러스터 밀도
-            min_r, max_r = min(pos[0] for pos in cluster), max(pos[0] for pos in cluster)
-            min_c, max_c = min(pos[1] for pos in cluster), max(pos[1] for pos in cluster)
-            bounding_area = (max_r - min_r + 1) * (max_c - min_c + 1)
-            density = len(cluster) / bounding_area if bounding_area > 0 else 0
-            
-            cluster_analysis.append({
-                "rank": i + 1,
-                "size": len(cluster),
-                "center": (round(center_r, 1), round(center_c, 1)),
-                "density": round(density, 3),
-                "bounding_box": f"({min_r},{min_c}) to ({max_r},{max_c})"
-            })
-        
+            return {"cluster_count": 0}
+
+        sizes = [len(cl) for cl in clusters]
+        largest = max(clusters, key=len)
+        total_def = int(np.sum(arr == 0))
+        total_clust = sum(sizes)
+        analyses = []
+        for rank, cl in enumerate(sorted(clusters, key=len, reverse=True)[:5], start=1):
+            ys, xs = zip(*cl)
+            dens = len(cl) / ((max(ys)-min(ys)+1)*(max(xs)-min(xs)+1))
+            analyses.append({"rank": rank, "size": len(cl), "center": (round(np.mean(ys),1), round(np.mean(xs),1)), "density": round(dens,3)})
+
         return {
             "cluster_count": len(clusters),
-            "largest_cluster_size": len(largest_cluster),
-            "cluster_coverage_percent": round((total_clustered_defects / total_defects) * 100, 2) if total_defects > 0 else 0,
-            "average_cluster_size": round(np.mean(cluster_sizes), 2),
-            "cluster_analysis": cluster_analysis,
-            "clustering_tendency": "High" if len(clusters) > 5 and np.mean(cluster_sizes) > 3 else "Low"
+            "largest_cluster_size": len(largest),
+            "cluster_coverage_pct": round(total_clust / total_def * 100, 2) if total_def else 0,
+            "average_cluster_size": round(float(np.mean(sizes)), 2),
+            "cluster_analysis": analyses,
         }
-    
+
+    # -----------------------------------------------------
+    # 1‑3. 3×3 지역 분석
+    # -----------------------------------------------------
     @staticmethod
-    def _analyze_wafer_regions(wafer_array: np.ndarray) -> Dict[str, Any]:
-        """웨이퍼 영역별 분석"""
-        rows, cols = wafer_array.shape
-        
-        # 웨이퍼를 9개 영역으로 분할 (3x3 그리드)
-        region_rows = [rows // 3, rows // 3, rows - 2 * (rows // 3)]
-        region_cols = [cols // 3, cols // 3, cols - 2 * (cols // 3)]
-        
-        regions = {}
-        region_names = [
-            ["Top-Left", "Top-Center", "Top-Right"],
-            ["Mid-Left", "Center", "Mid-Right"],
-            ["Bottom-Left", "Bottom-Center", "Bottom-Right"]
-        ]
-        
-        r_start = 0
+    def _analyze_wafer_regions(arr: np.ndarray) -> Dict[str, Any]:
+        rows, cols = arr.shape
+        r_split = [rows//3, rows//3, rows - 2*(rows//3)]
+        c_split = [cols//3, cols//3, cols - 2*(cols//3)]
+        names = [["Top-Left","Top-Center","Top-Right"],["Mid-Left","Center","Mid-Right"],["Bottom-Left","Bottom-Center","Bottom-Right"]]
+        regions: Dict[str, Any] = {}
+        r0 = 0
         for i in range(3):
-            c_start = 0
+            c0 = 0
             for j in range(3):
-                r_end = r_start + region_rows[i]
-                c_end = c_start + region_cols[j]
-                
-                region_data = wafer_array[r_start:r_end, c_start:c_end]
-                region_name = region_names[i][j]
-                
-                total_dies = region_data.size
-                fail_count = np.sum(region_data == 0)
-                fail_rate = (fail_count / total_dies) * 100 if total_dies > 0 else 0
-                
-                regions[region_name] = {
-                    "total_dies": total_dies,
-                    "fail_count": fail_count,
-                    "fail_rate_percent": round(fail_rate, 2),
-                    "coordinates": f"({r_start},{c_start}) to ({r_end-1},{c_end-1})"
-                }
-                
-                c_start = c_end
-            r_start = r_end
-        
-        # 영역별 비교
-        fail_rates = [region["fail_rate_percent"] for region in regions.values()]
-        worst_region = max(regions.keys(), key=lambda k: regions[k]["fail_rate_percent"])
-        best_region = min(regions.keys(), key=lambda k: regions[k]["fail_rate_percent"])
-        
+                r1, c1 = r0 + r_split[i], c0 + c_split[j]
+                sub = arr[r0:r1, c0:c1]
+                fail = np.mean(sub == 0) * 100 if sub.size else 0
+                regions[names[i][j]] = {"fail_rate_pct": round(fail,2), "coords": f"({r0},{c0})-({r1-1},{c1-1})"}
+                c0 = c1
+            r0 = r1
+        fails = [v["fail_rate_pct"] for v in regions.values()]
+        best = min(regions, key=lambda k: regions[k]["fail_rate_pct"])
+        worst = max(regions, key=lambda k: regions[k]["fail_rate_pct"])
         return {
-            "region_details": regions,
-            "worst_region": {
-                "name": worst_region,
-                "fail_rate": regions[worst_region]["fail_rate_percent"]
-            },
-            "best_region": {
-                "name": best_region,
-                "fail_rate": regions[best_region]["fail_rate_percent"]
-            },
-            "region_uniformity": {
-                "std_dev": round(np.std(fail_rates), 2),
-                "range": round(max(fail_rates) - min(fail_rates), 2),
-                "cv_percent": round((np.std(fail_rates) / np.mean(fail_rates)) * 100, 2) if np.mean(fail_rates) > 0 else 0
-            }
+            "regions": regions,
+            "best_region": best,
+            "worst_region": worst,
+            "uniformity_cv_pct": round(float(np.std(fails)/np.mean(fails)*100),2) if np.mean(fails) else 0
         }
-    
+
+    # -----------------------------------------------------
+    # 1‑4. 결함 밀도
+    # -----------------------------------------------------
     @staticmethod
-    def _calculate_defect_density(wafer_array: np.ndarray, die_size: Tuple[float, float]) -> Dict[str, Any]:
-        """결함 밀도 계산"""
-        rows, cols = wafer_array.shape
-        die_width, die_height = die_size
-        
-        # 웨이퍼 면적 계산 (mm²)
-        wafer_area_mm2 = rows * cols * die_width * die_height
-        
-        # 결함 수
-        total_defects = np.sum(wafer_array == 0)
-        
-        # 결함 밀도 (defects/cm²)
-        defect_density_per_cm2 = total_defects / (wafer_area_mm2 / 100) if wafer_area_mm2 > 0 else 0
-        
-        # 포아송 분포 기반 예상 수율
-        expected_yield = math.exp(-defect_density_per_cm2 * (die_width * die_height / 100)) * 100
-        
-        return {
-            "defect_density_per_cm2": round(defect_density_per_cm2, 4),
-            "total_defects": total_defects,
-            "wafer_area_mm2": round(wafer_area_mm2, 2),
-            "die_size_mm": {"width": die_width, "height": die_height},
-            "expected_yield_percent": round(expected_yield, 2),
-            "defect_density_classification": (
-                "Very Low" if defect_density_per_cm2 < 0.1 else
-                "Low" if defect_density_per_cm2 < 0.5 else
-                "Medium" if defect_density_per_cm2 < 1.0 else
-                "High" if defect_density_per_cm2 < 2.0 else
-                "Very High"
-            )
-        }
+    def _calculate_defect_density(arr: np.ndarray, die_size: Tuple[float, float]) -> Dict[str, Any]:
+        rows, cols = arr.shape
+        dw, dh = die_size
+        wafer_area_mm2 = rows * cols * dw * dh
+        def_cnt = int(np.sum(arr == 0))
+        dens_cm2 = def_cnt / (wafer_area_mm2 / 100) if wafer_area_mm2 else 0
+        exp_yield = math.exp(-dens_cm2 * (dw*dh/100)) * 100
+        return {"defect_density_per_cm2": round(dens_cm2,4), "expected_yield_pct": round(exp_yield,2), "total_defects": def_cnt}
 
-@mcp.tool()
-def analyze_wafer_map_patterns(wafer_map: str, die_width: float = 10.0, die_height: float = 10.0) -> Dict[str, Any]:
-    """
-    웨이퍼 맵 패턴 분석
-    
-    Args:
-        wafer_map: 웨이퍼 맵 데이터 (JSON 2D 배열, 1=Pass, 0=Fail)
-        die_width: 다이 너비 (mm)
-        die_height: 다이 높이 (mm)
-    
-    Returns:
-        웨이퍼 맵 패턴 분석 결과
-    """
-    try:
-        map_data = json.loads(wafer_map)
-        return DefectPatternAnalyzer.analyze_wafer_map_patterns(map_data, (die_width, die_height))
-    except json.JSONDecodeError:
-        return {"error": "Invalid JSON format for wafer map"}
-
-@mcp.tool()
-def classify_defect_signatures(defect_data: str) -> Dict[str, Any]:
-    """
-    결함 시그니처 분류
-    
-    Args:
-        defect_data: 결함 데이터 (JSON 배열)
-                    각 결함: {"type": str, "size": float, "location": [x, y], "severity": str}
-    
-    Returns:
-        결함 분류 및 통계 분석
-    """
-    try:
-        defects = json.loads(defect_data)
-        
+    # -----------------------------------------------------
+    # 2. 결함 시그니처 분류
+    # -----------------------------------------------------
+    @staticmethod
+    def classify_defect_signatures(defects: List[Dict[str, Any]]) -> Dict[str, Any]:
         if not defects:
-            return {"error": "No defect data provided"}
-        
-        # 결함 타입별 분류
-        defect_types = Counter(defect.get("type", "Unknown") for defect in defects)
-        
-        # 크기별 분석
-        sizes = [defect.get("size", 0) for defect in defects if defect.get("size")]
-        size_stats = {
-            "mean_size": round(np.mean(sizes), 2) if sizes else 0,
-            "std_size": round(np.std(sizes), 2) if sizes else 0,
-            "min_size": round(min(sizes), 2) if sizes else 0,
-            "max_size": round(max(sizes), 2) if sizes else 0
-        }
-        
-        # 심각도별 분류
-        severity_counts = Counter(defect.get("severity", "Unknown") for defect in defects)
-        
-        # 공간 분포 분석
-        locations = [defect.get("location", [0, 0]) for defect in defects if defect.get("location")]
-        if locations:
-            x_coords = [loc[0] for loc in locations]
-            y_coords = [loc[1] for loc in locations]
-            
-            spatial_stats = {
-                "center_of_mass": [round(np.mean(x_coords), 2), round(np.mean(y_coords), 2)],
-                "spread_x": round(np.std(x_coords), 2),
-                "spread_y": round(np.std(y_coords), 2),
-                "bounding_box": {
-                    "min_x": min(x_coords), "max_x": max(x_coords),
-                    "min_y": min(y_coords), "max_y": max(y_coords)
-                }
+            return {"error": "defect 데이터가 없습니다."}
+        types = Counter(d.get("type", "Unknown") for d in defects)
+        sizes = [d["size"] for d in defects if isinstance(d.get("size"), (int, float))]
+        severities = Counter(d.get("severity", "Unknown") for d in defects)
+        locs = [d["location"] for d in defects if isinstance(d.get("location"), (list, tuple)) and len(d["location"])==2]
+        size_stats = {"mean": round(np.mean(sizes),2) if sizes else 0, "std": round(np.std(sizes),2) if sizes else 0}
+        spatial = {}
+        if locs:
+            xs, ys = zip(*locs)
+            spatial = {
+                "center_of_mass": [round(np.mean(xs),2), round(np.mean(ys),2)],
+                "spread_x": round(float(np.std(xs)),2),
+                "spread_y": round(float(np.std(ys)),2),
             }
-        else:
-            spatial_stats = {"error": "No location data available"}
-        
-        # 파레토 분석
-        total_defects = len(defects)
-        sorted_types = sorted(defect_types.items(), key=lambda x: x[1], reverse=True)
-        
-        pareto_analysis = []
-        cumulative_percent = 0
-        for defect_type, count in sorted_types:
-            percent = (count / total_defects) * 100
-            cumulative_percent += percent
-            pareto_analysis.append({
-                "type": defect_type,
-                "count": count,
-                "percent": round(percent, 2),
-                "cumulative_percent": round(cumulative_percent, 2)
-            })
-        
-        # 상위 80% 차지하는 결함 타입
-        vital_few = [item for item in pareto_analysis if item["cumulative_percent"] <= 80]
-        
+        total = len(defects)
+        pareto, cum = [], 0.0
+        for t, cnt in types.most_common():
+            pct = cnt/total*100
+            cum += pct
+            pareto.append({"type": t, "count": cnt, "percent": round(pct,2), "cum_percent": round(cum,2)})
+        vital = [p for p in pareto if p["cum_percent"] <= 80]
         return {
-            "total_defects": total_defects,
-            "defect_classification": {
-                "by_type": dict(defect_types),
-                "by_severity": dict(severity_counts),
-                "unique_types": len(defect_types)
-            },
-            "size_analysis": size_stats,
-            "spatial_distribution": spatial_stats,
-            "pareto_analysis": {
-                "detailed": pareto_analysis,
-                "vital_few_types": len(vital_few),
-                "vital_few_impact": round(sum(item["percent"] for item in vital_few), 2)
-            }
+            "total_defects": total,
+            "classification": {"by_type": types, "by_severity": severities},
+            "size_stats": size_stats,
+            "spatial_stats": spatial,
+            "pareto": pareto,
+            "vital_few_types": [v["type"] for v in vital],
         }
-        
-    except json.JSONDecodeError:
-        return {"error": "Invalid JSON format for defect data"}
 
-@mcp.tool()
-def analyze_lot_level_patterns(lot_data: str) -> Dict[str, Any]:
-    """
-    로트 레벨 패턴 분석
-    
-    Args:
-        lot_data: 로트별 데이터 (JSON 배열)
-                 각 로트: {"lot_id": str, "yield": float, "defect_count": int, "process_conditions": dict}
-    
-    Returns:
-        로트 간 패턴 및 트렌드 분석
-    """
-    try:
-        lots = json.loads(lot_data)
-        
+    # -----------------------------------------------------
+    # 3. Lot 레벨 분석
+    # -----------------------------------------------------
+    @staticmethod
+    def analyze_lot_level_patterns(lots: List[Dict[str, Any]]) -> Dict[str, Any]:
         if not lots:
-            return {"error": "No lot data provided"}
-        
-        # 기본 통계
-        yields = [lot.get("yield", 0) for lot in lots]
-        defect_counts = [lot.get("defect_count", 0) for lot in lots]
-        
-        yield_stats = {
-            "mean_yield": round(np.mean(yields), 2),
-            "std_yield": round(np.std(yields), 2),
-            "min_yield": round(min(yields), 2),
-            "max_yield": round(max(yields), 2),
-            "yield_range": round(max(yields) - min(yields), 2)
-        }
-        
-        # 트렌드 분석
-        if len(yields) > 1:
-            x = np.arange(len(yields))
-            slope, intercept = np.polyfit(x, yields, 1)
-            
-            trend_analysis = {
-                "slope": round(slope, 4),
-                "trend_direction": "Improving" if slope > 0.1 else "Declining" if slope < -0.1 else "Stable",
-                "r_squared": round(np.corrcoef(x, yields)[0, 1]**2, 3) if len(yields) > 2 else 0
+            return {"error": "lot 데이터가 없습니다."}
+        ylds = [l.get("yield", 0.0) for l in lots]
+        defs = [l.get("defect_count", 0) for l in lots]
+        stats = {"mean_yield": round(float(np.mean(ylds)),2), "std_yield": round(float(np.std(ylds)),2)}
+        # Trend
+        trend = {"direction": "Insufficient"}
+        if len(ylds) > 2:
+            x = np.arange(len(ylds))
+            slope, _ = np.polyfit(x, ylds, 1)
+            trend = {
+                "slope": round(float(slope),4),
+                "direction": "Improving" if slope>0.1 else "Declining" if slope<-0.1 else "Stable"
             }
-        else:
-            trend_analysis = {"trend_direction": "Insufficient data"}
-        
-        # 아웃라이어 식별
-        yield_mean = np.mean(yields)
-        yield_std = np.std(yields)
-        outliers = []
-        
-        for i, lot in enumerate(lots):
-            yield_val = lot.get("yield", 0)
-            z_score = abs(yield_val - yield_mean) / yield_std if yield_std > 0 else 0
-            
-            if z_score > 2:  # 2σ 이상
-                outliers.append({
-                    "lot_id": lot.get("lot_id", f"Lot_{i}"),
-                    "yield": yield_val,
-                    "z_score": round(z_score, 2),
-                    "deviation_type": "Low" if yield_val < yield_mean else "High"
-                })
-        
-        # 공정 조건 분석 (가능한 경우)
-        process_analysis = {}
-        if lots and lots[0].get("process_conditions"):
-            condition_keys = set()
-            for lot in lots:
-                conditions = lot.get("process_conditions", {})
-                condition_keys.update(conditions.keys())
-            
-            for key in condition_keys:
-                values = [lot.get("process_conditions", {}).get(key) for lot in lots]
-                values = [v for v in values if v is not None]
-                
-                if values and all(isinstance(v, (int, float)) for v in values):
-                    # 수치형 조건과 수율 간 상관관계
-                    correlation = np.corrcoef(values, yields[:len(values)])[0, 1] if len(values) > 1 else 0
-                    
-                    process_analysis[key] = {
-                        "correlation_with_yield": round(correlation, 3),
-                        "mean_value": round(np.mean(values), 3),
-                        "std_value": round(np.std(values), 3)
-                    }
-        
-        return {
-            "lot_statistics": {
-                "total_lots": len(lots),
-                "yield_statistics": yield_stats,
-                "defect_statistics": {
-                    "mean_defects": round(np.mean(defect_counts), 2),
-                    "total_defects": sum(defect_counts)
-                }
-            },
-            "trend_analysis": trend_analysis,
-            "outlier_analysis": {
-                "outlier_count": len(outliers),
-                "outliers": outliers
-            },
-            "process_correlation": process_analysis,
-            "recommendations": {
-                "stability": "Good" if yield_stats["std_yield"] < 2 else "Poor",
-                "investigation_needed": len(outliers) > 0,
-                "trend_concern": trend_analysis.get("trend_direction") == "Declining"
-            }
-        }
-        
-    except json.JSONDecodeError:
-        return {"error": "Invalid JSON format for lot data"}
+        # Outliers
+        z = (ylds - np.mean(ylds)) / (np.std(ylds) or 1)
+        outs = [{"lot_id": l.get("lot_id", i), "yield": ylds[i]} for i,l in enumerate(lots) if abs(z[i])>2]
+        return {"lot_stats": stats, "trend": trend, "outliers": outs}
 
+# ------------------------------------------------------------
+# MCP 래퍼
+# ------------------------------------------------------------
+@mcp.tool("analyze_wafer_map_patterns")
+def analyze_wafer_map_patterns(wafer_map: str, die_width: float = 10.0, die_height: float = 10.0) -> Dict[str, Any]:
+    try:
+        return DefectPatternAnalyzer.analyze_wafer_map_patterns(json.loads(wafer_map), (die_width, die_height))
+    except json.JSONDecodeError:
+        return {"error": "wafer_map JSON 형식 오류"}
+
+@mcp.tool("classify_defect_signatures")
+def classify_defect_signatures(defect_data: str) -> Dict[str, Any]:
+    try:
+        return DefectPatternAnalyzer.classify_defect_signatures(json.loads(defect_data))
+    except json.JSONDecodeError:
+        return {"error": "defect_data JSON 형식 오류"}
+
+@mcp.tool("analyze_lot_level_patterns")
+def analyze_lot_level_patterns(lot_data: str) -> Dict[str, Any]:
+    try:
+        return DefectPatternAnalyzer.analyze_lot_level_patterns(json.loads(lot_data))
+    except json.JSONDecodeError:
+        return {"error": "lot_data JSON 형식 오류"}
+
+# ------------------------------------------------------------
 if __name__ == "__main__":
-    print(f"Starting Defect Pattern Analysis MCP server on port {SERVER_PORT}...")
-    uvicorn.run(
-        mcp,
-        host="0.0.0.0",
-        port=SERVER_PORT,
-        log_level="info"
-    )
+    print(f"Starting Defect Pattern Analysis MCP server on port {SERVER_PORT}…")
+    uvicorn.run(mcp.sse_app(), host="0.0.0.0", port=SERVER_PORT, log_level="info")

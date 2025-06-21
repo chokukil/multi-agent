@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-MCP Tool: Time Series Analysis Specialist
-시계열 데이터 분석 전문 도구 - 트렌드, 계절성, 예측, 분해 분석
+Time Series Analysis Specialist Tools - Trend, Seasonality, Forecasting, Decomposition Analysis
 """
 
 import os
@@ -14,6 +13,8 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 import pandas as pd
 import numpy as np
 import uvicorn
+import warnings
+warnings.filterwarnings('ignore')
 
 # FastMCP import
 from mcp.server.fastmcp import FastMCP
@@ -22,8 +23,18 @@ from mcp.types import TextContent
 # Get port from environment variable
 SERVER_PORT = int(os.getenv('SERVER_PORT', '8013'))
 
-# FastMCP 서버 생성
-mcp = FastMCP("Time Series Analysis Specialist")
+# FastMCP server creation
+mcp = FastMCP(
+    "TimeSeriesAnalyst",
+    instructions="""You are a time series analysis specialist.
+    Your tools focus on:
+    1. Trend analysis (direction, strength measurement)
+    2. Seasonality detection and decomposition
+    3. Time series forecasting (ARIMA, exponential smoothing)
+    4. Statistical tests for stationarity
+    5. Change point detection
+    """
+)
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -31,76 +42,75 @@ logger = logging.getLogger(__name__)
 
 
 class TimeSeriesAnalyzer:
-    """시계열 분석 전문 클래스"""
+    """Time Series Analysis Specialist Tools"""
     
     @staticmethod
-    def analyze_trend(data: List[float], dates: List[str] = None) -> Dict[str, Any]:
-        """트렌드 분석"""
+    def analyze_trend(data: List[float], time_column: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Trend Analysis"""
         try:
-            from scipy import stats
+            if len(data) < 3:
+                return {"error": "Trend analysis requires at least 3 data points"}
             
-            if not data or len(data) < 3:
-                return {"error": "트렌드 분석을 위해서는 최소 3개 이상의 데이터 포인트가 필요합니다."}
+            # Linear regression for trend analysis
+            X = np.arange(len(data)).reshape(-1, 1)
+            y = np.array(data)
             
-            # 선형 회귀를 통한 트렌드 분석
-            x = np.arange(len(data))
-            slope, intercept, r_value, p_value, std_err = stats.linregress(x, data)
+            # Trend direction and strength determination
+            slope, intercept, r_value, p_value, std_err = stats.linregress(range(len(data)), data)
+            trend_direction = "increasing" if slope > 0 else "decreasing" if slope < 0 else "stable"
             
-            # 트렌드 방향 및 강도 판정
-            trend_direction = "증가" if slope > 0 else "감소" if slope < 0 else "평평"
-            trend_strength = abs(r_value)
-            
-            if trend_strength > 0.8:
-                strength_desc = "매우 강함"
-            elif trend_strength > 0.6:
-                strength_desc = "강함"
-            elif trend_strength > 0.4:
-                strength_desc = "보통"
-            elif trend_strength > 0.2:
-                strength_desc = "약함"
+            # Trend strength assessment
+            r_squared = r_value ** 2
+            if r_squared > 0.8:
+                strength_desc = "very strong"
+            elif r_squared > 0.6:
+                strength_desc = "strong"
+            elif r_squared > 0.4:
+                strength_desc = "moderate"
+            elif r_squared > 0.2:
+                strength_desc = "weak"
             else:
-                strength_desc = "매우 약함"
+                strength_desc = "very weak"
             
-            # 이동평균 계산
-            ma_7 = pd.Series(data).rolling(window=min(7, len(data)//2)).mean().tolist()
-            ma_30 = pd.Series(data).rolling(window=min(30, len(data)//2)).mean().tolist()
+            # Moving average calculation
+            window_size = min(5, len(data) // 3)
+            if window_size >= 2:
+                moving_avg = pd.Series(data).rolling(window=window_size).mean().tolist()
+            else:
+                moving_avg = data
             
             return {
-                "slope": slope,
-                "intercept": intercept,
-                "r_squared": r_value ** 2,
-                "p_value": p_value,
                 "trend_direction": trend_direction,
-                "trend_strength": trend_strength,
-                "strength_description": strength_desc,
-                "moving_average_7": ma_7,
-                "moving_average_30": ma_30,
-                "trend_line": [slope * i + intercept for i in x],
-                "interpretation": f"데이터는 {trend_direction} 트렌드를 보이며, 트렌드 강도는 {strength_desc}입니다. (R² = {r_value**2:.3f})"
+                "slope": slope,
+                "r_squared": r_squared,
+                "p_value": p_value,
+                "strength": strength_desc,
+                "moving_average": moving_avg,
+                "trend_line": [intercept + slope * i for i in range(len(data))],
+                "interpretation": f"The data shows a {trend_direction} trend with {strength_desc} strength (R² = {r_value**2:.3f})"
             }
-            
         except Exception as e:
-            return {"error": f"트렌드 분석 중 오류가 발생했습니다: {str(e)}"}
+            return {"error": f"Error in trend analysis: {str(e)}"}
     
     @staticmethod
-    def detect_seasonality(data: List[float], period: int = None) -> Dict[str, Any]:
-        """계절성 탐지"""
+    def detect_seasonality(data: List[float], period: Optional[int] = None) -> Dict[str, Any]:
+        """Seasonality Detection"""
         try:
             if len(data) < 14:
-                return {"error": "계절성 분석을 위해서는 최소 14개 이상의 데이터 포인트가 필요합니다."}
+                return {"error": "Seasonality analysis requires at least 14 data points"}
             
             series = pd.Series(data)
             
-            # 자동 주기 탐지 (제공되지 않은 경우)
+            # Automatic period detection (common periods)
             if period is None:
-                # 일반적인 주기들 테스트
+                # Common periods: 7, 14, 30, 365
                 common_periods = [7, 14, 30, 365]
                 best_period = None
                 best_correlation = 0
                 
                 for p in common_periods:
                     if len(data) >= 2 * p:
-                        # 지연 자기상관 계산
+                        # Calculate autocorrelation
                         correlation = series.autocorr(lag=p)
                         if correlation > best_correlation:
                             best_correlation = correlation
@@ -109,12 +119,12 @@ class TimeSeriesAnalyzer:
                 period = best_period if best_correlation > 0.3 else None
             
             if period and len(data) >= 2 * period:
-                # 계절성 분해
+                # Seasonality decomposition
                 from statsmodels.tsa.seasonal import seasonal_decompose
                 
                 decomposition = seasonal_decompose(series, model='additive', period=period)
                 
-                # 계절성 강도 계산
+                # Seasonal strength calculation
                 seasonal_strength = np.var(decomposition.seasonal) / np.var(series)
                 
                 return {
@@ -124,34 +134,34 @@ class TimeSeriesAnalyzer:
                     "seasonal_component": decomposition.seasonal.tolist(),
                     "trend_component": decomposition.trend.dropna().tolist(),
                     "residual_component": decomposition.resid.dropna().tolist(),
-                    "interpretation": f"주기 {period}의 계절성 패턴이 감지되었습니다. 계절성 강도: {seasonal_strength:.3f}"
+                    "interpretation": f"Seasonal period {period} detected with seasonal strength: {seasonal_strength:.3f}"
                 }
             else:
                 return {
                     "has_seasonality": False,
                     "period": None,
-                    "interpretation": "명확한 계절성 패턴을 감지할 수 없습니다."
+                    "interpretation": "No clear seasonality detected."
                 }
                 
         except Exception as e:
-            return {"error": f"계절성 분석 중 오류가 발생했습니다: {str(e)}"}
+            return {"error": f"Error in seasonality detection: {str(e)}"}
     
     @staticmethod
     def test_stationarity(data: List[float]) -> Dict[str, Any]:
-        """정상성 검정"""
+        """Stationarity Test"""
         try:
             if len(data) < 10:
-                return {"error": "정상성 검정을 위해서는 최소 10개 이상의 데이터 포인트가 필요합니다."}
+                return {"error": "Stationarity test requires at least 10 data points"}
             
             from statsmodels.tsa.stattools import adfuller, kpss
             
             series = pd.Series(data).dropna()
             
-            # ADF 검정 (단위근 검정)
+            # ADF test (Augmented Dickey-Fuller test)
             adf_result = adfuller(series)
             adf_stationary = adf_result[1] < 0.05
             
-            # KPSS 검정 (추세 정상성 검정)
+            # KPSS test (Kwiatkowski-Phillips-Schmidt-Shin test)
             try:
                 kpss_result = kpss(series, regression='ct')
                 kpss_stationary = kpss_result[1] > 0.05
@@ -159,13 +169,13 @@ class TimeSeriesAnalyzer:
                 kpss_result = None
                 kpss_stationary = None
             
-            # 종합 판정
+            # Comprehensive conclusion
             if adf_stationary and (kpss_stationary or kpss_stationary is None):
-                conclusion = "정상성"
+                conclusion = "Stationary"
             elif not adf_stationary and (not kpss_stationary if kpss_stationary is not None else True):
-                conclusion = "비정상성"
+                conclusion = "Non-stationary"
             else:
-                conclusion = "불확실"
+                conclusion = "Uncertain"
             
             result = {
                 "adf_test": {
@@ -175,7 +185,7 @@ class TimeSeriesAnalyzer:
                     "is_stationary": adf_stationary
                 },
                 "conclusion": conclusion,
-                "interpretation": f"ADF 검정 결과: {'정상성' if adf_stationary else '비정상성'}"
+                "interpretation": f"ADF test conclusion: {'Stationary' if adf_stationary else 'Non-stationary'}"
             }
             
             if kpss_result:
@@ -185,32 +195,32 @@ class TimeSeriesAnalyzer:
                     "critical_values": kpss_result[3],
                     "is_stationary": kpss_stationary
                 }
-                result["interpretation"] += f", KPSS 검정 결과: {'정상성' if kpss_stationary else '비정상성'}"
+                result["interpretation"] += f", KPSS test conclusion: {'Stationary' if kpss_stationary else 'Non-stationary'}"
             
             return result
             
         except Exception as e:
-            return {"error": f"정상성 검정 중 오류가 발생했습니다: {str(e)}"}
+            return {"error": f"Error in stationarity test: {str(e)}"}
     
     @staticmethod
     def forecast_timeseries(data: List[float], periods: int = 10, method: str = "auto") -> Dict[str, Any]:
-        """시계열 예측"""
+        """Time Series Forecasting"""
         try:
             if len(data) < 5:
-                return {"error": "예측을 위해서는 최소 5개 이상의 데이터 포인트가 필요합니다."}
+                return {"error": "Forecasting requires at least 5 data points"}
             
             series = pd.Series(data)
             
-            # 예측 방법 선택
+            # Automatic method selection
             if method == "auto":
-                # 데이터 특성에 따른 자동 선택
+                # Automatic selection based on data length
                 if len(data) >= 24:
                     method = "exponential_smoothing"
                 else:
                     method = "linear_trend"
             
             if method == "linear_trend":
-                # 선형 트렌드 기반 예측
+                # Linear regression-based forecasting
                 from scipy import stats
                 x = np.arange(len(data))
                 slope, intercept, _, _, _ = stats.linregress(x, data)
@@ -222,14 +232,14 @@ class TimeSeriesAnalyzer:
                     "method": "linear_trend",
                     "periods": periods,
                     "forecast": forecast,
-                    "interpretation": f"선형 트렌드 모델로 {periods}기간 예측을 수행했습니다."
+                    "interpretation": f"Linear trend model forecast for {periods} periods."
                 }
                 
             elif method == "exponential_smoothing":
-                # 지수평활법
+                # Exponential smoothing
                 from statsmodels.tsa.holtwinters import ExponentialSmoothing
                 
-                # 단순 지수평활
+                # Fit exponential smoothing model
                 model = ExponentialSmoothing(series, trend='add')
                 fitted_model = model.fit()
                 forecast = fitted_model.forecast(steps=periods).tolist()
@@ -239,14 +249,14 @@ class TimeSeriesAnalyzer:
                     "periods": periods,
                     "forecast": forecast,
                     "model_aic": fitted_model.aic,
-                    "interpretation": f"지수평활법으로 {periods}기간 예측을 수행했습니다. AIC: {fitted_model.aic:.2f}"
+                    "interpretation": f"Exponential smoothing forecast for {periods} periods. AIC: {fitted_model.aic:.2f}"
                 }
                 
             elif method == "arima":
-                # ARIMA 모델
+                # ARIMA model
                 from statsmodels.tsa.arima.model import ARIMA
                 
-                # 간단한 ARIMA(1,1,1) 모델
+                # Simple ARIMA(1,1,1) model
                 model = ARIMA(series, order=(1, 1, 1))
                 fitted_model = model.fit()
                 forecast_result = fitted_model.forecast(steps=periods)
@@ -261,32 +271,32 @@ class TimeSeriesAnalyzer:
                         "upper": confidence_interval.iloc[:, 1].tolist()
                     },
                     "model_aic": fitted_model.aic,
-                    "interpretation": f"ARIMA(1,1,1) 모델로 {periods}기간 예측을 수행했습니다. AIC: {fitted_model.aic:.2f}"
+                    "interpretation": f"ARIMA(1,1,1) model forecast for {periods} periods. AIC: {fitted_model.aic:.2f}"
                 }
                 
         except Exception as e:
-            return {"error": f"예측 중 오류가 발생했습니다: {str(e)}"}
+            return {"error": f"Error in forecasting: {str(e)}"}
     
     @staticmethod
     def detect_anomalies(data: List[float], method: str = "zscore", threshold: float = 3.0) -> Dict[str, Any]:
-        """이상치 탐지"""
+        """Anomaly Detection"""
         try:
             if len(data) < 5:
-                return {"error": "이상치 탐지를 위해서는 최소 5개 이상의 데이터 포인트가 필요합니다."}
+                return {"error": "Anomaly detection requires at least 5 data points"}
             
             series = pd.Series(data)
             anomalies = []
             anomaly_indices = []
             
             if method == "zscore":
-                # Z-score 기반 이상치 탐지
+                # Z-score based anomaly detection
                 z_scores = np.abs(stats.zscore(series))
                 anomaly_mask = z_scores > threshold
                 anomalies = series[anomaly_mask].tolist()
                 anomaly_indices = series[anomaly_mask].index.tolist()
                 
             elif method == "iqr":
-                # IQR 기반 이상치 탐지
+                # IQR based anomaly detection
                 q1 = series.quantile(0.25)
                 q3 = series.quantile(0.75)
                 iqr = q3 - q1
@@ -298,7 +308,7 @@ class TimeSeriesAnalyzer:
                 anomaly_indices = series[anomaly_mask].index.tolist()
                 
             elif method == "isolation_forest":
-                # Isolation Forest (scikit-learn 필요)
+                # Isolation Forest (scikit-learn required)
                 try:
                     from sklearn.ensemble import IsolationForest
                     
@@ -310,7 +320,7 @@ class TimeSeriesAnalyzer:
                     anomaly_indices = series[anomaly_mask].index.tolist()
                     
                 except ImportError:
-                    return {"error": "Isolation Forest 방법을 사용하려면 scikit-learn이 필요합니다."}
+                    return {"error": "Isolation Forest method requires scikit-learn"}
             
             return {
                 "method": method,
@@ -319,15 +329,15 @@ class TimeSeriesAnalyzer:
                 "anomaly_indices": anomaly_indices,
                 "anomaly_values": anomalies,
                 "anomaly_percentage": (len(anomalies) / len(data)) * 100,
-                "interpretation": f"{method} 방법으로 {len(anomalies)}개의 이상치를 탐지했습니다. ({(len(anomalies)/len(data)*100):.1f}%)"
+                "interpretation": f"{method} method detected {len(anomalies)} anomalies. ({len(anomalies)/len(data)*100:.1f}%)"
             }
             
         except Exception as e:
-            return {"error": f"이상치 탐지 중 오류가 발생했습니다: {str(e)}"}
+            return {"error": f"Error in anomaly detection: {str(e)}"}
     
     @staticmethod
     def calculate_autocorrelation(data: List[float], max_lags: int = 20) -> Dict[str, Any]:
-        """자기상관 계산"""
+        """Autocorrelation Calculation"""
         try:
             if len(data) < max_lags + 1:
                 max_lags = len(data) - 1
@@ -339,9 +349,9 @@ class TimeSeriesAnalyzer:
                 autocorr = series.autocorr(lag=lag)
                 autocorrelations.append(autocorr if not pd.isna(autocorr) else 0.0)
             
-            # 유의한 자기상관 찾기
+            # Find significant lags
             significant_lags = []
-            threshold = 1.96 / np.sqrt(len(data))  # 95% 신뢰구간
+            threshold = 1.96 / np.sqrt(len(data))  # 95% confidence interval
             
             for i, autocorr in enumerate(autocorrelations):
                 if abs(autocorr) > threshold:
@@ -355,127 +365,127 @@ class TimeSeriesAnalyzer:
                 "autocorrelations": autocorrelations,
                 "significant_lags": significant_lags,
                 "significance_threshold": threshold,
-                "interpretation": f"최대 {max_lags}까지의 자기상관을 계산했습니다. {len(significant_lags)}개의 유의한 지연이 발견되었습니다."
+                "interpretation": f"Autocorrelation calculation completed. {len(significant_lags)} significant lags found."
             }
             
         except Exception as e:
-            return {"error": f"자기상관 계산 중 오류가 발생했습니다: {str(e)}"}
+            return {"error": f"Error in autocorrelation calculation: {str(e)}"}
 
 
-# MCP 도구 등록
-@mcp.tool
-def analyze_trend(data: List[float], dates: List[str] = None) -> Dict[str, Any]:
+# MCP server implementation
+@mcp.tool("analyze_trend")
+def analyze_trend(data: List[float], time_column: Optional[List[str]] = None) -> Dict[str, Any]:
     """
-    시계열 데이터의 트렌드를 분석합니다.
+    Trend Analysis
     
     Args:
-        data: 분석할 시계열 데이터 (숫자 리스트)
-        dates: 날짜 정보 (선택사항)
+        data: List of data points
+        time_column: Optional list of time stamps
     
     Returns:
-        트렌드 분석 결과 (방향, 강도, 통계량 등)
+        Trend analysis result (direction, strength, interpretation)
     """
-    return TimeSeriesAnalyzer.analyze_trend(data, dates)
+    return TimeSeriesAnalyzer.analyze_trend(data, time_column)
 
 
-@mcp.tool  
-def detect_seasonality(data: List[float], period: int = None) -> Dict[str, Any]:
+@mcp.tool("detect_seasonality")
+def detect_seasonality(data: List[float], period: Optional[int] = None) -> Dict[str, Any]:
     """
-    시계열 데이터의 계절성을 탐지하고 분석합니다.
+    Seasonality Detection
     
     Args:
-        data: 분석할 시계열 데이터
-        period: 계절성 주기 (자동 탐지시 None)
+        data: List of data points
+        period: Optional seasonal period
     
     Returns:
-        계절성 분석 결과
+        Seasonality analysis result
     """
     return TimeSeriesAnalyzer.detect_seasonality(data, period)
 
 
-@mcp.tool
+@mcp.tool("test_stationarity")
 def test_stationarity(data: List[float]) -> Dict[str, Any]:
     """
-    시계열 데이터의 정상성을 검정합니다.
+    Stationarity Test
     
     Args:
-        data: 검정할 시계열 데이터
+        data: List of data points
     
     Returns:
-        정상성 검정 결과 (ADF, KPSS 검정)
+        Stationarity test result (ADF, KPSS test results)
     """
     return TimeSeriesAnalyzer.test_stationarity(data)
 
 
-@mcp.tool
+@mcp.tool("forecast_timeseries")
 def forecast_timeseries(data: List[float], periods: int = 10, method: str = "auto") -> Dict[str, Any]:
     """
-    시계열 데이터를 예측합니다.
+    Time Series Forecasting
     
     Args:
-        data: 예측할 시계열 데이터
-        periods: 예측 기간
-        method: 예측 방법 (auto, linear_trend, exponential_smoothing, arima)
+        data: List of data points
+        periods: Number of forecast periods
+        method: Forecasting method (auto, linear_trend, exponential_smoothing, arima)
     
     Returns:
-        예측 결과
+        Forecasting result
     """
     return TimeSeriesAnalyzer.forecast_timeseries(data, periods, method)
 
 
-@mcp.tool
+@mcp.tool("detect_anomalies")
 def detect_anomalies(data: List[float], method: str = "zscore", threshold: float = 3.0) -> Dict[str, Any]:
     """
-    시계열 데이터의 이상치를 탐지합니다.
+    Anomaly Detection
     
     Args:
-        data: 분석할 시계열 데이터
-        method: 탐지 방법 (zscore, iqr, isolation_forest)
-        threshold: 이상치 임계값
+        data: List of data points
+        method: Anomaly detection method (zscore, iqr, isolation_forest)
+        threshold: Anomaly threshold
     
     Returns:
-        이상치 탐지 결과
+        Anomaly detection result
     """
     return TimeSeriesAnalyzer.detect_anomalies(data, method, threshold)
 
 
-@mcp.tool
+@mcp.tool("calculate_autocorrelation")
 def calculate_autocorrelation(data: List[float], max_lags: int = 20) -> Dict[str, Any]:
     """
-    시계열 데이터의 자기상관을 계산합니다.
+    Autocorrelation Calculation
     
     Args:
-        data: 분석할 시계열 데이터
-        max_lags: 최대 지연 수
+        data: List of data points
+        max_lags: Maximum number of lags
     
     Returns:
-        자기상관 분석 결과
+        Autocorrelation analysis result
     """
     return TimeSeriesAnalyzer.calculate_autocorrelation(data, max_lags)
 
 
-@mcp.tool
+@mcp.tool("decompose_timeseries")
 def decompose_timeseries(data: List[float], model: str = "additive", period: int = None) -> Dict[str, Any]:
     """
-    시계열을 트렌드, 계절성, 잔차로 분해합니다.
+    Time Series Decomposition
     
     Args:
-        data: 분해할 시계열 데이터
-        model: 분해 모델 (additive, multiplicative)
-        period: 계절성 주기
+        data: List of data points to decompose
+        model: Decomposition model (additive, multiplicative)
+        period: Seasonal period
     
     Returns:
-        분해 결과
+        Decomposition result
     """
     try:
         if len(data) < 14:
-            return {"error": "시계열 분해를 위해서는 최소 14개 이상의 데이터 포인트가 필요합니다."}
+            return {"error": "Decomposition requires at least 14 data points"}
         
         from statsmodels.tsa.seasonal import seasonal_decompose
         
         series = pd.Series(data)
         
-        # 주기 자동 설정
+        # Automatic period detection
         if period is None:
             period = min(12, len(data) // 2)
         
@@ -488,33 +498,33 @@ def decompose_timeseries(data: List[float], model: str = "additive", period: int
             "seasonal": decomposition.seasonal.tolist(),
             "residual": decomposition.resid.dropna().tolist(),
             "original": data,
-            "interpretation": f"{model} 모델로 주기 {period}의 시계열 분해를 수행했습니다."
+            "interpretation": f"{model} model performed decomposition for period {period}."
         }
         
     except Exception as e:
-        return {"error": f"시계열 분해 중 오류가 발생했습니다: {str(e)}"}
+        return {"error": f"Error in decomposition: {str(e)}"}
 
 
-@mcp.tool
+@mcp.tool("comprehensive_timeseries_analysis")
 def comprehensive_timeseries_analysis(data: List[float], 
                                     dates: List[str] = None,
                                     forecast_periods: int = 10,
                                     seasonal_period: int = None) -> Dict[str, Any]:
     """
-    종합적인 시계열 분석을 수행합니다.
+    Comprehensive Time Series Analysis
     
     Args:
-        data: 분석할 시계열 데이터
-        dates: 날짜 정보
-        forecast_periods: 예측 기간
-        seasonal_period: 계절성 주기
+        data: List of data points
+        dates: Optional list of dates
+        forecast_periods: Number of forecast periods
+        seasonal_period: Optional seasonal period
     
     Returns:
-        종합 분석 결과
+        Comprehensive analysis result
     """
     try:
         if len(data) < 10:
-            return {"error": "종합 분석을 위해서는 최소 10개 이상의 데이터 포인트가 필요합니다."}
+            return {"error": "Comprehensive analysis requires at least 10 data points"}
         
         results = {
             "data_summary": {
@@ -526,7 +536,7 @@ def comprehensive_timeseries_analysis(data: List[float],
             }
         }
         
-        # 각 분석 수행
+        # Individual analysis
         results["trend_analysis"] = TimeSeriesAnalyzer.analyze_trend(data, dates)
         results["seasonality_analysis"] = TimeSeriesAnalyzer.detect_seasonality(data, seasonal_period)
         results["stationarity_test"] = TimeSeriesAnalyzer.test_stationarity(data)
@@ -534,31 +544,31 @@ def comprehensive_timeseries_analysis(data: List[float],
         results["autocorrelation"] = TimeSeriesAnalyzer.calculate_autocorrelation(data)
         results["forecast"] = TimeSeriesAnalyzer.forecast_timeseries(data, forecast_periods)
         
-        # 종합 해석
+        # Comprehensive interpretation
         interpretation = []
         
-        # 트렌드 해석
+        # Trend analysis
         if "error" not in results["trend_analysis"]:
             trend = results["trend_analysis"]
-            interpretation.append(f"트렌드: {trend['trend_direction']} ({trend['strength_description']})")
+            interpretation.append(f"Trend: {trend['trend_direction']} ({trend['strength']})")
         
-        # 계절성 해석
+        # Seasonality analysis
         if "error" not in results["seasonality_analysis"]:
             seasonality = results["seasonality_analysis"]
             if seasonality["has_seasonality"]:
-                interpretation.append(f"계절성: 주기 {seasonality['period']} 감지됨")
+                interpretation.append(f"Seasonal period: {seasonality['period']}")
             else:
-                interpretation.append("계절성: 감지되지 않음")
+                interpretation.append("No clear seasonality detected")
         
-        # 정상성 해석
+        # Stationarity test
         if "error" not in results["stationarity_test"]:
             stationarity = results["stationarity_test"]
-            interpretation.append(f"정상성: {stationarity['conclusion']}")
+            interpretation.append(f"Stationarity: {stationarity['conclusion']}")
         
-        # 이상치 해석
+        # Anomaly detection
         if "error" not in results["anomaly_detection"]:
             anomalies = results["anomaly_detection"]
-            interpretation.append(f"이상치: {anomalies['anomaly_count']}개 ({anomalies['anomaly_percentage']:.1f}%)")
+            interpretation.append(f"Anomalies: {anomalies['anomaly_count']} ({anomalies['anomaly_percentage']:.1f}%)")
         
         results["interpretation"] = ". ".join(interpretation)
         results["analysis_timestamp"] = datetime.now().isoformat()
@@ -566,7 +576,7 @@ def comprehensive_timeseries_analysis(data: List[float],
         return results
         
     except Exception as e:
-        return {"error": f"종합 분석 중 오류가 발생했습니다: {str(e)}"}
+        return {"error": f"Error in comprehensive analysis: {str(e)}"}
 
 
 if __name__ == "__main__":

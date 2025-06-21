@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "data_preprocessing_tools": {
+      "url": "http://localhost:8017/sse",
+      "transport": "sse",
+      "description": "Advanced data preprocessing and cleaning"
+    },
+    "statistical_analysis_tools": {
+      "url": "http://localhost:8018/sse",
+      "transport": "sse",
+      "description": "Statistical analysis and hypothesis testing"
+    },
+    "anomaly_detection": {
+      "url": "http://localhost:8014/sse",
+      "transport": "sse",
+      "description": "Anomaly detection and outlier analysis"
+    }
+  },
+  "config_name": "data_validator_tools",
+  "description": "MCP tools for Data_Validator",
+  "role": "Data_Validator"
+}

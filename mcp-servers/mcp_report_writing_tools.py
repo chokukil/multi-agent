@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 MCP Tool: Report Writing Tools
 보고서 작성 도구 - 문서 생성, 템플릿 관리, 형식 변환, 품질 검증
@@ -940,7 +941,7 @@ class ReportWritingTools:
 
 
 # MCP 도구 등록
-@mcp.tool
+@mcp.tool("generate_executive_summary")
 def generate_executive_summary(analysis_results: Dict[str, Any], 
                              target_audience: str = "business",
                              length: str = "medium",
@@ -960,7 +961,7 @@ def generate_executive_summary(analysis_results: Dict[str, Any],
     return ReportWritingTools.generate_executive_summary(analysis_results, target_audience, length, language)
 
 
-@mcp.tool
+@mcp.tool("create_report_template")
 def create_report_template(report_type: str = "technical",
                          sections: List[str] = None,
                          language: str = "korean") -> Dict[str, Any]:
@@ -978,7 +979,7 @@ def create_report_template(report_type: str = "technical",
     return ReportWritingTools.create_report_template(report_type, sections, language)
 
 
-@mcp.tool
+@mcp.tool("format_report_content")
 def format_report_content(content: str,
                         output_format: str = "markdown",
                         styling_options: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -996,7 +997,7 @@ def format_report_content(content: str,
     return ReportWritingTools.format_report_content(content, output_format, styling_options)
 
 
-@mcp.tool
+@mcp.tool("analyze_report_quality")
 def analyze_report_quality(report_content: str,
                          report_type: str = "technical",
                          target_metrics: Dict[str, Any] = None) -> Dict[str, Any]:

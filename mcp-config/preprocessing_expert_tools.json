@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "data_preprocessing_tools": {
+      "url": "http://localhost:8017/sse",
+      "transport": "sse",
+      "description": "Advanced data preprocessing and cleaning"
+    },
+    "advanced_ml_tools": {
+      "url": "http://localhost:8016/sse",
+      "transport": "sse",
+      "description": "Advanced machine learning algorithms"
+    },
+    "anomaly_detection": {
+      "url": "http://localhost:8014/sse",
+      "transport": "sse",
+      "description": "Anomaly detection and outlier analysis"
+    },
+    "file_management": {
+      "url": "http://localhost:8006/sse",
+      "transport": "sse",
+      "description": "Safe file operations and management"
+    }
+  },
+  "config_name": "preprocessing_expert_tools",
+  "description": "MCP tools for Preprocessing_Expert",
+  "role": "Preprocessing_Expert"
+}

@@ -11,6 +11,9 @@ import asyncio
 import logging
 from datetime import datetime
 
+# Add log_event import
+from core.utils.helpers import log_event
+
 def render_mcp_config_section():
     """MCP Server Configuration 섹션 렌더링"""
     from core.utils.config import load_mcp_configs, save_mcp_config, delete_mcp_config
@@ -287,13 +290,16 @@ def render_system_settings():
             st.rerun()
 
 def render_executor_creation_form():
-    """Executor 생성 폼 렌더링 - MCP 도구 선택 기능 포함"""
-    from core.utils.config import load_mcp_configs
+    """Enhanced Executor 생성 폼 - 파일 기반 템플릿 시스템 포함"""
+    from core.utils.config import (
+        load_executor_templates, get_template_categories, 
+        load_mcp_templates, save_executor_template
+    )
     from core.tools.mcp_tools import get_available_mcp_tools_info
     
     st.subheader("➕ Create New Executor")
     
-    # Enhanced agent creation with detailed options
+    # Enhanced agent creation with file-based templates
     with st.form("create_executor_form"):
         # Executor name
         executor_name = st.text_input(
@@ -302,70 +308,85 @@ def render_executor_creation_form():
             help="Choose a descriptive name for the executor"
         )
         
-        # Enhanced role templates
-        role_templates = {
-            "Custom": "",
-            "EDA Specialist": """You are an Exploratory Data Analysis Expert who uncovers hidden patterns and insights in data. 
-You focus on understanding data structure, distributions, relationships, and anomalies.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Perform ALL your analysis on `df` in the SAME Python tool execution.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-            "Visualization Expert": """You are a Data Visualization Expert who creates compelling and insightful charts, graphs, and dashboards.
-You excel at choosing the right visualization for the data and message.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Create visualizations using matplotlib, seaborn, or plotly.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-            "ML Engineer": """You are a Machine Learning Engineer who builds, trains, and evaluates predictive models.
-You handle the full ML pipeline from data preparation to model deployment.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Use sklearn or other ML libraries for modeling.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-            "Data Preprocessor": """You are a Data Preprocessing Expert who cleans, transforms, and prepares data for analysis.
-You handle missing values, outliers, encoding, and feature scaling.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Document all transformations clearly.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-            "Statistical Analyst": """You are a Statistical Analysis Expert who performs rigorous statistical tests and modeling.
-You derive meaningful insights through hypothesis testing and statistical inference.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Use scipy.stats or statsmodels for analysis.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-            "Report Writer": """You are a Report Writing Expert who creates comprehensive analysis reports.
-You summarize findings and communicate insights to stakeholders.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool if data analysis is needed.
-2. Focus on clear, actionable insights.
-3. End with 'TASK COMPLETED: [Summary]' when finished."""
-        }
+        # Load templates from prompt-configs
+        st.subheader("📝 Role Template")
         
-        selected_role = st.selectbox(
-            "Select Role Template",
-            list(role_templates.keys()),
-            help="Choose a predefined role or create custom"
+        templates = load_executor_templates()
+        categories = get_template_categories()
+        
+        # Category filter
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            selected_category = st.selectbox(
+                "Filter by Category",
+                ["All"] + categories,
+                help="Filter templates by category"
+            )
+        
+        with col2:
+            show_source = st.checkbox("Show Source", help="Show template source (user/system)")
+        
+        # Filter templates by category
+        if selected_category != "All":
+            filtered_templates = {k: v for k, v in templates.items() 
+                                if v.get("category") == selected_category}
+        else:
+            filtered_templates = templates
+        
+        # Template selection with source indication
+        if show_source:
+            template_options = ["Custom"] + [
+                f"{name} ({config.get('source', 'system')})" 
+                for name, config in filtered_templates.items()
+            ]
+            format_func = lambda x: x
+        else:
+            template_options = ["Custom"] + list(filtered_templates.keys())
+            format_func = lambda x: x
+        
+        selected_template_display = st.selectbox(
+            "Select Template",
+            template_options,
+            format_func=format_func,
+            help="Choose from available prompt templates"
         )
         
-        if selected_role == "Custom":
+        # Extract actual template name
+        if selected_template_display == "Custom":
+            selected_template = "Custom"
+        else:
+            selected_template = selected_template_display.split(" (")[0] if show_source else selected_template_display
+        
+        # Show template info and prompt editing
+        if selected_template == "Custom":
             prompt_text = st.text_area(
                 "Role Description",
                 height=150,
-                placeholder="Describe the executor's role... Include 'TASK COMPLETED:' instruction at the end."
+                placeholder="Describe the executor's role... Include 'TASK COMPLETED:' instruction at the end.",
+                help="Create a custom role description"
             )
         else:
+            template_data = filtered_templates.get(selected_template, {})
+            
+            # Show template metadata
+            if template_data:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.info(f"📂 **Source**: {template_data.get('source', 'system')}")
+                with col2:
+                    st.info(f"🏷️ **Category**: {template_data.get('category', 'other')}")
+                with col3:
+                    st.info(f"📄 **File**: {template_data.get('file', 'unknown')}")
+                
+                # Show creation date if available
+                if template_data.get('created_at'):
+                    st.caption(f"Created: {template_data['created_at']}")
+            
             prompt_text = st.text_area(
                 "Role Description",
-                value=role_templates[selected_role],
-                height=150
+                value=template_data.get("prompt", ""),
+                height=150,
+                help="You can edit the selected template"
             )
         
         # Tool selection
@@ -378,39 +399,79 @@ CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL dat
             help="강화된 SSOT 기반 데이터 분석 환경"
         )
         
-        # MCP Tools Selection
-        st.markdown("#### MCP 도구 선택")
-        saved_configs = load_mcp_configs()
+        # MCP Tools Selection - using new template system
+        st.markdown("#### MCP Tools Configuration")
+        mcp_templates = load_mcp_templates()
         
-        if saved_configs:
-            config_names = ["None"] + [config.get('name', config['config_name']) for config in saved_configs]
-            selected_mcp_config = st.selectbox(
-                "MCP 설정 선택",
-                config_names,
-                help="사용할 MCP 도구 설정을 선택하세요"
+        if mcp_templates:
+            template_names = ["None"] + list(mcp_templates.keys())
+            selected_mcp_template = st.selectbox(
+                "MCP Template",
+                template_names,
+                help="Select MCP tools configuration template"
             )
             
-            selected_mcp_tools = []
-            if selected_mcp_config != "None":
-                config_data = next((c for c in saved_configs if c.get('name', c['config_name']) == selected_mcp_config), None)
-                if config_data:
-                    # 실시간 서버 상태 확인
-                    tools_info = get_available_mcp_tools_info(config_data['config_name'])
+            selected_mcp_servers = []
+            if selected_mcp_template != "None":
+                mcp_config = mcp_templates[selected_mcp_template]
+                
+                # Show template info
+                st.info(f"📦 **{selected_mcp_template}** - {mcp_config.get('description', 'No description')}")
+                
+                # Server selection with real-time status
+                available_servers = mcp_config.get("servers", [])
+                
+                if available_servers:
+                    st.write("**Available Servers:**")
                     
-                    if tools_info['available']:
-                        st.success(f"✅ {tools_info['available_servers']}/{tools_info['total_servers']} MCP 서버 사용 가능")
+                    # Check server status
+                    try:
+                        tools_info = get_available_mcp_tools_info(selected_mcp_template)
+                        server_status = {tool['server_name']: tool['status'] for tool in tools_info.get('tools', [])}
+                    except:
+                        server_status = {}
+                    
+                    # Server checkboxes
+                    for server in available_servers:
+                        status = server_status.get(server, 'unknown')
+                        status_icon = "🟢" if status == "available" else "🔴" if status == "unavailable" else "🟡"
                         
-                        # 사용 가능한 도구들을 체크박스로 표시
-                        for tool in tools_info['tools']:
-                            if tool['status'] == 'available':
-                                if st.checkbox(f"🟢 {tool['server_name']}", value=True, key=f"mcp_tool_{tool['server_name']}"):
-                                    selected_mcp_tools.append(tool['server_name'])
-                            else:
-                                st.checkbox(f"🔴 {tool['server_name']} (사용 불가)", value=False, disabled=True, key=f"mcp_tool_disabled_{tool['server_name']}")
-                    else:
-                        st.warning("⚠️ 선택한 설정의 MCP 서버들이 실행되지 않았습니다")
+                        if status == "available":
+                            if st.checkbox(f"{status_icon} {server}", value=True, key=f"mcp_server_{server}"):
+                                selected_mcp_servers.append(server)
+                        else:
+                            status_text = "unavailable" if status == "unavailable" else "unknown"
+                            st.checkbox(f"{status_icon} {server} ({status_text})", value=False, disabled=True, key=f"mcp_server_disabled_{server}")
+                    
+                    # Show selected servers summary
+                    if selected_mcp_servers:
+                        st.success(f"✅ Selected: {', '.join(selected_mcp_servers)}")
+                    
+                    # Configuration preview
+                    with st.expander("📋 Configuration Preview", expanded=False):
+                        if selected_mcp_servers:
+                            preview_config = {
+                                server: mcp_config["config"]["mcpServers"].get(server, {})
+                                for server in selected_mcp_servers
+                            }
+                            st.json(preview_config)
+                        else:
+                            st.info("Select servers to see configuration preview")
+                else:
+                    st.warning("No servers found in this template")
         else:
-            st.info("💡 MCP 설정을 먼저 생성하세요")
+            st.info("💡 No MCP templates found. Create templates in mcp-configs/ directory")
+        
+        # Additional options
+        with st.expander("⚙️ Advanced Options", expanded=False):
+            save_as_template = st.checkbox(
+                "Save as Template", 
+                help="Save this configuration as a reusable template"
+            )
+            
+            if save_as_template:
+                template_name = st.text_input("Template Name", placeholder="My Custom Template")
+                template_category = st.selectbox("Category", ["custom"] + categories)
         
         # Submit button
         submitted = st.form_submit_button("✨ Create Executor", type="primary", use_container_width=True)
@@ -427,36 +488,201 @@ CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL dat
                 if "executors" not in st.session_state:
                     st.session_state.executors = {}
                 
-                # 기본 도구 목록 구성
+                # Build tools list
                 tools = ["python_repl_ast"] if use_python else []
                 
-                # MCP 도구 설정 추가
+                # MCP configuration
                 mcp_config = {}
-                if 'selected_mcp_config' in locals() and selected_mcp_config != "None" and selected_mcp_tools:
-                    config_data = next((c for c in saved_configs if c.get('name', c['config_name']) == selected_mcp_config), None)
-                    if config_data:
-                        mcp_config = {
-                            "config_name": selected_mcp_config,
-                            "selected_tools": selected_mcp_tools,
-                            "mcpServers": {tool: config_data['mcpServers'].get(tool, {}) for tool in selected_mcp_tools}
+                if 'selected_mcp_template' in locals() and selected_mcp_template != "None" and selected_mcp_servers:
+                    mcp_template_data = mcp_templates[selected_mcp_template]
+                    mcp_config = {
+                        "config_name": selected_mcp_template,
+                        "selected_tools": selected_mcp_servers,
+                        "mcpServers": {
+                            server: mcp_template_data["config"]["mcpServers"].get(server, {})
+                            for server in selected_mcp_servers
                         }
-                        # MCP 도구들을 도구 목록에 추가
-                        for tool in selected_mcp_tools:
-                            tools.append(f"mcp:{selected_mcp_config}:{tool}")
+                    }
+                    
+                    # Add MCP tools to tools list
+                    for server in selected_mcp_servers:
+                        tools.append(f"mcp:{selected_mcp_template}:{server}")
                 
                 # Create executor configuration
                 executor_config = {
                     "prompt": prompt_text,
                     "tools": tools,
                     "mcp_config": mcp_config,
-                    "created_at": datetime.now().isoformat()
+                    "created_at": datetime.now().isoformat(),
+                    "template_source": selected_template if selected_template != "Custom" else "custom"
                 }
                 
+                # Save as template if requested
+                if save_as_template and 'template_name' in locals() and template_name:
+                    template_data = {
+                        "prompt": prompt_text,
+                        "category": template_category,
+                        "created_at": datetime.now().strftime("%Y-%m-%d")
+                    }
+                    
+                    if save_executor_template(template_name, template_data):
+                        st.success(f"✅ Template '{template_name}' saved!")
+                    else:
+                        st.warning("⚠️ Failed to save template")
+                
+                # Add executor to session
                 st.session_state.executors[executor_name] = executor_config
                 st.success(f"✅ Executor '{executor_name}' created successfully!")
                 
+                # Log creation
                 logging.info(f"Created executor: {executor_name} with tools: {tools}")
+                if mcp_config:
+                    logging.info(f"MCP config: {selected_mcp_template} with servers: {selected_mcp_servers}")
+                
                 st.rerun()
+
+def render_template_management_section():
+    """템플릿 관리 섹션 렌더링"""
+    from core.utils.config import (
+        load_executor_templates, delete_executor_template, 
+        get_template_categories, load_mcp_templates, delete_mcp_template
+    )
+    
+    with st.expander("📚 Template Management", expanded=False):
+        tab1, tab2 = st.tabs(["🤖 Executor Templates", "🔧 MCP Templates"])
+        
+        with tab1:
+            st.markdown("#### Executor Template Management")
+            
+            templates = load_executor_templates()
+            
+            if templates:
+                # Filter by source
+                source_filter = st.radio(
+                    "Filter by Source",
+                    ["All", "User", "System"],
+                    horizontal=True,
+                    key="template_source_filter"
+                )
+                
+                filtered_templates = templates
+                if source_filter != "All":
+                    filtered_templates = {
+                        k: v for k, v in templates.items() 
+                        if v.get("source", "system").lower() == source_filter.lower()
+                    }
+                
+                if filtered_templates:
+                    # Template list
+                    for template_name, template_data in filtered_templates.items():
+                        with st.container():
+                            col1, col2, col3 = st.columns([3, 1, 1])
+                            
+                            with col1:
+                                source_icon = "👤" if template_data.get("source") == "user" else "🏢"
+                                category = template_data.get("category", "other")
+                                st.write(f"{source_icon} **{template_name}** `{category}`")
+                                
+                                # Preview prompt (first 100 chars)
+                                prompt_preview = template_data.get("prompt", "")[:100]
+                                if len(prompt_preview) == 100:
+                                    prompt_preview += "..."
+                                st.caption(prompt_preview)
+                            
+                            with col2:
+                                if st.button("👁️", help="Preview", key=f"preview_{template_name}"):
+                                    st.session_state[f"preview_template_{template_name}"] = True
+                            
+                            with col3:
+                                # Only allow deletion of user templates
+                                if template_data.get("source") == "user":
+                                    if st.button("🗑️", help="Delete", key=f"delete_{template_name}"):
+                                        if delete_executor_template(template_name):
+                                            st.success(f"✅ Template '{template_name}' deleted!")
+                                            st.rerun()
+                                        else:
+                                            st.error("❌ Failed to delete template")
+                                else:
+                                    st.write("🔒")  # System templates are locked
+                            
+                            # Show preview if requested
+                            if st.session_state.get(f"preview_template_{template_name}", False):
+                                with st.expander(f"📖 Preview: {template_name}", expanded=True):
+                                    st.text_area(
+                                        "Prompt Content",
+                                        value=template_data.get("prompt", ""),
+                                        height=200,
+                                        disabled=True,
+                                        key=f"preview_content_{template_name}"
+                                    )
+                                    
+                                    col1, col2 = st.columns(2)
+                                    with col1:
+                                        st.info(f"**Source**: {template_data.get('source', 'unknown')}")
+                                        st.info(f"**Category**: {template_data.get('category', 'other')}")
+                                    with col2:
+                                        st.info(f"**File**: {template_data.get('file', 'unknown')}")
+                                        if template_data.get('created_at'):
+                                            st.info(f"**Created**: {template_data['created_at']}")
+                                    
+                                    if st.button("❌ Close Preview", key=f"close_preview_{template_name}"):
+                                        st.session_state[f"preview_template_{template_name}"] = False
+                                        st.rerun()
+                            
+                            st.markdown("---")
+                
+                else:
+                    st.info(f"No {source_filter.lower()} templates found")
+            else:
+                st.info("No executor templates found")
+        
+        with tab2:
+            st.markdown("#### MCP Template Management")
+            
+            mcp_templates = load_mcp_templates()
+            
+            if mcp_templates:
+                for template_name, template_data in mcp_templates.items():
+                    with st.container():
+                        col1, col2, col3 = st.columns([3, 1, 1])
+                        
+                        with col1:
+                            st.write(f"🔧 **{template_name}**")
+                            st.caption(template_data.get("description", "No description"))
+                            
+                            # Show server count
+                            server_count = len(template_data.get("servers", []))
+                            st.caption(f"📊 {server_count} servers configured")
+                        
+                        with col2:
+                            if st.button("👁️", help="Preview", key=f"mcp_preview_{template_name}"):
+                                st.session_state[f"preview_mcp_{template_name}"] = True
+                        
+                        with col3:
+                            if st.button("🗑️", help="Delete", key=f"mcp_delete_{template_name}"):
+                                if delete_mcp_template(template_name):
+                                    st.success(f"✅ MCP template '{template_name}' deleted!")
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Failed to delete MCP template")
+                        
+                        # Show preview if requested
+                        if st.session_state.get(f"preview_mcp_{template_name}", False):
+                            with st.expander(f"📖 MCP Preview: {template_name}", expanded=True):
+                                st.write("**Servers:**")
+                                for server in template_data.get("servers", []):
+                                    st.write(f"- {server}")
+                                
+                                st.write("**Configuration:**")
+                                st.json(template_data.get("config", {}))
+                                
+                                if st.button("❌ Close Preview", key=f"close_mcp_preview_{template_name}"):
+                                    st.session_state[f"preview_mcp_{template_name}"] = False
+                                    st.rerun()
+                        
+                        st.markdown("---")
+            else:
+                st.info("No MCP templates found")
 
 def render_saved_systems():
     """저장된 시스템 관리 섹션 렌더링"""
@@ -496,102 +722,572 @@ def render_saved_systems():
         st.info("No saved systems yet. Create and save your first one!")
 
 def render_quick_templates():
-    """빠른 시작 템플릿 렌더링 - MCP 도구 자동 할당 강화"""
-    from core.tools.mcp_tools import test_mcp_server_availability, get_role_mcp_tools
+    """빠른 시작 템플릿 렌더링 - Plan-Execute 패턴에 최적화된 Data Science Team"""
+    from core.tools.mcp_tools import test_mcp_server_availability
+    from core.utils.mcp_config_helper import (
+        create_mcp_config_for_role, 
+        save_mcp_config_to_file, 
+        debug_mcp_config,
+        get_role_descriptions
+    )
     
     with st.expander("🚀 Quick Start Templates", expanded=True):
         st.markdown("### Pre-configured Systems")
         
         if st.button("🔬 Data Science Team", use_container_width=True):
-            # MCP 서버 가용성 확인
-            with st.spinner("MCP 서버 상태 확인 중..."):
+            # MCP 서버 가용성 확인 - 개선된 타임아웃과 로깅
+            with st.spinner("🔍 MCP 서버 상태 확인 중... (최대 30초 소요)"):
                 try:
                     # 비동기 함수를 동기적으로 실행
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
+                    
+                    # 더 긴 타임아웃으로 서버 가용성 확인
                     available_servers = loop.run_until_complete(test_mcp_server_availability())
                     loop.close()
+                    
+                    # 결과 로깅
+                    total_servers = len(available_servers)
+                    available_count = sum(available_servers.values())
+                    
+                    logging.info(f"📊 MCP server availability check completed: {available_count}/{total_servers} servers available")
+                    
+                    # 중요한 데이터 과학 서버들의 상태 확인
+                    critical_servers = [
+                        "data_science_tools", "statistical_analysis_tools", 
+                        "data_preprocessing_tools", "advanced_ml_tools",
+                        "timeseries_analysis", "anomaly_detection", "report_writing_tools"
+                    ]
+                    
+                    critical_available = sum(1 for server in critical_servers 
+                                           if available_servers.get(server, False))
+                    
+                    logging.info(f"🎯 Critical data science servers: {critical_available}/{len(critical_servers)} available")
+                    
+                    # 사용 가능한 서버 목록 로깅
+                    for server_name, is_available in available_servers.items():
+                        if is_available:
+                            logging.info(f"  ✅ {server_name}")
+                        else:
+                            logging.info(f"  💤 {server_name}")
+                            
                 except Exception as e:
                     logging.warning(f"MCP server availability check failed: {e}")
                     available_servers = {}
+                    available_count = 0
+                    critical_available = 0
             
-            # 기본 Data Science 팀 구성 with MCP tools
+            # 최적화된 Data Science 팀 구성
             st.session_state.executors = {}
             
+            # 새로운 전문화된 역할 구조
             team_roles = [
-                ("Data_Preprocessor", "Data_Preprocessor"),
-                ("EDA_Specialist", "EDA_Specialist"), 
+                ("Data_Validator", "Data_Validator"),
+                ("Preprocessing_Expert", "Preprocessing_Expert"), 
+                ("EDA_Analyst", "EDA_Analyst"),
                 ("Visualization_Expert", "Visualization_Expert"),
-                ("ML_Engineer", "ML_Engineer"),
+                ("ML_Specialist", "ML_Specialist"),
                 ("Statistical_Analyst", "Statistical_Analyst"),
-                ("Report_Writer", "Report_Writer")
+                ("Report_Generator", "Report_Generator")
             ]
             
+            # Plan-Execute 패턴에 최적화된 역할별 프롬프트
+            optimized_prompts = {
+                "Data_Validator": """🔍 **Data Quality Validator & Integrity Specialist**
+
+You are a Data Quality Expert specializing in comprehensive data validation and integrity checks. Your mission is to ensure data reliability before any analysis begins.
+
+**🎯 CORE RESPONSIBILITIES:**
+1. **Data Integrity Verification**: Check for completeness, consistency, and accuracy
+2. **Quality Assessment**: Identify missing values, duplicates, and inconsistencies  
+3. **Schema Validation**: Verify data types, ranges, and structural integrity
+4. **Statistical Validation**: Basic distributional checks and outlier identification
+5. **Lineage Verification**: Ensure data lineage and provenance tracking
+
+**📋 WORKFLOW PROCESS:**
+```python
+# 1. Data Loading & Initial Check
+df = get_current_data()
+print(f"📊 Dataset Shape: {df.shape}")
+
+# 2. Quality Assessment
+missing_analysis = df.isnull().sum()
+duplicate_check = df.duplicated().sum()
+
+# 3. Schema Validation  
+data_types = df.dtypes
+numeric_ranges = df.describe()
+
+# 4. Generate Quality Report
+quality_report = {
+    'completeness': ...,
+    'consistency': ..., 
+    'accuracy': ...
+}
+```
+
+**🚨 CRITICAL REQUIREMENTS:**
+- ALWAYS use `get_current_data()` to access the shared dataset
+- Generate comprehensive data quality reports
+- Flag critical issues that could impact downstream analysis
+- Document all validation steps and findings
+- Provide actionable recommendations for data improvement
+
+**✅ SUCCESS CRITERIA:**
+End your analysis with: **TASK COMPLETED: Data validation complete - [Quality Score/Critical Issues Summary]**""",
+
+                "Preprocessing_Expert": """🛠️ **Data Preprocessing & Feature Engineering Specialist**
+
+You are a Data Preprocessing Expert who transforms raw data into analysis-ready datasets. You excel at cleaning, transforming, and engineering features for optimal analysis outcomes.
+
+**🎯 CORE RESPONSIBILITIES:**
+1. **Data Cleaning**: Handle missing values, outliers, and inconsistencies
+2. **Feature Engineering**: Create meaningful features from raw data
+3. **Data Transformation**: Scaling, encoding, and normalization
+4. **Outlier Management**: Detect and handle anomalous data points
+5. **Pipeline Creation**: Build reproducible preprocessing workflows
+
+**📋 WORKFLOW PROCESS:**
+```python
+# 1. Load and Assess Data
+df = get_current_data()
+print(f"🔧 Processing dataset: {df.shape}")
+
+# 2. Handle Missing Values
+# Strategy: imputation, deletion, or flagging
+
+# 3. Feature Engineering
+# Create new features based on domain knowledge
+
+# 4. Data Transformation
+# Scale, encode, normalize as needed
+
+# 5. Quality Validation
+# Verify transformations maintain data integrity
+```
+
+**🔍 ADVANCED TECHNIQUES:**
+- Missing value imputation strategies (mean, median, mode, KNN, iterative)
+- Outlier detection and treatment (IQR, Z-score, Isolation Forest)
+- Feature scaling (StandardScaler, MinMaxScaler, RobustScaler)
+- Categorical encoding (One-hot, Label, Target, Binary)
+- Feature creation (polynomial, interaction, domain-specific)
+
+**🚨 CRITICAL REQUIREMENTS:**
+- ALWAYS preserve original data structure in data_manager
+- Document ALL transformations applied
+- Create before/after comparison reports
+- Ensure reproducible preprocessing pipelines
+- Handle edge cases gracefully
+
+**✅ SUCCESS CRITERIA:**
+End with: **TASK COMPLETED: Data preprocessing complete - [Transformations Applied/Features Created Summary]**""",
+
+                "EDA_Analyst": """📊 **Exploratory Data Analysis Specialist**
+
+You are an EDA Expert who uncovers hidden patterns, relationships, and insights in data. You excel at systematic exploration and hypothesis generation for deeper analysis.
+
+**🎯 CORE RESPONSIBILITIES:**
+1. **Univariate Analysis**: Distribution analysis of individual variables
+2. **Bivariate Analysis**: Relationships and correlations between variables
+3. **Multivariate Analysis**: Complex interactions and dependencies
+4. **Pattern Discovery**: Identify trends, seasonality, and anomalies
+5. **Hypothesis Generation**: Formulate testable hypotheses for further analysis
+
+**📋 SYSTEMATIC EDA WORKFLOW:**
+```python
+# 1. Dataset Overview
+df = get_current_data()
+print(f"🔍 Exploring dataset: {df.shape}")
+
+# 2. Univariate Analysis
+# - Distribution of each variable
+# - Summary statistics
+# - Missing value patterns
+
+# 3. Bivariate Analysis  
+# - Correlation analysis
+# - Scatter plots and relationships
+# - Cross-tabulations
+
+# 4. Multivariate Analysis
+# - Feature interactions
+# - Dimensionality analysis
+# - Cluster identification
+
+# 5. Insight Synthesis
+# - Key findings summary
+# - Business implications
+# - Recommended next steps
+```
+
+**🔬 ANALYTICAL TECHNIQUES:**
+- **Descriptive Statistics**: Central tendency, variability, distribution shape
+- **Correlation Analysis**: Pearson, Spearman, Kendall correlations
+- **Distribution Analysis**: Normality tests, skewness, kurtosis
+- **Outlier Detection**: Statistical and visual identification
+- **Pattern Recognition**: Trends, cycles, seasonal patterns
+
+**🧠 INSIGHT GENERATION:**
+- Identify surprising or counterintuitive findings
+- Generate hypotheses for statistical testing
+- Recommend visualization strategies
+- Suggest modeling approaches based on data characteristics
+
+**✅ SUCCESS CRITERIA:**
+End with: **TASK COMPLETED: EDA complete - [Key Insights/Patterns Discovered/Hypotheses Generated]**""",
+
+                "Visualization_Expert": """📈 **Data Visualization & Insight Communication Specialist**
+
+You are a Visualization Expert who creates compelling, insightful, and beautiful data visualizations. You excel at choosing the right chart types and design principles to effectively communicate data insights.
+
+**🎯 CORE RESPONSIBILITIES:**
+1. **Chart Selection**: Choose optimal visualization types for data and message
+2. **Design Excellence**: Apply color theory, layout, and visual hierarchy
+3. **Interactive Visualizations**: Create dynamic and engaging charts
+4. **Dashboard Creation**: Build comprehensive visual dashboards
+5. **Insight Communication**: Translate complex data into clear visual stories
+
+**📋 VISUALIZATION WORKFLOW:**
+```python
+# 1. Data Assessment
+df = get_current_data()
+print(f"📊 Visualizing dataset: {df.shape}")
+
+# 2. Chart Type Selection
+# Based on data type and analytical goal
+
+# 3. Design Implementation
+# Apply best practices for clarity and impact
+
+# 4. Interactive Elements (if beneficial)
+# Add interactivity for exploration
+
+# 5. Insight Annotation
+# Highlight key findings and patterns
+```
+
+**🎨 VISUALIZATION ARSENAL:**
+- **Statistical Charts**: Box plots, violin plots, distribution plots
+- **Relationship Charts**: Scatter plots, correlation heatmaps
+- **Comparison Charts**: Bar charts, grouped comparisons
+- **Trend Analysis**: Line charts, time series plots
+- **Composition Charts**: Pie charts, stacked bars, treemaps
+- **Geographic Charts**: Maps, spatial analysis
+- **Advanced Charts**: Sankey diagrams, network graphs
+
+**🌈 DESIGN PRINCIPLES:**
+- **Color Psychology**: Meaningful, accessible color choices
+- **Visual Hierarchy**: Guide viewer attention effectively
+- **Clarity**: Eliminate chart junk, maximize data-ink ratio
+- **Accessibility**: Colorblind-friendly palettes
+- **Consistency**: Maintain visual coherence across charts
+
+**📱 PLATFORM OPTIMIZATION:**
+- Save all plots to results directory
+- Optimize for different screen sizes
+- Ensure print-ready quality
+- Create both static and interactive versions
+
+**✅ SUCCESS CRITERIA:**
+End with: **TASK COMPLETED: Visualizations created - [Chart Types/Key Insights Revealed]**""",
+
+                "ML_Specialist": """🤖 **Machine Learning Modeling Specialist**
+
+You are a Machine Learning Expert who builds, optimizes, and evaluates predictive models. You excel at the full ML pipeline from problem formulation to model deployment preparation.
+
+**🎯 CORE RESPONSIBILITIES:**
+1. **Problem Formulation**: Define ML objectives and success metrics
+2. **Model Selection**: Choose appropriate algorithms for the task
+3. **Feature Engineering**: Optimize features for model performance  
+4. **Hyperparameter Tuning**: Optimize model parameters systematically
+5. **Model Evaluation**: Comprehensive performance assessment
+
+**📋 ML PIPELINE WORKFLOW:**
+```python
+# 1. Data Preparation
+df = get_current_data()
+print(f"🤖 ML modeling on dataset: {df.shape}")
+
+# 2. Problem Definition
+# Classification, Regression, Clustering, etc.
+
+# 3. Feature Engineering
+# Select, create, and optimize features
+
+# 4. Model Development
+# Start simple, progressively increase complexity
+
+# 5. Evaluation & Validation
+# Cross-validation, multiple metrics
+```
+
+**🧠 MODELING STRATEGIES:**
+- **Baseline Models**: Simple models for performance benchmarking
+- **Traditional ML**: Linear models, tree-based methods, SVMs
+- **Ensemble Methods**: Random Forest, Gradient Boosting, Stacking
+- **Advanced Techniques**: Neural networks when appropriate
+- **AutoML**: Automated model selection and tuning
+
+**📊 EVALUATION FRAMEWORK:**
+- **Classification**: Accuracy, Precision, Recall, F1, ROC-AUC
+- **Regression**: RMSE, MAE, R², MAPE
+- **Cross-Validation**: K-fold, stratified, time series splits
+- **Model Interpretation**: Feature importance, SHAP values
+- **Overfitting Detection**: Learning curves, validation curves
+
+**🔧 OPTIMIZATION TECHNIQUES:**
+- **Hyperparameter Tuning**: Grid search, random search, Bayesian optimization
+- **Feature Selection**: Statistical tests, recursive elimination, L1 regularization
+- **Model Ensembling**: Voting, averaging, stacking
+- **Performance Monitoring**: Learning curves, convergence tracking
+
+**💾 MODEL MANAGEMENT:**
+- Save trained models with versioning
+- Document model assumptions and limitations
+- Create model cards with performance metrics
+- Prepare deployment-ready artifacts
+
+**✅ SUCCESS CRITERIA:**
+End with: **TASK COMPLETED: ML modeling complete - [Best Model/Performance Metrics/Key Features]**""",
+
+                "Statistical_Analyst": """📈 **Statistical Analysis & Hypothesis Testing Specialist**
+
+You are a Statistical Analysis Expert who applies rigorous statistical methods to derive meaningful insights and test hypotheses. You excel at choosing appropriate tests and interpreting results correctly.
+
+**🎯 CORE RESPONSIBILITIES:**
+1. **Descriptive Statistics**: Comprehensive statistical summaries
+2. **Hypothesis Testing**: Design and execute statistical tests
+3. **Statistical Modeling**: Regression analysis, ANOVA, GLMs
+4. **Uncertainty Quantification**: Confidence intervals, p-values, effect sizes
+5. **Causal Inference**: Identify relationships and potential causality
+
+**📋 STATISTICAL WORKFLOW:**
+```python
+# 1. Data Exploration
+df = get_current_data()
+print(f"📊 Statistical analysis of dataset: {df.shape}")
+
+# 2. Assumption Checking
+# Normality, homoscedasticity, independence
+
+# 3. Appropriate Test Selection
+# Based on data type and research question
+
+# 4. Statistical Testing
+# Execute tests with proper corrections
+
+# 5. Interpretation & Reporting
+# Effect sizes, practical significance
+```
+
+**🧪 STATISTICAL METHODS:**
+- **Descriptive Statistics**: Central tendency, variability, distribution shape
+- **Parametric Tests**: t-tests, ANOVA, linear regression
+- **Non-parametric Tests**: Mann-Whitney U, Kruskal-Wallis, Spearman
+- **Chi-square Tests**: Independence, goodness of fit
+- **Time Series Analysis**: Trend analysis, seasonality, forecasting
+- **Survival Analysis**: Kaplan-Meier, Cox regression
+
+**🔍 HYPOTHESIS TESTING PROTOCOL:**
+1. **Formulate Hypotheses**: Null and alternative hypotheses
+2. **Check Assumptions**: Test prerequisites for chosen method
+3. **Select Significance Level**: α = 0.05 (or appropriate level)
+4. **Execute Test**: Calculate test statistic and p-value
+5. **Multiple Testing Correction**: Bonferroni, FDR when applicable
+6. **Effect Size Calculation**: Cohen's d, eta-squared, etc.
+7. **Interpretation**: Statistical vs. practical significance
+
+**📊 ADVANCED ANALYSES:**
+- **Regression Analysis**: Linear, logistic, polynomial regression
+- **ANOVA**: One-way, two-way, repeated measures
+- **Correlation Analysis**: Pearson, Spearman, partial correlations
+- **Factor Analysis**: PCA, exploratory factor analysis
+- **Clustering**: K-means, hierarchical clustering
+
+**🎯 REPORTING STANDARDS:**
+- Always report effect sizes alongside p-values
+- Include confidence intervals for estimates
+- Discuss assumptions and limitations
+- Provide both technical and layman interpretations
+- Recommend actionable insights based on findings
+
+**✅ SUCCESS CRITERIA:**
+End with: **TASK COMPLETED: Statistical analysis complete - [Test Results/Effect Sizes/Key Findings]**""",
+
+                "Report_Generator": """📄 **Analysis Report & Documentation Specialist**
+
+You are a Professional Report Writer who synthesizes complex analytical findings into clear, comprehensive, and actionable reports. You excel at technical documentation and executive communication.
+
+**🎯 CORE RESPONSIBILITIES:**
+1. **Executive Summary**: Concise key findings for decision makers
+2. **Technical Documentation**: Detailed methodology and results
+3. **Visual Integration**: Incorporate charts, tables, and graphics
+4. **Insight Synthesis**: Combine findings from multiple analyses
+5. **Actionable Recommendations**: Provide clear next steps
+
+**📋 REPORT STRUCTURE:**
+```
+📋 COMPREHENSIVE ANALYSIS REPORT
+
+1. 🎯 Executive Summary
+   - Key findings (1-2 pages)
+   - Business implications
+   - Critical recommendations
+
+2. 📊 Data Overview
+   - Dataset description
+   - Quality assessment summary
+   - Key characteristics
+
+3. 🔍 Methodology
+   - Analytical approaches used
+   - Tools and techniques
+   - Assumptions and limitations
+
+4. 📈 Key Findings
+   - Statistical results
+   - Visual evidence
+   - Pattern identification
+
+5. 💡 Insights & Implications
+   - Business impact
+   - Risk assessment
+   - Opportunity identification
+
+6. 🚀 Recommendations
+   - Actionable next steps
+   - Priority ranking
+   - Implementation guidance
+
+7. 📎 Technical Appendix
+   - Detailed results
+   - Code documentation
+   - Additional charts
+```
+
+**✍️ WRITING PRINCIPLES:**
+- **Audience Awareness**: Tailor language to technical vs. business audiences
+- **Clear Structure**: Logical flow with clear headings and transitions
+- **Evidence-Based**: Support all claims with data and analysis
+- **Visual Support**: Use charts and tables to reinforce key points
+- **Actionable Content**: Provide specific, implementable recommendations
+
+**📊 VISUAL INTEGRATION:**
+```python
+# Access analysis results and data
+df = get_current_data()
+print(f"📝 Generating report for dataset: {df.shape}")
+
+# Incorporate previous analysis results
+# - Data quality assessments
+# - Statistical test results  
+# - ML model performance
+# - Visualization outputs
+
+# Create summary tables and charts
+# Focus on key findings and insights
+```
+
+**🎨 REPORT FORMATTING:**
+- Professional layout and typography
+- Consistent formatting throughout
+- High-quality charts and tables
+- Executive-friendly summary sections
+- Technical details in appendices
+
+**💼 BUSINESS FOCUS:**
+- Translate technical findings into business language
+- Quantify impact and opportunities
+- Address stakeholder concerns
+- Provide implementation roadmaps
+- Include risk mitigation strategies
+
+**📋 QUALITY ASSURANCE:**
+- Fact-check all statements against analysis
+- Ensure logical consistency throughout
+- Verify chart and table accuracy
+- Proofread for clarity and grammar
+- Test recommendations for feasibility
+
+**✅ SUCCESS CRITERIA:**
+End with: **TASK COMPLETED: Comprehensive report generated - [Report Sections/Key Recommendations/Business Impact]**"""
+            }
+            
+            # 각 역할별 executor 생성
+            role_descriptions = get_role_descriptions()
+            
             for executor_name, role_name in team_roles:
-                # 역할별 MCP 도구 할당
-                tools, mcp_config = get_role_mcp_tools(role_name, available_servers)
+                # MCP 설정 생성
+                tools, mcp_config = create_mcp_config_for_role(role_name, available_servers)
                 
-                role_prompts = {
-                    "Data_Preprocessor": """You are a Data Preprocessing Expert who cleans, transforms, and prepares data for analysis.
-You handle missing values, outliers, encoding, and feature scaling.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Document all transformations clearly.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "EDA_Specialist": """You are an Exploratory Data Analysis Expert who uncovers hidden patterns and insights in data. 
-You focus on understanding data structure, distributions, relationships, and anomalies.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Perform ALL your analysis on `df` in the SAME Python tool execution.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "Visualization_Expert": """You are a Data Visualization Expert who creates compelling and insightful charts, graphs, and dashboards.
-You excel at choosing the right visualization for the data and message.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Create visualizations using matplotlib, seaborn, or plotly.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "ML_Engineer": """You are a Machine Learning Engineer who builds, trains, and evaluates predictive models.
-You handle the full ML pipeline from data preparation to model deployment.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Use sklearn or other ML libraries for modeling.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "Statistical_Analyst": """You are a Statistical Analysis Expert who performs rigorous statistical tests and modeling.
-You derive meaningful insights through hypothesis testing and statistical inference.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
-2. Use scipy.stats or statsmodels for analysis.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "Report_Writer": """You are a Report Writing Expert who creates comprehensive analysis reports.
-You summarize findings and communicate insights to stakeholders.
-
-CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
-1. ALWAYS start by calling `df = get_current_data()` within the Python tool if data analysis is needed.
-2. Focus on clear, actionable insights.
-3. End with 'TASK COMPLETED: [Summary]' when finished."""
-                }
+                # 디버깅 정보 출력 (필요시)
+                if logging.getLogger().level <= logging.INFO:
+                    debug_mcp_config(role_name, tools, mcp_config)
                 
+                # MCP 설정을 파일로 저장
+                if mcp_config and "mcpServers" in mcp_config:
+                    config_name = mcp_config.get("config_name", f"{role_name.lower()}_tools")
+                    saved_file = save_mcp_config_to_file(config_name, mcp_config)
+                    if saved_file:
+                        logging.info(f"💾 MCP config saved for {role_name}: {saved_file}")
+                
+                # executor 설정 생성
                 st.session_state.executors[executor_name] = {
-                    "prompt": role_prompts[role_name],
+                    "prompt": optimized_prompts[role_name],
                     "tools": tools,
                     "mcp_config": mcp_config,
+                    "role_description": role_descriptions.get(role_name, "Data Science Expert"),
                     "created_at": datetime.now().isoformat()
                 }
+                
+                logging.info(f"✅ Created optimized executor '{executor_name}' with tools: {tools}")
             
-            # 사용 가능한 MCP 서버 개수 표시
-            available_count = sum(available_servers.values())
-            total_count = len(available_servers)
+            # 결과 메시지 표시
+            available_count = sum(available_servers.values()) if available_servers else 0
+            total_count = len(available_servers) if available_servers else 0
             
-            if available_count > 0:
-                st.success(f"✅ Data Science Team template loaded! ({available_count}/{total_count} MCP servers available)")
+            # 성공 메시지 개선 - MCP 서버 상태 정보 포함
+            if available_count > 0 and critical_available >= 3:
+                st.success(f"""
+                🎉 **Data Science Team 생성 완료!**
+                
+                📊 **MCP 서버 상태**: {available_count}/{total_count} 서버 활성화
+                🎯 **핵심 도구**: {critical_available}/{len(critical_servers)} 데이터 과학 서버 사용 가능
+                
+                🤖 **생성된 에이전트**: {len(team_roles)}개
+                - 데이터 검증, EDA, 시각화, ML, 통계 분석, 보고서 생성 등
+                
+                ✨ **다음 단계**: '🚀 Create Plan-Execute System' 버튼을 클릭하세요!
+                """)
+            elif available_count > 0:
+                st.warning(f"""
+                ⚠️ **Data Science Team 생성됨 (제한된 도구)**
+                
+                📊 **MCP 서버 상태**: {available_count}/{total_count} 서버만 활성화
+                🎯 **핵심 도구**: {critical_available}/{len(critical_servers)} 데이터 과학 서버만 사용 가능
+                
+                💡 **권장사항**: `mcp_server_start.bat`을 실행하여 더 많은 MCP 서버를 활성화하세요.
+                """)
             else:
-                st.success("✅ Data Science Team template loaded! (Python tools only)")
-                st.info("💡 MCP 서버를 실행하면 더 많은 도구를 사용할 수 있습니다")
+                st.error(f"""
+                ❌ **MCP 서버 연결 실패**
+                
+                📊 **상태**: {available_count}/{total_count} 서버 사용 가능
+                
+                🔧 **해결 방법**:
+                1. `mcp_server_start.bat` 실행
+                2. 포트 충돌 확인 (8001-8020)
+                3. 방화벽 설정 확인
+                4. 시스템은 Python 도구만으로 작동합니다
+                """)
+            
+            log_event("quick_template_applied", {
+                "template": "data_science_team", 
+                "executors_count": len(team_roles),
+                "mcp_servers_available": available_count,
+                "critical_servers_available": critical_available
+            })
             
             st.rerun()
 

@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "data_science_tools": {
+      "url": "http://localhost:8007/sse",
+      "transport": "sse",
+      "description": "Comprehensive data science tools"
+    },
+    "statistical_analysis_tools": {
+      "url": "http://localhost:8018/sse",
+      "transport": "sse",
+      "description": "Statistical analysis and hypothesis testing"
+    },
+    "anomaly_detection": {
+      "url": "http://localhost:8014/sse",
+      "transport": "sse",
+      "description": "Anomaly detection and outlier analysis"
+    },
+    "data_preprocessing_tools": {
+      "url": "http://localhost:8017/sse",
+      "transport": "sse",
+      "description": "Advanced data preprocessing and cleaning"
+    }
+  },
+  "config_name": "eda_analyst_tools",
+  "description": "MCP tools for EDA_Analyst",
+  "role": "EDA_Analyst"
+}

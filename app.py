@@ -105,6 +105,7 @@ from ui import (
     render_quick_templates,
     render_system_settings,
     render_mcp_config_section,
+    render_template_management_section,
     save_multi_agent_config,
     render_chat_interface,
     render_system_status,
@@ -203,55 +204,17 @@ st.markdown("""
 with st.sidebar:
     st.title("🤖 Agent Configuration")
     
-    # Saved systems
-    render_saved_systems()
-    
-    # Current system status
-    st.markdown("### 📊 Current System")
-    
-    if st.session_state.executors:
-        st.info(f"🤖 **Executors**: {len(st.session_state.executors)}")
-        
-        # List executors
-        with st.expander("View Executors", expanded=False):
-            for name in st.session_state.executors:
-                st.write(f"- {name}")
-        
-        if st.session_state.graph_initialized:
-            st.success("✅ **Status**: System Ready!")
-        else:
-            st.warning("⚠️ **Status**: Not initialized")
-    else:
-        st.info("📋 No executors created yet")
-    
-    st.markdown("---")
-    
-    # MCP Configuration Section
-    render_mcp_config_section()
-    
-    st.markdown("---")
-    
-    # Data upload section
-    render_data_upload_section()
-    
-    st.markdown("---")
-    
-    # Quick templates
+    # Pre-configured Systems
     render_quick_templates()
     
     st.markdown("---")
     
-    # System settings
-    render_system_settings()
+    # CSV 파일 업로드
+    render_data_upload_section()
     
     st.markdown("---")
     
-    # Executor creation
-    render_executor_creation_form()
-    
-    st.markdown("---")
-    
-    # System management
+    # System Management
     st.markdown("### 🧹 System Management")
     
     col1, col2 = st.columns(2)
@@ -269,6 +232,50 @@ with st.sidebar:
             initialize_session_state()
             st.success("✅ System reset!")
             st.rerun()
+    
+    # 주석처리된 섹션들
+    # # Saved systems
+    # render_saved_systems()
+    # 
+    # # Current system status
+    # st.markdown("### 📊 Current System")
+    # 
+    # if st.session_state.executors:
+    #     st.info(f"🤖 **Executors**: {len(st.session_state.executors)}")
+    #     
+    #     # List executors
+    #     with st.expander("View Executors", expanded=False):
+    #         for name in st.session_state.executors:
+    #             st.write(f"- {name}")
+    #     
+    #     if st.session_state.graph_initialized:
+    #         st.success("✅ **Status**: System Ready!")
+    #     else:
+    #         st.warning("⚠️ **Status**: Not initialized")
+    # else:
+    #     st.info("📋 No executors created yet")
+    # 
+    # st.markdown("---")
+    # 
+    # # MCP Configuration Section
+    # render_mcp_config_section()
+    # 
+    # st.markdown("---")
+    # 
+    # # Template management
+    # render_template_management_section()
+    # 
+    # st.markdown("---")
+    # 
+    # # System settings
+    # render_system_settings()
+    # 
+    # st.markdown("---")
+    # 
+    # # Executor creation
+    # render_executor_creation_form()
+    # 
+    # st.markdown("---")
 
 # Main area
 st.title("🍒 Cherry AI - Data Science Multi-Agent System")
@@ -316,25 +323,77 @@ if st.session_state.executors:
     cols = st.columns(min(len(st.session_state.executors), 3))
     for i, (name, config) in enumerate(st.session_state.executors.items()):
         with cols[i % 3]:
+            # 기본 도구 수집
             tools = config.get("tools", [])
-            tools_str = ", ".join(tools) if tools else "No tools"
+            
+            # MCP 도구 정보 수집
+            mcp_config = config.get("mcp_config", {})
+            mcp_tools = []
+            
+            if mcp_config:
+                # mcp_configs에서 MCP 도구 추출
+                mcp_configs = mcp_config.get("mcp_configs", {})
+                for tool_name, tool_config in mcp_configs.items():
+                    server_name = tool_config.get("server_name", "unknown")
+                    mcp_tools.append(server_name)
+                
+                # selected_tools에서도 확인 (호환성)
+                if mcp_config.get("selected_tools"):
+                    mcp_tools.extend(mcp_config["selected_tools"])
+                
+                # tools 리스트에서 mcp: 로 시작하는 도구들도 확인
+                for tool in tools:
+                    if tool.startswith("mcp:") and ":" in tool:
+                        # mcp:supervisor_tools:data_science_tools 형태에서 마지막 부분 추출
+                        parts = tool.split(":")
+                        if len(parts) >= 3:
+                            mcp_tools.append(parts[-1])
+            
+            # 도구 목록 생성
+            all_tools = []
+            
+            # 기본 도구 정리 (python_repl_ast -> Python)
+            for tool in tools:
+                if tool == "python_repl_ast":
+                    all_tools.append("🐍 Python")
+                elif tool.startswith("mcp:"):
+                    # MCP 도구는 별도 처리하므로 제외
+                    continue
+                else:
+                    all_tools.append(tool)
+            
+            # MCP 도구 추가
+            for mcp_tool in set(mcp_tools):  # 중복 제거
+                if mcp_tool == "data_science_tools":
+                    all_tools.append("📊 Data Analysis")
+                elif mcp_tool == "file_management":
+                    all_tools.append("📁 File Manager")
+
+                else:
+                    all_tools.append(f"🔧 {mcp_tool}")
+            
+            tools_str = ", ".join(all_tools) if all_tools else "No tools"
             
             # Get prompt preview
             prompt = config.get("prompt", "No prompt defined")
             prompt_preview = prompt[:100] + "..." if len(prompt) > 100 else prompt
             
-            # MCP tools info
-            mcp_config = config.get("mcp_config", {})
-            mcp_info = ""
-            if mcp_config and mcp_config.get("selected_tools"):
-                mcp_info = f"<p><b>MCP Tools:</b> {', '.join(mcp_config['selected_tools'])}</p>"
+            # 상태 정보 생성
+            status_info = ""
+            if mcp_tools:
+                mcp_count = len(set(mcp_tools))
+                status_info = f"<p><small>💡 {mcp_count}개 MCP 도구 활성화</small></p>"
+            else:
+                # MCP 도구가 없는 경우에도 상태 표시
+                status_info = "<p><small>🔧 기본 도구만 사용</small></p>"
             
+            # 에이전트 카드 표시
             st.markdown(f"""
             <div class='executor-card'>
                 <h4>🤖 {name}</h4>
                 <p><b>Role:</b> {prompt_preview}</p>
                 <p><b>Tools:</b> {tools_str}</p>
-                {mcp_info}
+                {status_info}
             </div>
             """, unsafe_allow_html=True)
 
@@ -377,15 +436,36 @@ if st.session_state.executors and not st.session_state.graph_initialized:
                         if "python_repl_ast" in executor_config.get("tools", []):
                             tools.append(create_enhanced_python_tool())
                         
-                        # Add MCP tools if configured
+                        # Add MCP tools if configured (multi_agent_supervisor.py 패턴 적용)
                         mcp_config = executor_config.get("mcp_config", {})
                         if mcp_config and mcp_config.get("mcpServers"):
                             try:
-                                mcp_tools = await initialize_mcp_tools(mcp_config)
-                                tools.extend(mcp_tools)
-                                logging.info(f"Added {len(mcp_tools)} MCP tools to {executor_name}")
+                                # MCP 설정 유효성 검사
+                                from core.utils.mcp_config_helper import validate_mcp_config, debug_mcp_config
+                                
+                                if validate_mcp_config(mcp_config):
+                                    # multi_agent_supervisor.py 방식으로 MCP 도구 초기화
+                                    mcp_tools = await initialize_mcp_tools(mcp_config)
+                                    tools.extend(mcp_tools)
+                                    
+                                    logging.info(f"✅ Added {len(mcp_tools)} MCP tools to {executor_name}")
+                                    
+                                    # 서버별 상세 정보 로깅
+                                    server_names = list(mcp_config["mcpServers"].keys())
+                                    logging.info(f"   MCP servers for {executor_name}: {server_names}")
+                                else:
+                                    logging.error(f"❌ Invalid MCP config for {executor_name}")
+                                    debug_mcp_config(executor_name, executor_config.get("tools", []), mcp_config)
+                                    
                             except Exception as e:
-                                logging.warning(f"Failed to initialize MCP tools for {executor_name}: {e}")
+                                logging.error(f"❌ Failed to initialize MCP tools for {executor_name}: {e}")
+                                # 디버깅 정보 출력
+                                debug_mcp_config(executor_name, executor_config.get("tools", []), mcp_config)
+                        else:
+                            if mcp_config:
+                                logging.info(f"ℹ️ {executor_name}: MCP config present but no mcpServers found")
+                            else:
+                                logging.info(f"ℹ️ {executor_name}: No MCP config found, using Python tools only")
                         
                         # Create agent with all tools
                         agent = create_react_agent(

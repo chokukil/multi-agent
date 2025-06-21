@@ -3,10 +3,24 @@
 
 from .streaming import astream_graph, get_streaming_callback
 from .helpers import log_event, save_code
+from .mcp_config_helper import (
+    create_mcp_config_for_role,
+    create_supervisor_tools_config,
+    save_mcp_config_to_file,
+    load_mcp_config_from_file,
+    validate_mcp_config,
+    debug_mcp_config
+)
 
 __all__ = [
     'astream_graph',
     'get_streaming_callback',
     'log_event',
-    'save_code'
+    'save_code',
+    'create_mcp_config_for_role',
+    'create_supervisor_tools_config',
+    'save_mcp_config_to_file',
+    'load_mcp_config_from_file',
+    'validate_mcp_config',
+    'debug_mcp_config'
 ]

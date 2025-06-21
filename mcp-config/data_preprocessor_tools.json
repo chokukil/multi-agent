@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "file_management": {
+      "url": "http://localhost:8006/sse",
+      "transport": "sse",
+      "description": "File operations and management"
+    }
+  },
+  "config_name": "data_preprocessor_tools",
+  "description": "MCP tools for Data_Preprocessor",
+  "role": "Data_Preprocessor"
+}

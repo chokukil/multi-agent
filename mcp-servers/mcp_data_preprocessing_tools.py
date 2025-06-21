@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 MCP Tool: Data Preprocessing Tools
 데이터 전처리 도구 - 결측치 처리, 이상치 제거, 스케일링, 인코딩, 특성 엔지니어링
@@ -569,7 +570,7 @@ class DataPreprocessingTools:
 
 
 # MCP 도구 등록
-@mcp.tool
+@mcp.tool("handle_missing_values")
 def handle_missing_values(data: List[List[Union[float, str, None]]], 
                         column_names: List[str] = None,
                         method: str = "auto",
@@ -589,7 +590,7 @@ def handle_missing_values(data: List[List[Union[float, str, None]]],
     return DataPreprocessingTools.handle_missing_values(data, column_names, method, target_columns)
 
 
-@mcp.tool
+@mcp.tool("detect_and_remove_outliers")
 def detect_and_remove_outliers(data: List[List[float]], 
                              column_names: List[str] = None,
                              method: str = "iqr",
@@ -609,7 +610,7 @@ def detect_and_remove_outliers(data: List[List[float]],
     return DataPreprocessingTools.detect_and_remove_outliers(data, column_names, method, threshold)
 
 
-@mcp.tool
+@mcp.tool("scale_numerical_features")
 def scale_numerical_features(data: List[List[float]], 
                            column_names: List[str] = None,
                            method: str = "standard",
@@ -629,7 +630,7 @@ def scale_numerical_features(data: List[List[float]],
     return DataPreprocessingTools.scale_numerical_features(data, column_names, method, target_columns)
 
 
-@mcp.tool
+@mcp.tool("encode_categorical_features")
 def encode_categorical_features(data: List[List[Union[str, float]]], 
                               column_names: List[str] = None,
                               method: str = "auto",
@@ -649,7 +650,7 @@ def encode_categorical_features(data: List[List[Union[str, float]]],
     return DataPreprocessingTools.encode_categorical_features(data, column_names, method, target_columns)
 
 
-@mcp.tool
+@mcp.tool("create_polynomial_features")
 def create_polynomial_features(data: List[List[float]], 
                              column_names: List[str] = None,
                              degree: int = 2,
@@ -671,7 +672,7 @@ def create_polynomial_features(data: List[List[float]],
     return DataPreprocessingTools.create_polynomial_features(data, column_names, degree, interaction_only, include_bias)
 
 
-@mcp.tool
+@mcp.tool("remove_duplicates")
 def remove_duplicates(data: List[List[Any]], 
                     column_names: List[str] = None,
                     subset_columns: List[str] = None,
@@ -691,7 +692,7 @@ def remove_duplicates(data: List[List[Any]],
     return DataPreprocessingTools.remove_duplicates(data, column_names, subset_columns, keep)
 
 
-@mcp.tool
+@mcp.tool("comprehensive_preprocessing")
 def comprehensive_preprocessing(data: List[List[Any]], 
                               column_names: List[str] = None,
                               operations: List[str] = None,

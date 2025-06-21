@@ -31,4 +31,33 @@ dependencies = [
     "black>=23.0.0",
     "flake8>=6.0.0",
     "langfuse>=2.0.0,<3.0.0",
+    # MCP server dependencies
+    "fastmcp>=0.3.0",
+    "mcp>=1.0.0",
+    "uvicorn>=0.30.0",
+    "langchain-mcp-adapters>=0.1.0",
+    "xgboost>=2.0.0",
+    "catboost>=1.2.0",
+    "lightgbm>=4.0.0",
+    "imbalanced-learn>=0.11.0",
+    "statsmodels>=0.14.0",
+    "pingouin>=0.5.0",
+    "mlxtend>=0.23.0",
+    "umap-learn>=0.5.0",
+    "shap>=0.45.0",
+    "lime>=0.2.0",
+    "optuna>=3.5.0",
+]
+
+[project.optional-dependencies]
+ml = [
+    "tensorflow>=2.15.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "transformers>=4.36.0",
+    "datasets>=2.14.0",
+]
+monitoring = [
+    "langsmith>=0.0.87",
+    "wandb>=0.16.0",
 ]

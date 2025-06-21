@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 MCP Tool: Anomaly Detection Specialist
 이상 탐지 전문 도구 - 통계적, 기계학습, 앙상블 기반 이상치 탐지
@@ -416,7 +417,7 @@ class AnomalyDetector:
 
 
 # MCP 도구 등록
-@mcp.tool
+@mcp.tool("statistical_outliers")
 def statistical_outliers(data: List[float], method: str = "zscore", threshold: float = 3.0) -> Dict[str, Any]:
     """
     통계적 방법으로 이상치를 탐지합니다.
@@ -432,7 +433,7 @@ def statistical_outliers(data: List[float], method: str = "zscore", threshold: f
     return AnomalyDetector.statistical_outliers(data, method, threshold)
 
 
-@mcp.tool
+@mcp.tool("isolation_forest_detection")
 def isolation_forest_detection(data: List[List[float]], contamination: float = 0.1) -> Dict[str, Any]:
     """
     Isolation Forest를 사용한 이상치 탐지입니다.
@@ -447,7 +448,7 @@ def isolation_forest_detection(data: List[List[float]], contamination: float = 0
     return AnomalyDetector.isolation_forest_detection(data, contamination)
 
 
-@mcp.tool
+@mcp.tool("local_outlier_factor")
 def local_outlier_factor(data: List[List[float]], contamination: float = 0.1, n_neighbors: int = 20) -> Dict[str, Any]:
     """
     Local Outlier Factor를 사용한 이상치 탐지입니다.
@@ -463,7 +464,7 @@ def local_outlier_factor(data: List[List[float]], contamination: float = 0.1, n_
     return AnomalyDetector.local_outlier_factor(data, contamination, n_neighbors)
 
 
-@mcp.tool
+@mcp.tool("one_class_svm")
 def one_class_svm(data: List[List[float]], contamination: float = 0.1) -> Dict[str, Any]:
     """
     One-Class SVM을 사용한 이상치 탐지입니다.
@@ -478,7 +479,7 @@ def one_class_svm(data: List[List[float]], contamination: float = 0.1) -> Dict[s
     return AnomalyDetector.one_class_svm(data, contamination)
 
 
-@mcp.tool
+@mcp.tool("ensemble_detection")
 def ensemble_detection(data: List[List[float]], contamination: float = 0.1) -> Dict[str, Any]:
     """
     여러 방법을 조합한 앙상블 이상치 탐지입니다.
@@ -493,7 +494,7 @@ def ensemble_detection(data: List[List[float]], contamination: float = 0.1) -> D
     return AnomalyDetector.ensemble_detection(data, contamination)
 
 
-@mcp.tool
+@mcp.tool("timeseries_anomalies")
 def timeseries_anomalies(data: List[float], window_size: int = 20, threshold: float = 3.0) -> Dict[str, Any]:
     """
     시계열 데이터의 이상치를 탐지합니다.
@@ -509,7 +510,7 @@ def timeseries_anomalies(data: List[float], window_size: int = 20, threshold: fl
     return AnomalyDetector.timeseries_anomalies(data, window_size, threshold)
 
 
-@mcp.tool
+@mcp.tool("seasonal_anomalies")
 def seasonal_anomalies(data: List[float], period: int = 12) -> Dict[str, Any]:
     """
     계절성을 고려한 시계열 이상치 탐지입니다.
@@ -524,7 +525,7 @@ def seasonal_anomalies(data: List[float], period: int = 12) -> Dict[str, Any]:
     return AnomalyDetector.seasonal_anomalies(data, period)
 
 
-@mcp.tool
+@mcp.tool("comprehensive_anomaly_analysis")
 def comprehensive_anomaly_analysis(data: List[List[float]], 
                                  contamination: float = 0.1,
                                  include_timeseries: bool = False,

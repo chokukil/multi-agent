@@ -226,3 +226,230 @@ def set_config(key: str, value: Any):
 def validate_config() -> Tuple[bool, List[str]]:
     """Validate configuration"""
     return config.validate()
+
+# Executor Template Management Functions
+def load_executor_templates() -> Dict[str, Dict[str, Any]]:
+    """Load all executor templates from prompt-configs directory"""
+    import logging
+    
+    prompt_dir = Path("prompt-configs")
+    templates = {}
+    
+    if not prompt_dir.exists():
+        prompt_dir.mkdir(exist_ok=True)
+        return templates
+    
+    # Get current user's EMP_NO for priority
+    emp_no = os.getenv("EMP_NO", "default")
+    user_file = f"{emp_no}.json"
+    
+    for json_file in prompt_dir.glob("*.json"):
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                prompts = data.get("prompts", {})
+                
+                for name, template_config in prompts.items():
+                    # Determine source priority (user > system)
+                    source = "user" if json_file.name == user_file else "system"
+                    
+                    # Skip if user template already exists for this name
+                    if name in templates and templates[name].get("source") == "user" and source == "system":
+                        continue
+                    
+                    templates[name] = {
+                        **template_config,
+                        "source": source,
+                        "file": json_file.stem,
+                        "category": template_config.get("category", "other")
+                    }
+                    
+        except Exception as e:
+            logging.warning(f"Failed to load prompt config {json_file}: {e}")
+    
+    return templates
+
+def get_executor_template(template_name: str) -> Optional[Dict[str, Any]]:
+    """Get specific executor template by name"""
+    templates = load_executor_templates()
+    return templates.get(template_name)
+
+def save_executor_template(template_name: str, template_data: Dict[str, Any], 
+                          user_specific: bool = True) -> bool:
+    """Save executor template to appropriate config file"""
+    import logging
+    from datetime import datetime
+    
+    try:
+        prompt_dir = Path("prompt-configs")
+        prompt_dir.mkdir(exist_ok=True)
+        
+        # Determine target file
+        if user_specific:
+            emp_no = os.getenv("EMP_NO", "default")
+            config_file = prompt_dir / f"{emp_no}.json"
+        else:
+            config_file = prompt_dir / "system_templates.json"
+        
+        # Load existing data or create new
+        if config_file.exists():
+            with open(config_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        else:
+            data = {"prompts": {}}
+        
+        # Add template with metadata
+        data["prompts"][template_name] = {
+            **template_data,
+            "created_at": template_data.get("created_at", datetime.now().strftime("%Y-%m-%d")),
+            "updated_at": datetime.now().strftime("%Y-%m-%d")
+        }
+        
+        # Save back to file
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        return True
+        
+    except Exception as e:
+        logging.error(f"Failed to save executor template {template_name}: {e}")
+        return False
+
+def delete_executor_template(template_name: str, user_specific: bool = True) -> bool:
+    """Delete executor template from config file"""
+    import logging
+    
+    try:
+        prompt_dir = Path("prompt-configs")
+        
+        if user_specific:
+            emp_no = os.getenv("EMP_NO", "default")
+            config_file = prompt_dir / f"{emp_no}.json"
+        else:
+            config_file = prompt_dir / "system_templates.json"
+        
+        if not config_file.exists():
+            return False
+        
+        with open(config_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        if template_name in data.get("prompts", {}):
+            del data["prompts"][template_name]
+            
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            
+            return True
+        
+        return False
+        
+    except Exception as e:
+        logging.error(f"Failed to delete executor template {template_name}: {e}")
+        return False
+
+def get_template_categories() -> List[str]:
+    """Get all available template categories"""
+    templates = load_executor_templates()
+    categories = set()
+    
+    for template in templates.values():
+        category = template.get("category", "other")
+        categories.add(category)
+    
+    return sorted(list(categories))
+
+# MCP Template Management Functions  
+def load_mcp_templates() -> Dict[str, Dict[str, Any]]:
+    """Load all MCP configuration templates from mcp-configs directory"""
+    import logging
+    
+    mcp_dir = Path("mcp-configs")
+    templates = {}
+    
+    if not mcp_dir.exists():
+        mcp_dir.mkdir(exist_ok=True)
+        return templates
+    
+    for json_file in mcp_dir.glob("*.json"):
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                
+                # Extract server information
+                mcp_servers = data.get("mcpServers", {})
+                
+                templates[json_file.stem] = {
+                    "name": json_file.stem,
+                    "config": data,
+                    "servers": list(mcp_servers.keys()),
+                    "description": data.get("description", f"MCP configuration with {len(mcp_servers)} servers"),
+                    "created_at": data.get("created_at", "Unknown")
+                }
+                
+        except Exception as e:
+            logging.warning(f"Failed to load MCP config {json_file}: {e}")
+    
+    return templates
+
+def get_mcp_template(template_name: str) -> Optional[Dict[str, Any]]:
+    """Get specific MCP template by name"""
+    templates = load_mcp_templates()
+    return templates.get(template_name)
+
+def save_mcp_template(template_name: str, config_data: Dict[str, Any]) -> bool:
+    """Save MCP template configuration"""
+    import logging
+    from datetime import datetime
+    
+    try:
+        mcp_dir = Path("mcp-configs")
+        mcp_dir.mkdir(exist_ok=True)
+        
+        config_file = mcp_dir / f"{template_name}.json"
+        
+        # Add metadata if not present
+        if "created_at" not in config_data:
+            config_data["created_at"] = datetime.now().isoformat()
+        config_data["updated_at"] = datetime.now().isoformat()
+        
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f, indent=2, ensure_ascii=False)
+        
+        return True
+        
+    except Exception as e:
+        logging.error(f"Failed to save MCP template {template_name}: {e}")
+        return False
+
+def delete_mcp_template(template_name: str) -> bool:
+    """Delete MCP template configuration"""
+    import logging
+    
+    try:
+        mcp_dir = Path("mcp-configs")
+        config_file = mcp_dir / f"{template_name}.json"
+        
+        if config_file.exists():
+            config_file.unlink()
+            return True
+        return False
+        
+    except Exception as e:
+        logging.error(f"Failed to delete MCP template {template_name}: {e}")
+        return False
+
+def validate_mcp_servers(servers: Dict[str, Dict[str, Any]]) -> List[str]:
+    """Validate MCP server configurations"""
+    errors = []
+    
+    for server_name, server_config in servers.items():
+        if "url" not in server_config:
+            errors.append(f"Server '{server_name}' missing 'url' field")
+        
+        if "transport" not in server_config:
+            errors.append(f"Server '{server_name}' missing 'transport' field")
+        elif server_config["transport"] not in ["sse", "stdio"]:
+            errors.append(f"Server '{server_name}' has invalid transport: {server_config['transport']}")
+    
+    return errors

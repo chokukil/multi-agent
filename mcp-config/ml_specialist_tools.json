@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "advanced_ml_tools": {
+      "url": "http://localhost:8016/sse",
+      "transport": "sse",
+      "description": "Advanced machine learning algorithms"
+    },
+    "data_science_tools": {
+      "url": "http://localhost:8007/sse",
+      "transport": "sse",
+      "description": "Comprehensive data science tools"
+    },
+    "statistical_analysis_tools": {
+      "url": "http://localhost:8018/sse",
+      "transport": "sse",
+      "description": "Statistical analysis and hypothesis testing"
+    },
+    "data_preprocessing_tools": {
+      "url": "http://localhost:8017/sse",
+      "transport": "sse",
+      "description": "Advanced data preprocessing and cleaning"
+    }
+  },
+  "config_name": "ml_specialist_tools",
+  "description": "MCP tools for ML_Specialist",
+  "role": "ML_Specialist"
+}
