@@ -11,11 +11,132 @@ import asyncio
 import logging
 from datetime import datetime
 
+def render_mcp_config_section():
+    """MCP Server Configuration 섹션 렌더링"""
+    from core.utils.config import load_mcp_configs, save_mcp_config, delete_mcp_config
+    from core.tools.mcp_tools import get_available_mcp_tools_info
+    
+    with st.expander("🔧 MCP Server Configuration", expanded=False):
+        st.markdown("### MCP 도구 설정 관리")
+        
+        # 현재 저장된 설정들 표시
+        saved_configs = load_mcp_configs()
+        
+        if saved_configs:
+            st.markdown("#### 저장된 설정")
+            config_names = [config.get('name', config['config_name']) for config in saved_configs]
+            selected_config = st.selectbox(
+                "설정 선택",
+                ["None"] + config_names,
+                help="저장된 MCP 설정을 선택하세요"
+            )
+            
+            if selected_config != "None":
+                config_data = next((c for c in saved_configs if c.get('name', c['config_name']) == selected_config), None)
+                if config_data:
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        if st.button("📊 상태 확인", key="check_mcp_status"):
+                            with st.spinner("MCP 서버 상태 확인 중..."):
+                                tools_info = get_available_mcp_tools_info(config_data['config_name'])
+                                if tools_info['available']:
+                                    st.success(f"✅ {tools_info['available_servers']}/{tools_info['total_servers']} 서버 사용 가능")
+                                    for tool in tools_info['tools']:
+                                        status_icon = "🟢" if tool['status'] == "available" else "🔴"
+                                        st.text(f"{status_icon} {tool['server_name']}")
+                                else:
+                                    st.error("❌ 사용 가능한 서버가 없습니다")
+                    
+                    with col2:
+                        if st.button("📝 수정", key="edit_mcp_config"):
+                            st.session_state.editing_mcp_config = config_data
+                    
+                    with col3:
+                        if st.button("🗑️ 삭제", key="delete_mcp_config"):
+                            if delete_mcp_config(config_data['config_name']):
+                                st.success(f"✅ '{selected_config}' 삭제됨")
+                                st.rerun()
+                            else:
+                                st.error("❌ 삭제 실패")
+        
+        # 새 설정 추가 또는 수정
+        st.markdown("#### 새 설정 추가")
+        
+        with st.form("mcp_config_form"):
+            config_name = st.text_input(
+                "설정 이름",
+                value=st.session_state.get('editing_mcp_config', {}).get('name', ''),
+                placeholder="예: my_data_tools"
+            )
+            
+            config_description = st.text_area(
+                "설명",
+                value=st.session_state.get('editing_mcp_config', {}).get('description', ''),
+                placeholder="이 설정에 대한 간단한 설명을 입력하세요"
+            )
+            
+            # JSON 설정 입력
+            default_json = json.dumps(
+                st.session_state.get('editing_mcp_config', {}).get('mcpServers', {
+                    "data_science_tools": {
+                        "url": "http://localhost:8007/sse", 
+                        "transport": "sse",
+                        "description": "데이터 분석 도구"
+                    }
+                }),
+                indent=2
+            )
+            
+            json_config = st.text_area(
+                "MCP 서버 설정 (JSON)",
+                value=default_json,
+                height=200,
+                help="MCP 서버 설정을 JSON 형식으로 입력하세요"
+            )
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                save_button = st.form_submit_button("💾 저장", type="primary")
+            with col2:
+                if st.form_submit_button("❌ 취소"):
+                    if 'editing_mcp_config' in st.session_state:
+                        del st.session_state.editing_mcp_config
+                    st.rerun()
+            
+            if save_button:
+                if not config_name:
+                    st.error("❌ 설정 이름을 입력하세요")
+                else:
+                    try:
+                        # JSON 유효성 검사
+                        servers_config = json.loads(json_config)
+                        
+                        # 설정 데이터 구성
+                        config_data = {
+                            "name": config_name,
+                            "description": config_description,
+                            "mcpServers": servers_config,
+                            "created_at": datetime.now().isoformat()
+                        }
+                        
+                        # 저장
+                        if save_mcp_config(config_name, config_data):
+                            st.success(f"✅ '{config_name}' 설정이 저장되었습니다")
+                            if 'editing_mcp_config' in st.session_state:
+                                del st.session_state.editing_mcp_config
+                            st.rerun()
+                        else:
+                            st.error("❌ 설정 저장 실패")
+                    
+                    except json.JSONDecodeError as e:
+                        st.error(f"❌ JSON 형식 오류: {e}")
+
 def render_data_upload_section():
     """데이터 업로드 섹션 렌더링"""
     from core import data_manager, data_lineage_tracker
     
-    st.markdown("### �� 강화된 데이터 분석")
+    st.markdown("### 강화된 데이터 분석")
     
     # SSOT 데이터 상태 표시
     current_status = data_manager.get_status_message()
@@ -166,7 +287,10 @@ def render_system_settings():
             st.rerun()
 
 def render_executor_creation_form():
-    """Executor 생성 폼 렌더링"""
+    """Executor 생성 폼 렌더링 - MCP 도구 선택 기능 포함"""
+    from core.utils.config import load_mcp_configs
+    from core.tools.mcp_tools import get_available_mcp_tools_info
+    
     st.subheader("➕ Create New Executor")
     
     # Enhanced agent creation with detailed options
@@ -254,8 +378,39 @@ CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL dat
             help="강화된 SSOT 기반 데이터 분석 환경"
         )
         
-        # MCP Tools Selection (simplified for now)
-        st.info("📦 MCP tools can be added in future versions")
+        # MCP Tools Selection
+        st.markdown("#### MCP 도구 선택")
+        saved_configs = load_mcp_configs()
+        
+        if saved_configs:
+            config_names = ["None"] + [config.get('name', config['config_name']) for config in saved_configs]
+            selected_mcp_config = st.selectbox(
+                "MCP 설정 선택",
+                config_names,
+                help="사용할 MCP 도구 설정을 선택하세요"
+            )
+            
+            selected_mcp_tools = []
+            if selected_mcp_config != "None":
+                config_data = next((c for c in saved_configs if c.get('name', c['config_name']) == selected_mcp_config), None)
+                if config_data:
+                    # 실시간 서버 상태 확인
+                    tools_info = get_available_mcp_tools_info(config_data['config_name'])
+                    
+                    if tools_info['available']:
+                        st.success(f"✅ {tools_info['available_servers']}/{tools_info['total_servers']} MCP 서버 사용 가능")
+                        
+                        # 사용 가능한 도구들을 체크박스로 표시
+                        for tool in tools_info['tools']:
+                            if tool['status'] == 'available':
+                                if st.checkbox(f"🟢 {tool['server_name']}", value=True, key=f"mcp_tool_{tool['server_name']}"):
+                                    selected_mcp_tools.append(tool['server_name'])
+                            else:
+                                st.checkbox(f"🔴 {tool['server_name']} (사용 불가)", value=False, disabled=True, key=f"mcp_tool_disabled_{tool['server_name']}")
+                    else:
+                        st.warning("⚠️ 선택한 설정의 MCP 서버들이 실행되지 않았습니다")
+        else:
+            st.info("💡 MCP 설정을 먼저 생성하세요")
         
         # Submit button
         submitted = st.form_submit_button("✨ Create Executor", type="primary", use_container_width=True)
@@ -272,17 +427,35 @@ CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL dat
                 if "executors" not in st.session_state:
                     st.session_state.executors = {}
                 
+                # 기본 도구 목록 구성
+                tools = ["python_repl_ast"] if use_python else []
+                
+                # MCP 도구 설정 추가
+                mcp_config = {}
+                if 'selected_mcp_config' in locals() and selected_mcp_config != "None" and selected_mcp_tools:
+                    config_data = next((c for c in saved_configs if c.get('name', c['config_name']) == selected_mcp_config), None)
+                    if config_data:
+                        mcp_config = {
+                            "config_name": selected_mcp_config,
+                            "selected_tools": selected_mcp_tools,
+                            "mcpServers": {tool: config_data['mcpServers'].get(tool, {}) for tool in selected_mcp_tools}
+                        }
+                        # MCP 도구들을 도구 목록에 추가
+                        for tool in selected_mcp_tools:
+                            tools.append(f"mcp:{selected_mcp_config}:{tool}")
+                
                 # Create executor configuration
                 executor_config = {
                     "prompt": prompt_text,
-                    "tools": ["python_repl_ast"] if use_python else [],
+                    "tools": tools,
+                    "mcp_config": mcp_config,
                     "created_at": datetime.now().isoformat()
                 }
                 
                 st.session_state.executors[executor_name] = executor_config
                 st.success(f"✅ Executor '{executor_name}' created successfully!")
                 
-                logging.info(f"Created executor: {executor_name}")
+                logging.info(f"Created executor: {executor_name} with tools: {tools}")
                 st.rerun()
 
 def render_saved_systems():
@@ -323,82 +496,103 @@ def render_saved_systems():
         st.info("No saved systems yet. Create and save your first one!")
 
 def render_quick_templates():
-    """빠른 시작 템플릿 렌더링"""
+    """빠른 시작 템플릿 렌더링 - MCP 도구 자동 할당 강화"""
+    from core.tools.mcp_tools import test_mcp_server_availability, get_role_mcp_tools
+    
     with st.expander("🚀 Quick Start Templates", expanded=True):
         st.markdown("### Pre-configured Systems")
         
         if st.button("🔬 Data Science Team", use_container_width=True):
-            # 기본 Data Science 팀 구성
-            st.session_state.executors = {
-                "Data_Preprocessor": {
-                    "prompt": """You are a Data Preprocessing Expert who cleans, transforms, and prepares data for analysis.
+            # MCP 서버 가용성 확인
+            with st.spinner("MCP 서버 상태 확인 중..."):
+                try:
+                    # 비동기 함수를 동기적으로 실행
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    available_servers = loop.run_until_complete(test_mcp_server_availability())
+                    loop.close()
+                except Exception as e:
+                    logging.warning(f"MCP server availability check failed: {e}")
+                    available_servers = {}
+            
+            # 기본 Data Science 팀 구성 with MCP tools
+            st.session_state.executors = {}
+            
+            team_roles = [
+                ("Data_Preprocessor", "Data_Preprocessor"),
+                ("EDA_Specialist", "EDA_Specialist"), 
+                ("Visualization_Expert", "Visualization_Expert"),
+                ("ML_Engineer", "ML_Engineer"),
+                ("Statistical_Analyst", "Statistical_Analyst"),
+                ("Report_Writer", "Report_Writer")
+            ]
+            
+            for executor_name, role_name in team_roles:
+                # 역할별 MCP 도구 할당
+                tools, mcp_config = get_role_mcp_tools(role_name, available_servers)
+                
+                role_prompts = {
+                    "Data_Preprocessor": """You are a Data Preprocessing Expert who cleans, transforms, and prepares data for analysis.
 You handle missing values, outliers, encoding, and feature scaling.
 
 CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
 1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
 2. Document all transformations clearly.
 3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "tools": ["python_repl_ast"],
-                    "created_at": datetime.now().isoformat()
-                },
-                "EDA_Specialist": {
-                    "prompt": """You are an Exploratory Data Analysis Expert who uncovers hidden patterns and insights in data. 
+                    "EDA_Specialist": """You are an Exploratory Data Analysis Expert who uncovers hidden patterns and insights in data. 
 You focus on understanding data structure, distributions, relationships, and anomalies.
 
 CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
 1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
 2. Perform ALL your analysis on `df` in the SAME Python tool execution.
 3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "tools": ["python_repl_ast"],
-                    "created_at": datetime.now().isoformat()
-                },
-                "Visualization_Expert": {
-                    "prompt": """You are a Data Visualization Expert who creates compelling and insightful charts, graphs, and dashboards.
+                    "Visualization_Expert": """You are a Data Visualization Expert who creates compelling and insightful charts, graphs, and dashboards.
 You excel at choosing the right visualization for the data and message.
 
 CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
 1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
 2. Create visualizations using matplotlib, seaborn, or plotly.
 3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "tools": ["python_repl_ast"],
-                    "created_at": datetime.now().isoformat()
-                },
-                "ML_Engineer": {
-                    "prompt": """You are a Machine Learning Engineer who builds, trains, and evaluates predictive models.
+                    "ML_Engineer": """You are a Machine Learning Engineer who builds, trains, and evaluates predictive models.
 You handle the full ML pipeline from data preparation to model deployment.
 
 CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
 1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
 2. Use sklearn or other ML libraries for modeling.
 3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "tools": ["python_repl_ast"],
-                    "created_at": datetime.now().isoformat()
-                },
-                "Statistical_Analyst": {
-                    "prompt": """You are a Statistical Analysis Expert who performs rigorous statistical tests and modeling.
+                    "Statistical_Analyst": """You are a Statistical Analysis Expert who performs rigorous statistical tests and modeling.
 You derive meaningful insights through hypothesis testing and statistical inference.
 
 CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
 1. ALWAYS start by calling `df = get_current_data()` within the Python tool.
 2. Use scipy.stats or statsmodels for analysis.
 3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "tools": ["python_repl_ast"],
-                    "created_at": datetime.now().isoformat()
-                },
-                "Report_Writer": {
-                    "prompt": """You are a Report Writing Expert who creates comprehensive analysis reports.
+                    "Report_Writer": """You are a Report Writing Expert who creates comprehensive analysis reports.
 You summarize findings and communicate insights to stakeholders.
 
 CRITICAL DATA HANDLING RULE: You MUST use the `python_repl_ast` tool for ALL data operations.
 1. ALWAYS start by calling `df = get_current_data()` within the Python tool if data analysis is needed.
 2. Focus on clear, actionable insights.
-3. End with 'TASK COMPLETED: [Summary]' when finished.""",
-                    "tools": ["python_repl_ast"],
+3. End with 'TASK COMPLETED: [Summary]' when finished."""
+                }
+                
+                st.session_state.executors[executor_name] = {
+                    "prompt": role_prompts[role_name],
+                    "tools": tools,
+                    "mcp_config": mcp_config,
                     "created_at": datetime.now().isoformat()
                 }
-            }
             
-            st.success("✅ Data Science Team template loaded!")
+            # 사용 가능한 MCP 서버 개수 표시
+            available_count = sum(available_servers.values())
+            total_count = len(available_servers)
+            
+            if available_count > 0:
+                st.success(f"✅ Data Science Team template loaded! ({available_count}/{total_count} MCP servers available)")
+            else:
+                st.success("✅ Data Science Team template loaded! (Python tools only)")
+                st.info("💡 MCP 서버를 실행하면 더 많은 도구를 사용할 수 있습니다")
+            
             st.rerun()
 
 # Helper functions

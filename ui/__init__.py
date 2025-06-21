@@ -7,6 +7,7 @@ from .sidebar_components import (
     render_saved_systems,
     render_quick_templates,
     render_system_settings,
+    render_mcp_config_section,
     save_multi_agent_config
 )
 
@@ -29,6 +30,7 @@ __all__ = [
     'render_saved_systems',
     'render_quick_templates',
     'render_system_settings',
+    'render_mcp_config_section',
     'save_multi_agent_config',
     'render_chat_interface',
     'render_system_status',

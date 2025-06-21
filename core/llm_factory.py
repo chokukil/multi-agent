@@ -6,8 +6,16 @@ import logging
 from typing import Optional, Dict, Any
 from langchain_openai import ChatOpenAI
 from langchain_community.chat_models.ollama import ChatOllama
-from langfuse import Langfuse
-from langfuse.langchain import CallbackHandler
+
+# Langfuse imports - 2.60.8 버전에 맞는 올바른 import 경로 사용
+try:
+    from langfuse import Langfuse
+    from langfuse.callback import CallbackHandler  # 2.60.8에서는 callback 모듈에서 import
+    LANGFUSE_AVAILABLE = True
+except ImportError:
+    LANGFUSE_AVAILABLE = False
+    logging.warning("Langfuse not available. Install langfuse for advanced tracing.")
+
 from .utils.config import get_config
 
 def create_llm_instance(
@@ -15,6 +23,8 @@ def create_llm_instance(
     model: Optional[str] = None,
     temperature: float = 0.7,
     streaming: bool = True,
+    session_id: Optional[str] = None,
+    user_id: Optional[str] = None,
     **kwargs
 ) -> Any:
     """
@@ -25,27 +35,42 @@ def create_llm_instance(
         model: 모델 이름
         temperature: 온도 설정
         streaming: 스트리밍 여부
+        session_id: 세션 ID (Streamlit session_state에서 전달)
+        user_id: 사용자 ID
         **kwargs: 추가 파라미터
     
     Returns:
         LLM 인스턴스
     """
-    # Langfuse 콜백 핸들러 초기화
-    langfuse_config = get_config('langfuse')
-    if langfuse_config.get('host') and langfuse_config.get('public_key') and langfuse_config.get('secret_key'):
-        try:
-            handler = CallbackHandler(
-                public_key=langfuse_config.get('public_key'),
-                secret_key=langfuse_config.get('secret_key'),
-                host=langfuse_config.get('host'),
-            )
-            # kwargs에 콜백 추가
-            if 'callbacks' not in kwargs:
-                kwargs['callbacks'] = []
-            kwargs['callbacks'].append(handler)
-            logging.info("Langfuse callback handler initialized.")
-        except Exception as e:
-            logging.error(f"Failed to initialize Langfuse: {e}")
+    # Langfuse 콜백 핸들러 초기화 - multi_agent_supervisor.py 패턴 사용
+    if LANGFUSE_AVAILABLE:
+        langfuse_config = get_config('langfuse')
+        if langfuse_config.get('host') and langfuse_config.get('public_key') and langfuse_config.get('secret_key'):
+            try:
+                # 세션 ID를 파라미터에서 가져오거나 환경변수/기본값 사용
+                effective_session_id = session_id or os.getenv("THREAD_ID", "default-session")
+                effective_user_id = user_id or os.getenv("EMP_NO", "default_user")
+                
+                # multi_agent_supervisor.py와 동일한 패턴으로 CallbackHandler 직접 초기화
+                handler = CallbackHandler(
+                    session_id=effective_session_id,
+                    user_id=effective_user_id,
+                    metadata={
+                        "app_type": "llm_factory",
+                        "model": model or "unknown",
+                        "provider": provider or "unknown",
+                        "temperature": temperature,
+                        "session_id": effective_session_id
+                    }
+                )
+                
+                # kwargs에 콜백 추가
+                if 'callbacks' not in kwargs:
+                    kwargs['callbacks'] = []
+                kwargs['callbacks'].append(handler)
+                logging.info(f"Langfuse callback handler initialized with session_id: {effective_session_id}")
+            except Exception as e:
+                logging.error(f"Failed to initialize Langfuse: {e}")
 
     # 환경 변수에서 기본값 읽기
     if provider is None:

@@ -92,9 +92,17 @@ def final_responder_node(state: Dict) -> Dict:
     """모든 결과를 종합하여 최종 응답을 생성하는 노드"""
     logging.info("📝 Final Responder: Creating comprehensive final response")
     
+    # 디버깅: state 내용 확인
+    logging.info(f"Final Responder State Keys: {list(state.keys())}")
+    logging.info(f"Session ID in state: {state.get('session_id', 'NOT_FOUND')}")
+    logging.info(f"User ID in state: {state.get('user_id', 'NOT_FOUND')}")
+    
     # 필요한 정보 추출
     user_request = state.get("user_request", "Analysis request")
     step_results = state.get("step_results", {})
+    
+    logging.info(f"User request: {user_request}")
+    logging.info(f"Step results count: {len(step_results)}")
     
     # 데이터 검증 수행
     data_validation = format_data_validation(state)
@@ -103,17 +111,45 @@ def final_responder_node(state: Dict) -> Dict:
     task_results = format_task_results(step_results)
     
     # LLM으로 최종 응답 생성
-    llm = create_llm_instance(temperature=0.3)
+    effective_session_id = state.get('session_id', 'default-session')
+    effective_user_id = state.get('user_id', 'default-user')
+    
+    logging.info(f"Creating LLM with session_id: {effective_session_id}, user_id: {effective_user_id}")
+    
+    llm = create_llm_instance(
+        temperature=0.3,
+        session_id=effective_session_id,
+        user_id=effective_user_id
+    )
     prompt = create_final_response_prompt()
     
     try:
-        response = llm.invoke(
-            prompt.format(
-                user_request=user_request,
-                data_validation=data_validation,
-                task_results=task_results
-            )
+        # 프롬프트 내용 로깅
+        formatted_prompt = prompt.format(
+            user_request=user_request,
+            data_validation=data_validation,
+            task_results=task_results
         )
+        logging.info(f"Final response prompt length: {len(formatted_prompt)} characters")
+        
+        # LLM 호출
+        logging.info("Invoking LLM for final response...")
+        response = llm.invoke(formatted_prompt)
+        
+        # 응답 검증
+        if response is None:
+            logging.error("LLM response is None")
+            raise Exception("LLM returned None response")
+        
+        if not hasattr(response, 'content'):
+            logging.error(f"LLM response has no content attribute: {type(response)}")
+            raise Exception(f"Invalid LLM response type: {type(response)}")
+        
+        if not response.content:
+            logging.error("LLM response content is empty")
+            raise Exception("LLM response content is empty")
+        
+        logging.info(f"LLM response received, length: {len(response.content)} characters")
         
         # 최종 응답 구성
         final_response = f"""# 📊 Analysis Complete
@@ -142,6 +178,7 @@ def final_responder_node(state: Dict) -> Dict:
         
     except Exception as e:
         logging.error(f"Error generating final response: {e}")
+        logging.error(f"Exception type: {type(e)}")
         
         # Fallback response
         fallback_response = f"""# 📊 Analysis Summary
@@ -155,11 +192,14 @@ Based on the user request: "{user_request}"
 
 ---
 
-*Note: Some aspects of the analysis may have encountered issues. Please review the execution summary above.*
+*Note: LLM final response generation failed with error: {str(e)}*
+*Please review the execution summary above.*
 """
         
         state["messages"].append(
             AIMessage(content=fallback_response, name="Final_Responder")
         )
+        
+        logging.info("✅ Fallback response generated")
     
     return state

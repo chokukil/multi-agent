@@ -15,6 +15,9 @@ class PlanExecuteState(TypedDict):
     last_error: Optional[str]    # 마지막으로 발생한 오류
     next_action: str            # "route", "replan", "finalize"
     user_request: str           # 원본 사용자 요청
+    # 세션 추적 필드
+    session_id: Optional[str]    # 세션 ID (Streamlit thread_id)
+    user_id: Optional[str]       # 사용자 ID (EMP_NO)
     # 데이터 추적 필드
     original_data_hash: str     # 원본 데이터 해시
     data_lineage: List[Dict]    # 데이터 변경 이력

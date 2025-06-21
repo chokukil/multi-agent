@@ -13,6 +13,10 @@ class Config:
         self.config_file = config_file or os.getenv("CONFIG_FILE", "config.json")
         self.config = self._load_config()
     
+    def reload(self):
+        """Reloads the configuration from file and environment."""
+        self.config = self._load_config()
+    
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file or environment"""
         config = {
@@ -92,6 +96,10 @@ class Config:
     
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value by dot-separated key"""
+        # if '.' not in key, return the whole dictionary
+        if '.' not in key:
+            return self.config.get(key, default)
+
         keys = key.split('.')
         value = self.config
         for k in keys:
@@ -137,10 +145,79 @@ class Config:
 # Global config instance
 config = Config()
 
+# MCP Configuration Management Functions
+def load_mcp_configs() -> List[Dict[str, Any]]:
+    """Load all MCP configurations from mcp-configs directory"""
+    mcp_config_dir = Path("mcp-configs")
+    configs = []
+    
+    if not mcp_config_dir.exists():
+        mcp_config_dir.mkdir(exist_ok=True)
+        return configs
+    
+    for json_file in mcp_config_dir.glob("*.json"):
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                config_data = json.load(f)
+                config_data['config_name'] = json_file.stem
+                configs.append(config_data)
+        except Exception as e:
+            print(f"Failed to load MCP config {json_file}: {e}")
+    
+    return configs
+
+def save_mcp_config(config_name: str, config_data: Dict[str, Any]) -> bool:
+    """Save MCP configuration to file"""
+    try:
+        mcp_config_dir = Path("mcp-configs")
+        mcp_config_dir.mkdir(exist_ok=True)
+        
+        config_file = mcp_config_dir / f"{config_name}.json"
+        
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f, indent=2, ensure_ascii=False)
+        
+        return True
+    except Exception as e:
+        print(f"Failed to save MCP config {config_name}: {e}")
+        return False
+
+def delete_mcp_config(config_name: str) -> bool:
+    """Delete MCP configuration file"""
+    try:
+        mcp_config_dir = Path("mcp-configs")
+        config_file = mcp_config_dir / f"{config_name}.json"
+        
+        if config_file.exists():
+            config_file.unlink()
+            return True
+        return False
+    except Exception as e:
+        print(f"Failed to delete MCP config {config_name}: {e}")
+        return False
+
+def get_mcp_config(config_name: str) -> Optional[Dict[str, Any]]:
+    """Get specific MCP configuration"""
+    try:
+        mcp_config_dir = Path("mcp-configs")
+        config_file = mcp_config_dir / f"{config_name}.json"
+        
+        if config_file.exists():
+            with open(config_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return None
+    except Exception as e:
+        print(f"Failed to get MCP config {config_name}: {e}")
+        return None
+
 # Helper functions
 def get_config(key: str, default: Any = None) -> Any:
     """Get configuration value"""
     return config.get(key, default)
+
+def reload_config():
+    """Helper function to reload the global configuration object."""
+    config.reload()
 
 def set_config(key: str, value: Any):
     """Set configuration value"""

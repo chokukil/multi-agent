@@ -66,7 +66,11 @@ def planner_node(state: Dict) -> Dict:
         return state
     
     # LLM으로 계획 생성
-    llm = create_llm_instance(temperature=0)
+    llm = create_llm_instance(
+        temperature=0,
+        session_id=state.get('session_id', 'default-session'),
+        user_id=state.get('user_id', 'default-user')
+    )
     planner_prompt = create_planner_prompt()
     
     try:

@@ -30,5 +30,5 @@ dependencies = [
     "pytest>=7.4.0",
     "black>=23.0.0",
     "flake8>=6.0.0",
-    "langfuse>=2.0.0",
+    "langfuse>=2.0.0,<3.0.0",
 ]
