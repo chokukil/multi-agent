@@ -250,10 +250,10 @@ def get_role_mcp_tools(role_name: str, available_servers: Dict[str, bool]) -> Tu
     
     # Role to MCP tool mapping (확장된 서버 리스트)
     role_mcp_mapping = {
-        "EDA_Specialist": ["data_science_tools", "statistical_analysis_tools"],
+        "EDA_Specialist": ["statistical_analysis_tools", "data_preprocessing_tools", "data_science_tools"],
         "Visualization_Expert": ["data_science_tools", "statistical_analysis_tools"],
-        "ML_Engineer": ["data_science_tools", "advanced_ml_tools", "statistical_analysis_tools"],
-        "Data_Preprocessor": ["data_science_tools", "data_preprocessing_tools", "file_management"],
+        "ML_Engineer": ["advanced_ml_tools", "data_science_tools", "statistical_analysis_tools"],
+        "Data_Preprocessor": ["data_preprocessing_tools", "data_science_tools", "file_management"],
         "Statistical_Analyst": ["statistical_analysis_tools", "data_science_tools", "timeseries_analysis"],
         "Report_Writer": ["report_writing_tools", "file_management", "data_science_tools"]
     }
@@ -341,3 +341,96 @@ def get_available_mcp_tools_info(config_name: str = None) -> Dict[str, Any]:
         }
     
     return {"available": False, "tools": [], "error": "No configuration specified"}
+
+def create_enhanced_agent_prompt(executor_name: str, tool_names: List[str]) -> str:
+    """
+    에이전트별로 균형잡힌 도구 선택 가이드라인을 제공하는 프롬프트 생성
+    
+    Args:
+        executor_name: 에이전트 이름
+        tool_names: 사용 가능한 도구 목록
+        
+    Returns:
+        균형잡힌 도구 선택 프롬프트
+    """
+    
+    # MCP 도구 분류
+    mcp_tools = [tool for tool in tool_names if any(mcp_server in tool for mcp_server in [
+        'statistical_analysis', 'data_preprocessing', 'data_science', 'file_management',
+        'timeseries_analysis', 'anomaly_detection', 'ml_specialist', 'report_writing'
+    ])]
+    
+    python_tools = [tool for tool in tool_names if 'python' in tool.lower()]
+    
+    # 에이전트별 권장 도구 매핑 (강제가 아닌 권장)
+    agent_recommendations = {
+        'EDA_Analyst': ['data_science_tools', 'statistical_analysis_tools', 'python_repl_ast'],
+        'Statistical_Analyst': ['statistical_analysis_tools', 'data_science_tools', 'python_repl_ast'],
+        'Data_Preprocessor': ['data_preprocessing_tools', 'anomaly_detection', 'python_repl_ast'],
+        'Visualization_Expert': ['python_repl_ast', 'data_science_tools'],
+        'ML_Engineer': ['ml_specialist', 'statistical_analysis_tools', 'python_repl_ast'],
+        'Report_Writer': ['report_writing_tools', 'file_management', 'python_repl_ast'],
+        'Time_Series_Analyst': ['timeseries_analysis', 'statistical_analysis_tools', 'python_repl_ast']
+    }
+    
+    # 에이전트별 권장 도구
+    recommended_tools = agent_recommendations.get(executor_name, tool_names)
+    
+    enhanced_prompt = f"""
+🔧 **INTELLIGENT TOOL SELECTION GUIDELINES:**
+
+Your available tools: {', '.join(tool_names)}
+
+**🎯 RECOMMENDED TOOLS FOR YOUR ROLE ({executor_name}):**
+{', '.join(recommended_tools)}
+
+**📋 SMART TOOL SELECTION PRINCIPLES:**
+
+**Choose the RIGHT tool for the task:**
+- **Specialized MCP tools** are great for standard operations with built-in validation
+- **Python tools** excel at custom logic, complex transformations, and unique visualizations
+- **File management tools** for file operations and data I/O
+- **Consider task complexity, customization needs, and available tool capabilities**
+
+**🎯 TASK-BASED RECOMMENDATIONS:**
+
+📊 **For Statistical Analysis:**
+- Standard stats (mean, correlation, t-tests) → `statistical_analysis_tools` OR `python_repl_ast`
+- Custom statistical methods → `python_repl_ast`
+- Quick exploratory stats → Either tool works well
+
+🧹 **For Data Preprocessing:**
+- Standard cleaning operations → `data_preprocessing_tools` OR `python_repl_ast`
+- Complex custom transformations → `python_repl_ast`
+- Missing value handling → Either tool works well
+
+🤖 **For Machine Learning:**
+- Standard ML workflows → `ml_specialist` OR `python_repl_ast`
+- Custom model architectures → `python_repl_ast`
+- Model evaluation → Either tool works well
+
+📈 **For Visualization:**
+- Standard charts → `data_science_tools` OR `python_repl_ast`
+- Custom interactive plots → `python_repl_ast`
+- Quick data exploration → Either tool works well
+
+📝 **For File Operations:**
+- File management → `file_management` OR `python_repl_ast`
+- Complex file processing → `python_repl_ast`
+
+**⚡ DECISION FRAMEWORK:**
+1. **Identify the task type and complexity**
+2. **Consider if you need custom logic or standard operations**
+3. **Choose the tool that best fits your specific needs**
+4. **MCP tools provide structure, Python provides flexibility**
+
+**💡 BEST PRACTICES:**
+- Try MCP tools first for standard operations (they're often faster)
+- Use Python when you need custom logic or the MCP tool doesn't fit
+- Combine tools when beneficial (e.g., MCP for data prep, Python for custom viz)
+- Don't hesitate to switch tools if one doesn't work as expected
+
+**Remember: Choose the tool that makes the most sense for your specific task!**
+    """
+    
+    return enhanced_prompt.strip()

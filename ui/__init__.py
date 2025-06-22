@@ -34,10 +34,6 @@ from .tabs import render_bottom_tabs
 
 from .artifact_manager import (
     render_artifact_interface,
-    render_artifact_card_compact,
-    render_new_artifact_form_compact,
-    render_compact_editor,
-    render_compact_terminal,
     apply_artifact_styles
 )
 
@@ -73,10 +69,6 @@ __all__ = [
     
     # Artifact management (simplified)
     "render_artifact_interface",
-    "render_artifact_card_compact",
-    "render_new_artifact_form_compact",
-    "render_compact_editor",
-    "render_compact_terminal",
-    "apply_dashboard_styles",  # Dummy function for compatibility
+    # "apply_dashboard_styles",  # Dummy function for compatibility - 이미 주석처리됨
     "apply_artifact_styles"
 ]

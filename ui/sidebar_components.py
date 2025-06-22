@@ -600,8 +600,6 @@ def render_template_management_section():
                                         if delete_executor_template(template_name):
                                             st.success(f"✅ Template '{template_name}' deleted!")
                                             st.rerun()
-                                        else:
-                                            st.error("❌ Failed to delete template")
                                 else:
                                     st.write("🔒")  # System templates are locked
                             
@@ -1020,7 +1018,7 @@ You are an EDA Expert who uncovers hidden patterns, relationships, and insights 
 ```python
 # 1. Dataset Overview
 df = get_current_data()
-print(f"🔍 Exploring dataset: {df.shape}")
+print(f"�� Exploring dataset: {{df.shape}}")
 
 # 2. Univariate Analysis
 # - Distribution of each variable

@@ -65,7 +65,8 @@ You MUST output a JSON object that conforms to the provided `ExecutionPlan` Pyda
     ).with_structured_output(ExecutionPlan)
     
     try:
-        plan_data: ExecutionPlan = llm.invoke(prompt.format_messages(messages=messages))
+        # 💡 중요: 전체 메시지 대신 마지막 사용자 요청만 전달하여 토큰 사용량 최적화
+        plan_data: ExecutionPlan = llm.invoke(user_request)
         
         logging.info(f"✅ Successfully generated structured plan with {len(plan_data.plan)} steps.")
         

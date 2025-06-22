@@ -39,6 +39,29 @@ from .plan_execute.executor import create_executor_node
 from .plan_execute.replanner import replanner_node, should_continue
 from .plan_execute.final_responder import final_responder_node
 
+# Query Router
+from .query_router import (
+    classify_query_complexity,
+    classify_with_llm_immediate,
+    handle_simple_query,
+    should_use_multi_agent_workflow,
+    QueryComplexity,
+    QueryClassification,
+    SimpleResponse
+)
+
+# Smart Router for Workflow Integration
+from .smart_router import (
+    smart_router_node,
+    direct_response_node,
+    smart_route_function,
+    routing_decision
+)
+
 # Utilities
-from .utils.streaming import get_streaming_callback, astream_graph
 from .utils.helpers import log_event, save_code
+
+# New Pydantic v2 Message System
+from .schemas import *
+from .streaming import *
+from .execution import *

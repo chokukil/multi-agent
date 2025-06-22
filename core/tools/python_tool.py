@@ -86,7 +86,57 @@ def create_enhanced_python_tool() -> Tool:
         - 더 나은 에러 처리
         - 자동 데이터 검증
         - 시각화 통합
+        - 입력 검증 강화
         """
+        # 🆕 입력 검증: 마크다운이나 보고서 형식 텍스트 거부
+        def is_valid_python_code(text: str) -> bool:
+            """Python 코드인지 검증"""
+            text = text.strip()
+            
+            # 빈 문자열
+            if not text:
+                return False
+            
+            # 마크다운 헤더나 보고서 형식 감지
+            markdown_indicators = [
+                '# Summary', '## Dataset', '### ', '- **', '**Total',
+                'Missing Values', 'Statistical Summary', 'Key Insights',
+                'Recommendations', 'TASK COMPLETED:', '📊', '📋', '💡'
+            ]
+            
+            if any(indicator in text for indicator in markdown_indicators):
+                return False
+            
+            # 너무 긴 텍스트 (일반적으로 코드는 간결함)
+            if len(text) > 5000:
+                return False
+                
+            # 기본 Python 구문 체크
+            try:
+                compile(text, '<string>', 'exec')
+                return True
+            except SyntaxError:
+                # 일부 유효한 표현식도 체크
+                try:
+                    compile(text, '<string>', 'eval')
+                    return True
+                except SyntaxError:
+                    return False
+        
+        # 입력 검증
+        if not is_valid_python_code(code):
+            return """❌ Invalid Python code detected!
+
+This appears to be a text report or markdown content, not executable Python code.
+
+For code execution, please provide valid Python syntax like:
+```python
+df = get_current_data()
+print(df.head())
+```
+
+For generating reports, the agent should complete the task without using Python tools."""
+        
         # 출력 캡처를 위한 StringIO
         output_buffer = io.StringIO()
         error_buffer = io.StringIO()

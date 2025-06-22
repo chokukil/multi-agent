@@ -1,7 +1,7 @@
 # File: utils/__init__.py
 # Location: ./utils/__init__.py
 
-from .streaming import astream_graph, get_streaming_callback
+from .streaming import astream_graph_with_callbacks
 from .helpers import log_event, save_code
 from .mcp_config_helper import (
     create_mcp_config_for_role,
@@ -13,8 +13,7 @@ from .mcp_config_helper import (
 )
 
 __all__ = [
-    'astream_graph',
-    'get_streaming_callback',
+    'astream_graph_with_callbacks',
     'log_event',
     'save_code',
     'create_mcp_config_for_role',

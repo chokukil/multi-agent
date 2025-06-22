@@ -4,7 +4,7 @@
 import logging
 import time
 import traceback
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 from datetime import datetime
 from langchain_core.messages import AIMessage, HumanMessage
 from ..data_manager import data_manager
@@ -16,7 +16,26 @@ def create_executor_node(agent: Any, name: str):
     """데이터 추적 기능이 포함된 Executor 노드 생성"""
     
     def executor_node(state: Dict) -> Dict:
-        logging.info(f"🔧 Executor {name}: Starting task execution")
+        logging.info(f"🚀 Executing {name}...")
+        
+        # 🆕 무한 루프 방지: 동일 에이전트의 연속 실행 횟수 체크
+        execution_history = state.get("execution_history", [])
+        recent_executions = [exec_record for exec_record in execution_history[-10:] if exec_record.get("agent") == name]
+        
+        if len(recent_executions) >= 3:
+            logging.warning(f"⚠️ Agent {name} has executed {len(recent_executions)} times recently. Skipping to prevent loop.")
+            return {
+                "messages": state["messages"] + [
+                    AIMessage(content=f"TASK COMPLETED: {name} execution limit reached to prevent infinite loop.", name=name)
+                ],
+                "execution_history": execution_history + [{
+                    "agent": name,
+                    "timestamp": time.time(),
+                    "status": "skipped_limit_reached"
+                }]
+            }
+        
+        start_time = time.time()
         
         # 현재 단계 정보
         current_step = state.get("current_step", 0)
@@ -32,32 +51,25 @@ def create_executor_node(agent: Any, name: str):
         
         # Agent 실행
         try:
-            start_time = time.time()
-            
             # 💡 수정: 라우터의 구체적인 지시사항을 포함하여 에이전트 호출
             messages_for_agent = list(state["messages"])
             task_prompt = state.get("current_task_prompt")
             
-            # --- 지시문 강화 ---
-            final_instruction = """
-IMPORTANT: When you have finished your task and have the final answer, you MUST respond with only your findings in plain text, summarizing what you have done.
-End this final response with the exact phrase 'TASK COMPLETED:'.
-You MUST NOT include any 'tool_calls' in this final, concluding response.
-Your final answer should be a summary report, not a command to a tool.
-"""
-
             if task_prompt:
-                # 라우터의 지시사항과 최종 응답 형식을 결합
-                full_prompt = f"{task_prompt}\n\n{final_instruction}"
                 # HumanMessage를 사용하여 에이전트가 명확히 "지시"로 인식하도록 함
-                messages_for_agent.append(HumanMessage(content=full_prompt, name="Router_Instruction"))
-            else:
-                # task_prompt가 없는 경우에도 최종 지시사항은 전달
-                messages_for_agent.append(HumanMessage(content=final_instruction, name="System_Instruction"))
+                messages_for_agent.append(HumanMessage(content=task_prompt, name="Router_Instruction"))
             
             result = agent.invoke({"messages": messages_for_agent})
             
             execution_time = time.time() - start_time
+            
+            # 🆕 실행 기록 추가
+            execution_record = {
+                "agent": name,
+                "timestamp": time.time(),
+                "execution_time": execution_time,
+                "status": "completed"
+            }
             
             # --- 🛡️ 가드레일: LLM 출력 검증 및 교정 ---
             if result.get("messages"):
@@ -103,6 +115,10 @@ Your final answer should be a summary report, not a command to a tool.
                 # 작업 완료 확인
                 task_completed = "TASK COMPLETED:" in response_content
                 
+                # 🔥 디버깅 강화: 작업 완료 감지 로깅
+                logging.info(f"🔍 Response content preview: {response_content[:200]}...")
+                logging.info(f"🔍 Task completed detected: {task_completed}")
+                
                 # 결과 저장
                 if "step_results" not in state:
                     state["step_results"] = {}
@@ -116,15 +132,49 @@ Your final answer should be a summary report, not a command to a tool.
                     "summary": response_content.split("TASK COMPLETED:")[-1].strip() if task_completed else "In progress"
                 }
                 
+                # 🔥 디버깅 강화: 상태 정보 로깅
+                logging.info(f"🔍 Current step: {current_step}, Plan length: {len(plan)}")
+                logging.info(f"🔍 Step result saved: {state['step_results'][current_step]}")
+                
                 # 응답 메시지 추가
                 state["messages"].append(
                     AIMessage(content=response_content, name=name)
                 )
                 
-                # 다음 액션 설정
-                state["next_action"] = "replan"
+                # 🔥 핵심 수정: 작업 완료 시 다음 단계로 진행
+                if task_completed:
+                    # 다음 단계로 이동
+                    old_step = current_step
+                    state["current_step"] = current_step + 1
+                    
+                    # 🔥 디버깅 강화: 단계 진행 로깅
+                    logging.info(f"🔄 Step progression: {old_step} → {state['current_step']}")
+                    
+                    # 모든 단계가 완료되었는지 확인
+                    if state["current_step"] >= len(plan):
+                        logging.info(f"🎯 All steps completed! Current step: {state['current_step']}, Plan length: {len(plan)}")
+                        logging.info(f"🎯 Setting next_action to final_responder")
+                        state["next_action"] = "final_responder"
+                    else:
+                        logging.info(f"🔄 Step {old_step + 1} completed. Moving to step {state['current_step'] + 1}")
+                        logging.info(f"📊 Progress: {state['current_step']}/{len(plan)} steps completed")
+                        state["next_action"] = "replan"
+                else:
+                    # 작업이 완료되지 않은 경우 재계획
+                    logging.warning(f"⚠️ Task not completed. Response: {response_content[:200]}...")
+                    logging.warning(f"⚠️ Replanning step {current_step + 1}")
+                    state["next_action"] = "replan"
                 
-                logging.info(f"✅ Executor {name} completed in {execution_time:.2f}s")
+                # 🔥 디버깅 강화: 최종 상태 로깅
+                logging.info(f"🔍 Final executor state - next_action: {state.get('next_action')}")
+                logging.info(f"🔍 Final executor state - current_step: {state.get('current_step')}")
+                
+                logging.info(f"✅ {name} completed in {execution_time:.2f}s")
+                
+                return {
+                    "messages": state["messages"] + [result["messages"][-1]],
+                    "execution_history": execution_history + [execution_record]
+                }
                 
             else:
                 logging.error(f"No messages in agent result")
@@ -162,13 +212,13 @@ Your final answer should be a summary report, not a command to a tool.
             # 최대 재시도 횟수 확인
             if retry_count >= MAX_RETRIES:
                 logging.error(f"Executor {name} failed after {MAX_RETRIES} retries. Finalizing.")
-                state["next_action"] = "finalize"
+                state["next_action"] = "final_responder"
                 error_message = f"""❌ Task failed after multiple retries.
 Error: {str(e)}
 Full Traceback:
 {error_trace}
 
-The system will now stop. No further analysis can be performed."""
+The system will now move to final response with current progress."""
             else:
                 state["next_action"] = "replan"
                 error_message = f"""❌ An error occurred during task execution. Please analyze the error and modify your approach.
@@ -187,7 +237,20 @@ Full Traceback:
                     name=name
                 )
             )
+            
+            return {
+                "messages": state["messages"] + [
+                    AIMessage(content=error_message, name=name)
+                ],
+                "execution_history": execution_history + [{
+                    "agent": name,
+                    "timestamp": time.time(),
+                    "status": "failed",
+                    "error": str(e),
+                    "traceback": error_trace
+                }]
+            }
         
-        return state
+        return executor_node
     
     return executor_node

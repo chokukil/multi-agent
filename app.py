@@ -15,6 +15,12 @@ from datetime import datetime
 import streamlit as st
 import nest_asyncio
 from dotenv import load_dotenv
+from langchain_core.prompts import PromptTemplate
+from core.streaming import TypedChatStreamCallback
+from core.callbacks.progress_stream import ProgressStreamCallback
+from core.callbacks.artifact_stream import ArtifactStreamCallback
+from core.utils.streaming import astream_graph_with_callbacks
+from functools import partial
 
 # LangGraph imports
 from langgraph.graph import END, StateGraph, START
@@ -105,6 +111,11 @@ from core import (
     should_continue,
     final_responder_node,
     
+    # Smart Router
+    smart_router_node,
+    direct_response_node,
+    smart_route_function,
+    
     # Utilities
     log_event
 )
@@ -150,10 +161,15 @@ def initialize_session_state():
         import uuid
         st.session_state.thread_id = str(uuid.uuid4())
         
+        # thread_id를 session_id로도 사용합니다.
+        st.session_state.session_id = st.session_state.thread_id
+        
         try:
+            # core/artifact_system.py에 정의된 전역 인스턴스를 가져옵니다.
             from core.artifact_system import artifact_manager
-            artifact_manager.clear_all_artifacts()
-            logging.info(f"🧹 Cleared artifacts for new session: {st.session_state.thread_id}")
+            # 새 세션을 시작할 때 이전 아티팩트를 정리합니다.
+            artifact_manager.clear_all_artifacts() 
+            logging.info(f"🧹 Cleared artifacts for new session: {st.session_state.session_id}")
         except Exception as e:
             logging.warning(f"⚠️ Failed to clear artifacts: {e}")
     
@@ -168,7 +184,11 @@ def initialize_session_state():
     if "current_system_name" not in st.session_state:
         st.session_state.current_system_name = ""
     if "timeout_seconds" not in st.session_state:
-        st.session_state.timeout_seconds = 180
+        # 새로운 타임아웃 관리자 사용
+        from core.execution import TimeoutManager, TaskComplexity
+        timeout_manager = TimeoutManager()
+        st.session_state.timeout_seconds = timeout_manager.get_timeout(TaskComplexity.COMPLEX)
+        st.session_state.timeout_manager = timeout_manager
     if "recursion_limit" not in st.session_state:
         st.session_state.recursion_limit = 30
     if "logs" not in st.session_state:
@@ -380,7 +400,9 @@ if st.session_state.executors and not st.session_state.graph_initialized:
                     
                     workflow = StateGraph(PlanExecuteState)
                     
-                    # Add nodes
+                    # Add nodes - 🔀 스마트 라우터 우선 추가
+                    workflow.add_node("smart_router", smart_router_node)
+                    workflow.add_node("direct_response", direct_response_node)
                     workflow.add_node("planner", planner_node)
                     workflow.add_node("router", router_node)
                     workflow.add_node("replanner", replanner_node)
@@ -413,20 +435,71 @@ if st.session_state.executors and not st.session_state.graph_initialized:
                                 
                             except Exception as e:
                                 logging.error(f"❌ Failed to initialize MCP tools for {executor_name}: {e}")
+
+                        from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+                        from core.tools.mcp_tools import create_enhanced_agent_prompt
+
+                        # --- Agent Prompt Template ---
+                        # 🆕 MCP 도구 우선 사용을 강제하는 향상된 프롬프트 생성
+                        tool_names = [t.name for t in tools]
+                        enhanced_prompt = create_enhanced_agent_prompt(executor_name, tool_names)
                         
+                        AGENT_PROMPT = f"""
+                        You are a specialized agent in a multi-agent data analysis team.
+
+                        Your Role: {executor_config["prompt"]}
+                        {executor_config.get("description", "")}
+
+                        {enhanced_prompt}
+
+                        Your Goal: Execute the assigned task meticulously based on the provided plan.
+                        Your Tools: You have access to the following tools: {", ".join(tool_names)}.
+                        
+                        Execution Guidelines:
+
+                        Focus on Your Task: Execute ONLY the task assigned to you. Do not deviate or perform tasks assigned to other agents.
+                        Use Your Tools Intelligently: Choose the most appropriate tool for each specific task.
+                        Report Your Results: After completing your task, provide clear findings.
+                        Strict Final Output: When you have successfully completed your task, summarize your findings and results. Conclude your response with the exact phrase: TASK COMPLETED: [A brief, one-sentence summary of your key finding or result].
+
+                        Your response will be passed to the next agent in the chain, so ensure your output is clear, concise, and directly related to your assigned task.
+                        **DO NOT** generate a final, comprehensive report for the user. Your task is to complete your specific step and hand it off.
+                        """
+
+                        agent_prompt_template = ChatPromptTemplate.from_messages([
+                            ("system", AGENT_PROMPT),
+                            MessagesPlaceholder(variable_name="messages"),
+                        ])
+
                         agent = create_react_agent(
                             model=llm,
                             tools=tools,
-                            prompt=executor_config["prompt"]
+                            prompt=agent_prompt_template
                         )
-                        
+
                         workflow.add_node(
                             executor_name,
                             create_executor_node(agent, executor_name)
                         )
                     
-                    # Add edges
-                    workflow.add_edge(START, "planner")
+                    # Add edges - 🔀 스마트 라우터 우선 연결
+                    workflow.add_edge(START, "smart_router")
+                    
+                    # 스마트 라우터에서 조건부 분기
+                    workflow.add_conditional_edges(
+                        "smart_router",
+                        smart_route_function,
+                        {
+                            "direct_response": "direct_response",
+                            "planner": "planner"
+                        }
+                    )
+                    
+                    # 직접 응답에서 바로 종료
+                    workflow.add_edge("direct_response", END)
+                    
+                    # 기존 플래너 워크플로우
                     workflow.add_edge("planner", "router")
                     
                     executor_mapping = {name: name for name in st.session_state.executors}
@@ -446,8 +519,23 @@ if st.session_state.executors and not st.session_state.graph_initialized:
                         executor_mapping
                     )
                     
+                    # 🔥 핵심 수정: Executor에서 final_responder로 직접 라우팅할 수 있도록 개선
+                    def executor_route_function(state):
+                        next_action = state.get("next_action", "")
+                        if next_action == "final_responder":
+                            return "final_responder"
+                        else:
+                            return "replanner"
+                    
                     for executor_name in st.session_state.executors:
-                        workflow.add_edge(executor_name, "replanner")
+                        workflow.add_conditional_edges(
+                            executor_name,
+                            executor_route_function,
+                            {
+                                "replanner": "replanner",
+                                "final_responder": "final_responder"
+                            }
+                        )
                     
                     workflow.add_conditional_edges(
                         "replanner",
@@ -523,6 +611,138 @@ else:
 
 st.markdown("---")
 st.caption("🍒Cherry AI - Data Science Multi-Agent System with MCP Integration")
+
+def render_system_status():
+    """시스템 상태 및 도구 가용성 표시"""
+    st.markdown("### 🔍 System Status")
+    
+    # 기본 시스템 상태
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        if MCP_AVAILABLE:
+            st.success("✅ MCP Available")
+        else:
+            st.error("❌ MCP Unavailable")
+    
+    with col2:
+        executor_count = len(st.session_state.get("executors", {}))
+        if executor_count > 0:
+            st.info(f"🤖 {executor_count} Executors")
+        else:
+            st.warning("⚠️ No Executors")
+    
+    with col3:
+        if st.session_state.get("graph_initialized", False):
+            st.success("✅ Graph Ready")
+        else:
+            st.warning("⚠️ Graph Not Ready")
+    
+    with col4:
+        from core.data_manager import data_manager
+        if data_manager.is_data_loaded():
+            data = data_manager.get_data()
+            st.info(f"📊 Data: {data.shape}")
+        else:
+            st.warning("⚠️ No Data Loaded")
+    
+    # 🆕 상세 도구 상태 표시
+    if st.session_state.get("executors") and st.expander("🔧 Detailed Tool Status", expanded=False):
+        
+        for executor_name, executor_config in st.session_state.executors.items():
+            st.markdown(f"#### 🤖 {executor_name}")
+            
+            tools = executor_config.get("tools", [])
+            mcp_config = executor_config.get("mcp_config", {})
+            
+            # Python 도구 상태
+            if "python_repl_ast" in tools:
+                st.success("  ✅ Enhanced Python Tool (SSOT)")
+            else:
+                st.info("  ⚪ Python Tool (Disabled)")
+            
+            # MCP 도구 상태
+            if mcp_config and mcp_config.get("mcp_configs"):
+                st.markdown("  **MCP Tools:**")
+                
+                mcp_configs = mcp_config.get("mcp_configs", {})
+                for tool_name, tool_config in mcp_configs.items():
+                    server_name = tool_config.get("server_name", "unknown")
+                    server_config = tool_config.get("server_config", {})
+                    
+                    # 서버 상태 확인 (간단한 체크)
+                    if server_config.get("url"):
+                        st.info(f"    🔧 {server_name}: {server_config['url']}")
+                    else:
+                        st.warning(f"    ⚠️ {server_name}: Configuration issue")
+            else:
+                st.info("  ⚪ No MCP tools configured")
+            
+            # 총 도구 수 요약
+            total_tools = len(tools)
+            mcp_tool_count = len(mcp_config.get("mcp_configs", {})) if mcp_config else 0
+            st.caption(f"  📋 Total: {total_tools} tools ({mcp_tool_count} MCP + {'1' if 'python_repl_ast' in tools else '0'} Python)")
+            
+            st.markdown("---")
+    
+    # 🆕 실시간 MCP 서버 상태 체크 (옵션)
+    if st.button("🔄 Check MCP Server Status", help="Test connectivity to MCP servers"):
+        with st.spinner("Checking MCP server connections..."):
+            try:
+                from core.tools.mcp_setup import initialize_mcp_tools
+                import asyncio
+                
+                # 각 executor의 MCP 설정 테스트
+                async def test_all_servers():
+                    all_results = {}
+                    
+                    for executor_name, executor_config in st.session_state.executors.items():
+                        mcp_config = executor_config.get("mcp_config", {})
+                        if mcp_config and mcp_config.get("mcp_configs"):
+                            # 해당 executor의 MCP 설정으로 테스트
+                            mcp_server_configs = {}
+                            for tool_name, tool_config in mcp_config["mcp_configs"].items():
+                                server_name = tool_config["server_name"] 
+                                server_config = tool_config["server_config"]
+                                mcp_server_configs[server_name] = server_config
+                            
+                            test_config = {"mcpServers": mcp_server_configs}
+                            tools = await initialize_mcp_tools(test_config)
+                            all_results[executor_name] = {
+                                "tool_count": len(tools),
+                                "server_count": len(mcp_server_configs)
+                            }
+                    
+                    return all_results
+                
+                # 비동기 테스트 실행
+                if asyncio.get_event_loop().is_running():
+                    # 이미 실행 중인 루프가 있으면 task 생성
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(asyncio.run, test_all_servers())
+                        results = future.result(timeout=10)
+                else:
+                    results = asyncio.run(test_all_servers())
+                
+                # 결과 표시
+                st.success("✅ MCP Server Test Complete")
+                
+                for executor_name, result in results.items():
+                    tool_count = result["tool_count"]
+                    server_count = result["server_count"]
+                    
+                    if tool_count > 0:
+                        st.success(f"🤖 {executor_name}: {tool_count} tools loaded from {server_count} servers")
+                    else:
+                        st.warning(f"⚠️ {executor_name}: No tools loaded from {server_count} configured servers")
+                
+                if not results:
+                    st.info("ℹ️ No executors with MCP configurations found")
+                    
+            except Exception as e:
+                st.error(f"❌ MCP server test failed: {e}")
+                logging.error(f"MCP server test error: {e}")
 
 if __name__ == "__main__":
     logging.info("Application started")

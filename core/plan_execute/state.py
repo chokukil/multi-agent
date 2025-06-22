@@ -4,6 +4,7 @@
 from typing import TypedDict, List, Dict, Any, Sequence, Annotated, Optional
 from langchain_core.messages import BaseMessage
 import operator
+from langgraph.graph.message import add_messages
 
 class PlanExecuteState(TypedDict):
     """Plan-Execute 패턴을 위한 상태 정의"""
@@ -23,3 +24,5 @@ class PlanExecuteState(TypedDict):
     original_data_hash: str     # 원본 데이터 해시
     data_lineage: List[Dict]    # 데이터 변경 이력
     data_validations: List[Dict] # 데이터 검증 결과
+    execution_history: List[Dict[str, Any]]  # 🆕 실행 기록 추적
+    thread_id: Optional[str]   # 🆕 스레드 ID 추가
