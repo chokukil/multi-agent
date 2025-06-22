@@ -69,12 +69,74 @@ def render_chat_interface():
                         st.markdown(tool_activity_content)
 
         # 응답을 대화 기록에 추가
-        if "error" in resp:
-            assistant_response = {
-                "role": "assistant",
-                "content": resp.get("error", "An unknown error occurred."),
-                "error": True
-            }
+        if isinstance(resp, dict) and "error" in resp:
+            # 오류 타입에 따른 메시지 분류
+            error_msg = resp.get("error", "An unknown error occurred.")
+            
+            if "timeout" in error_msg.lower():
+                assistant_response = {
+                    "role": "assistant",
+                    "content": f"""## ⏰ 처리 시간 초과
+
+요청 처리가 제한 시간({st.session_state.get("timeout_seconds", 180)}초)을 초과했습니다.
+
+### 💡 해결 방법:
+- 더 간단한 분석으로 나누어 요청해 보세요
+- 사이드바에서 timeout 설정을 늘려보세요
+- 데이터 크기가 큰 경우 샘플링을 고려해 보세요
+
+### 🔧 시스템 상태:
+- MCP 서버: {'✅ 연결됨' if st.session_state.get('mcp_client') else '❌ 연결 안됨'}
+- Plan-Execute: {'✅ 초기화됨' if st.session_state.get('plan_execute_graph') else '❌ 초기화 안됨'}
+""",
+                    "error": True,
+                    "error_type": "timeout"
+                }
+            elif "mcp" in error_msg.lower():
+                assistant_response = {
+                    "role": "assistant", 
+                    "content": f"""## 🔧 MCP 도구 연결 오류
+
+MCP (Model Context Protocol) 도구 연결에 문제가 발생했습니다.
+
+### 💡 해결 방법:
+1. MCP 서버가 실행 중인지 확인
+2. `system_start.bat`를 다시 실행
+3. 기본 도구만으로 분석 진행 가능
+
+### 📊 현재 사용 가능한 기능:
+- ✅ 기본 데이터 분석 (Python)
+- ✅ 시각화 (matplotlib, plotly)
+- ✅ 통계 분석 (pandas, numpy)
+- ❌ 고급 MCP 도구들
+
+오류 상세: {error_msg}
+""",
+                    "error": True,
+                    "error_type": "mcp"
+                }
+            else:
+                assistant_response = {
+                    "role": "assistant",
+                    "content": f"""## ❌ 처리 중 오류 발생
+
+분석 처리 중 예상치 못한 오류가 발생했습니다.
+
+### 🔍 오류 정보:
+```
+{error_msg}
+```
+
+### 💡 해결 방법:
+1. 요청을 다시 작성해 보세요
+2. 더 구체적인 질문으로 나누어 요청해 보세요
+3. 데이터가 올바르게 업로드되었는지 확인해 보세요
+
+시스템이 여전히 작동 중이므로 다른 요청을 시도할 수 있습니다.
+""",
+                    "error": True,
+                    "error_type": "general"
+                }
         else:
             assistant_response = {
                 "role": "assistant",
@@ -132,12 +194,18 @@ async def process_query_with_enhanced_streaming(
                 node = msg.get("node", "")
                 content = msg.get("content")
                 
-                if node == "final_responder" and hasattr(content, "content"):
-                    final_text_parts.append(content.content)
-                    text_placeholder.markdown("".join(final_text_parts))
-                elif node == "final_responder" and isinstance(content, str):
-                    final_text_parts.append(content)
-                    text_placeholder.markdown("".join(final_text_parts))
+                # 🆕 Final Responder 응답 처리 강화
+                if node == "final_responder":
+                    if hasattr(content, "content"):
+                        final_response = content.content
+                    elif isinstance(content, str):
+                        final_response = content
+                    else:
+                        final_response = str(content)
+                    
+                    final_text_parts.append(final_response)
+                    text_placeholder.markdown(final_response)
+                    logging.info(f"✅ Final response displayed: {len(final_response)} characters")
             
             # 통합 콜백
             def combined_callback(msg):
@@ -177,32 +245,30 @@ async def process_query_with_enhanced_streaming(
                 timeout=timeout_seconds
             )
             
-            # 최종 텍스트 추출
+            # 최종 텍스트 추출 - 개선된 로직
             final_text = "".join(final_text_parts)
             
-            # 최종 응답이 없다면 response에서 추출
-            if not final_text and response:
-                if isinstance(response, dict) and "messages" in response:
-                    for msg in reversed(response["messages"]):
-                        if hasattr(msg, "name") and msg.name == "Final_Responder":
-                            final_text = msg.content
-                            break
-                        elif hasattr(msg, "content") and msg.content:
-                            # 마지막 AI 메시지를 최종 응답으로 사용
-                            if hasattr(msg, "type") and msg.type == "ai":
-                                final_text = msg.content
-                                break
-            
-            # 도구 활동 내용 가져오기 (실제로는 streaming_callback에서 관리됨)
-            tool_activity_content = "실행이 완료되었습니다."
+            # --- 🛟 UI 최종 안전망 ---
+            # 만약 모든 과정이 끝났는데도 final_text가 비어있다면, 
+            # UI 단에서 최소한의 응답을 보장합니다.
+            if not final_text.strip():
+                logging.warning("No final text was generated from the graph. Displaying UI fallback message.")
+                final_text = """
+### ✅ 분석 프로세스 완료
+
+시스템이 모든 분석 단계를 완료했습니다. 
+하지만 최종 요약 보고서를 생성하는 데 문제가 발생한 것으로 보입니다.
+
+**생성된 결과는 우측의 '아티팩트' 패널 또는 위의 '실행 과정'에서 직접 확인하실 수 있습니다.**
+
+만약 결과가 만족스럽지 않다면, 질문을 조금 더 구체적으로 변경하여 다시 시도해 보세요.
+"""
+                text_placeholder.markdown(final_text)
+
+            tool_activity_content = tool_activity_placeholder.markdown_content if hasattr(tool_activity_placeholder, 'markdown_content') else ""
             
             duration = time.time() - start_time
             logging.info(f"Query processed in {duration:.2f}s")
-            
-            if not final_text:
-                final_text = "분석이 완료되었습니다. 자세한 내용은 실행 과정을 확인해주세요."
-            
-            text_placeholder.markdown(final_text)
             
             return response, final_text, tool_activity_content
             
@@ -211,14 +277,13 @@ async def process_query_with_enhanced_streaming(
             return {"error": error_msg}, error_msg, ""
             
     except asyncio.TimeoutError:
-        error_msg = f"⏱️ Request timed out after {timeout_seconds} seconds"
-        text_placeholder.markdown(error_msg)
+        error_msg = f"⏰ Query timed out after {timeout_seconds} seconds"
+        logging.error(error_msg)
         return {"error": error_msg}, error_msg, ""
         
     except Exception as e:
-        error_msg = f"❌ Error: {str(e)}"
-        logging.error(f"Query processing error: {e}")
-        text_placeholder.markdown(error_msg)
+        error_msg = f"❌ Error processing query: {str(e)}"
+        logging.error(f"Query processing error: {e}", exc_info=True)
         return {"error": error_msg}, error_msg, ""
 
 async def process_query_with_plan_execute(

@@ -3,138 +3,169 @@
 
 import json
 import logging
-from typing import Dict, List
+from typing import Dict, List, Any
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from pydantic import BaseModel, Field
 
-def create_planner_prompt():
-    """Planner를 위한 프롬프트 생성"""
-    return ChatPromptTemplate.from_messages([
-        ("system", """You are an expert planning agent for a data science team. Your role is to analyze the user's request and create a clear, step-by-step execution plan.
+# ---------------- Pydantic 모델 정의 ----------------
 
-When creating a plan, consider:
-1. Data availability and validation needs
-2. Logical sequence of data science tasks
-3. Dependencies between tasks
-4. The user's ultimate goal
+class PlanStep(BaseModel):
+    """A single step in the execution plan."""
+    step: int = Field(..., description="The step number, starting from 1.")
+    task: str = Field(..., description="A clear, concise description of the task for this step.")
+    task_type: str = Field(..., description="The type of task. Must be one of: data_check, preprocessing, eda, visualization, ml, stats, report.")
+    dependencies: List[int] = Field(default_factory=list, description="List of step numbers this step depends on.")
+    expected_output: str = Field(..., description="What this step is expected to produce as an output or artifact.")
 
-Common workflow patterns:
-- Data Analysis: Data Loading → Data Validation → EDA → Visualization → Insights
-- ML Pipeline: Data Loading → Preprocessing → Feature Engineering → Model Training → Evaluation
-- Reporting: Data Loading → Analysis → Visualization → Report Generation
+class ExecutionPlan(BaseModel):
+    """A complete, structured execution plan to fulfill the user's request."""
+    user_request_summary: str = Field(..., description="A brief summary of the user's request.")
+    plan: List[PlanStep] = Field(..., description="The list of steps to execute.")
 
-Your output MUST be a JSON object with the following structure:
-{
-  "user_request_summary": "Brief summary of what the user wants",
-  "plan": [
-    {
-      "step": 1,
-      "task": "Clear description of the task",
-      "type": "task_type",
-      "dependencies": [],
-      "expected_output": "What this step should produce"
-    }
-  ]
-}
-
-Task types: data_check, preprocessing, eda, visualization, ml, stats, report
-
-IMPORTANT: Keep the plan concise and focused on the user's actual request."""),
-        MessagesPlaceholder(variable_name="messages")
-    ])
+# ---------------- Planner Node 재작성 ----------------
 
 def planner_node(state: Dict) -> Dict:
-    """사용자 요청을 분석하여 실행 계획을 수립하는 노드"""
+    """
+    Analyzes the user's request and generates a structured execution plan
+    using Pydantic for reliable output.
+    """
     from ..llm_factory import create_llm_instance
     
-    logging.info("🎯 Planner: Analyzing user request and creating execution plan")
+    logging.info("🎯 Pydantic-Powered Planner: Generating structured plan.")
     
     messages = state.get("messages", [])
-    if not messages:
-        logging.error("No messages found in state")
-        return state
-    
-    # 사용자 요청 추출
-    user_request = None
-    for msg in reversed(messages):
-        if isinstance(msg, HumanMessage):
-            user_request = msg.content
-            break
-    
+    user_request = next((msg.content for msg in reversed(messages) if isinstance(msg, HumanMessage)), None)
+
     if not user_request:
-        logging.error("No user request found in messages")
+        logging.error("No user request found in messages. Cannot create plan.")
+        # 비상 상황: 빈 계획 대신, 직접 응답하도록 유도
+        state["plan"] = []
+        state["user_request"] = "No request"
+        state["next_action"] = "final_responder"
         return state
+        
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", """You are an expert planning agent for a data science team. Your task is to analyze the user's request and create a structured, step-by-step execution plan.
+You MUST output a JSON object that conforms to the provided `ExecutionPlan` Pydantic schema.
+
+- Analyze the user's goal carefully.
+- Break down the process into logical steps.
+- Assign a relevant `task_type` to each step from the allowed list: data_check, preprocessing, eda, visualization, ml, stats, report.
+- Define clear dependencies between steps.
+- Do not skip any required fields."""),
+        MessagesPlaceholder(variable_name="messages")
+    ])
     
-    # LLM으로 계획 생성
+    # LLM에 구조화된 출력 강제
     llm = create_llm_instance(
         temperature=0,
         session_id=state.get('session_id', 'default-session'),
         user_id=state.get('user_id', 'default-user')
-    )
-    planner_prompt = create_planner_prompt()
+    ).with_structured_output(ExecutionPlan)
     
     try:
-        response = llm.invoke(planner_prompt.format_messages(messages=messages))
+        plan_data: ExecutionPlan = llm.invoke(prompt.format_messages(messages=messages))
         
-        # JSON 파싱
-        try:
-            # response.content에서 JSON 부분만 추출
-            content = response.content
-            # JSON 블록 찾기
-            import re
-            json_match = re.search(r'\{.*\}', content, re.DOTALL)
-            if json_match:
-                plan_data = json.loads(json_match.group())
-            else:
-                # 전체 내용을 JSON으로 시도
-                plan_data = json.loads(content)
-                
-        except json.JSONDecodeError as e:
-            logging.error(f"Failed to parse planner response as JSON: {e}")
-            # Fallback 계획
-            plan_data = {
-                "user_request_summary": user_request[:100],
-                "plan": [
-                    {
-                        "step": 1,
-                        "task": "Analyze the request and provide insights",
-                        "type": "eda",
-                        "dependencies": [],
-                        "expected_output": "Analysis results"
-                    }
-                ]
-            }
+        logging.info(f"✅ Successfully generated structured plan with {len(plan_data.plan)} steps.")
         
         # 상태 업데이트
-        state["plan"] = plan_data["plan"]
+        state["plan"] = [step.model_dump() for step in plan_data.plan] # StateGraph는 dict를 선호
         state["user_request"] = user_request
         state["current_step"] = 0
         state["next_action"] = "route"
-        
-        # 계획 메시지 추가
+
+        # UI 표시용 메시지 생성
         plan_summary = f"📋 **Execution Plan Created**\n\n"
-        plan_summary += f"**User Request**: {plan_data['user_request_summary']}\n\n"
+        plan_summary += f"**User Request**: {plan_data.user_request_summary}\n\n"
         plan_summary += "**Steps**:\n"
-        for step in plan_data["plan"]:
-            plan_summary += f"{step['step']}. {step['task']} ({step['type']})\n"
+        for step in plan_data.plan:
+            plan_summary += f"{step.step}. {step.task} (Type: {step.task_type})\n"
         
-        state["messages"].append(
-            AIMessage(content=plan_summary, name="Planner")
-        )
-        
-        logging.info(f"✅ Plan created with {len(plan_data['plan'])} steps")
-        
+        state["messages"].append(AIMessage(content=plan_summary, name="Planner"))
+
     except Exception as e:
-        logging.error(f"Error in planner: {e}")
-        # 에러 시 기본 계획
-        state["plan"] = [{
+        logging.error(f"❌ Critical error in Pydantic-powered planner: {e}", exc_info=True)
+        # 최종 Fallback: 빈 계획을 반환하고 바로 Final Responder로 이동
+        state["plan"] = []
+        state["user_request"] = user_request
+        state["messages"].append(
+            AIMessage(
+                content=f"⚠️ **Planning Failed**\n\nAn error occurred while creating a plan: {e}\nI will attempt to provide a direct answer.",
+                name="Planner"
+            )
+        )
+        state["next_action"] = "final_responder"
+        
+    return state
+
+def extract_plan_from_text(content: str, user_request: str) -> Dict:
+    """텍스트에서 계획을 추출하는 fallback 함수"""
+    import re
+    
+    # 단계별로 텍스트를 분석해 계획 추출 시도
+    steps = []
+    
+    # 숫자로 시작하는 라인들을 찾기 (1. 2. 3. 등)
+    step_pattern = r'(\d+)\.?\s*([^\n]+)'
+    matches = re.findall(step_pattern, content)
+    
+    for i, (step_num, task_desc) in enumerate(matches[:5]):  # 최대 5단계
+        # 작업 타입 추정
+        task_type = "eda"  # 기본값
+        task_lower = task_desc.lower()
+        
+        if any(word in task_lower for word in ["load", "import", "read", "data"]):
+            task_type = "data_check"
+        elif any(word in task_lower for word in ["clean", "preprocess", "prepare"]):
+            task_type = "preprocessing"
+        elif any(word in task_lower for word in ["analyze", "explore", "eda", "statistics"]):
+            task_type = "eda"
+        elif any(word in task_lower for word in ["plot", "chart", "visualize", "graph"]):
+            task_type = "visualization"
+        elif any(word in task_lower for word in ["model", "machine learning", "ml", "predict"]):
+            task_type = "ml"
+        elif any(word in task_lower for word in ["report", "summary", "document"]):
+            task_type = "report"
+        
+        steps.append({
+            "step": i + 1,
+            "task": task_desc.strip(),
+            "type": task_type,
+            "dependencies": [],
+            "expected_output": f"Results from {task_desc.strip()}"
+        })
+    
+    # 단계가 없으면 기본 단계 생성
+    if not steps:
+        steps = [{
             "step": 1,
-            "task": "Analyze user request",
+            "task": "Analyze the user request and provide insights",
             "type": "eda",
             "dependencies": [],
             "expected_output": "Analysis results"
         }]
-        state["current_step"] = 0
-        state["next_action"] = "route"
     
-    return state
+    return {
+        "user_request_summary": user_request[:100] + ("..." if len(user_request) > 100 else ""),
+        "plan": steps
+    }
+
+def create_default_plan(user_request: str) -> Dict:
+    """
+    Creates a default plan when the planner fails, focusing on direct response.
+    """
+    logging.info("Creating a default fallback plan.")
+    summary = user_request[:150] + "..." if len(user_request) > 150 else user_request
+    return {
+        "user_request_summary": summary,
+        "plan": [
+            {
+                "step": 1,
+                "task": "Directly analyze the user's request and provide a comprehensive answer.",
+                "type": "eda",
+                "dependencies": [],
+                "expected_output": "A detailed answer responding to the user's query, potentially including analysis or generated artifacts."
+            }
+        ]
+    }

@@ -139,9 +139,12 @@ print(df.head())
                 final_output.append("\n⚠️ Warnings:")
                 final_output.append(stderr_output)
             
-            if result and str(result).strip() != stdout_output.strip():
+            if result is not None and str(result).strip() != stdout_output.strip():
                 final_output.append("\n📊 Result:")
-                final_output.append(str(result))
+                if isinstance(result, pd.DataFrame):
+                    final_output.append(result.to_string())
+                else:
+                    final_output.append(str(result))
             
             # 성공 메시지
             if not final_output:

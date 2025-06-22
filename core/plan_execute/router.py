@@ -100,10 +100,8 @@ End your response with: **TASK COMPLETED: [Brief summary of accomplishments and 
 
 Begin your specialized analysis now."""
     
-    state["messages"].append(
-        SystemMessage(content=instruction, name="Router_Instruction")
-    )
-    
+    # 상태에 직접 프롬프트 저장 (기존 SystemMessage 대신)
+    state["current_task_prompt"] = instruction
     state["next_action"] = executor
     
     logging.info(f"✅ Routing to {executor} for task type '{task_type}': {current_task['task']}")
@@ -111,18 +109,43 @@ Begin your specialized analysis now."""
     return state
 
 def route_to_executor(state: Dict) -> str:
-    """조건부 엣지를 위한 라우팅 함수 (최적화된 매핑)"""
-    next_action = state.get("next_action", "finalize")
+    """
+    Reads the plan and the current step and routes to the correct executor.
+    Also handles the case where the plan is finished.
+    """
     
-    # next_action이 executor 이름이면 그대로 반환
-    valid_executors = set(TASK_EXECUTOR_MAPPING.values())
-    if next_action in valid_executors:
-        return next_action
+    plan = state.get("plan", [])
+    current_step = state.get("current_step", 0)
     
-    # task type에서 executor 매핑 시도
-    if next_action in TASK_EXECUTOR_MAPPING:
-        return TASK_EXECUTOR_MAPPING[next_action]
+    if not plan:
+        logging.warning("Router: No plan found, routing to final_responder")
+        return "final_responder"
+        
+    if current_step >= len(plan):
+        logging.info("Router: Plan is complete, routing to final_responder")
+        return "final_responder"
     
-    # 기본값 - EDA 분석가
-    logging.warning(f"Unknown next_action '{next_action}', defaulting to EDA_Analyst")
-    return "EDA_Analyst"
+    # Get the next task
+    next_task_info = plan[current_step]
+    task_type = next_task_info.get("type", "eda")
+    
+    # Route to the correct executor based on task type
+    executor_name = TASK_EXECUTOR_MAPPING.get(task_type)
+    
+    if executor_name and executor_name in state.get("executors", {}):
+        logging.info(f"Router: Routing to executor '{executor_name}' for task type '{task_type}'")
+        return executor_name
+    else:
+        # Fallback to the first available executor if no specific mapping found
+        available_executors = list(state.get("executors", {}).keys())
+        if available_executors:
+            fallback_executor = available_executors[0]
+            logging.warning(
+                f"Router: No specific executor for type '{task_type}'. "
+                f"Falling back to first executor: '{fallback_executor}'"
+            )
+            return fallback_executor
+        else:
+            # No executors available, a critical error
+            logging.error("Router: No executors available in the system!")
+            return "final_responder"  # Fail gracefully

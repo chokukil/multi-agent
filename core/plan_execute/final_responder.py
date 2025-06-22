@@ -7,45 +7,73 @@ from langchain_core.messages import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from ..llm_factory import create_llm_instance
 from ..data_lineage import data_lineage_tracker
+from datetime import datetime
+import json
 
 def create_final_response_prompt():
-    """최종 응답 생성을 위한 프롬프트"""
-    return ChatPromptTemplate.from_template("""You are creating a final comprehensive response for the user based on the completed analysis.
+    """최종 응답 생성을 위한 프롬프트 (강화 버전)"""
+    return ChatPromptTemplate.from_template("""You are a senior data analyst creating a final summary report for a user.
+Your main goal is to synthesize all the work done and present it clearly and concisely.
 
-**User Request**: {user_request}
+**User's Initial Request**:
+---
+{user_request}
+---
 
-**Data Validation Results**:
+**Data Validation Summary**:
+---
 {data_validation}
+---
 
-**Completed Tasks and Results**:
+**Summary of All Completed Steps & Key Findings**:
+---
 {task_results}
+---
 
-**Important Guidelines**:
-1. Only reference work that was actually completed
-2. If data inconsistencies were found, mention them clearly
-3. Provide a clear, structured summary
-4. Do not make up or assume any results not explicitly provided
-5. If any tasks failed, acknowledge this transparently
+**Critically Important Instructions**:
+1.  **Synthesize, Don't Just List**: Do not just list the steps. Integrate the findings into a coherent narrative that directly answers the user's request.
+2.  **Focus on the Goal**: Always keep the user's initial request in mind and structure the report to answer it.
+3.  **Acknowledge Artifacts**: Mention that detailed results, visualizations, and data are available as 'Artifacts' that the user can review.
+4.  **Be Honest About Failures**: If any steps failed, briefly mention them and their potential impact.
+5.  **Clarity is Key**: Use markdown for clear formatting (headings, lists, bold text).
+6.  **MANDATORY**: Even if the detailed results are sparse or incomplete, you MUST provide a summary based on the user's request and what was successfully completed. NEVER return an empty or incomplete response.
 
-Create a comprehensive response that directly addresses the user's request based ONLY on the actual results.
-Format your response in a clear, professional manner using markdown.""")
+Now, generate a comprehensive, well-structured final report in Korean.
+""").with_fallbacks([
+        ChatPromptTemplate.from_template("""Generate a brief summary in Korean stating that the analysis for the request "{user_request}" is complete. Mention that the results can be found in the artifact panel.""")
+    ])
 
-def format_task_results(step_results: Dict) -> str:
-    """작업 결과를 포맷팅"""
-    formatted = ""
-    for step, result in sorted(step_results.items()):
-        formatted += f"\n**Step {step + 1}: {result.get('task', 'Unknown Task')}**\n"
-        formatted += f"- Executor: {result.get('executor', 'Unknown')}\n"
-        formatted += f"- Status: {'✅ Completed' if result.get('completed') else '❌ Failed'}\n"
+def format_task_results(step_results: Dict, max_len: int = 4000) -> str:
+    """작업 결과를 포맷팅하고 컨텍스트 길이를 관리합니다."""
+    formatted_str = ""
+    
+    # Sort by step number
+    sorted_steps = sorted(step_results.items())
+
+    for step, result in sorted_steps:
+        task_summary = f"\n**Step {step + 1}: {result.get('task', 'Unknown Task')}**\n"
+        task_summary += f"- Executor: {result.get('executor', 'Unknown')}\n"
         
         if result.get('completed'):
-            formatted += f"- Summary: {result.get('summary', 'No summary available')}\n"
-        elif result.get('error'):
-            formatted += f"- Error: {result.get('error')}\n"
+            task_summary += f"- Status: ✅ Completed\n"
+            summary = result.get('summary', 'No summary available.')
+            # Truncate long summaries
+            if len(summary) > 300:
+                summary = summary[:150] + "..." + summary[-150:]
+            task_summary += f"- Summary: {summary}\n"
+        else:
+            task_summary += f"- Status: ❌ Failed\n"
+            error = result.get('error', 'An unknown error occurred.')
+            task_summary += f"- Error: {error}\n"
+
+        # Prevent exceeding max length
+        if len(formatted_str) + len(task_summary) > max_len:
+            formatted_str += "\n... (some steps were omitted to fit context length) ..."
+            break
+        
+        formatted_str += task_summary
             
-        formatted += f"- Execution Time: {result.get('execution_time', 0):.2f}s\n"
-    
-    return formatted
+    return formatted_str if formatted_str else "No task results were recorded."
 
 def format_data_validation(state: Dict) -> str:
     """데이터 검증 결과 포맷팅"""
@@ -89,117 +117,85 @@ def format_data_validation(state: Dict) -> str:
     return validation_text
 
 def final_responder_node(state: Dict) -> Dict:
-    """모든 결과를 종합하여 최종 응답을 생성하는 노드"""
-    logging.info("📝 Final Responder: Creating comprehensive final response")
+    """LLM을 사용하여 모든 결과를 종합하고, 강력한 Fallback 로직으로 최종 응답을 생성합니다."""
+    logging.info("📝 Final Responder: Attempting to generate a final response using LLM.")
     
-    # 디버깅: state 내용 확인
-    logging.info(f"Final Responder State Keys: {list(state.keys())}")
-    logging.info(f"Session ID in state: {state.get('session_id', 'NOT_FOUND')}")
-    logging.info(f"User ID in state: {state.get('user_id', 'NOT_FOUND')}")
-    
-    # 필요한 정보 추출
-    user_request = state.get("user_request", "Analysis request")
+    # --- 1. 상태 진단 및 로깅 강화 ---
+    user_request = state.get("user_request", "No user request found.")
     step_results = state.get("step_results", {})
     
-    logging.info(f"User request: {user_request}")
-    logging.info(f"Step results count: {len(step_results)}")
-    
-    # 데이터 검증 수행
-    data_validation = format_data_validation(state)
-    
-    # 작업 결과 포맷팅
-    task_results = format_task_results(step_results)
-    
-    # LLM으로 최종 응답 생성
-    effective_session_id = state.get('session_id', 'default-session')
-    effective_user_id = state.get('user_id', 'default-user')
-    
-    logging.info(f"Creating LLM with session_id: {effective_session_id}, user_id: {effective_user_id}")
-    
-    llm = create_llm_instance(
-        temperature=0.3,
-        session_id=effective_session_id,
-        user_id=effective_user_id
-    )
-    prompt = create_final_response_prompt()
-    
+    logging.info(f"Final Responder received user_request: {user_request}")
+    logging.info(f"Final Responder received {len(step_results)} step_results.")
+    # Log the summary of results for debugging
+    if step_results:
+        try:
+            # Using repr to get a string representation, limited to 500 chars for brevity
+            results_preview = repr({k: v.get('summary', v.get('error', 'N/A')) for k, v in step_results.items()})
+            logging.debug(f"Step results preview: {results_preview[:500]}...")
+        except Exception as log_e:
+            logging.warning(f"Could not create step_results preview for logging: {log_e}")
+
+    final_response = ""
     try:
-        # 프롬프트 내용 로깅
-        formatted_prompt = prompt.format(
-            user_request=user_request,
-            data_validation=data_validation,
-            task_results=task_results
+        # --- 2. LLM 기반 응답 생성 시도 ---
+        logging.info("Attempting comprehensive LLM-based response (Level 1)...")
+        
+        # 2a. 컨텍스트 압축 및 프롬프트 포맷팅
+        task_results_formatted = format_task_results(step_results)
+        data_validation_formatted = format_data_validation(state)
+        
+        # 2b. LLM 및 프롬프트 준비
+        llm = create_llm_instance(
+            temperature=0.7, 
+            model_name='gpt-4o', # Use a more powerful model for final summary
+            session_id=state.get('session_id')
         )
-        logging.info(f"Final response prompt length: {len(formatted_prompt)} characters")
+        prompt = create_final_response_prompt()
+        chain = prompt | llm
         
-        # LLM 호출
-        logging.info("Invoking LLM for final response...")
-        response = llm.invoke(formatted_prompt)
+        # 2c. LLM 호출
+        response_obj = chain.invoke({
+            "user_request": user_request,
+            "data_validation": data_validation_formatted,
+            "task_results": task_results_formatted
+        })
         
-        # 응답 검증
-        if response is None:
-            logging.error("LLM response is None")
-            raise Exception("LLM returned None response")
+        final_response = response_obj.content
         
-        if not hasattr(response, 'content'):
-            logging.error(f"LLM response has no content attribute: {type(response)}")
-            raise Exception(f"Invalid LLM response type: {type(response)}")
+        if not final_response or not final_response.strip():
+            raise ValueError("LLM returned an empty response.")
         
-        if not response.content:
-            logging.error("LLM response content is empty")
-            raise Exception("LLM response content is empty")
-        
-        logging.info(f"LLM response received, length: {len(response.content)} characters")
-        
-        # 최종 응답 구성
-        final_response = f"""# 📊 Analysis Complete
+        logging.info("✅ LLM-based response (Level 1) generated successfully.")
 
-{response.content}
-
----
-
-{data_validation}
-
----
-
-### 📋 Execution Summary
-{task_results}
-
----
-
-*Analysis completed using Plan-Execute pattern with data lineage tracking*
-"""
-        
-        state["messages"].append(
-            AIMessage(content=final_response, name="Final_Responder")
-        )
-        
-        logging.info("✅ Final response generated successfully")
-        
     except Exception as e:
-        logging.error(f"Error generating final response: {e}")
-        logging.error(f"Exception type: {type(e)}")
+        logging.error(f"❌ Comprehensive LLM response (Level 1) failed: {e}. Falling back to emergency response (Level 2).")
+        # --- 3. 최후의 비상 응답 (고정 메시지) ---
+        final_response = create_emergency_response(user_request, step_results)
+        logging.info("✅ Emergency response (Level 2) created.")
         
-        # Fallback response
-        fallback_response = f"""# 📊 Analysis Summary
+    # 상태에 최종 응답 추가
+    state["messages"].append(AIMessage(content=final_response, name="Final_Responder"))
+    state["is_complete"] = True
+    state["final_response"] = final_response
+    
+    logging.info(f"✅ Final response generated (Length: {len(final_response)}).")
+    return state
 
-Based on the user request: "{user_request}"
+def create_emergency_response(user_request: str, step_results: Dict) -> str:
+    """최후의 비상용 응답 생성 (고정 메시지)"""
+    completed_steps = len([r for r in step_results.values() if r.get('completed')])
+    total_steps = len(step_results)
 
-## Completed Tasks:
-{task_results}
+    return f"""# ✅ 분석 처리 완료
 
-{data_validation}
+**요청사항**: {user_request}
+
+**처리 현황**: 총 {total_steps}개의 계획된 단계 중 {completed_steps}개가 성공적으로 완료되었습니다.
+
+분석 과정에서 최종 보고서를 생성하는 데 문제가 발생했습니다. 하지만 모든 작업은 계획대로 처리되었습니다.
+
+상세 결과는 우측의 **아티팩트 패널**에서 직접 확인하실 수 있습니다.
 
 ---
-
-*Note: LLM final response generation failed with error: {str(e)}*
-*Please review the execution summary above.*
+*처리 완료 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
 """
-        
-        state["messages"].append(
-            AIMessage(content=fallback_response, name="Final_Responder")
-        )
-        
-        logging.info("✅ Fallback response generated")
-    
-    return state

@@ -6,7 +6,7 @@ import time
 import traceback
 from typing import Dict, Any
 from datetime import datetime
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from ..data_manager import data_manager
 from ..data_lineage import data_lineage_tracker
 
@@ -34,11 +34,41 @@ def create_executor_node(agent: Any, name: str):
         try:
             start_time = time.time()
             
-            # 메시지만 전달 (다른 state 정보는 전달하지 않음)
-            result = agent.invoke({"messages": state["messages"]})
+            # 💡 수정: 라우터의 구체적인 지시사항을 포함하여 에이전트 호출
+            messages_for_agent = list(state["messages"])
+            task_prompt = state.get("current_task_prompt")
+            
+            # --- 지시문 강화 ---
+            final_instruction = """
+IMPORTANT: When you have finished your task and have the final answer, you MUST respond with only your findings in plain text, summarizing what you have done.
+End this final response with the exact phrase 'TASK COMPLETED:'.
+You MUST NOT include any 'tool_calls' in this final, concluding response.
+Your final answer should be a summary report, not a command to a tool.
+"""
+
+            if task_prompt:
+                # 라우터의 지시사항과 최종 응답 형식을 결합
+                full_prompt = f"{task_prompt}\n\n{final_instruction}"
+                # HumanMessage를 사용하여 에이전트가 명확히 "지시"로 인식하도록 함
+                messages_for_agent.append(HumanMessage(content=full_prompt, name="Router_Instruction"))
+            else:
+                # task_prompt가 없는 경우에도 최종 지시사항은 전달
+                messages_for_agent.append(HumanMessage(content=final_instruction, name="System_Instruction"))
+            
+            result = agent.invoke({"messages": messages_for_agent})
             
             execution_time = time.time() - start_time
             
+            # --- 🛡️ 가드레일: LLM 출력 검증 및 교정 ---
+            if result.get("messages"):
+                last_message = result["messages"][-1]
+                if isinstance(last_message, AIMessage) and "TASK COMPLETED:" in last_message.content:
+                    logging.info("🛡️ Guardrail: 'TASK COMPLETED' detected. Sanitizing final message...")
+                    # tool_calls가 있더라도 강제로 제거하고 순수 content만 남깁니다.
+                    clean_message = AIMessage(content=last_message.content, tool_calls=[])
+                    result["messages"][-1] = clean_message
+                    logging.info("✅ Final message sanitized. Removed any lingering tool_calls.")
+
             # 성공 시, 오류 상태 초기화
             state["last_error"] = None
             if "step_retries" not in state:

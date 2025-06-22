@@ -22,6 +22,9 @@ from .debug_manager import DebugManager, debug_manager
 # Data Lineage
 from .data_lineage import data_lineage_tracker
 
+# Artifact System
+from .artifact_system import artifact_manager
+
 # LLM Factory
 from .llm_factory import create_llm_instance
 

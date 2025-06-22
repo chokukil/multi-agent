@@ -15,6 +15,7 @@ class PlanExecuteState(TypedDict):
     last_error: Optional[str]    # 마지막으로 발생한 오류
     next_action: str            # "route", "replan", "finalize"
     user_request: str           # 원본 사용자 요청
+    current_task_prompt: Optional[str] # 현재 단계의 Executor를 위한 구체적인 프롬프트
     # 세션 추적 필드
     session_id: Optional[str]    # 세션 ID (Streamlit thread_id)
     user_id: Optional[str]       # 사용자 ID (EMP_NO)

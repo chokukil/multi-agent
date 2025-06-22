@@ -6,6 +6,8 @@ import json
 import re
 from typing import List, Dict, Any, Tuple, Callable, Optional
 from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
+import asyncio
+import time
 
 async def astream_graph(graph, input_data, config=None, callback=None, stream_mode="messages"):
     """
@@ -14,56 +16,94 @@ async def astream_graph(graph, input_data, config=None, callback=None, stream_mo
     """
     final_result_dict = {}
     all_messages = []
+    stream = None  # stream 변수 초기화
     
     try:
-        async for chunk in graph.astream(input_data, config=config, stream_mode=stream_mode):
-            logging.debug(f"Received chunk of type {type(chunk)}: {str(chunk)[:200]}")
-            
-            node_name = "Unknown"
-            content = None
+        logging.info(f"🚀 Starting graph stream with config: {config}")
+        
+        stream = graph.astream(input_data, config=config, stream_mode=stream_mode)
+        async for chunk in stream:
+            try:
+                logging.debug(f"Received chunk of type {type(chunk)}: {str(chunk)[:200]}")
+                
+                node_name = "Unknown"
+                content = None
 
-            if isinstance(chunk, dict):
-                # 상태 업데이트 처리
-                for node, state_content in chunk.items():
-                    node_name = node
-                    content = state_content
-                    final_result_dict[node_name] = content
-                    
-                    # Plan-Execute 특별 처리
-                    if node_name == "planner" and hasattr(content, 'plan'):
-                        if callback:
-                            callback({"node": node_name, "content": {"plan": content.plan}})
-                    
-                    if hasattr(content, 'messages'):
-                        all_messages.extend(content.messages)
+                if isinstance(chunk, dict):
+                    # 상태 업데이트 처리
+                    for node, state_content in chunk.items():
+                        node_name = node
+                        content = state_content
+                        final_result_dict[node_name] = content
                         
-            elif isinstance(chunk, tuple) and len(chunk) > 0:
-                # 메시지 튜플 처리
-                content = chunk[0]
-                if len(chunk) > 1 and isinstance(chunk[1], dict):
-                    node_name = chunk[1].get("langgraph_node", "Unknown")
-                all_messages.append(content)
-            else:
-                # 기타 타입
-                content = chunk
-                all_messages.append(content)
+                        # Plan-Execute 특별 처리
+                        if node_name == "planner" and hasattr(content, 'plan'):
+                            if callback:
+                                try:
+                                    callback({"node": node_name, "content": {"plan": content.plan}})
+                                except Exception as e:
+                                    logging.error(f"Callback error for planner: {e}")
+                        
+                        if hasattr(content, 'messages'):
+                            all_messages.extend(content.messages)
+                            
+                elif isinstance(chunk, tuple) and len(chunk) > 0:
+                    # 메시지 튜플 처리
+                    content = chunk[0]
+                    if len(chunk) > 1 and isinstance(chunk[1], dict):
+                        node_name = chunk[1].get("langgraph_node", "Unknown")
+                    all_messages.append(content)
+                else:
+                    # 기타 타입
+                    content = chunk
+                    all_messages.append(content)
 
-            if callback and content:
-                try:
-                    callback({"node": node_name, "content": content})
-                except Exception as e:
-                    logging.error(f"Error in callback for node {node_name}: {e}", exc_info=True)
+                # 콜백 호출 (안전한 처리)
+                if callback and content:
+                    try:
+                        callback({"node": node_name, "content": content})
+                    except Exception as e:
+                        logging.error(f"Error in callback for node {node_name}: {e}", exc_info=True)
+
+            except Exception as e_chunk:
+                # 🆕 청크 처리 오류를 로깅하고 계속 진행
+                logging.error(f"Error processing stream chunk: {e_chunk}", exc_info=True)
+                if callback:
+                    callback({
+                        "node": "error_handler",
+                        "content": f"⚠️ 스트리밍 처리 중 오류가 발생했습니다: {e_chunk}"
+                    })
 
         # 최종 결과 재구성
         if not final_result_dict and all_messages:
             final_result_dict = {"messages": all_messages}
         
-        logging.info(f"Graph stream finished. Final dictionary keys: {list(final_result_dict.keys())}")
-        return final_result_dict
+        logging.info(f"✅ Graph stream completed successfully. Final dictionary keys: {list(final_result_dict.keys())}")
+        return final_result_dict, all_messages
 
-    except Exception as e:
-        logging.error(f"FATAL: Error during graph stream: {e}", exc_info=True)
-        return {"error": str(e), "messages": all_messages}
+    except Exception as e_stream:
+        # 스트림 자체의 심각한 오류
+        logging.error(f"Fatal error in graph stream: {e_stream}", exc_info=True)
+        if callback:
+            callback({
+                "node": "error_handler",
+                "content": f"🆘 **시스템 오류**: 스트림이 비정상적으로 종료되었습니다. {e_stream}"
+            })
+            
+    finally:
+        logging.info("🔚 Graph stream finishing...")
+        if stream is not None:
+            try:
+                # 비동기 제너레이터를 안전하게 종료합니다.
+                await stream.aclose()
+                logging.info("✅ Async generator closed successfully.")
+            except Exception as e_close:
+                logging.error(f"Error closing stream: {e_close}", exc_info=True)
+
+        if callback:
+            callback({"node": "stream_end", "content": "스트림이 종료되었습니다."})
+            
+    return final_result_dict, all_messages
 
 def get_plan_execute_streaming_callback(tool_activity_placeholder) -> Callable:
     """Plan-Execute 패턴에 최적화된 스트리밍 콜백 핸들러를 생성합니다."""
@@ -73,7 +113,11 @@ def get_plan_execute_streaming_callback(tool_activity_placeholder) -> Callable:
         "current_executor": None,
         "current_step": 0,
         "total_steps": 0,
-        "tool_outputs": []
+        "tool_outputs": [],
+        "plan": [],
+        "step_results": {},
+        "data_transformations": [],
+        "final_response": None  # 🆕 최종 응답 저장
     }
     
     def extract_python_code(content: str) -> Optional[str]:
@@ -166,6 +210,10 @@ def get_plan_execute_streaming_callback(tool_activity_placeholder) -> Callable:
     
     def callback(msg: Dict[str, Any]):
         """메인 콜백 함수"""
+        import streamlit as st
+        from datetime import datetime
+        from ui.artifact_manager import auto_detect_artifacts, notify_artifact_creation
+        
         node = msg.get("node", "")
         content = msg.get("content")
         
@@ -182,11 +230,96 @@ def get_plan_execute_streaming_callback(tool_activity_placeholder) -> Callable:
         else:
             message_content = str(content)
         
+        # 🆕 Final Responder 처리 추가
+        if node == "final_responder" or node == "Final_Responder":
+            logging.info("🎯 Processing final_responder content")
+            
+            # 최종 응답을 저장하고 UI에 표시
+            if hasattr(content, "content"):
+                final_content = content.content
+            elif isinstance(content, str):
+                final_content = content
+            elif hasattr(content, "messages") and content.messages:
+                # messages에서 최종 응답 추출
+                for msg in reversed(content.messages):
+                    if hasattr(msg, "content") and msg.content.strip():
+                        final_content = msg.content
+                        break
+                else:
+                    final_content = "최종 분석이 완료되었습니다."
+            else:
+                final_content = "최종 분석이 완료되었습니다."
+            
+            # 세션 상태에 저장
+            execution_state["final_response"] = final_content
+            
+            # UI에 즉시 표시
+            try:
+                if hasattr(st, 'session_state'):
+                    st.session_state['final_response'] = final_content
+                    st.session_state['final_response_timestamp'] = time.time()
+                    logging.info("✅ Final response saved to session state")
+            except Exception as e:
+                logging.warning(f"Failed to save final response to session: {e}")
+            
+            # 도구 활동 표시
+            tool_buf.append(f"\\n🎯 **최종 응답 생성 완료**\\n")
+            tool_buf.append(f"응답 길이: {len(final_content)} 문자\\n")
+            tool_buf.append(f"시간: {time.strftime('%H:%M:%S')}\\n")
+            flush_tool()
+            
+            logging.info(f"✅ Final response processed: {len(final_content)} characters")
+            
+            return  # Final responder는 tool activity에 표시하지 않음
+        
+        # Plan-Execute 특별 처리
+        if node == "planner" and isinstance(content, dict) and "plan" in content:
+            execution_state["plan"] = content["plan"]
+            execution_state["total_steps"] = len(content["plan"])
+            # 세션 상태 업데이트
+            st.session_state.current_plan = content["plan"]
+            st.session_state.current_step = 0
+            
+        elif node == "router":
+            # 현재 단계 업데이트
+            current_step = st.session_state.get("current_step", 0)
+            if current_step < len(execution_state["plan"]):
+                st.session_state.current_step = current_step
+                
+        elif "executor" in node.lower() or node in ["Data_Validator", "Preprocessing_Expert", "EDA_Analyst", "Visualization_Expert", "ML_Specialist", "Statistical_Analyst", "Report_Generator"]:
+            # Executor 실행 결과 처리
+            current_step = st.session_state.get("current_step", 0)
+            
+            # 단계 결과 업데이트
+            if "step_results" not in st.session_state:
+                st.session_state.step_results = {}
+                
+            # 작업 완료 여부 확인
+            completed = "TASK COMPLETED:" in str(message_content)
+            
+            st.session_state.step_results[current_step] = {
+                "executor": node,
+                "completed": completed,
+                "timestamp": datetime.now().isoformat(),
+                "content": str(message_content)[:500]  # 요약 저장
+            }
+            
+            # 자동 아티팩트 감지 및 생성
+            if isinstance(message_content, str):
+                created_artifacts = auto_detect_artifacts(message_content, node)
+                if created_artifacts:
+                    notify_artifact_creation(created_artifacts)
+        
+        elif node == "replanner":
+            # 재계획 단계 - 다음 단계로 이동
+            current_step = st.session_state.get("current_step", 0)
+            st.session_state.current_step = current_step + 1
+        
         # 도구 활동 기록에 추가
         execution_state["tool_outputs"].append({
             "node": node,
             "content": message_content,
-            "timestamp": ""
+            "timestamp": datetime.now().strftime("%H:%M:%S")
         })
         
         # 최대 50개 항목만 유지 (메모리 절약)
@@ -241,22 +374,24 @@ def get_streaming_callback(text_placeholder, tool_placeholder) -> Tuple:
                 tool_buf.append(f"\n🔄 **Re-planner**: {content.content}\n")
                 flush_tool()
                 
-        elif node == "final_responder":
-            # Final Responder의 내용은 텍스트 영역으로
+        elif node == "final_responder" or node == "Final_Responder":
+            # 🆕 Final Responder의 내용은 텍스트 영역으로
             if hasattr(content, "content"):
                 text_buf.append(content.content)
                 flush_txt()
+            elif isinstance(content, str):
+                text_buf.append(content)
+                flush_txt()
+            
+            # 세션 상태에도 저장
+            import streamlit as st
+            st.session_state.final_response = content.content if hasattr(content, "content") else str(content)
+            logging.info("🎯 Final response stored in session state")
                 
-        else:
-            # Executor 노드들의 출력
-            if hasattr(content, "content") and content.content:
-                # 새로운 Executor 시작
-                if execution_state["current_executor"] != node:
-                    execution_state["current_executor"] = node
-                    tool_buf.append(f"\n💼 **{node}**\n")
-                
-                # 내용 추가
-                tool_buf.append(f"{content.content}\n")
+        # 기타 executor 노드들
+        elif any(executor in node.lower() for executor in ["executor", "analyst", "specialist", "expert", "engineer", "writer", "generator", "preprocessor", "validator"]):
+            if hasattr(content, "content"):
+                tool_buf.append(f"\n🤖 **{node}**: {content.content[:200]}...\n")
                 flush_tool()
     
-    return callback, text_buf, tool_buf
+    return callback, flush_txt, flush_tool
