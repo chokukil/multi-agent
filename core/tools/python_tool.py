@@ -12,6 +12,7 @@ import pandas as pd
 from typing import Dict, Any, Optional
 from langchain_core.tools import Tool
 from langchain_experimental.tools import PythonAstREPLTool
+from pydantic import BaseModel, Field
 
 # Matplotlib 설정
 matplotlib.use('Agg')  # GUI 백엔드 비활성화
@@ -26,6 +27,10 @@ except:
         plt.rcParams['font.family'] = 'AppleGothic'  # macOS
     except:
         pass  # 기본 폰트 사용
+
+# 💡 Pydantic 모델로 도구의 입력 스키마를 명시적으로 정의
+class PythonREPLInput(BaseModel):
+    code: str = Field(description="실행할 Python 코드")
 
 def create_enhanced_python_tool() -> Tool:
     """
@@ -237,11 +242,9 @@ Key features:
 - Built-in error handling and hints
 - Full pandas, numpy, and scipy support
 
-Always start with:
-```python
-df = get_current_data()
-```""",
-        func=enhanced_run
+Use this tool by providing the python code to be executed. For example: `{"code": "df = get_current_data()\\nprint(df.head())"}`.""",
+        func=enhanced_run,
+        args_schema=PythonREPLInput # 💡 명시적 스키마 지정
     )
     
     return enhanced_tool

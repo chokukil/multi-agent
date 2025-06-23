@@ -27,7 +27,7 @@ except ImportError:
         def get_tools(self):
             return []
 
-from pydantic import BaseModel, Field, RootModel
+from pydantic import BaseModel, Field, RootModel, create_model
 from typing import Union
 
 async def check_mcp_server_availability(server_configs: Dict[str, Dict[str, Any]]) -> Dict[str, bool]:
@@ -46,6 +46,9 @@ async def check_mcp_server_availability(server_configs: Dict[str, Dict[str, Any]
     
     import aiohttp
     availability = {}
+    
+    # --- Logging ---
+    logging.info(f"🕵️  [MCP PROBE] Starting availability check for {len(server_configs)} MCP server(s)...")
     
     async def check_single_server(server_name: str, server_config: Dict[str, Any]) -> Tuple[str, bool]:
         """단일 서버 상태 확인 - 개선된 타임아웃과 에러 처리"""
@@ -69,11 +72,13 @@ async def check_mcp_server_availability(server_configs: Dict[str, Dict[str, Any]
                 logging.warning(f"⚠️ MCP server '{server_name}' has unsupported transport or missing URL")
                 return server_name, False
         except asyncio.TimeoutError:
-            logging.warning(f"⏰ MCP server '{server_name}' timed out (may still be starting)")
+            # --- Logging ---
+            logging.warning(f"⏰ [MCP PROBE] Server '{server_name}' timed out. This is common if the server is still starting up (race condition).")
             return server_name, False
         except aiohttp.ClientConnectorError as e:
             if "Connection refused" in str(e):
-                logging.info(f"💤 MCP server '{server_name}' not running (connection refused)")
+                # --- Logging ---
+                logging.warning(f"🔌 [MCP PROBE] Server '{server_name}' refused connection. It's likely not running or still initializing (race condition).")
             else:
                 logging.warning(f"🔌 MCP server '{server_name}' connection error: {e}")
             return server_name, False
@@ -92,27 +97,37 @@ async def check_mcp_server_availability(server_configs: Dict[str, Dict[str, Any]
             server_name, is_available = result
             availability[server_name] = is_available
     
+    # --- Logging ---
+    available_servers = [name for name, is_on in availability.items() if is_on]
+    logging.info(f"✅ [MCP PROBE] Check complete. Found {len(available_servers)} available server(s): {available_servers}")
+    
     return availability
 
 def create_mcp_tool_wrapper(mcp_tool) -> Tool:
-    """Create a proper LangChain tool wrapper for MCP tools"""
+    """Create a proper LangChain tool wrapper for MCP tools, preserving the original schema."""
     
-    # Flexible input schema
-    class FlexInput(RootModel[Union[str, Dict[str, Any]]]):
-        """RootModel accepting str or dict as payload."""
-        pass
-    
-    def sync_run(root: Union[str, Dict[str, Any]]):
-        """Run remote MCP tool with flexible payload"""
-        payload = root
+    # 💡 1. 원본 도구의 스키마를 그대로 사용
+    args_schema = getattr(mcp_tool, "args_schema", None)
+    tool_name = getattr(mcp_tool, "name", "unknown_tool")
+    tool_description = getattr(mcp_tool, "description", "No description")
+
+    # 💡 2. 스키마가 없으면 경고 후, 최소한의 폴백 스키마 적용
+    if not args_schema or not issubclass(args_schema, BaseModel):
+        logging.warning(f"⚠️ Tool '{tool_name}' is missing a valid Pydantic args_schema. Falling back to generic input.")
+        class GenericInput(BaseModel):
+            input: Union[str, Dict[str, Any]] = Field(..., description="The input for the tool. Can be a string or a JSON object.")
+        args_schema = GenericInput
+
+    def sync_run(tool_input: BaseModel):
+        """Run remote MCP tool with a Pydantic model as input."""
         
-        # Attempt JSON parse for string payload
-        if isinstance(payload, str):
-            try:
-                payload = json.loads(payload)
-            except Exception:
-                pass  # leave as raw string if not JSON
-        
+        # Pydantic 모델을 딕셔너리로 변환하여 payload 생성
+        payload = tool_input.model_dump()
+
+        # 만약 스키마가 'input' 필드 하나만 가진다면, 내용물만 전달
+        if len(payload.keys()) == 1 and 'input' in payload:
+            payload = payload['input']
+
         try:
             # Prefer .invoke (StructuredTool & Runnable)
             if hasattr(mcp_tool, "invoke"):
@@ -141,17 +156,14 @@ def create_mcp_tool_wrapper(mcp_tool) -> Tool:
             raise RuntimeError("Unsupported MCP tool interface")
             
         except Exception as e:
-            logging.error(f"Error executing tool {getattr(mcp_tool, 'name', 'unknown')}: {e}")
+            logging.error(f"Error executing tool {tool_name}: {e}")
             return f"❌ MCP tool error: {e}"
-    
-    tool_name = getattr(mcp_tool, "name", "unknown_tool")
-    tool_description = getattr(mcp_tool, "description", "No description")
-    
+
     langchain_tool = Tool(
         name=tool_name,
         description=tool_description,
         func=sync_run,
-        args_schema=FlexInput,
+        args_schema=args_schema, # 💡 원본 스키마 또는 폴백 스키마 사용
         handle_tool_error=True,
     )
     
@@ -159,11 +171,16 @@ def create_mcp_tool_wrapper(mcp_tool) -> Tool:
 
 async def initialize_mcp_tools(tool_config: Dict) -> List[Tool]:
     """Initialize MCP tools from configuration with better error handling"""
+    # --- Logging ---
+    logging.info("🛠️  [MCP INIT] Starting MCP tool initialization process...")
+    
     if not MCP_AVAILABLE:
         logging.warning("MCP not available, skipping tool initialization")
         return []
     
     if not tool_config:
+        # --- Logging ---
+        logging.warning("⚠️ [MCP INIT] No tool configuration provided. Skipping initialization.")
         return []
     
     try:
@@ -177,7 +194,10 @@ async def initialize_mcp_tools(tool_config: Dict) -> List[Tool]:
         }
         
         if not working_connections:
-            logging.warning("No working MCP servers found")
+            # --- Logging ---
+            logging.error("❌ [MCP INIT] CRITICAL: No working MCP servers found.")
+            logging.error("    -> HYPOTHESIS: This is likely due to a race condition where the main app started before the MCP servers were ready.")
+            logging.error("    -> To confirm, restart the system and check the logs for '[MCP PROBE]' messages.")
             return []
         
         # Initialize MCP client with only working connections
@@ -195,15 +215,18 @@ async def initialize_mcp_tools(tool_config: Dict) -> List[Tool]:
                 except Exception as e:
                     logging.error(f"Failed to wrap tool {getattr(tool, 'name', 'unknown')}: {e}")
             
-            logging.info(f"✅ Initialized {len(tools)} MCP tools from {len(working_connections)} servers")
+            # --- Logging ---
+            logging.info(f"✅ [MCP INIT] Successfully initialized {len(tools)} MCP tools from {len(working_connections)} servers.")
             return tools
             
         except Exception as e:
-            logging.error(f"Failed to get tools from MCP client: {e}")
+            # --- Logging ---
+            logging.error(f"❌ [MCP INIT] Failed to get tools from MCP client even though servers seemed available: {e}")
             return []
         
     except Exception as e:
-        logging.error(f"MCP initialization error: {e}")
+        # --- Logging ---
+        logging.error(f"❌ [MCP INIT] An unexpected error occurred during MCP tool initialization: {e}", exc_info=True)
         return []
 
 async def test_mcp_server_availability() -> Dict[str, bool]:

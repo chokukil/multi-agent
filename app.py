@@ -24,7 +24,7 @@ from functools import partial
 
 # LangGraph imports
 from langgraph.graph import END, StateGraph, START
-from langgraph.prebuilt import create_react_agent
+from langgraph.prebuilt import create_react_agent, ToolNode
 from langgraph.checkpoint.memory import MemorySaver
 
 # Apply nest_asyncio for Windows
@@ -148,6 +148,44 @@ st.set_page_config(
     page_icon="🍒"
 )
 
+# --- 🚀 시스템 실행 환경 검증 및 가드레일 ---
+# 이 코드는 Streamlit UI 렌더링 이전에 위치해야 합니다.
+def render_startup_guardrails():
+    """
+    시스템이 올바른 환경에서 실행되었는지 확인하고,
+    그렇지 않은 경우 사용자에게 명확한 경고와 해결 방법을 안내합니다.
+    """
+    if not MCP_AVAILABLE:
+        st.error(
+            """
+            ### 🚨 **치명적 오류: MCP 도구 시스템을 찾을 수 없습니다!**
+
+            **원인:** `langchain-mcp-adapters` 라이브러리가 현재 환경에 설치되지 않았습니다.
+            이는 시스템을 잘못된 방식으로 시작했을 때 주로 발생합니다.
+
+            ---
+
+            **✅ 해결 방법:**
+
+            1.  **현재 터미널을 완전히 종료해 주세요.**
+            2.  프로젝트의 루트 디렉토리에서 다음 스크립트를 실행하여 시스템을 다시 시작하세요.
+                -   **macOS / Linux:** `./system_start.sh`
+                -   **Windows:** `.\\system_start.bat`
+
+            ---
+
+            **설명:**
+            `system_start` 스크립트는 올바른 가상 환경을 활성화하고 필요한 모든 종속성을 보장합니다.
+            `streamlit run app.py`를 직접 실행하면 이 과정이 생략되어 오류가 발생합니다.
+            """,
+            icon="🔥"
+        )
+        # 중요한 오류이므로, 여기서 앱의 나머지 부분 렌더링을 중단합니다.
+        st.stop()
+
+# --- 🚀 시작 가드레일 실행 ---
+render_startup_guardrails()
+
 # Initialize session state
 def initialize_session_state():
     """초기 세션 상태 설정"""
@@ -193,7 +231,7 @@ def initialize_session_state():
         
         # Ollama 사용 시 더 긴 기본 타임아웃 적용
         if llm_provider.upper() == "OLLAMA":
-            ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "600"))  # 10분
+            ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "1200"))  # 20분
             st.session_state.timeout_seconds = ollama_timeout
             logging.info(f"🦙 Ollama detected - Using extended timeout: {ollama_timeout}s")
         else:
@@ -411,175 +449,129 @@ if st.session_state.executors and not st.session_state.graph_initialized:
                     
                     workflow = StateGraph(PlanExecuteState)
                     
-                    # Add nodes - 🔀 스마트 라우터 우선 추가
-                    workflow.add_node("smart_router", smart_router_node)
-                    workflow.add_node("direct_response", direct_response_node)
+                    # 1. Add static nodes
                     workflow.add_node("planner", planner_node)
-                    workflow.add_node("router", router_node)
                     workflow.add_node("replanner", replanner_node)
                     workflow.add_node("final_responder", final_responder_node)
                     
+                    # 2. Collect all tools for a single ToolNode
+                    all_tools = [create_enhanced_python_tool()]
+                    all_mcp_server_configs = {}
+                    for config in st.session_state.executors.values():
+                        mcp_config = config.get("mcp_config", {})
+                        if mcp_config and mcp_config.get("mcp_configs"):
+                            for tool_name, tool_config in mcp_config["mcp_configs"].items():
+                                server_name = tool_config["server_name"]
+                                server_config = tool_config["server_config"]
+                                all_mcp_server_configs[server_name] = server_config
+                    
+                    if all_mcp_server_configs:
+                        mcp_tools = await initialize_mcp_tools({"mcpServers": all_mcp_server_configs})
+                        all_tools.extend(mcp_tools)
+
+                    workflow.add_node("tool_executor", ToolNode(all_tools))
+                    
+                    # 3. Create a shared LLM instance
                     llm = create_llm_instance(
                         temperature=0.1,
                         session_id=st.session_state.get('thread_id', 'default-session'),
                         user_id=st.session_state.get('user_id', 'default-user')
                     )
                     
+                    # 4. Create and add each executor node
                     for executor_name, executor_config in st.session_state.executors.items():
-                        tools = []
-                        if "python_repl_ast" in executor_config.get("tools", []):
-                            tools.append(create_enhanced_python_tool())
-                        
-                        mcp_config = executor_config.get("mcp_config", {})
-                        if mcp_config and mcp_config.get("mcp_configs"):
-                            try:
-                                mcp_server_configs = {}
-                                for tool_name, tool_config in mcp_config["mcp_configs"].items():
-                                    server_name = tool_config["server_name"] 
-                                    server_config = tool_config["server_config"]
-                                    mcp_server_configs[server_name] = server_config
-                                
-                                mcp_tool_config = {"mcpServers": mcp_server_configs}
-                                mcp_tools = await initialize_mcp_tools(mcp_tool_config)
-                                tools.extend(mcp_tools)
-                                logging.info(f"✅ Added {len(mcp_tools)} MCP tools to {executor_name}")
-                                
-                            except Exception as e:
-                                logging.error(f"❌ Failed to initialize MCP tools for {executor_name}: {e}")
-
                         from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-
                         from core.tools.mcp_tools import create_enhanced_agent_prompt
 
-                        # --- Agent Prompt Template ---
-                        # 🆕 MCP 도구 우선 사용을 강제하는 향상된 프롬프트 생성
-                        tool_names = [t.name for t in tools]
-                        enhanced_prompt = create_enhanced_agent_prompt(executor_name, tool_names)
+                        # Get the list of tool names this agent is allowed to use from its config
+                        allowed_tool_names = executor_config.get("tools", [])
+                        if executor_config.get("mcp_config", {}).get("mcp_configs"):
+                            allowed_tool_names.extend(executor_config["mcp_config"]["mcp_configs"].keys())
                         
+                        enhanced_prompt = create_enhanced_agent_prompt(executor_name, allowed_tool_names)
+
                         AGENT_PROMPT = f"""
                         You are a specialized agent in a multi-agent data analysis team.
-
                         Your Role: {executor_config["prompt"]}
                         {executor_config.get("description", "")}
-
                         {enhanced_prompt}
-
                         Your Goal: Execute the assigned task meticulously based on the provided plan.
-                        Your Tools: You have access to the following tools: {", ".join(tool_names)}.
-                        
+                        Your Tools: You have access to the following tools: {", ".join(allowed_tool_names)}.
                         Execution Guidelines:
-
                         Focus on Your Task: Execute ONLY the task assigned to you. Do not deviate or perform tasks assigned to other agents.
                         Use Your Tools Intelligently: Choose the most appropriate tool for each specific task.
                         Report Your Results: After completing your task, provide clear findings.
                         Strict Final Output: When you have successfully completed your task, summarize your findings and results. Conclude your response with the exact phrase: TASK COMPLETED: [A brief, one-sentence summary of your key finding or result].
-
                         Your response will be passed to the next agent in the chain, so ensure your output is clear, concise, and directly related to your assigned task.
                         **DO NOT** generate a final, comprehensive report for the user. Your task is to complete your specific step and hand it off.
                         """
-
                         agent_prompt_template = ChatPromptTemplate.from_messages([
                             ("system", AGENT_PROMPT),
                             MessagesPlaceholder(variable_name="messages"),
                         ])
+                        
+                        # 💡 [수정] create_react_agent 대신 LCEL을 사용하여 에이전트를 직접 구성
+                        # 1. LLM에 도구를 바인딩합니다.
+                        llm_with_tools = llm.bind_tools(all_tools)
+                        
+                        # 2. 프롬프트, LLM, 출력 파서를 연결하여 에이전트 Runnable을 생성합니다.
+                        agent = agent_prompt_template | llm_with_tools
+                        
+                        # Add the executor node to the graph
+                        workflow.add_node(executor_name, create_executor_node(agent, executor_name))
 
-                        agent = create_react_agent(
-                            model=llm,
-                            tools=tools,
-                            prompt=agent_prompt_template
-                        )
-
-                        workflow.add_node(
-                            executor_name,
-                            create_executor_node(agent, executor_name)
-                        )
+                    # 5. Define edges
+                    workflow.add_edge(START, "planner")
+                    workflow.add_edge("replanner", "router")
                     
-                    # Add edges - 🔀 스마트 라우터 우선 연결
-                    workflow.add_edge(START, "smart_router")
-                    
-                    # 스마트 라우터에서 조건부 분기
-                    workflow.add_conditional_edges(
-                        "smart_router",
-                        smart_route_function,
-                        {
-                            "direct_response": "direct_response",
-                            "planner": "planner"
-                        }
-                    )
-                    
-                    # 직접 응답에서 바로 종료
-                    workflow.add_edge("direct_response", END)
-                    
-                    # 기존 플래너 워크플로우
-                    workflow.add_edge("planner", "router")
-                    
-                    executor_mapping = {name: name for name in st.session_state.executors}
-                    
-                    def route_function(state):
-                        next_action = state.get("next_action", "")
-                        if next_action in executor_mapping:
-                            return next_action
-                        if state.get("plan") and state.get("current_step", 0) < len(state["plan"]):
-                            task_type = state["plan"][state["current_step"]].get("type", "")
-                            return TASK_EXECUTOR_MAPPING.get(task_type, list(executor_mapping.keys())[0])
-                        return list(executor_mapping.keys())[0]
-                    
-                    workflow.add_conditional_edges(
-                        "router",
-                        route_function,
-                        executor_mapping
-                    )
-                    
-                    # 🔥 핵심 수정: Executor에서 final_responder로 직접 라우팅할 수 있도록 개선
-                    def executor_route_function(state):
-                        next_action = state.get("next_action", "")
-                        if next_action == "final_responder":
-                            return "final_responder"
-                        else:
+                    def router_function(state: PlanExecuteState) -> str:
+                        if state.get("last_error"):
                             return "replanner"
-                    
+                        
+                        plan = state.get("plan", [])
+                        current_step = state.get("current_step", 0)
+                        
+                        if current_step >= len(plan):
+                            return "final_responder"
+                        
+                        task_type = plan[current_step].get("type", "eda")
+                        executor_name = TASK_EXECUTOR_MAPPING.get(task_type, "EDA_Analyst")
+                        return executor_name
+
+                    workflow.add_conditional_edges("planner", router_function)
+
+                    # 💡 각 Executor 노드 이후의 분기 로직
+                    def after_executor_function(state: PlanExecuteState) -> str:
+                        last_message = state['messages'][-1]
+                        if last_message.tool_calls:
+                            return "tool_executor"
+                        
+                        # 오류 처리 추가
+                        if "error" in state and state["error"]:
+                            return "replanner"
+                            
+                        state["current_step"] = state.get("current_step", 0) + 1
+                        return router_function(state) # 다음 단계로 라우팅
+
                     for executor_name in st.session_state.executors:
-                        workflow.add_conditional_edges(
-                            executor_name,
-                            executor_route_function,
-                            {
-                                "replanner": "replanner",
-                                "final_responder": "final_responder"
-                            }
-                        )
+                        workflow.add_conditional_edges(executor_name, after_executor_function)
+
+                    # 💡 ToolNode 실행 후 라우터로 복귀
+                    workflow.add_conditional_edges("tool_executor", router_function)
                     
-                    workflow.add_conditional_edges(
-                        "replanner",
-                        should_continue,
-                        {
-                            "continue": "router",
-                            "finalize": "final_responder"
-                        }
-                    )
-                    
-                    workflow.add_edge("final_responder", END)
-                    
-                    checkpointer = MemorySaver()
-                    graph = workflow.compile(checkpointer=checkpointer)
-                    
-                    return graph
-                
-                try:
-                    st.session_state.plan_execute_graph = st.session_state.event_loop.run_until_complete(
-                        build_plan_execute_system()
+                    # 3. Compile the graph
+                    st.session_state.plan_execute_graph = workflow.compile(
+                        checkpointer=MemorySaver(),
+                        interrupt_before=["tool_executor"]
                     )
                     st.session_state.graph_initialized = True
-                    st.success("✅ Plan-Execute System with MCP tools created successfully!")
-                    log_event("system_created", {
-                        "executors": list(st.session_state.executors.keys()),
-                        "timestamp": datetime.now().isoformat(),
-                        "mcp_enabled": any(ex.get("mcp_config") for ex in st.session_state.executors.values())
-                    })
-                    logging.info("Plan-Execute system with MCP tools created")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Failed to create system: {e}")
-                    logging.error(f"System creation failed: {e}")
+                    log_event("system_build_success", {"executor_count": len(st.session_state.executors)})
+                    
+                    visualize_plan_execute_structure(st.session_state.plan_execute_graph)
+                    st.toast("✅ Plan-Execute System created successfully!", icon="🎉")
+
+                st.session_state.event_loop.run_until_complete(build_plan_execute_system())
+                st.rerun()
 
 if st.session_state.executors:
     st.markdown("### 📊 Data Upload")
