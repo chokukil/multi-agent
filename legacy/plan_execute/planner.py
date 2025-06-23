@@ -8,8 +8,6 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
 from core.agents.agent_registry import agent_registry # Import the registry
-from ..llm_factory import create_llm_instance
-from ..schemas.messages import A2APlanState
 
 # ---------------- Pydantic 모델 정의 ----------------
 
@@ -44,94 +42,70 @@ class A2AExecutionPlan(BaseModel):
 
 # ---------------- Planner Node 재작성 ----------------
 
-PLANNER_PROMPT = """
-# ... (rest of the prompt)
-<SCHEMA>
-{{
-  "plan": [
-    {{
-      "agent": "string",
-      "skill": "string",
-      "instructions": "string"
-    }}
-  ],
-  "thought": "string"
-}}
-</SCHEMA>
-
-<AVAILABLE_AGENTS>
-{available_agents}
-</AVAILABLE_AGENTS>
-
-<HISTORY>
-**Previous Steps:**
-{previous_steps}
-</HISTORY>
-
-<USER_REQUEST>
-{user_prompt}
-</USER_REQUEST>
-
-Now, create a JSON plan to fulfill the user's request.
-"""
-
-async def planner_node(state: A2APlanState, llm=None, agent_registry_instance=None) -> A2APlanState:
+def planner_node(state: Dict) -> Dict:
     """
-    Analyzes the user's request and the available agent skills to create a JSON-based execution plan.
+    Analyzes the user's request and generates a structured A2A execution plan.
     """
-    from core.agents.agent_registry import agent_registry
+    from core.llm_factory import create_llm_instance
     
     logging.info("🎯 A2A Planner: Generating structured plan for agent execution.")
     
-    agent_skills_summary = agent_registry_instance.get_all_skills_summary()
-    
-    # Format previous steps for the prompt
-    formatted_previous_steps = "\n".join(
-        f"Step {i+1}: Called Agent '{step[0]}' with Skill '{step[1]}'. Result: {step[2]}" 
-        for i, step in enumerate(state.previous_steps)
-    )
+    messages = state.get("messages", [])
+    user_request = next((msg.content for msg in reversed(messages) if isinstance(msg, HumanMessage)), None)
 
-    system_prompt = PLANNER_PROMPT
+    if not user_request:
+        logging.error("No user request found in messages. Cannot create plan.")
+        state["plan"] = []
+        return state
+
+    # 동적으로 에이전트 정보 가져오기
+    available_agents_prompt = agent_registry.get_all_agent_cards_as_text()
     
-    prompt = ChatPromptTemplate.from_template(system_prompt)
+    system_prompt = f"""You are an expert project planner for a team of specialized AI agents. Your goal is to create a step-by-step plan to fulfill a user's request by calling the appropriate agents.
+
+**CRITICAL INSTRUCTIONS:**
+1.  **Use Available Agents Only:** You MUST select agents and skills from the list provided below. Do not invent agents or skills.
+2.  **Parameter Matching:** You MUST provide all required parameters for the chosen skill. Parameter keys must be exact.
+3.  **Handle Dependencies:** For multi-step tasks, use the output of a previous step as input for a subsequent step. Use the special placeholder `{{{{steps[N].output}}}}` where `N` is the 1-based step number. For example, a `DataCleaningAgent` might use the `data_id` produced by a `DataLoaderAgent` from step 1 like this: `{{"data_id": "{{{{steps[1].output}}}}"}}`.
+4.  **Output JSON:** Your final output must be a single, valid JSON object that conforms to the `A2AExecutionPlan` schema. Do not add any extra text or explanations.
+
+{available_agents_prompt}
+
+Now, analyze the user's request and generate a structured execution plan.
+"""
     
-    # Use a default LLM if not provided, for easier testing and standalone use
-    if llm is None:
-        llm = create_llm_instance(
-            # llm_type is now handled by the factory's default
-            session_id=state.session_id,
-            tags=["planner", "a2a"]
-        ).with_structured_output(A2AExecutionPlan)
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("human", "{user_request}"),
+    ])
+    
+    llm = create_llm_instance(
+        temperature=0,
+        session_id=state.get('session_id', 'default-session'),
+        user_id=state.get('user_id', 'default-user')
+    ).with_structured_output(A2AExecutionPlan)
     
     try:
-        # LLM 호출
-        response = await llm.ainvoke(prompt.format(
-            user_prompt=state.user_prompt,
-            previous_steps=formatted_previous_steps,
-            available_agents=agent_skills_summary
-        ))
+        plan_data: A2AExecutionPlan = llm.invoke({"user_request": user_request})
         
-        # 응답 파싱
-        response_dict = json.loads(response.content)
+        logging.info(f"✅ Successfully generated A2A plan with {len(plan_data.plan)} steps.")
         
-        # 상태 업데이트
-        if "plan" in response_dict and "thought" in response_dict:
-            state.plan = response_dict["plan"]
-            state.thought = response_dict["thought"]
-            state.plan_str = json.dumps(response_dict, indent=2)
-            logging.info(f"✅ Plan generated successfully.\n{state.plan_str}")
-        else:
-            state.thought = "LLM response must include 'plan' and 'thought' keys."
-            logging.error(state.thought)
-            
-    except json.JSONDecodeError:
-        error_message = f"Failed to parse LLM response into JSON. Response:\n{response.content}"
-        state.thought = error_message
-        logging.error(error_message)
+        state["plan"] = [step.model_dump() for step in plan_data.plan]
+        state["user_request"] = user_request
+        state["current_step_index"] = 0
+        state["step_outputs"] = {} # To store outputs of each step
+
+        plan_summary = f"📋 **Execution Plan Created**\n\n"
+        for step in plan_data.plan:
+            plan_summary += f"{step.step}. **Agent:** `{step.agent_name}` -> **Skill:** `{step.skill_name}`\n"
+        
+        state["messages"].append(AIMessage(content=plan_summary, name="Planner"))
+
     except Exception as e:
-        error_message = f"An unexpected error occurred in planner: {e}"
-        state.thought = error_message
-        logging.error(error_message, exc_info=True)
+        logging.error(f"❌ Critical error in A2A planner: {e}", exc_info=True)
+        state["plan"] = []
+        state["user_request"] = user_request
+        state["messages"].append(AIMessage(content=f"⚠️ **Planning Failed**\n\nAn error occurred: {e}", name="Planner"))
         
     return state
 

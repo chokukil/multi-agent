@@ -8,6 +8,7 @@ import logging
 from typing import List, Dict, Any, Optional
 from core.artifact_system import artifact_manager
 from core.data_manager import UnifiedDataManager as DataManager
+import plotly.io as pio
 
 def auto_detect_artifacts(content: str, agent_name: str) -> List[str]:
     """
@@ -178,85 +179,70 @@ def display_artifacts(artifacts):
             st.error(f"아티팩트 {artifact.get('title', artifact.get('id', 'N/A'))} 렌더링 중 오류 발생: {e}")
             st.json(artifact)
 
-def render_artifact(artifact_id: str, artifact: Dict[str, Any]):
-    """개별 아티팩트를 확장 가능한 형태로 렌더링합니다."""
-    type_icon = {
-        "python": "🐍", "markdown": "📄", "text": "📝",
-        "data": "📊", "plot": "📈", "plots": "📈"
-    }.get(artifact.get("type"), "📁")
+def render_artifact(artifact_type: str, artifact_data: any, container):
+    """
+    Renders a single artifact in the specified container based on its type.
 
-    title = artifact.get('title', 'Untitled')
-    agent_name = artifact.get('agent_name', 'Unknown')
-    
-    with st.expander(f"{type_icon} {title} ({agent_name})", expanded=False):
-        st.caption(f"ID: {artifact_id}")
-        st.caption(f"Type: {artifact.get('type', 'unknown')}")
-        st.caption(f"Created: {artifact.get('created_at', 'N/A')}")
-        
-        # 실제 콘텐츠 가져오기
-        try:
-            content, metadata = artifact_manager.get_artifact(artifact_id)
-            if not content:
-                st.warning("No content available.")
-                return
-                
-            # 타입별 렌더링
-            artifact_type = artifact.get("type", "text")
-            
-            if artifact_type == "python":
-                st.code(content, language="python")
-                
-                # Python 코드 실행 버튼 (옵션)
-                if st.button(f"🚀 Execute", key=f"exec_{artifact_id}"):
-                    with st.spinner("Executing Python code..."):
-                        result = artifact_manager.execute_python_artifact(artifact_id)
-                        if result.get('success'):
-                            if result.get('stdout'):
-                                st.success("Output:")
-                                st.text(result['stdout'])
-                        else:
-                            st.error(f"Execution failed: {result.get('error')}")
-                            
-            elif artifact_type == "markdown":
-                st.markdown(content)
-            elif artifact_type == "text":
-                st.text_area("Content", content, height=200, disabled=True)
-            elif artifact_type == "data":
-                try:
-                    df = pd.read_json(content, orient='split')
-                    st.dataframe(df)
-                except Exception:
-                    st.text("Could not render data preview.")
-                    st.text(content[:500] + "..." if len(content) > 500 else content)
-            elif artifact_type in ["plot", "plots"]:
-                try:
-                    chart_spec = json.loads(content)
-                    st.altair_chart(alt.Chart.from_dict(chart_spec), use_container_width=True)
-                except Exception as e:
-                    st.error(f"Error rendering plot: {e}")
-                    st.text(content[:500] + "..." if len(content) > 500 else content)
+    Args:
+        artifact_type (str): The type of the artifact (e.g., 'data_id', 'json', 'file_path').
+        artifact_data (any): The data of the artifact.
+        container: The Streamlit container (e.g., st.expander, st.container) to render in.
+    """
+    try:
+        with container:
+            if artifact_type == "data_id":
+                render_dataframe_preview(artifact_data)
+            elif artifact_type == "json" and "plotly" in str(artifact_data):
+                render_plotly_chart(artifact_data)
+            elif artifact_type == "file_path" and isinstance(artifact_data, str):
+                render_file_link(artifact_data)
             else:
-                st.text(content[:500] + "..." if len(content) > 500 else content)
+                # Fallback for other JSON data or simple values
+                st.write("Result:")
+                st.json(artifact_data)
+    except Exception as e:
+        with container:
+            st.error(f"Failed to render artifact: {e}")
+        logging.error(f"Artifact rendering error for type {artifact_type}: {e}", exc_info=True)
 
-            # 다운로드 버튼
-            if st.button(f"📥 Download", key=f"download_{artifact_id}"):
-                file_extension = {
-                    "python": ".py",
-                    "markdown": ".md", 
-                    "text": ".txt",
-                    "data": ".json",
-                    "plot": ".html"
-                }.get(artifact_type, ".txt")
-                
-                st.download_button(
-                    label=f"Save as {title}{file_extension}",
-                    data=content,
-                    file_name=f"{title}{file_extension}",
-                    key=f"save_{artifact_id}"
-                )
-                
-        except Exception as e:
-            st.error(f"Error loading artifact content: {e}")
+
+def render_dataframe_preview(data_id: str):
+    """Renders a preview of a DataFrame from the DataManager."""
+    dm = DataManager()
+    df = dm.get_dataframe(data_id)
+    if df is not None:
+        st.dataframe(df.head(10)) # Show first 10 rows
+        info = dm.get_data_info(data_id)
+        if info:
+            st.caption(f"Source: {info.get('source')} | Shape: {info.get('metadata', {}).get('shape')}")
+    else:
+        st.warning(f"Could not retrieve data for ID: {data_id}")
+
+
+def render_plotly_chart(plotly_json: dict):
+    """Renders a Plotly chart from a JSON object."""
+    try:
+        fig = pio.from_json(json.dumps(plotly_json))
+        st.plotly_chart(fig, use_container_width=True)
+    except Exception as e:
+        st.error(f"Could not render Plotly chart: {e}")
+        st.json(plotly_json) # Show raw JSON on error
+
+
+def render_file_link(file_path: str):
+    """Renders a downloadable link for a file artifact."""
+    try:
+        with open(file_path, "rb") as fp:
+            st.download_button(
+                label=f"Download Report: {os.path.basename(file_path)}",
+                data=fp,
+                file_name=os.path.basename(file_path),
+                mime="text/html" if file_path.endswith(".html") else "application/octet-stream"
+            )
+    except FileNotFoundError:
+        st.error(f"Artifact file not found: {file_path}")
+    except Exception as e:
+        st.error(f"Could not create download link: {e}")
 
 def apply_artifact_styles():
     """아티팩트 관련 CSS 스타일 적용"""

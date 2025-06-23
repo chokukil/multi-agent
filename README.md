@@ -46,28 +46,57 @@ cd CherryAI_0621
 
 ### 2. 의존성 설치
 
-`uv`와 같은 가상환경을 생성하고, `pyproject.toml` 또는 `requirements.txt`를 사용하여 필요한 패키지를 설치합니다.
+`uv` 패키지 매니저를 사용하여 의존성을 설치합니다.
 
 ```bash
-# uv 사용 시
-uv venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-uv pip install -r requirements.txt
+# uv 사용 (권장)
+uv sync
+
+# 또는 pip 사용
+pip install -r requirements.txt
 ```
 
-### 3. 환경 변수 설정
+### 3. LLM 제공자 설정
 
-`.env.example` 파일을 복사하여 `.env` 파일을 생성하고, 필요한 API 키 (예: `OPENAI_API_KEY`)를 입력합니다.
-
+#### Option A: OpenAI (유료)
 ```bash
 cp .env.example .env
+# .env 파일에 API 키 설정
+OPENAI_API_KEY="sk-..."
+LLM_PROVIDER="OPENAI"
 ```
 
-```.env
-OPENAI_API_KEY="sk-..."
-# LANGFUSE_SECRET_KEY="..."
-# LANGFUSE_PUBLIC_KEY="..."
+#### Option B: Ollama (무료, 로컬)
+```bash
+# 🦙 Ollama 자동 설정 (권장)
+./setup_ollama_env.sh      # Linux/macOS
+# setup_ollama_env.bat     # Windows
+
+# 또는 수동 설정
+export LLM_PROVIDER=OLLAMA
+export OLLAMA_MODEL=llama3.1:8b
+export OLLAMA_BASE_URL=http://localhost:11434
+
+# Ollama 서버 시작
+ollama serve
+
+# 권장 모델 다운로드
+ollama pull llama3.1:8b
 ```
+
+#### 🆕 Ollama Tool Calling 지원
+Cherry AI는 Ollama의 도구 호출을 완전히 지원합니다:
+- ✅ **GPT와 동일한 성능**: 데이터 분석, 시각화, 코드 실행
+- ✅ **자동 모델 검증**: 도구 호출 지원 모델 자동 감지
+- ✅ **최적화된 에이전트**: Ollama 전용 커스텀 에이전트
+- ✅ **실시간 모니터링**: UI에서 Ollama 상태 확인
+
+**권장 모델**:
+- `llama3.1:8b` - 균형잡힌 성능 (10GB RAM)
+- `qwen2.5:7b` - 빠른 처리 (8GB RAM)
+- `qwen2.5-coder:7b` - 코딩 전문 (9GB RAM)
+
+자세한 설정은 [OLLAMA_IMPROVEMENT_GUIDE.md](./OLLAMA_IMPROVEMENT_GUIDE.md)를 참조하세요.
 
 ### 4. 애플리케이션 실행
 

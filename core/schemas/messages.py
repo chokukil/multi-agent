@@ -144,3 +144,91 @@ StreamMessage = Union[
     ErrorMessage,
     ResponseMessage
 ]
+
+# A2A Plan-Execute 상태를 위한 Pydantic 모델
+class A2APlanState(BaseModel):
+    """
+    State object for the A2A Planner-Executor workflow.
+    This is passed between nodes in the graph.
+    """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    session_id: str = Field(default_factory=lambda: f"session_{uuid4()}")
+    user_prompt: str
+    plan: List[Dict[str, Any]] = Field(default_factory=list)
+    plan_str: str = ""
+    thought: str = ""
+    previous_steps: List[Any] = Field(default_factory=list) # Holds tuples of (agent_name, skill, result)
+    error_message: Optional[str] = None
+    current_step: int = 0
+
+
+# ==============================================================================
+# A2A (Agent-to-Agent) Communication Schemas
+# ==============================================================================
+
+class Content(BaseModel):
+    """Base model for content within an A2A message."""
+    content_type: str
+
+
+class TextContent(Content):
+    """Content model for plain text."""
+    content_type: Literal["text"] = "text"
+    data: str
+
+
+class MediaContent(Content):
+    content_type: Literal["media"] = "media"
+    data: Dict[str, Any]
+
+
+class DataFrameContent(Content):
+    """Content model for referencing a DataFrame."""
+    content_type: Literal["dataframe"] = "dataframe"
+    data: Dict[str, Any] # e.g., {"df_id": "my_df"}
+
+
+class ParamsContent(Content):
+    """Content model for arbitrary parameters."""
+    content_type: Literal["params"] = "params"
+    data: Dict[str, Any]
+
+
+class StatusContent(Content):
+    content_type: Literal["status"] = "status"
+    data: Dict[str, Any]
+
+
+class ToolCall(Content):
+    content_type: Literal["tool_code"] = "tool_code"
+    data: str
+
+class ToolResult(Content):
+    content_type: Literal["tool_output"] = "tool_output"
+    data: str
+
+
+# Re-define Content to be a Union of all specific content types for validation
+AnyContent = Union[
+    TextContent,
+    MediaContent,
+    DataFrameContent,
+    ParamsContent,
+    StatusContent,
+    ToolCall,
+    ToolResult
+]
+
+
+class A2ARequest(BaseModel):
+    """Represents a request from one agent to another."""
+    action: str
+    contents: List[AnyContent] = Field(default_factory=list)
+
+
+class A2AResponse(BaseModel):
+    """Represents a response from an agent."""
+    status: Literal["success", "error"]
+    message: str
+    contents: List[AnyContent] = Field(default_factory=list)

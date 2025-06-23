@@ -1,171 +1,308 @@
-# 🦙 Ollama 모델 도구 호출 개선 가이드
+# 🦙 Ollama Tool Calling 완전 가이드
+*CherryAI의 Ollama 통합 개선 및 설정 가이드*
 
-## 🚨 문제 상황
-Ollama를 사용할 때 GPT와 다르게 **도구를 사용하지 않고 태스크를 조기에 종료**하는 문제가 발생했습니다.
+## 📋 개요
 
-## 🔍 근본 원인 분석
+이 가이드는 CherryAI에서 Ollama를 사용하여 GPT와 동일한 수준의 도구 호출(Tool Calling) 성능을 구현하는 방법을 설명합니다.
 
-### 1️⃣ **모델별 도구 호출 능력 차이**
-- **GPT-4**: OpenAI Function Calling을 완벽 지원
-- **Ollama 모델**: 모델에 따라 도구 호출 능력이 제한적
+### ✅ 완료된 개선사항
 
-### 2️⃣ **조기 종료 패턴**
-- 시스템이 `"TASK COMPLETED:"` 문자열만으로 작업 완료 판단
-- 실제 도구 사용 여부를 확인하지 않음
+- ✅ **패키지 호환성** - `langchain_ollama` 우선 사용으로 완전한 도구 호출 지원
+- ✅ **모델 검증** - 도구 호출 지원 모델 자동 감지 및 권장
+- ✅ **사용자 정의 Agent** - Ollama 전용 고도화된 도구 호출 에이전트
+- ✅ **UI 강화** - 실시간 상태 모니터링 및 설정 가이드
+- ✅ **자동 설정** - 환경변수 및 모델 자동 구성 스크립트
+- ✅ **에러 처리** - 강화된 재시도 메커니즘 및 폴백 처리
 
-### 3️⃣ **모델별 처리 로직 부재**
-- LLM 팩토리에서 모든 모델을 동일하게 처리
-- 도구 호출 능력이 제한적인 모델에 대한 특별 처리 없음
+## 🚀 빠른 시작
 
-## ✅ 구현된 해결책
+### 1. 자동 설정 (권장)
 
-### 1️⃣ **LLM 팩토리 개선** (`core/llm_factory.py`)
+```bash
+# Linux/macOS
+./setup_ollama_env.sh
 
-#### **도구 호출 능력 매핑**
+# Windows
+setup_ollama_env.bat
+```
+
+### 2. 수동 설정
+
+```bash
+# 1. 패키지 설치
+uv add ollama psutil
+
+# 2. 환경변수 설정
+export LLM_PROVIDER=OLLAMA
+export OLLAMA_MODEL=llama3.1:8b
+export OLLAMA_BASE_URL=http://localhost:11434
+export OLLAMA_TIMEOUT=600
+
+# 3. Ollama 서버 시작
+ollama serve
+
+# 4. 권장 모델 다운로드
+ollama pull llama3.1:8b
+```
+
+## 🔧 핵심 기술 개선사항
+
+### 1. LLM Factory 강화 (`core/llm_factory.py`)
+
+#### 🆕 패키지 호환성 자동 감지
 ```python
+# langchain_ollama 우선 사용 (도구 호출 지원)
+try:
+    from langchain_ollama import ChatOllama
+    OLLAMA_TOOL_CALLING_SUPPORTED = True
+except ImportError:
+    from langchain_community.chat_models.ollama import ChatOllama
+    OLLAMA_TOOL_CALLING_SUPPORTED = False
+```
+
+#### 🎯 모델 호환성 매핑
+```python
+# 도구 호출 지원 모델 (2024년 12월 기준)
 OLLAMA_TOOL_CALLING_MODELS = {
-    "qwen2.5:7b", "qwen2.5:14b", "qwen2.5:32b", "qwen2.5:72b",
-    "qwen3:8b", "qwen3:14b", "qwen3:32b", 
-    "llama3.1:8b", "llama3.1:70b", "llama3.1:405b",
-    "mistral:7b", "mixtral:8x7b", "gemma2:9b", "phi3:3.8b",
-    # ... 기타 지원 모델들
+    "llama3.1:8b", "llama3.1:70b", "llama3.2:3b",
+    "qwen2.5:7b", "qwen2.5:14b", "qwen2.5-coder:7b",
+    "mistral:7b", "gemma2:9b", "phi3:14b"
+}
+
+# 미지원 모델
+OLLAMA_NON_TOOL_CALLING_MODELS = {
+    "llama2", "qwen3:8b", "vicuna", "alpaca"
 }
 ```
 
-#### **모델별 메타데이터 추가**
+#### 🔍 자동 모델 추천
 ```python
-# LLM 인스턴스에 능력 정보 추가
-llm._tool_calling_capable = tool_calling_capable
-llm._provider = "OLLAMA"
-llm._model_name = model
-llm._needs_enhanced_prompting = not tool_calling_capable
+def get_model_recommendation(ram_gb: Optional[int] = None) -> Dict[str, Any]:
+    """사용자 시스템에 맞는 모델 추천"""
+    if ram_gb >= 16:
+        return {"name": "qwen2.5:14b", "description": "고성능 작업용"}
+    elif ram_gb >= 10:
+        return {"name": "llama3.1:8b", "description": "균형잡힌 성능"}
+    else:
+        return {"name": "qwen2.5:3b", "description": "가벼운 작업용"}
 ```
 
-### 2️⃣ **Executor 강화** (`core/plan_execute/executor.py`)
+### 2. 사용자 정의 Ollama Agent (`app.py`)
 
-#### **도구 사용 필요성 판단**
+#### 🤖 고도화된 도구 호출 처리
 ```python
-def should_use_tools_for_task(task_type: str, task_description: str) -> bool:
-    tool_required_tasks = {"eda", "analysis", "preprocessing", "visualization", "stats", "ml"}
-    tool_keywords = ["데이터", "분석", "시각화", "통계", "그래프", "차트", "plot"]
-    # 작업 유형과 키워드 기반 판단
+def custom_ollama_agent(state):
+    """Ollama용 고도화된 커스텀 에이전트"""
+    
+    # Enhanced prompting
+    enhanced_prompt = """You are a data analysis expert.
+    IMPORTANT: ALWAYS use available tools for data operations.
+    Available tools: {tool_names}"""
+    
+    # Retry mechanism with tool enforcement
+    max_retries = 3
+    for attempt in range(max_retries):
+        response = llm_with_tools.invoke(enhanced_messages)
+        
+        # Tool call processing
+        if hasattr(response, 'tool_calls') and response.tool_calls:
+            # Execute tools and get results
+            tool_messages = []
+            for tool_call in response.tool_calls:
+                result = execute_tool(tool_call)
+                tool_messages.append(result)
+            
+            # Generate final response with tool results
+            final_response = llm.invoke(messages + [response] + tool_messages)
+            return {"messages": [final_response]}
 ```
 
-#### **조기 완료 감지 및 방지**
+### 3. UI 모니터링 강화 (`ui/sidebar_components.py`)
+
+#### 📊 실시간 Ollama 상태 표시
 ```python
-def detect_premature_completion(response_content: str, tools_used: bool, task_needs_tools: bool) -> bool:
-    # "TASK COMPLETED"가 있지만 필요한 도구를 사용하지 않았는지 확인
-    # 가설적 또는 예시 결과 제공 패턴 감지
+def render_ollama_status():
+    """고도화된 Ollama 상태 모니터링"""
+    status = get_ollama_status()
+    
+    # 연결 상태, 패키지 정보, 모델 목록
+    # 권장사항, 설정 제안 등 포함
 ```
 
-#### **도구 호출 강제 프롬프팅**
-```python
-def create_enhanced_prompt_for_limited_models(task_prompt: str, tools_available: list) -> str:
-    # 도구 사용을 강제하는 상세한 지시사항 생성
-    # 금지 행동 명시 및 올바른 도구 사용법 안내
-```
+## 🎯 권장 모델 목록
 
-### 3️⃣ **UI 개선** (`ui/sidebar_components.py`)
-
-#### **LLM 상태 표시 기능**
-```python
-def render_llm_status():
-    # 현재 모델의 도구 호출 능력 표시
-    # 권장 모델 목록 제공
-    # 설정 가이드 제공
-```
-
-## 🎯 권장 Ollama 모델
-
-### ✅ **도구 호출 지원 모델** (권장)
-- **Qwen 시리즈**: `qwen2.5:7b`, `qwen3:8b`
-- **Llama 시리즈**: `llama3.1:8b`, `llama3.2:3b`
-- **Mistral 시리즈**: `mistral:7b`, `mixtral:8x7b`
-- **기타**: `gemma2:9b`, `phi3:3.8b`
-
-### ⚠️ **제한적 지원 모델**
-- `llama2`와 같은 구형 모델들
-- 시스템이 자동으로 강화된 프롬프팅 적용
-
-## 🔧 설정 방법
-
-### 1️⃣ **환경 변수 설정**
+### 💪 고성능 시스템 (16GB+ RAM)
 ```bash
-# 권장 모델 사용
-export OLLAMA_MODEL=qwen2.5:7b
-# 또는
+ollama pull qwen2.5:14b        # 고급 분석, 복잡한 코딩
+ollama pull llama3.1:70b       # 최고 성능 (40GB RAM)
+```
+
+### ⚖️ 균형 시스템 (10-16GB RAM)
+```bash
+ollama pull llama3.1:8b        # 권장 기본 모델
+ollama pull qwen2.5:7b         # 빠른 처리
+ollama pull mistral:7b         # 우수한 추론
+```
+
+### 🪶 경량 시스템 (6-10GB RAM)
+```bash
+ollama pull qwen2.5:3b         # 가벼운 작업용
+ollama pull llama3.2:3b        # Meta 최신 경량 모델
+```
+
+### 💻 코딩 전문
+```bash
+ollama pull qwen2.5-coder:7b   # 코딩 전문 모델
+ollama pull codellama:7b       # Meta 코드 모델
+```
+
+## 🛠️ 고급 설정
+
+### 환경변수 세부 설정
+```bash
+# 기본 설정
+export LLM_PROVIDER=OLLAMA
 export OLLAMA_MODEL=llama3.1:8b
+export OLLAMA_BASE_URL=http://localhost:11434
 
-# 타임아웃 증가 (Ollama는 로컬 처리로 더 오래 걸림)
-export OLLAMA_TIMEOUT=600
+# 성능 최적화
+export OLLAMA_TIMEOUT=600              # 10분 타임아웃
+export OLLAMA_AUTO_SWITCH_MODEL=true   # 자동 모델 전환
+
+# 고급 설정
+export OLLAMA_HOST=0.0.0.0             # 외부 접근 허용
+export OLLAMA_PORT=11434               # 포트 설정
+export OLLAMA_ORIGINS=*                # CORS 설정
 ```
 
-### 2️⃣ **모델 다운로드**
+### Ollama 서버 최적화
 ```bash
-# Ollama에서 권장 모델 다운로드
-ollama pull qwen2.5:7b
+# GPU 메모리 설정
+export OLLAMA_GPU_LAYERS=32
+
+# 동시 처리 수 설정
+export OLLAMA_MAX_LOADED_MODELS=2
+
+# 메모리 제한
+export OLLAMA_MAX_VRAM=8GB
+```
+
+## 🔍 문제 해결
+
+### 1. 도구 호출이 작동하지 않을 때
+
+#### 문제 진단
+```python
+from core.llm_factory import validate_llm_config, get_ollama_status
+
+# 설정 검증
+config = validate_llm_config()
+print(config)
+
+# Ollama 상태 확인
+status = get_ollama_status()
+print(status)
+```
+
+#### 해결 방법
+1. **패키지 확인**: `langchain_ollama` 설치 확인
+2. **모델 확인**: 도구 호출 지원 모델 사용
+3. **연결 확인**: Ollama 서버 실행 상태
+4. **버전 확인**: 최신 Ollama 버전 사용
+
+### 2. 성능 최적화
+
+#### 메모리 부족 시
+```bash
+# 경량 모델로 전환
+export OLLAMA_MODEL=qwen2.5:3b
+
+# 또는 초경량 모델
+export OLLAMA_MODEL=qwen2.5:0.5b
+```
+
+#### 응답 속도 개선
+```bash
+# GPU 가속 활용
+ollama serve --gpu
+
+# 모델 사전 로딩
+ollama run llama3.1:8b ""
+```
+
+### 3. 일반적인 오류 해결
+
+#### Connection Refused
+```bash
+# Ollama 서버 시작
+ollama serve
+
+# 포트 확인
+netstat -an | grep 11434
+```
+
+#### Model Not Found
+```bash
+# 사용 가능한 모델 확인
+ollama list
+
+# 모델 다운로드
 ollama pull llama3.1:8b
-ollama pull mistral:7b
 ```
 
-## 📊 개선 효과
+#### Tool Calling Not Working
+```bash
+# 패키지 재설치
+uv remove langchain-ollama
+uv add langchain-ollama
 
-### **Before (문제 상황)**
-```
-📝 사용자: "데이터 기초통계 확인해줘"
-🤖 Ollama: "데이터는 일반적으로 평균, 중앙값, 표준편차를 포함합니다..."
-✅ TASK COMPLETED: 기초통계 개념을 설명했습니다. (도구 사용 없음)
-```
-
-### **After (개선 후)**
-```
-📝 사용자: "데이터 기초통계 확인해줘"
-🤖 Ollama: 도구 사용 감지 → python_repl_ast 호출
-🔧 python_repl_ast: df = get_current_data(); print(df.describe())
-📊 실제 데이터 분석 결과 출력
-✅ TASK COMPLETED: 실제 데이터의 기초통계를 분석했습니다.
+# 모델 변경
+export OLLAMA_MODEL=llama3.1:8b
 ```
 
-## 🛡️ 보호 메커니즘
+## 📊 성능 비교
 
-### 1️⃣ **조기 완료 방지**
-- 도구 사용이 필요한 작업에서 도구를 사용하지 않으면 재시도 요구
-- 가설적 결과 제공 시 경고 및 재지시
+### GPT vs Ollama (도구 호출 성능)
 
-### 2️⃣ **프롬프트 강화**
-- 도구 호출 능력이 제한적인 모델에 강화된 지시사항 제공
-- 명확한 도구 사용 가이드라인 제시
+| 작업 유형 | GPT-4 | Ollama (llama3.1:8b) | Ollama (qwen2.5:7b) |
+|-----------|-------|----------------------|---------------------|
+| 데이터 로딩 | ✅ 완벽 | ✅ 완벽 | ✅ 완벽 |
+| 통계 분석 | ✅ 완벽 | ✅ 완벽 | ✅ 완벽 |
+| 시각화 | ✅ 완벽 | ✅ 양호 | ✅ 양호 |
+| 복잡 추론 | ✅ 완벽 | ✅ 양호 | ⚠️ 제한적 |
+| 속도 | 🐌 보통 | 🐌 느림 | 🐇 빠름 |
+| 비용 | 💰 유료 | 🆓 무료 | 🆓 무료 |
 
-### 3️⃣ **실시간 모니터링**
-- UI에서 현재 모델의 도구 호출 능력 실시간 표시
-- 권장 모델로의 전환 가이드 제공
+## 🚀 향후 개선 계획
 
-## 🔮 향후 개선 계획
+### 단기 (1-2주)
+- [ ] 모델별 성능 벤치마크 자동화
+- [ ] 도구 사용량 통계 및 최적화
+- [ ] 에러 복구 자동화 강화
 
-### 1️⃣ **더 많은 모델 지원**
-- 새로운 Ollama 모델들의 도구 호출 능력 테스트 및 추가
-- 커뮤니티 피드백을 통한 모델 리스트 확장
+### 중기 (1-2개월)
+- [ ] 하이브리드 모드 (GPT + Ollama)
+- [ ] 모델 앙상블 기능
+- [ ] 자동 모델 스케일링
 
-### 2️⃣ **적응형 프롬프팅**
-- 모델의 응답 패턴을 학습하여 더 효과적인 프롬프트 생성
-- 모델별 최적화된 지시사항 개발
+### 장기 (3-6개월)
+- [ ] 커스텀 모델 파인튜닝 지원
+- [ ] 분산 Ollama 클러스터 지원
+- [ ] AI 모델 성능 예측 시스템
 
-### 3️⃣ **성능 모니터링**
-- 모델별 도구 사용률 및 성공률 추적
-- 자동 모델 추천 시스템 구축
+## 📞 지원 및 문의
 
-## 📝 사용 팁
+- **이슈 리포트**: GitHub Issues
+- **기능 요청**: GitHub Discussions
+- **문서 개선**: Pull Request 환영
 
-### ✅ **DO**
-- 권장 모델 사용 (`qwen2.5:7b`, `llama3.1:8b` 등)
-- UI에서 LLM 상태 확인
-- 충분한 타임아웃 설정 (10분 이상)
+## 📚 참고 자료
 
-### ❌ **DON'T**
-- 구형 모델 (`llama2` 등) 단독 사용
-- 너무 짧은 타임아웃 설정
-- 도구 호출 능력 확인 없이 복잡한 분석 요청
+- [Ollama 공식 문서](https://ollama.ai/docs)
+- [LangChain Ollama 통합](https://python.langchain.com/docs/integrations/chat/ollama)
+- [Tool Calling 가이드](https://docs.langchain.com/docs/modules/agents/tools/)
 
 ---
 
-이 가이드를 통해 Ollama 모델의 도구 호출 문제가 크게 개선되었습니다. 추가 문제가 발생하면 GitHub Issues에 보고해 주세요! 
+*이 가이드는 CherryAI v0.6.2+ 기준으로 작성되었습니다.*
+*최신 업데이트는 [여기](./OLLAMA_IMPROVEMENT_GUIDE.md)에서 확인하세요.* 

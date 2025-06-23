@@ -259,7 +259,7 @@ def render_data_upload_section():
             st.rerun()
 
 def render_llm_status():
-    """LLM 상태 및 도구 호출 능력 표시"""
+    """LLM 상태 및 도구 호출 능력 표시 - 향상된 버전"""
     from core.llm_factory import validate_llm_config
     import os
     
@@ -279,38 +279,198 @@ def render_llm_status():
         else:
             st.error(f"❌ {provider}")
             if llm_config.get("error"):
-                st.error(f"Error: {llm_config['error']}")
+                st.error(f"**Error:** {llm_config['error']}")
     
     with col2:
         st.info(f"📱 {model}")
     
-    # 도구 호출 능력 표시
+    # 🆕 Ollama 전용 패키지 정보
+    if provider == "OLLAMA":
+        import_source = llm_config.get("import_source", "unknown")
+        
+        col3, col4 = st.columns(2)
+        with col3:
+            if import_source == "langchain_ollama":
+                st.success("📦 langchain_ollama")
+            elif import_source == "langchain_community":
+                st.warning("📦 langchain_community")
+            else:
+                st.error("📦 No package")
+        
+        with col4:
+            base_url = llm_config.get("base_url", "unknown")
+            st.caption(f"🔗 {base_url}")
+    
+    # 도구 호출 능력 표시 - 개선된 버전
     tool_calling_capable = llm_config.get("tool_calling_capable", True)
     
     if tool_calling_capable:
-        st.success("🔧 **Tool Calling**: Supported")
+        st.success("🔧 **Tool Calling**: ✅ Fully Supported")
+        
+        if provider == "OLLAMA":
+            st.info("💡 **Tip**: Your Ollama model supports native tool calling!")
+            
     else:
-        st.warning("⚠️ **Tool Calling**: Limited")
-        st.info("💡 **Tip**: Consider using qwen2.5:7b, llama3.1:8b, or other supported models for better tool integration.")
+        st.error("🔧 **Tool Calling**: ❌ Not Supported")
+        
+        if provider == "OLLAMA":
+            import_source = llm_config.get("import_source", "unknown")
+            
+            if import_source == "langchain_community":
+                st.warning("⚠️ **Issue**: langchain_community.ChatOllama doesn't support tool calling")
+                st.info("💡 **Solution**: Install langchain-ollama package")
+                st.code("pip install langchain-ollama", language="bash")
+            else:
+                st.warning(f"⚠️ **Issue**: Model '{model}' doesn't support tool calling")
+                st.info("💡 **Solution**: Use a tool-calling capable model")
     
     # 경고 메시지 표시
     if llm_config.get("warning"):
         st.warning(f"⚠️ {llm_config['warning']}")
     
-    # Ollama 전용 정보
+    # 🆕 Ollama 권장 모델 목록
+    if provider == "OLLAMA" and not tool_calling_capable:
+        with st.expander("🎯 Recommended Tool-Capable Models", expanded=True):
+            st.markdown("**Best Models for Tool Calling:**")
+            
+            recommended_models = [
+                ("llama3.1:8b", "8GB RAM", "Balanced performance"),
+                ("qwen2.5:7b", "8GB RAM", "Fast and efficient"),
+                ("mistral:7b", "8GB RAM", "Good reasoning"),
+                ("llama3.1:70b", "40GB RAM", "High performance"),
+                ("qwen2.5:14b", "16GB RAM", "Better accuracy")
+            ]
+            
+            for model_name, ram_req, description in recommended_models:
+                st.markdown(f"- **{model_name}** ({ram_req}) - {description}")
+                st.code(f"ollama pull {model_name}", language="bash")
+            
+            st.markdown("**Set your model:**")
+            st.code("export OLLAMA_MODEL=llama3.1:8b", language="bash")
+    
+    # 🆕 고도화된 Ollama 상태 모니터링
     if provider == "OLLAMA":
-        base_url = llm_config.get("base_url", "unknown")
-        st.caption(f"🔗 Base URL: {base_url}")
+        with st.expander("🦙 Ollama System Status", expanded=False):
+            # Ollama 상태 정보 가져오기
+            try:
+                from core.llm_factory import get_ollama_status, suggest_ollama_setup
+                status = get_ollama_status()
+                
+                # 연결 상태
+                st.subheader("📡 Connection Status")
+                connection = status.get("connection", {})
+                if connection.get("connected"):
+                    st.success(f"✅ Connected - {connection.get('model_count', 0)} models available")
+                    if connection.get("server_version"):
+                        st.caption(f"Server version: {connection['server_version']}")
+                else:
+                    st.error(f"❌ Connection failed")
+                    if connection.get("error"):
+                        st.error(f"Error: {connection['error']}")
+                
+                # 패키지 상태
+                st.subheader("📦 Package Status")
+                col1, col2 = st.columns(2)
+                with col1:
+                    if status.get("client_available"):
+                        st.success("✅ Ollama Client")
+                    else:
+                        st.error("❌ Ollama Client")
+                        
+                with col2:
+                    package = status.get("langchain_package", "none")
+                    if package == "langchain_ollama":
+                        st.success("✅ langchain-ollama")
+                    elif package == "langchain_community":
+                        st.warning("⚠️ langchain-community")
+                    else:
+                        st.error("❌ No LangChain package")
+                
+                # 현재 모델 상태
+                st.subheader("🤖 Current Model")
+                current_model = status.get("current_model", "none")
+                tool_capable = status.get("current_model_tool_capable", False)
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.info(f"📱 {current_model}")
+                with col2:
+                    if tool_capable:
+                        st.success("🔧 Tool Calling")
+                    else:
+                        st.error("❌ No Tool Calling")
+                
+                # 사용 가능한 모델들
+                available_models = status.get("available_models", [])
+                if available_models:
+                    st.subheader("📋 Available Models")
+                    for model in available_models[:5]:  # 최대 5개만 표시
+                        model_name = model.get("name", "unknown")
+                        size_gb = model.get("size", 0) / (1024**3) if model.get("size") else 0
+                        tool_capable = model.get("tool_calling_capable", False)
+                        
+                        col1, col2, col3 = st.columns([3, 1, 1])
+                        with col1:
+                            st.write(f"**{model_name}**")
+                        with col2:
+                            st.caption(f"{size_gb:.1f}GB")
+                        with col3:
+                            if tool_capable:
+                                st.success("🔧")
+                            else:
+                                st.error("❌")
+                    
+                    if len(available_models) > 5:
+                        st.caption(f"... and {len(available_models) - 5} more models")
+                
+                # 권장 모델들
+                recommended = status.get("recommended_models", {})
+                if recommended:
+                    st.subheader("🎯 Recommended Models")
+                    for category, info in recommended.items():
+                        with st.container():
+                            st.write(f"**{category.title()}**: {info['name']}")
+                            st.caption(f"{info['description']} - {info['use_case']}")
+                            st.code(f"ollama pull {info['name']}", language="bash")
+                
+                # 설정 제안
+                suggestions = suggest_ollama_setup()
+                if suggestions.get("warnings") or suggestions.get("steps"):
+                    st.subheader("💡 Setup Suggestions")
+                    
+                    for warning in suggestions.get("warnings", []):
+                        st.warning(f"⚠️ {warning}")
+                    
+                    for i, step in enumerate(suggestions.get("steps", []), 1):
+                        st.info(f"{i}. {step}")
+                    
+                    for cmd in suggestions.get("commands", []):
+                        st.code(cmd, language="bash")
+                    
+                    for action in suggestions.get("next_actions", []):
+                        st.info(f"🎯 {action}")
+                        
+            except Exception as e:
+                st.error(f"❌ Failed to get Ollama status: {e}")
+                st.info("💡 Make sure Ollama is installed and running")
         
-        # 권장 모델 목록
-        if not tool_calling_capable:
-            with st.expander("🎯 Recommended Tool-Capable Models", expanded=False):
-                recommended_models = [
-                    "qwen2.5:7b", "qwen3:8b", "llama3.1:8b", 
-                    "mistral:7b", "gemma2:9b", "phi3:3.8b"
-                ]
-                for model_name in recommended_models:
-                    st.code(f"OLLAMA_MODEL={model_name}")
+        # 빠른 액션 버튼들
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 Refresh Status", key="refresh_ollama"):
+                st.rerun()
+        
+        with col2:
+            if st.button("⚡ Quick Test", key="quick_test_ollama"):
+                try:
+                    from core.llm_factory import test_ollama_connection
+                    result = test_ollama_connection()
+                    if result.get("connected"):
+                        st.success(f"✅ Quick test passed! {result.get('model_count', 0)} models")
+                    else:
+                        st.error(f"❌ Quick test failed: {result.get('error', 'Unknown error')}")
+                except Exception as e:
+                    st.error(f"❌ Test failed: {e}")
 
 def render_system_settings():
     """시스템 설정 섹션 렌더링"""
@@ -1516,21 +1676,66 @@ def delete_multi_agent_config(filename: str):
     return False
 
 def save_multi_agent_config(name: str, config: dict):
-    """Save multi-agent configuration to file"""
-    config_dir = Path("multi-agent-configs")
-    config_dir.mkdir(exist_ok=True)
+    """지정된 이름으로 멀티 에이전트 시스템 구성을 저장합니다."""
+    configs = load_multi_agent_configs()
     
-    config_file = config_dir / f"{name}.json"
+    # 중복 이름 확인 및 덮어쓰기
+    for i, c in enumerate(configs):
+        if c.get("name") == name:
+            configs[i] = config
+            break
+    else:
+        configs.append(config)
     
-    # Save configuration
-    save_data = {
-        "name": name,
-        "created_at": datetime.now().isoformat(),
-        "executors": config.get("executors", {}),
-        "description": config.get("description", "")
-    }
+    # 파일에 저장
+    with open("./prompt-configs/multi_agent_systems.json", "w", encoding="utf-8") as f:
+        json.dump(configs, f, indent=2, ensure_ascii=False)
     
-    with open(config_file, "w", encoding="utf-8") as f:
-        json.dump(save_data, f, ensure_ascii=False, indent=2)
+    return True
+
+def create_agent_prompt(executor_name, tool_names, llm_provider="OPENAI"):
+    """
+    주어진 실행자 이름과 도구 목록을 기반으로 전체 에이전트 프롬프트를 생성합니다.
+    [수정] 모델의 혼란을 막기 위해 RECOMMENDED TOOLS 섹션을 제거하고,
+    'Your Tools' 섹션만이 유일한 정보 소스가 되도록 단순화합니다.
+    """
+    from .executor_config import EXECUTOR_CONFIG_DATA
     
-    return config_file
+    executor_config = EXECUTOR_CONFIG_DATA.get(executor_name, {})
+    
+    # 역할 설명 부분
+    role_description = f"""You are a specialized agent in a multi-agent data analysis team.
+
+Your Role: {executor_config.get('icon', '🤖')} **{executor_config.get('name', executor_name)}**
+{executor_config.get('description', '')}"""
+
+    core_responsibilities = executor_config.get('core_responsibilities', [])
+    if core_responsibilities:
+        responsibilities_list = "\\n".join(f"- {item}" for item in core_responsibilities)
+        role_description += f"\\n🎯 CORE RESPONSIBILITIES:\\n{responsibilities_list}"
+
+    workflow_or_techniques = executor_config.get('systematic_workflow', '') or executor_config.get('analytical_techniques', '')
+    if workflow_or_techniques:
+        role_description += f"\\n{workflow_or_techniques}"
+
+    role_description += f"""\\n✅ SUCCESS CRITERIA:
+{executor_config.get('success_criteria', 'End with: TASK COMPLETED: [Brief summary of accomplishments and key findings]')}"""
+
+    # 기본 지침 부분 - 'Your Tools'가 유일한 정보 소스
+    base_instructions = f"""Your Goal: Execute the assigned task meticulously based on the provided plan.
+Your Tools: You have access to the following tools: {', '.join(tool_names)}.
+
+Execution Guidelines:
+
+Focus on Your Task: Execute ONLY the task assigned to you. Do not deviate or perform tasks assigned to other agents.
+Use Your Tools Intelligently: Choose the most appropriate tool for each specific task.
+Report Your Results: After completing your task, provide clear findings.
+Strict Final Output: When you have successfully completed your task, summarize your findings and results. Conclude your response with the exact phrase: TASK COMPLETED: [A brief, one-sentence summary of your key finding or result].
+
+Your response will be passed to the next agent in the chain, so ensure your output is clear, concise, and directly related to your assigned task.
+**DO NOT** generate a final, comprehensive report for the user. Your task is to complete your specific step and hand it off."""
+
+    # 최종 프롬프트 조합
+    final_prompt = f"{role_description}\\n\\n{base_instructions}"
+    
+    return final_prompt.strip()

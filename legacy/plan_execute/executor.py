@@ -218,13 +218,12 @@ def create_executor_node(agent: Any, name: str):
             
             result = agent.invoke({"messages": messages_for_agent})
             
-            # --- 💡 Ollama 응답 후처리 로직 (수정) ---
-            # 이제 agent.invoke는 AIMessage 객체를 직접 반환합니다.
-            last_message = result
-            
+            # --- 💡 Ollama 응답 후처리 로직 ---
             if (llm_capabilities.get("provider") == "OLLAMA" and 
-                isinstance(last_message, AIMessage)):
+                result.get("messages") and 
+                isinstance(result["messages"][-1], AIMessage)):
                 
+                last_message = result["messages"][-1]
                 # tool_calls가 비어있고, content에 JSON같은 문자열이 있다면 파싱 시도
                 if not last_message.tool_calls and isinstance(last_message.content, str) and '{' in last_message.content:
                     logging.info("Ollama response has no tool_calls, attempting to parse from content.")
@@ -256,29 +255,33 @@ def create_executor_node(agent: Any, name: str):
             
             # 🆕 도구 사용 여부 확인
             tools_used = False
-            if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
-                tools_used = True
-            
-            # 메시지 내용에서 도구 실행 결과 확인 (폴백)
-            if not tools_used and hasattr(last_message, 'content') and isinstance(last_message.content, str):
-                if any(indicator in last_message.content for indicator in [
-                    "python_repl_ast", "Tool executed", "Analysis result", "```python", "df.head()", "df.describe()"
-                ]):
-                    tools_used = True
+            if result.get("messages"):
+                for msg in result["messages"]:
+                    if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                        tools_used = True
+                        break
+                    # 메시지 내용에서 도구 실행 결과 확인
+                    if hasattr(msg, 'content') and any(indicator in msg.content for indicator in [
+                        "python_repl_ast", "Tool executed", "Analysis result", "```python", "df.head()", "df.describe()"
+                    ]):
+                        tools_used = True
+                        break
             
             logging.info(f"🔍 Tools used in this execution: {tools_used}")
             
             # --- 🛡️ 가드레일: LLM 출력 검증 및 교정 ---
-            response_content = last_message.content
-            
-            # 🆕 조기 완료 감지
-            premature_completion = detect_premature_completion(response_content, tools_used, task_needs_tools)
-            
-            if premature_completion:
-                logging.warning(f"🚨 Premature completion detected! Task needs tools but none were used.")
+            if result.get("messages"):
+                last_message = result["messages"][-1]
+                response_content = last_message.content
                 
-                # 도구 사용을 강제하는 재지시 메시지 생성
-                retry_message = f"""
+                # 🆕 조기 완료 감지
+                premature_completion = detect_premature_completion(response_content, tools_used, task_needs_tools)
+                
+                if premature_completion:
+                    logging.warning(f"🚨 Premature completion detected! Task needs tools but none were used.")
+                    
+                    # 도구 사용을 강제하는 재지시 메시지 생성
+                    retry_message = f"""
 ⚠️ **Task Incomplete - Tool Usage Required**
 
 Your previous response attempted to complete the task without using available tools. This is not acceptable.
@@ -291,23 +294,31 @@ Your previous response attempted to complete the task without using available to
 
 Please start over and use tools to complete this task properly. Do not provide hypothetical results.
 """
+                    
+                    # 재시도 상태로 설정
+                    state["last_error"] = "Agent attempted to complete task without using required tools."
+                    state["next_action"] = "replan"
+                    
+                    return {
+                        "messages": state["messages"] + [
+                            AIMessage(content=retry_message, name=name)
+                        ],
+                        "execution_history": execution_history + [{
+                            "agent": name,
+                            "timestamp": time.time(),
+                            "status": "retry_required",
+                            "reason": "premature_completion"
+                        }]
+                    }
                 
-                # 재시도 상태로 설정
-                state["last_error"] = "Agent attempted to complete task without using required tools."
-                state["next_action"] = "replan"
-                
-                return {
-                    "messages": state["messages"] + [
-                        AIMessage(content=retry_message, name=name)
-                    ],
-                    "execution_history": execution_history + [{
-                        "agent": name,
-                        "timestamp": time.time(),
-                        "status": "retry_required",
-                        "reason": "premature_completion"
-                    }]
-                }
-            
+                # 정상적인 완료 처리
+                if isinstance(last_message, AIMessage) and "TASK COMPLETED:" in response_content:
+                    logging.info("🛡️ Guardrail: 'TASK COMPLETED' detected. Sanitizing final message...")
+                    # tool_calls가 있더라도 강제로 제거하고 순수 content만 남깁니다.
+                    clean_message = AIMessage(content=response_content, tool_calls=[])
+                    result["messages"][-1] = clean_message
+                    logging.info("✅ Final message sanitized. Removed any lingering tool_calls.")
+
             # 성공 시, 오류 상태 초기화
             state["last_error"] = None
             if "step_retries" not in state:
@@ -315,22 +326,107 @@ Please start over and use tools to complete this task properly. Do not provide h
             state["step_retries"][current_step] = 0
 
             # 결과 추출
-            if isinstance(last_message, AIMessage) and "TASK COMPLETED:" in response_content:
-                logging.info("🛡️ Guardrail: 'TASK COMPLETED' detected. Sanitizing final message...")
-                # tool_calls가 있더라도 강제로 제거하고 순수 content만 남깁니다.
-                clean_message = AIMessage(content=response_content, tool_calls=[])
-                last_message = clean_message
-                logging.info("✅ Final message sanitized. Removed any lingering tool_calls.")
-
-            # 성공 시, 최종 상태 업데이트
-            return {
-                "messages": state["messages"] + [last_message],
-                "execution_history": execution_history + [execution_record]
-            }
-
+            if result.get("messages"):
+                response_content = result["messages"][-1].content
+                
+                # 데이터 추적 - 실행 후
+                if data_manager.is_data_loaded():
+                    data_after = data_manager.get_data()
+                    data_hash_after = data_lineage_tracker._compute_hash(data_after)
+                    
+                    # 데이터 변경이 있었다면 추적
+                    if data_hash_before != data_hash_after:
+                        transformation = data_lineage_tracker.track_transformation(
+                            executor_name=name,
+                            operation=plan[current_step]["type"] if current_step < len(plan) else "unknown",
+                            current_data=data_after,
+                            description=f"Task: {plan[current_step]['task'] if current_step < len(plan) else 'Unknown task'}"
+                        )
+                        
+                        logging.info(f"Data transformation tracked: {transformation['changes']}")
+                        
+                        # 상태에 추가
+                        if "data_lineage" not in state:
+                            state["data_lineage"] = []
+                        state["data_lineage"].append(transformation)
+                
+                # 작업 완료 확인
+                task_completed = "TASK COMPLETED:" in response_content
+                
+                # 🔥 디버깅 강화: 작업 완료 감지 로깅
+                logging.info(f"🔍 Response content preview: {response_content[:200]}...")
+                logging.info(f"🔍 Task completed detected: {task_completed}")
+                logging.info(f"🔍 Tools used: {tools_used}")
+                logging.info(f"🔍 Task needs tools: {task_needs_tools}")
+                
+                # 결과 저장
+                if "step_results" not in state:
+                    state["step_results"] = {}
+                
+                state["step_results"][current_step] = {
+                    "executor": name,
+                    "task": plan[current_step]["task"] if current_step < len(plan) else "Unknown",
+                    "completed": task_completed,
+                    "tools_used": tools_used,
+                    "task_needs_tools": task_needs_tools,
+                    "execution_time": execution_time,
+                    "timestamp": datetime.now().isoformat(),
+                    "summary": response_content.split("TASK COMPLETED:")[-1].strip() if task_completed else "In progress",
+                    "llm_capabilities": llm_capabilities
+                }
+                
+                # 🔥 디버깅 강화: 상태 정보 로깅
+                logging.info(f"🔍 Current step: {current_step}, Plan length: {len(plan)}")
+                logging.info(f"🔍 Step result saved: {state['step_results'][current_step]}")
+                
+                # 응답 메시지 추가
+                state["messages"].append(
+                    AIMessage(content=response_content, name=name)
+                )
+                
+                # 🔥 핵심 수정: 작업 완료 시 다음 단계로 진행
+                if task_completed:
+                    # 다음 단계로 이동
+                    old_step = current_step
+                    state["current_step"] = current_step + 1
+                    
+                    # 🔥 디버깅 강화: 단계 진행 로깅
+                    logging.info(f"🔄 Step progression: {old_step} → {state['current_step']}")
+                    
+                    # 모든 단계가 완료되었는지 확인
+                    if state["current_step"] >= len(plan):
+                        logging.info(f"🎯 All steps completed! Current step: {state['current_step']}, Plan length: {len(plan)}")
+                        logging.info(f"🎯 Setting next_action to final_responder")
+                        state["next_action"] = "final_responder"
+                    else:
+                        logging.info(f"🔄 Step {old_step + 1} completed. Moving to step {state['current_step'] + 1}")
+                        logging.info(f"📊 Progress: {state['current_step']}/{len(plan)} steps completed")
+                        state["next_action"] = "replan"
+                else:
+                    # 작업이 완료되지 않은 경우 재계획
+                    logging.warning(f"⚠️ Task not completed. Response: {response_content[:200]}...")
+                    logging.warning(f"⚠️ Replanning step {current_step + 1}")
+                    state["next_action"] = "replan"
+                
+                # 🔥 디버깅 강화: 최종 상태 로깅
+                logging.info(f"🔍 Final executor state - next_action: {state.get('next_action')}")
+                logging.info(f"🔍 Final executor state - current_step: {state.get('current_step')}")
+                
+                logging.info(f"✅ {name} completed in {execution_time:.2f}s")
+                
+                return {
+                    "messages": state["messages"] + [result["messages"][-1]],
+                    "execution_history": execution_history + [execution_record]
+                }
+                
+            else:
+                logging.error(f"No messages in agent result")
+                state["last_error"] = "Agent did not return any messages."
+                state["next_action"] = "replan"
+                
         except Exception as e:
             error_trace = traceback.format_exc()
-            logging.error(f"❌ Error during {name} execution: {e}", exc_info=True)
+            logging.error(f"Error in executor {name}: {e}\n{error_trace}")
 
             # 재시도 횟수 관리
             if "step_retries" not in state:
