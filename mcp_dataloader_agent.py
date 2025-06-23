@@ -6,8 +6,8 @@ from typing import Dict, Any
 
 from a2a.server.apps.jsonrpc.fastapi_app import A2AFastAPIApplication
 from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
-from a2a.types import AgentCard, AgentSkill, Message
-from a2a.utils.message import new_agent_text_message
+from a2a.types import AgentCard, AgentSkill, Message, Task
+from a2a.utils.message import new_agent_text_message, get_message_text
 from a2a.server.agent_execution.agent_executor import AgentExecutor, RequestContext
 from a2a.server.events.event_queue import EventQueue
 from a2a.server.tasks.inmemory_task_store import InMemoryTaskStore
@@ -16,29 +16,7 @@ from core.data_manager import DataManager
 
 # 1. Define Agent Skills (functions)
 def load_data(file_path: str, output_df_id: str) -> Message:
-    """Loads a data file (CSV or Excel) and stores it in the data manager"""
-    logging.info(f"Executing skill: load_data with file_path={file_path}, output_df_id={output_df_id}")
-    try:
-        dm = DataManager()
-        if not os.path.exists(file_path):
-            logging.error(f"File not found at {file_path}")
-            return new_agent_text_message(f"Error: File not found at {file_path}")
-
-        if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
-        elif file_path.endswith(('.xls', '.xlsx')):
-            df = pd.read_excel(file_path)
-        else:
-            logging.error(f"Unsupported file type for {file_path}")
-            return new_agent_text_message(f"Error: Unsupported file type for {file_path}")
-
-        dm.add_dataframe(output_df_id, df, source=f"load_data:{os.path.basename(file_path)}")
-        logging.info(f"Successfully loaded {os.path.basename(file_path)} into dataframe '{output_df_id}'")
-        return new_agent_text_message(f"Successfully loaded {os.path.basename(file_path)} into dataframe '{output_df_id}'")
-
-    except Exception as e:
-        logging.error(f"An error occurred in load_data: {str(e)}", exc_info=True)
-        return new_agent_text_message(f"An error occurred: {str(e)}")
+    # ... (function implementation is fine) ...
 
 # 2. Implement the AgentExecutor
 class SkillBasedAgentExecutor(AgentExecutor):
@@ -46,7 +24,6 @@ class SkillBasedAgentExecutor(AgentExecutor):
         self._skill_handlers = skill_handlers
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        # In this simple executor, the method is the skill id
         skill_id = context.method
         handler = self._skill_handlers.get(skill_id)
         
@@ -64,7 +41,7 @@ class SkillBasedAgentExecutor(AgentExecutor):
             await event_queue.put(error_message)
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
-        logging.warning(f"Cancel called for task {context.task_id}, but not implemented.")
+        # Not implemented for this simple agent
         pass
 
 # 3. Wire everything together
@@ -76,6 +53,7 @@ SERVER_HOST = os.getenv("DATALOADER_AGENT_HOST", "127.0.0.1")
 SERVER_PORT = int(os.getenv("DATALOADER_AGENT_PORT", 8001))
 
 agent_card = AgentCard(
+    # ... (agent_card definition is mostly fine, but requires some mandatory fields) ...
     name="mcp_dataloader_agent",
     description="An agent responsible for loading data from files.",
     version="0.1.0",

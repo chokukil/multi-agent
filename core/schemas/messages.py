@@ -165,70 +165,49 @@ class A2APlanState(BaseModel):
 
 # ==============================================================================
 # A2A (Agent-to-Agent) Communication Schemas
+#
+# The original custom schemas have been replaced with the official a2a-sdk models
+# to ensure standardization and leverage the SDK's features.
+# We import them with aliases to minimize changes in other parts of the codebase.
 # ==============================================================================
 
-class Content(BaseModel):
-    """Base model for content within an A2A message."""
-    content_type: str
+try:
+    from a2a.model import (
+        Request as A2ARequest,
+        Response as A2AResponse,
+        Content
+    )
 
+    class ParamsContent(Content):
+        """
+        A specialized Content model for passing arbitrary parameters,
+        maintaining compatibility with how A2AExecutor constructs requests.
+        """
+        content_type: Literal["params"] = "params"
 
-class TextContent(Content):
-    """Content model for plain text."""
-    content_type: Literal["text"] = "text"
-    data: str
+except ImportError:
+    # This fallback allows the application to run even if a2a-sdk is not installed,
+    # though A2A functionality will be limited. This is useful for environments
+    # where only parts of the system are used.
+    print("Warning: a2a-sdk not found. Using fallback A2A schemas.")
+    
+    class BaseContent(BaseModel):
+        """Base model for content within an A2A message."""
+        content_type: str
 
+    class A2ARequest(BaseModel):
+        """Represents a request from one agent to another."""
+        action: str
+        contents: List[BaseContent] = Field(default_factory=list)
 
-class MediaContent(Content):
-    content_type: Literal["media"] = "media"
-    data: Dict[str, Any]
+    class A2AResponse(BaseModel):
+        """Represents a response from an agent."""
+        status: Literal["success", "error"]
+        message: str
+        contents: List[BaseContent] = Field(default_factory=list)
 
+    class ParamsContent(BaseContent):
+        content_type: Literal["params"] = "params"
+        data: Dict[str, Any]
 
-class DataFrameContent(Content):
-    """Content model for referencing a DataFrame."""
-    content_type: Literal["dataframe"] = "dataframe"
-    data: Dict[str, Any] # e.g., {"df_id": "my_df"}
-
-
-class ParamsContent(Content):
-    """Content model for arbitrary parameters."""
-    content_type: Literal["params"] = "params"
-    data: Dict[str, Any]
-
-
-class StatusContent(Content):
-    content_type: Literal["status"] = "status"
-    data: Dict[str, Any]
-
-
-class ToolCall(Content):
-    content_type: Literal["tool_code"] = "tool_code"
-    data: str
-
-class ToolResult(Content):
-    content_type: Literal["tool_output"] = "tool_output"
-    data: str
-
-
-# Re-define Content to be a Union of all specific content types for validation
-AnyContent = Union[
-    TextContent,
-    MediaContent,
-    DataFrameContent,
-    ParamsContent,
-    StatusContent,
-    ToolCall,
-    ToolResult
-]
-
-
-class A2ARequest(BaseModel):
-    """Represents a request from one agent to another."""
-    action: str
-    contents: List[AnyContent] = Field(default_factory=list)
-
-
-class A2AResponse(BaseModel):
-    """Represents a response from an agent."""
-    status: Literal["success", "error"]
-    message: str
-    contents: List[AnyContent] = Field(default_factory=list)
+    Content = BaseContent
