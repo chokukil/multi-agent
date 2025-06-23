@@ -30,7 +30,7 @@ class Config:
                     "temperature": float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
                 },
                 "ollama": {
-                    "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                    "base_url": os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_API_BASE", "http://localhost:11434"),
                     "model": os.getenv("OLLAMA_MODEL", "llama2")
                 }
             },
@@ -39,6 +39,7 @@ class Config:
             "system": {
                 "recursion_limit": int(os.getenv("RECURSION_LIMIT", "30")),
                 "timeout_seconds": int(os.getenv("TIMEOUT_SECONDS", "180")),
+                "ollama_timeout": int(os.getenv("OLLAMA_TIMEOUT", "600")),  # Ollama 전용 타임아웃 (10분)
                 "max_retries": int(os.getenv("MAX_RETRIES", "3")),
                 "debug_mode": os.getenv("DEBUG_MODE", "false").lower() == "true"
             },
@@ -137,8 +138,12 @@ class Config:
         if not 5 <= self.get('system.recursion_limit', 30) <= 100:
             errors.append("Recursion limit should be between 5 and 100")
         
-        if not 30 <= self.get('system.timeout_seconds', 180) <= 3600:
-            errors.append("Timeout should be between 30 and 3600 seconds")
+        if not 30 <= self.get('system.timeout_seconds', 180) <= 1800:
+            errors.append("Timeout should be between 30 and 1800 seconds (30 minutes)")
+        
+        # Ollama 타임아웃 검증 추가
+        if not 60 <= self.get('system.ollama_timeout', 600) <= 3600:
+            errors.append("Ollama timeout should be between 60 and 3600 seconds (1 hour)")
         
         return len(errors) == 0, errors
 

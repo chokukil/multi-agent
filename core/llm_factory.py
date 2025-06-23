@@ -5,7 +5,20 @@ import os
 import logging
 from typing import Optional, Dict, Any
 from langchain_openai import ChatOpenAI
-from langchain_community.chat_models.ollama import ChatOllama
+
+# Ollama import - 새로운 패키지를 우선 시도하고 fallback
+try:
+    from langchain_ollama import ChatOllama
+    OLLAMA_IMPORT_SOURCE = "langchain_ollama"
+except ImportError:
+    try:
+        from langchain_community.chat_models.ollama import ChatOllama
+        OLLAMA_IMPORT_SOURCE = "langchain_community"
+        logging.warning("Using deprecated ChatOllama from langchain_community. Consider upgrading to langchain-ollama.")
+    except ImportError:
+        ChatOllama = None
+        OLLAMA_IMPORT_SOURCE = None
+        logging.error("ChatOllama not available. Please install langchain-ollama or langchain-community.")
 
 # Langfuse imports - 2.60.8 버전에 맞는 올바른 import 경로 사용
 try:
@@ -103,11 +116,14 @@ def create_llm_instance(
             logging.info(f"Created OpenAI LLM: model={model}, temperature={temperature}")
             
         elif provider == "OLLAMA":
-            # Ollama 설정
-            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            # Ollama 설정 - OLLAMA_BASE_URL과 OLLAMA_API_BASE 모두 지원
+            base_url = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_API_BASE", "http://localhost:11434")
             
             if model is None:
                 model = os.getenv("OLLAMA_MODEL", "llama2")
+            
+            # Ollama는 로컬 LLM이므로 긴 타임아웃 설정 (10분)
+            ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "600"))  # 10분 기본값
             
             # ChatOllama 인스턴스 생성
             llm = ChatOllama(
@@ -115,10 +131,11 @@ def create_llm_instance(
                 temperature=temperature,
                 base_url=base_url,
                 streaming=streaming,
+                request_timeout=ollama_timeout,  # 요청 타임아웃 설정
                 **kwargs
             )
             
-            logging.info(f"Created Ollama LLM: model={model}, temperature={temperature}")
+            logging.info(f"Created Ollama LLM: model={model}, base_url={base_url}, timeout={ollama_timeout}s, temperature={temperature}")
             
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")
@@ -157,7 +174,7 @@ def validate_llm_config() -> Dict[str, Any]:
         elif provider == "OLLAMA":
             config["valid"] = True
             config["model"] = os.getenv("OLLAMA_MODEL", "llama2")
-            config["base_url"] = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            config["base_url"] = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_API_BASE", "http://localhost:11434")
             
         else:
             config["error"] = f"Unknown provider: {provider}"

@@ -187,7 +187,18 @@ def initialize_session_state():
         # 새로운 타임아웃 관리자 사용
         from core.execution import TimeoutManager, TaskComplexity
         timeout_manager = TimeoutManager()
-        st.session_state.timeout_seconds = timeout_manager.get_timeout(TaskComplexity.COMPLEX)
+        
+        # LLM 제공자 확인
+        llm_provider = os.getenv("LLM_PROVIDER", "OPENAI")
+        
+        # Ollama 사용 시 더 긴 기본 타임아웃 적용
+        if llm_provider.upper() == "OLLAMA":
+            ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "600"))  # 10분
+            st.session_state.timeout_seconds = ollama_timeout
+            logging.info(f"🦙 Ollama detected - Using extended timeout: {ollama_timeout}s")
+        else:
+            st.session_state.timeout_seconds = timeout_manager.get_timeout(TaskComplexity.COMPLEX)
+            
         st.session_state.timeout_manager = timeout_manager
     if "recursion_limit" not in st.session_state:
         st.session_state.recursion_limit = 30

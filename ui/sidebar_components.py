@@ -274,19 +274,37 @@ def render_system_settings():
             )
         
         with col2:
+            # LLM 제공자에 따른 타임아웃 범위 조정
+            import os
+            llm_provider = os.getenv("LLM_PROVIDER", "OPENAI")
+            
+            if llm_provider.upper() == "OLLAMA":
+                max_timeout = 1800  # 30분 (Ollama용)
+                help_text = "Maximum time to wait for response. Ollama supports up to 30 minutes due to slower local processing."
+                label = "🦙 Ollama Timeout (seconds)"
+            else:
+                max_timeout = 600  # 10분 (기본)
+                help_text = "Maximum time to wait for response (30-600 seconds)"
+                label = "Query Timeout (seconds)"
+            
             new_timeout_seconds = st.number_input(
-                "Query Timeout (seconds)",
+                label,
                 min_value=30,
-                max_value=600,
+                max_value=max_timeout,
                 value=st.session_state.get("timeout_seconds", 180),
                 step=30,
-                help="Maximum time to wait for response (30-600 seconds)"
+                help=help_text
             )
         
         if st.button("Apply Settings", use_container_width=True):
             st.session_state.recursion_limit = new_recursion_limit
             st.session_state.timeout_seconds = new_timeout_seconds
-            st.success(f"✅ Settings updated - Recursion: {new_recursion_limit}, Timeout: {new_timeout_seconds}s")
+            
+            # Ollama 사용 시 추가 정보 표시
+            if llm_provider.upper() == "OLLAMA":
+                st.success(f"✅ Ollama Settings updated - Recursion: {new_recursion_limit}, Timeout: {new_timeout_seconds}s (~{new_timeout_seconds//60} min)")
+            else:
+                st.success(f"✅ Settings updated - Recursion: {new_recursion_limit}, Timeout: {new_timeout_seconds}s")
             st.rerun()
 
 def render_executor_creation_form():
@@ -1018,7 +1036,7 @@ You are an EDA Expert who uncovers hidden patterns, relationships, and insights 
 ```python
 # 1. Dataset Overview
 df = get_current_data()
-print(f"�� Exploring dataset: {{df.shape}}")
+print(f"📊 Exploring dataset: {{df.shape}}")
 
 # 2. Univariate Analysis
 # - Distribution of each variable

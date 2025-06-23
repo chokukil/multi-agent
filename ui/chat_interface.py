@@ -91,16 +91,28 @@ def process_query_with_timeout_and_streaming(
     # 🆕 타임아웃 매니저 초기화
     timeout_manager = TimeoutManager()
     
+    # 현재 LLM 제공자 확인
+    import os
+    llm_provider = os.getenv("LLM_PROVIDER", "OPENAI")
+    
     # 쿼리 복잡도 분석
     complexity_info = timeout_manager.analyze_query_complexity(query)
     
-    # 동적 타임아웃 계산
+    # 동적 타임아웃 계산 (LLM 제공자 고려)
     timeout_seconds = timeout_manager.calculate_timeout(
         complexity=complexity_info['complexity'],
-        agent_type='EDA_Analyst'  # 주요 에이전트
+        agent_type='EDA_Analyst',  # 주요 에이전트
+        llm_provider=llm_provider  # LLM 제공자 추가
     )
     
-    progress_placeholder.info(f"📊 Query Complexity: {complexity_info['complexity'].value} | ⏱️ Timeout: {timeout_seconds}s")
+    # Ollama 사용 시 추가 타임아웃 보정
+    if llm_provider.upper() == "OLLAMA":
+        from core.utils.config import get_config
+        ollama_timeout = get_config('system.ollama_timeout') or 600
+        timeout_seconds = max(timeout_seconds, ollama_timeout)
+        progress_placeholder.info(f"🦙 Ollama detected - Using extended timeout: {timeout_seconds}s (~{timeout_seconds//60} min)")
+    
+    progress_placeholder.info(f"📊 Query Complexity: {complexity_info['complexity'].value} | ⏱️ Timeout: {timeout_seconds}s | 🤖 Provider: {llm_provider}")
     
     # 워크플로우 확인
     if "plan_execute_graph" not in st.session_state or not st.session_state.plan_execute_graph:

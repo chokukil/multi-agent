@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, Optional
 from enum import Enum
 import re
+import logging
 
 class TaskComplexity(str, Enum):
     SIMPLE = "simple"
@@ -12,10 +13,10 @@ class TaskComplexity(str, Enum):
 
 class TimeoutConfig(BaseModel):
     """타임아웃 설정 모델"""
-    simple_timeout: int = Field(default=30, ge=10, le=300)
-    moderate_timeout: int = Field(default=120, ge=30, le=600)
-    complex_timeout: int = Field(default=300, ge=60, le=1200)
-    intensive_timeout: int = Field(default=600, ge=120, le=3600)
+    simple_timeout: int = Field(default=30, ge=10, le=600)  # Ollama를 위해 최대값 600초로 증가
+    moderate_timeout: int = Field(default=120, ge=30, le=900)  # 15분
+    complex_timeout: int = Field(default=300, ge=60, le=1800)  # 30분
+    intensive_timeout: int = Field(default=600, ge=120, le=3600)  # 1시간
     
     # 에이전트별 가중치
     agent_multipliers: Dict[str, float] = Field(default_factory=lambda: {
@@ -26,6 +27,12 @@ class TimeoutConfig(BaseModel):
         "final_responder": 1.2,
         "planner": 1.1,
         "executor": 1.4,
+    })
+    
+    # LLM 제공자별 가중치 (Ollama는 더 긴 타임아웃 필요)
+    llm_provider_multipliers: Dict[str, float] = Field(default_factory=lambda: {
+        "OPENAI": 1.0,
+        "OLLAMA": 2.0,  # Ollama는 2배 더 긴 타임아웃
     })
 
 class TimeoutManager:
@@ -108,21 +115,22 @@ class TimeoutManager:
         }
     
     def calculate_timeout(self, complexity: TaskComplexity, 
-                         agent_type: str = None) -> int:
+                         agent_type: str = None, llm_provider: str = None) -> int:
         """
         복잡도와 에이전트 타입에 따른 타임아웃 계산
         
         Args:
             complexity: 작업 복잡도
             agent_type: 에이전트 타입
+            llm_provider: LLM 제공자 (OPENAI, OLLAMA 등)
             
         Returns:
             계산된 타임아웃 (초)
         """
-        return self.get_timeout(complexity, agent_type)
+        return self.get_timeout(complexity, agent_type, llm_provider)
     
     def get_timeout(self, complexity: TaskComplexity, 
-                   agent_type: str = None) -> int:
+                   agent_type: str = None, llm_provider: str = None) -> int:
         """작업 복잡도와 에이전트 타입에 따른 타임아웃 계산"""
         base_timeout = {
             TaskComplexity.SIMPLE: self.config.simple_timeout,
@@ -137,7 +145,16 @@ class TimeoutManager:
             agent_key = agent_type.lower().replace('_', '')
             for key, multiplier in self.config.agent_multipliers.items():
                 if key.replace('_', '') in agent_key or agent_key in key.replace('_', ''):
-                    return int(base_timeout * multiplier)
+                    base_timeout = int(base_timeout * multiplier)
+                    break
+        
+        # LLM 제공자별 가중치 적용 (Ollama 등)
+        if llm_provider:
+            provider_upper = llm_provider.upper()
+            if provider_upper in self.config.llm_provider_multipliers:
+                multiplier = self.config.llm_provider_multipliers[provider_upper]
+                base_timeout = int(base_timeout * multiplier)
+                logging.info(f"🔧 Applied {provider_upper} timeout multiplier ({multiplier}x): {base_timeout}s")
         
         return base_timeout
     

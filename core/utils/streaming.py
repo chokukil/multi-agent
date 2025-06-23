@@ -11,6 +11,7 @@ import time
 import streamlit as st
 from datetime import datetime
 from contextlib import asynccontextmanager
+import os
 
 async def astream_graph_with_callbacks(
     graph, 
@@ -29,6 +30,13 @@ async def astream_graph_with_callbacks(
         timeout: 타임아웃 (초)
         config: 실행 설정 (옵션)
     """
+    # Ollama 사용 시 더 긴 기본 타임아웃 적용
+    llm_provider = os.getenv("LLM_PROVIDER", "OPENAI")
+    if llm_provider.upper() == "OLLAMA" and timeout <= 300:
+        timeout = int(os.getenv("OLLAMA_TIMEOUT", "600"))  # 10분 기본값
+        logging.info(f"🦙 Ollama detected - Extended timeout to {timeout}s")
+    
+    safe_callbacks = [create_timeout_aware_callback(cb, f"callback_{i}") for i, cb in enumerate(callbacks)]
     
     @asynccontextmanager
     async def safe_stream_context():
@@ -37,8 +45,8 @@ async def astream_graph_with_callbacks(
         try:
             # 설정 준비
             stream_config = config or {}
-            if callbacks:
-                stream_config["callbacks"] = callbacks
+            if safe_callbacks:
+                stream_config["callbacks"] = safe_callbacks
             
             # 🆕 타임아웃과 함께 스트림 생성
             if stream_config:
@@ -83,7 +91,7 @@ async def astream_graph_with_callbacks(
                         # 각 청크를 안전하게 처리
                         if chunk is not None:
                             # 콜백 실행
-                            for callback in callbacks:
+                            for callback in safe_callbacks:
                                 try:
                                     if hasattr(callback, 'on_chunk'):
                                         callback.on_chunk(chunk)
