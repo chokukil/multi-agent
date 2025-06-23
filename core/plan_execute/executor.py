@@ -9,8 +9,96 @@ from datetime import datetime
 from langchain_core.messages import AIMessage, HumanMessage
 from ..data_manager import data_manager
 from ..data_lineage import data_lineage_tracker
+from ..llm_factory import get_llm_capabilities
 
 MAX_RETRIES = 3
+
+def should_use_tools_for_task(task_type: str, task_description: str) -> bool:
+    """작업 유형과 설명을 기반으로 도구 사용이 필요한지 판단"""
+    
+    # 도구 사용이 필수인 작업 유형들
+    tool_required_tasks = {
+        "eda", "analysis", "preprocessing", "visualization", 
+        "stats", "ml", "data_check", "exploration"
+    }
+    
+    # 도구 사용이 필요한 키워드들
+    tool_keywords = [
+        "데이터", "분석", "시각화", "통계", "그래프", "차트", "plot",
+        "describe", "head", "info", "shape", "correlation", "코드",
+        "python", "pandas", "matplotlib", "seaborn", "계산"
+    ]
+    
+    # 작업 유형 확인
+    if task_type.lower() in tool_required_tasks:
+        return True
+    
+    # 키워드 확인
+    task_lower = task_description.lower()
+    for keyword in tool_keywords:
+        if keyword in task_lower:
+            return True
+    
+    return False
+
+def create_enhanced_prompt_for_limited_models(task_prompt: str, tools_available: list) -> str:
+    """도구 호출 능력이 제한적인 모델을 위한 강화된 프롬프트"""
+    
+    tool_names = [tool.name if hasattr(tool, 'name') else str(tool) for tool in tools_available]
+    
+    enhanced_prompt = f"""
+{task_prompt}
+
+🚨 **CRITICAL TOOL USAGE REQUIREMENTS:**
+
+You MUST use available tools to complete this task. Do NOT attempt to provide answers without using tools.
+
+**Available Tools:** {', '.join(tool_names)}
+
+**Mandatory Steps:**
+1. FIRST: Use get_current_data() to access data if the task involves data analysis
+2. THEN: Use appropriate analysis tools (python_repl_ast or MCP tools)
+3. FINALLY: Provide results based on actual tool execution
+
+**FORBIDDEN Actions:**
+- ❌ Providing hypothetical or example results
+- ❌ Describing what analysis "would show" without running it
+- ❌ Completing the task without tool usage
+- ❌ Using "TASK COMPLETED" before actually using tools
+
+**Tool Usage Format:**
+Always call tools using proper function calling syntax. If the model doesn't support function calling, use clear action requests like:
+
+Action: python_repl_ast
+Input: {{code for analysis}}
+
+**Task cannot be completed without using tools. If you cannot use tools, state that clearly and ask for help.**
+"""
+    
+    return enhanced_prompt
+
+def detect_premature_completion(response_content: str, tools_used: bool, task_needs_tools: bool) -> bool:
+    """조기 완료 감지 - 도구 사용 없이 태스크 완료를 시도하는지 확인"""
+    
+    # "TASK COMPLETED"가 있고 도구가 필요한데 사용되지 않았다면 조기 완료
+    has_completion_marker = "TASK COMPLETED:" in response_content
+    
+    if has_completion_marker and task_needs_tools and not tools_used:
+        return True
+    
+    # 가설적 또는 예시 결과를 제공하는 패턴 감지
+    premature_patterns = [
+        "would show", "would reveal", "might include", "could be",
+        "예를 들어", "가정하면", "일반적으로", "보통", "대략",
+        "sample output", "example result", "hypothetical"
+    ]
+    
+    response_lower = response_content.lower()
+    for pattern in premature_patterns:
+        if pattern in response_lower and has_completion_marker:
+            return True
+    
+    return False
 
 def create_executor_node(agent: Any, name: str):
     """데이터 추적 기능이 포함된 Executor 노드 생성"""
@@ -41,6 +129,21 @@ def create_executor_node(agent: Any, name: str):
         current_step = state.get("current_step", 0)
         plan = state.get("plan", [])
         
+        # 🆕 LLM 능력 분석
+        llm = getattr(agent, 'llm', None) or getattr(agent, 'runnable', {}).get('model', None)
+        llm_capabilities = {}
+        if llm:
+            llm_capabilities = get_llm_capabilities(llm)
+            logging.info(f"🔍 LLM Capabilities: {llm_capabilities}")
+        
+        # 🆕 현재 작업이 도구 사용을 필요로 하는지 확인
+        current_task_info = plan[current_step] if current_step < len(plan) else {}
+        task_type = current_task_info.get("type", "eda")
+        task_description = current_task_info.get("task", "")
+        task_needs_tools = should_use_tools_for_task(task_type, task_description)
+        
+        logging.info(f"🔍 Task analysis - Type: {task_type}, Needs tools: {task_needs_tools}")
+        
         # 데이터 추적 - 실행 전
         data_before = None
         data_hash_before = None
@@ -55,8 +158,20 @@ def create_executor_node(agent: Any, name: str):
             messages_for_agent = list(state["messages"])
             task_prompt = state.get("current_task_prompt")
             
-            if task_prompt:
-                # HumanMessage를 사용하여 에이전트가 명확히 "지시"로 인식하도록 함
+            # 🆕 Ollama 모델의 도구 호출 능력이 제한적인 경우 프롬프트 강화
+            if (task_prompt and 
+                llm_capabilities.get("provider") == "OLLAMA" and 
+                not llm_capabilities.get("tool_calling_capable", True) and
+                task_needs_tools):
+                
+                # 도구 목록 가져오기
+                available_tools = getattr(agent, 'tools', [])
+                enhanced_task_prompt = create_enhanced_prompt_for_limited_models(task_prompt, available_tools)
+                
+                logging.warning(f"🔧 Enhanced prompting for limited Ollama model: {llm_capabilities.get('model_name', 'unknown')}")
+                messages_for_agent.append(HumanMessage(content=enhanced_task_prompt, name="Enhanced_Router_Instruction"))
+            elif task_prompt:
+                # 일반적인 경우
                 messages_for_agent.append(HumanMessage(content=task_prompt, name="Router_Instruction"))
             
             result = agent.invoke({"messages": messages_for_agent})
@@ -71,13 +186,69 @@ def create_executor_node(agent: Any, name: str):
                 "status": "completed"
             }
             
+            # 🆕 도구 사용 여부 확인
+            tools_used = False
+            if result.get("messages"):
+                for msg in result["messages"]:
+                    if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                        tools_used = True
+                        break
+                    # 메시지 내용에서 도구 실행 결과 확인
+                    if hasattr(msg, 'content') and any(indicator in msg.content for indicator in [
+                        "python_repl_ast", "Tool executed", "Analysis result", "```python", "df.head()", "df.describe()"
+                    ]):
+                        tools_used = True
+                        break
+            
+            logging.info(f"🔍 Tools used in this execution: {tools_used}")
+            
             # --- 🛡️ 가드레일: LLM 출력 검증 및 교정 ---
             if result.get("messages"):
                 last_message = result["messages"][-1]
-                if isinstance(last_message, AIMessage) and "TASK COMPLETED:" in last_message.content:
+                response_content = last_message.content
+                
+                # 🆕 조기 완료 감지
+                premature_completion = detect_premature_completion(response_content, tools_used, task_needs_tools)
+                
+                if premature_completion:
+                    logging.warning(f"🚨 Premature completion detected! Task needs tools but none were used.")
+                    
+                    # 도구 사용을 강제하는 재지시 메시지 생성
+                    retry_message = f"""
+⚠️ **Task Incomplete - Tool Usage Required**
+
+Your previous response attempted to complete the task without using available tools. This is not acceptable.
+
+**Required Action:** You MUST use the available tools to actually perform the analysis.
+
+**Available Tools:** {', '.join([tool.name if hasattr(tool, 'name') else str(tool) for tool in getattr(agent, 'tools', [])])}
+
+**Original Task:** {task_description}
+
+Please start over and use tools to complete this task properly. Do not provide hypothetical results.
+"""
+                    
+                    # 재시도 상태로 설정
+                    state["last_error"] = "Agent attempted to complete task without using required tools."
+                    state["next_action"] = "replan"
+                    
+                    return {
+                        "messages": state["messages"] + [
+                            AIMessage(content=retry_message, name=name)
+                        ],
+                        "execution_history": execution_history + [{
+                            "agent": name,
+                            "timestamp": time.time(),
+                            "status": "retry_required",
+                            "reason": "premature_completion"
+                        }]
+                    }
+                
+                # 정상적인 완료 처리
+                if isinstance(last_message, AIMessage) and "TASK COMPLETED:" in response_content:
                     logging.info("🛡️ Guardrail: 'TASK COMPLETED' detected. Sanitizing final message...")
                     # tool_calls가 있더라도 강제로 제거하고 순수 content만 남깁니다.
-                    clean_message = AIMessage(content=last_message.content, tool_calls=[])
+                    clean_message = AIMessage(content=response_content, tool_calls=[])
                     result["messages"][-1] = clean_message
                     logging.info("✅ Final message sanitized. Removed any lingering tool_calls.")
 
@@ -118,6 +289,8 @@ def create_executor_node(agent: Any, name: str):
                 # 🔥 디버깅 강화: 작업 완료 감지 로깅
                 logging.info(f"🔍 Response content preview: {response_content[:200]}...")
                 logging.info(f"🔍 Task completed detected: {task_completed}")
+                logging.info(f"🔍 Tools used: {tools_used}")
+                logging.info(f"🔍 Task needs tools: {task_needs_tools}")
                 
                 # 결과 저장
                 if "step_results" not in state:
@@ -127,9 +300,12 @@ def create_executor_node(agent: Any, name: str):
                     "executor": name,
                     "task": plan[current_step]["task"] if current_step < len(plan) else "Unknown",
                     "completed": task_completed,
+                    "tools_used": tools_used,
+                    "task_needs_tools": task_needs_tools,
                     "execution_time": execution_time,
                     "timestamp": datetime.now().isoformat(),
-                    "summary": response_content.split("TASK COMPLETED:")[-1].strip() if task_completed else "In progress"
+                    "summary": response_content.split("TASK COMPLETED:")[-1].strip() if task_completed else "In progress",
+                    "llm_capabilities": llm_capabilities
                 }
                 
                 # 🔥 디버깅 강화: 상태 정보 로깅

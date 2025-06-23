@@ -31,6 +31,35 @@ except ImportError:
 
 from .utils.config import get_config
 
+# Ollama 모델별 도구 호출 능력 매핑
+OLLAMA_TOOL_CALLING_MODELS = {
+    # 도구 호출을 잘 지원하는 모델들
+    "qwen2.5:7b", "qwen2.5:14b", "qwen2.5:32b", "qwen2.5:72b",
+    "qwen3:8b", "qwen3:14b", "qwen3:32b",
+    "llama3.1:8b", "llama3.1:70b", "llama3.1:405b",
+    "llama3.2:3b", "llama3.2:1b",
+    "mistral:7b", "mistral:latest",
+    "mixtral:8x7b", "mixtral:8x22b",
+    "gemma2:9b", "gemma2:27b",
+    "phi3:3.8b", "phi3:14b",
+    "codellama:7b", "codellama:13b", "codellama:34b",
+    "deepseek-coder:6.7b", "deepseek-coder:33b"
+}
+
+def is_ollama_model_tool_capable(model: str) -> bool:
+    """Ollama 모델의 도구 호출 능력 확인"""
+    if not model:
+        return False
+    
+    # 정확한 매칭 또는 부분 매칭 확인
+    model_lower = model.lower()
+    
+    for capable_model in OLLAMA_TOOL_CALLING_MODELS:
+        if model_lower == capable_model.lower() or model_lower.startswith(capable_model.split(':')[0].lower()):
+            return True
+    
+    return False
+
 def create_llm_instance(
     provider: Optional[str] = None,
     model: Optional[str] = None,
@@ -53,7 +82,7 @@ def create_llm_instance(
         **kwargs: 추가 파라미터
     
     Returns:
-        LLM 인스턴스
+        LLM 인스턴스 (도구 호출 능력 메타데이터 포함)
     """
     # Langfuse 콜백 핸들러 초기화 - multi_agent_supervisor.py 패턴 사용
     if LANGFUSE_AVAILABLE:
@@ -113,6 +142,11 @@ def create_llm_instance(
                 **kwargs
             )
             
+            # 도구 호출 능력 메타데이터 추가
+            llm._tool_calling_capable = True
+            llm._provider = "OPENAI"
+            llm._model_name = model
+            
             logging.info(f"Created OpenAI LLM: model={model}, temperature={temperature}")
             
         elif provider == "OLLAMA":
@@ -125,6 +159,18 @@ def create_llm_instance(
             # Ollama는 로컬 LLM이므로 긴 타임아웃 설정 (10분)
             ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "600"))  # 10분 기본값
             
+            # 🆕 Ollama 모델의 도구 호출 능력 확인
+            tool_calling_capable = is_ollama_model_tool_capable(model)
+            
+            # Ollama 모델별 특화 설정
+            ollama_kwargs = kwargs.copy()
+            
+            # 도구 호출 능력이 제한적인 모델의 경우 특별 설정
+            if not tool_calling_capable:
+                logging.warning(f"🚨 Ollama model '{model}' has limited tool calling capability. Enabling enhanced prompting.")
+                # 낮은 온도로 설정하여 더 일관된 출력 생성
+                temperature = min(temperature, 0.3)
+                
             # ChatOllama 인스턴스 생성
             llm = ChatOllama(
                 model=model,
@@ -132,10 +178,19 @@ def create_llm_instance(
                 base_url=base_url,
                 streaming=streaming,
                 request_timeout=ollama_timeout,  # 요청 타임아웃 설정
-                **kwargs
+                **ollama_kwargs
             )
             
-            logging.info(f"Created Ollama LLM: model={model}, base_url={base_url}, timeout={ollama_timeout}s, temperature={temperature}")
+            # 도구 호출 능력 메타데이터 추가
+            llm._tool_calling_capable = tool_calling_capable
+            llm._provider = "OLLAMA"
+            llm._model_name = model
+            llm._needs_enhanced_prompting = not tool_calling_capable
+            
+            if tool_calling_capable:
+                logging.info(f"✅ Created Ollama LLM with tool calling: model={model}, base_url={base_url}, timeout={ollama_timeout}s")
+            else:
+                logging.warning(f"⚠️ Created Ollama LLM with limited tool calling: model={model}, base_url={base_url}, timeout={ollama_timeout}s")
             
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")
@@ -145,6 +200,15 @@ def create_llm_instance(
     except Exception as e:
         logging.error(f"Failed to create LLM instance: {e}")
         raise
+
+def get_llm_capabilities(llm) -> Dict[str, Any]:
+    """LLM의 능력 정보 반환"""
+    return {
+        "tool_calling_capable": getattr(llm, '_tool_calling_capable', True),
+        "provider": getattr(llm, '_provider', 'UNKNOWN'),
+        "model_name": getattr(llm, '_model_name', 'unknown'),
+        "needs_enhanced_prompting": getattr(llm, '_needs_enhanced_prompting', False)
+    }
 
 def validate_llm_config() -> Dict[str, Any]:
     """
@@ -170,11 +234,17 @@ def validate_llm_config() -> Dict[str, Any]:
                 config["valid"] = True
                 config["model"] = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
                 config["api_base"] = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
+                config["tool_calling_capable"] = True
                 
         elif provider == "OLLAMA":
+            model = os.getenv("OLLAMA_MODEL", "llama2")
             config["valid"] = True
-            config["model"] = os.getenv("OLLAMA_MODEL", "llama2")
+            config["model"] = model
             config["base_url"] = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_API_BASE", "http://localhost:11434")
+            config["tool_calling_capable"] = is_ollama_model_tool_capable(model)
+            
+            if not config["tool_calling_capable"]:
+                config["warning"] = f"Model '{model}' has limited tool calling capability. Consider using qwen2.5:7b, llama3.1:8b, or other supported models."
             
         else:
             config["error"] = f"Unknown provider: {provider}"

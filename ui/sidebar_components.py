@@ -258,6 +258,60 @@ def render_data_upload_section():
             st.success("✅ 데이터가 삭제되었습니다.")
             st.rerun()
 
+def render_llm_status():
+    """LLM 상태 및 도구 호출 능력 표시"""
+    from core.llm_factory import validate_llm_config
+    import os
+    
+    st.markdown("### 🤖 LLM Status")
+    
+    # LLM 설정 확인
+    llm_config = validate_llm_config()
+    provider = llm_config.get("provider", "UNKNOWN")
+    model = llm_config.get("model", "unknown")
+    
+    # 기본 정보 표시
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if llm_config.get("valid", False):
+            st.success(f"✅ {provider}")
+        else:
+            st.error(f"❌ {provider}")
+            if llm_config.get("error"):
+                st.error(f"Error: {llm_config['error']}")
+    
+    with col2:
+        st.info(f"📱 {model}")
+    
+    # 도구 호출 능력 표시
+    tool_calling_capable = llm_config.get("tool_calling_capable", True)
+    
+    if tool_calling_capable:
+        st.success("🔧 **Tool Calling**: Supported")
+    else:
+        st.warning("⚠️ **Tool Calling**: Limited")
+        st.info("💡 **Tip**: Consider using qwen2.5:7b, llama3.1:8b, or other supported models for better tool integration.")
+    
+    # 경고 메시지 표시
+    if llm_config.get("warning"):
+        st.warning(f"⚠️ {llm_config['warning']}")
+    
+    # Ollama 전용 정보
+    if provider == "OLLAMA":
+        base_url = llm_config.get("base_url", "unknown")
+        st.caption(f"🔗 Base URL: {base_url}")
+        
+        # 권장 모델 목록
+        if not tool_calling_capable:
+            with st.expander("🎯 Recommended Tool-Capable Models", expanded=False):
+                recommended_models = [
+                    "qwen2.5:7b", "qwen3:8b", "llama3.1:8b", 
+                    "mistral:7b", "gemma2:9b", "phi3:3.8b"
+                ]
+                for model_name in recommended_models:
+                    st.code(f"OLLAMA_MODEL={model_name}")
+
 def render_system_settings():
     """시스템 설정 섹션 렌더링"""
     with st.expander("⚙️ System Settings", expanded=False):
