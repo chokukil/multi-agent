@@ -1694,48 +1694,36 @@ def save_multi_agent_config(name: str, config: dict):
     return True
 
 def create_agent_prompt(executor_name, tool_names, llm_provider="OPENAI"):
-    """
-    주어진 실행자 이름과 도구 목록을 기반으로 전체 에이전트 프롬프트를 생성합니다.
-    [수정] 모델의 혼란을 막기 위해 RECOMMENDED TOOLS 섹션을 제거하고,
-    'Your Tools' 섹션만이 유일한 정보 소스가 되도록 단순화합니다.
-    """
-    from .executor_config import EXECUTOR_CONFIG_DATA
-    
-    executor_config = EXECUTOR_CONFIG_DATA.get(executor_name, {})
-    
-    # 역할 설명 부분
-    role_description = f"""You are a specialized agent in a multi-agent data analysis team.
+    """Creates a standardized agent prompt."""
+    prompt = f"You are the {executor_name}, an expert in your domain. You have access to the following tools: {', '.join(tool_names)}."
+    if llm_provider == "OLLAMA":
+        prompt += "\nPlease format your response as a JSON object with 'tool_name' and 'tool_params' keys."
+    return prompt
 
-Your Role: {executor_config.get('icon', '🤖')} **{executor_config.get('name', executor_name)}**
-{executor_config.get('description', '')}"""
+def render_sidebar():
+    """Renders all components of the sidebar."""
+    with st.sidebar:
+        st.title("🍒 CherryAI Control Panel")
+        
+        # Data Upload and Management
+        render_data_upload_section()
+        st.divider()
 
-    core_responsibilities = executor_config.get('core_responsibilities', [])
-    if core_responsibilities:
-        responsibilities_list = "\\n".join(f"- {item}" for item in core_responsibilities)
-        role_description += f"\\n🎯 CORE RESPONSIBILITIES:\\n{responsibilities_list}"
+        # Agent/Executor Management (Simplified)
+        with st.expander("🤖 Agent & System Management", expanded=True):
+            render_executor_creation_form()
+            render_saved_systems()
+        st.divider()
+        
+        # LLM Status
+        render_llm_status()
+        st.divider()
 
-    workflow_or_techniques = executor_config.get('systematic_workflow', '') or executor_config.get('analytical_techniques', '')
-    if workflow_or_techniques:
-        role_description += f"\\n{workflow_or_techniques}"
+        # Advanced Configurations
+        render_mcp_config_section()
+        render_template_management_section()
+        render_system_settings()
 
-    role_description += f"""\\n✅ SUCCESS CRITERIA:
-{executor_config.get('success_criteria', 'End with: TASK COMPLETED: [Brief summary of accomplishments and key findings]')}"""
-
-    # 기본 지침 부분 - 'Your Tools'가 유일한 정보 소스
-    base_instructions = f"""Your Goal: Execute the assigned task meticulously based on the provided plan.
-Your Tools: You have access to the following tools: {', '.join(tool_names)}.
-
-Execution Guidelines:
-
-Focus on Your Task: Execute ONLY the task assigned to you. Do not deviate or perform tasks assigned to other agents.
-Use Your Tools Intelligently: Choose the most appropriate tool for each specific task.
-Report Your Results: After completing your task, provide clear findings.
-Strict Final Output: When you have successfully completed your task, summarize your findings and results. Conclude your response with the exact phrase: TASK COMPLETED: [A brief, one-sentence summary of your key finding or result].
-
-Your response will be passed to the next agent in the chain, so ensure your output is clear, concise, and directly related to your assigned task.
-**DO NOT** generate a final, comprehensive report for the user. Your task is to complete your specific step and hand it off."""
-
-    # 최종 프롬프트 조합
-    final_prompt = f"{role_description}\\n\\n{base_instructions}"
-    
-    return final_prompt.strip()
+if __name__ == '__main__':
+    st.set_page_config(layout="wide")
+    render_sidebar()

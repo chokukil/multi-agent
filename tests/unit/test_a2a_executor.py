@@ -1,119 +1,90 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from core.plan_execute.a2a_executor import a2a_executor_node
+from unittest.mock import patch, AsyncMock
+
+from core.plan_execute.a2a_executor import A2AExecutor
 from core.schemas.messages import A2APlanState
-from httpx import Response, RequestError
-import json
+from core.agents.agent_registry import AgentRegistry
 
 @pytest.fixture
 def mock_agent_registry():
-    """Fixture to provide a mock AgentRegistry that returns agent base URLs."""
-    registry = MagicMock()
-    registry.get_agent_base_url.return_value = "http://fake-agent-url.com"
+    registry = AgentRegistry()
+    registry.agents = {
+        "TestAgent": {
+            "agent_name": "TestAgent",
+            "url": "http://test.agent"
+        }
+    }
     return registry
 
 @pytest.mark.asyncio
-async def test_executor_success_flow(mock_agent_registry):
+async def test_a2a_executor_success(mock_agent_registry):
     """
-    Test the executor for a successful run where the agent API call is successful.
+    Tests successful execution of a single-step plan by the A2AExecutor class.
     """
-    # Arrange
-    initial_state = A2APlanState(
-        user_prompt="test",
-        plan=[{"agent": "TestAgent", "skill": "test_skill", "instructions": "Do it."}],
-        current_step=0
-    )
-
-    mock_response_data = {"result": "success", "data_id": "new_data_123"}
-    mock_response = Response(200, json=mock_response_data)
+    plan = [{"agent_name": "TestAgent", "action": "do_work", "parameters": {"param1": "value1"}}]
+    initial_state = A2APlanState(user_prompt="test", plan=plan)
     
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response) as mock_post:
-        # Act
-        result_state = await a2a_executor_node(initial_state, agent_registry_instance=mock_agent_registry)
-
-        # Assert
-        assert result_state.current_step == 1
-        assert len(result_state.previous_steps) == 1
-        step_result = result_state.previous_steps[0]
-        assert step_result[0] == "TestAgent"
-        assert step_result[1] == "test_skill"
-        assert step_result[2] == mock_response_data
-        assert result_state.error_message is None
-        mock_post.assert_called_once()
-
-@pytest.mark.asyncio
-async def test_executor_api_http_error(mock_agent_registry):
-    """
-    Test how the executor handles a non-200 HTTP response from the agent API.
-    """
-    # Arrange
-    initial_state = A2APlanState(
-        user_prompt="test",
-        plan=[{"agent": "TestAgent", "skill": "test_skill", "instructions": "Do it."}],
-        current_step=0
-    )
+    executor = A2AExecutor(agent_registry=mock_agent_registry)
     
-    mock_response = Response(500, json={"detail": "Internal Server Error"})
+    mock_response = {
+        "status": "success",
+        "message": "Work done",
+        "content": [{"type": "text", "data": "Result data"}]
+    }
 
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_response) as mock_post:
-        # Act
-        result_state = await a2a_executor_node(initial_state, agent_registry_instance=mock_agent_registry)
+    with patch.object(executor, '_a2a_call', new_callable=AsyncMock) as mock_a2a_call:
+        mock_a2a_call.return_value = mock_response
+        
+        final_state = await executor.execute(initial_state)
 
-        # Assert
-        assert result_state.current_step == 0 # Step does not advance
-        assert len(result_state.previous_steps) == 0
-        assert "HTTP error 500" in result_state.error_message
-        assert "Internal Server Error" in result_state.error_message
-
-@pytest.mark.asyncio
-async def test_executor_network_error(mock_agent_registry):
-    """
-    Test how the executor handles a network error (e.g., RequestError).
-    """
-    # Arrange
-    initial_state = A2APlanState(
-        user_prompt="test",
-        plan=[{"agent": "TestAgent", "skill": "test_skill", "instructions": "Do it."}],
-        current_step=0
-    )
-
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock, side_effect=RequestError("Connection failed")) as mock_post:
-        # Act
-        result_state = await a2a_executor_node(initial_state, agent_registry_instance=mock_agent_registry)
-
-        # Assert
-        assert result_state.current_step == 0
-        assert "Network error calling TestAgent" in result_state.error_message
-        assert "Connection failed" in result_state.error_message
+        mock_a2a_call.assert_awaited_once()
+        
+        assert final_state.error_message is None
+        assert len(final_state.previous_steps) == 1
+        
+        agent, skill, result = final_state.previous_steps[0]
+        assert agent == "TestAgent"
+        assert skill == "do_work"
+        assert result == mock_response
 
 @pytest.mark.asyncio
-async def test_executor_no_plan(mock_agent_registry):
+async def test_a2a_executor_step_failure(mock_agent_registry):
     """
-    Test that the executor does nothing if the plan is empty.
+    Tests that the executor stops and records an error if a step fails.
     """
-    # Arrange
-    initial_state = A2APlanState(user_prompt="test", plan=[], current_step=0)
+    plan = [{"agent_name": "TestAgent", "action": "do_work", "parameters": {}}]
+    initial_state = A2APlanState(user_prompt="test", plan=plan)
+    
+    executor = A2AExecutor(agent_registry=mock_agent_registry)
+    
+    mock_response = {"status": "failure", "message": "It broke"}
 
-    # Act
-    result_state = await a2a_executor_node(initial_state, agent_registry_instance=mock_agent_registry)
+    with patch.object(executor, '_a2a_call', new_callable=AsyncMock) as mock_a2a_call:
+        mock_a2a_call.return_value = mock_response
+        
+        final_state = await executor.execute(initial_state)
 
-    # Assert
-    assert result_state == initial_state # State should be unchanged
+        mock_a2a_call.assert_awaited_once()
+        
+        assert "Step 1 failed: It broke" in final_state.error_message
+        assert len(final_state.previous_steps) == 0
 
 @pytest.mark.asyncio
-async def test_executor_plan_finished(mock_agent_registry):
+async def test_a2a_executor_http_error(mock_agent_registry):
     """
-    Test that the executor does nothing if all plan steps are completed.
+    Tests that the executor handles HTTP errors during A2A calls.
     """
-    # Arrange
-    initial_state = A2APlanState(
-        user_prompt="test",
-        plan=[{"agent": "TestAgent", "skill": "test_skill", "instructions": "Do it."}],
-        current_step=1 # Already past the last step
-    )
+    plan = [{"agent_name": "TestAgent", "action": "do_work", "parameters": {}}]
+    initial_state = A2APlanState(user_prompt="test", plan=plan)
+    
+    executor = A2AExecutor(agent_registry=mock_agent_registry)
 
-    # Act
-    result_state = await a2a_executor_node(initial_state, agent_registry_instance=mock_agent_registry)
+    with patch.object(executor, '_a2a_call', new_callable=AsyncMock) as mock_a2a_call:
+        mock_a2a_call.side_effect = Exception("Connection error")
+        
+        final_state = await executor.execute(initial_state)
 
-    # Assert
-    assert result_state == initial_state 
+        mock_a2a_call.assert_awaited_once()
+        
+        assert "An unexpected error occurred during step 1: Connection error" in final_state.error_message
+        assert len(final_state.previous_steps) == 0 

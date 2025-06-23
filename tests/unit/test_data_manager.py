@@ -7,7 +7,7 @@ def data_manager():
     """Provides a clean DataManager instance for each test function."""
     # Using a new instance for each test ensures isolation
     dm = DataManager()
-    dm.clear_all_data() # Clear any data from previous test runs
+    dm.clear() # Use the correct clear method
     return dm
 
 def test_add_and_get_dataframe(data_manager):
@@ -77,7 +77,7 @@ def test_clear_all_data(data_manager):
     
     assert len(data_manager.list_dataframe_info()) == 2
     
-    data_manager.clear_all_data()
+    data_manager.clear()
     
     assert len(data_manager.list_dataframe_info()) == 0
 
@@ -93,4 +93,4 @@ def test_singleton_behavior():
     assert retrieved_df is not None
     
     # Clean up after test
-    dm1.clear_all_data() 
+    dm1.clear() 

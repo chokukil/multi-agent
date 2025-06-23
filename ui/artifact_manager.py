@@ -184,7 +184,7 @@ def render_artifact(artifact_type: str, artifact_data: any, container):
     Renders a single artifact in the specified container based on its type.
 
     Args:
-        artifact_type (str): The type of the artifact (e.g., 'data_id', 'json', 'file_path').
+        artifact_type (str): The type of the artifact (e.g., 'data_id', 'json', 'file_path', 'html').
         artifact_data (any): The data of the artifact.
         container: The Streamlit container (e.g., st.expander, st.container) to render in.
     """
@@ -194,12 +194,26 @@ def render_artifact(artifact_type: str, artifact_data: any, container):
                 render_dataframe_preview(artifact_data)
             elif artifact_type == "json" and "plotly" in str(artifact_data):
                 render_plotly_chart(artifact_data)
+            elif artifact_type == "html":
+                render_html_content(artifact_data)
             elif artifact_type == "file_path" and isinstance(artifact_data, str):
-                render_file_link(artifact_data)
+                if artifact_data.lower().endswith('.html'):
+                    try:
+                        with open(artifact_data, 'r', encoding='utf-8') as f:
+                            html_content = f.read()
+                        render_html_content(html_content)
+                    except Exception as e:
+                        st.error(f"Could not read or render HTML file: {e}")
+                        render_file_link(artifact_data)
+                else:
+                    render_file_link(artifact_data)
+            elif artifact_type == "text":
+                st.text(artifact_data)
+            elif artifact_type == "markdown":
+                st.markdown(artifact_data)
             else:
                 # Fallback for other JSON data or simple values
-                st.write("Result:")
-                st.json(artifact_data)
+                st.write(artifact_data)
     except Exception as e:
         with container:
             st.error(f"Failed to render artifact: {e}")
@@ -220,17 +234,22 @@ def render_dataframe_preview(data_id: str):
 
 
 def render_plotly_chart(plotly_json: dict):
-    """Renders a Plotly chart from a JSON object."""
+    """Renders a Plotly chart from JSON."""
     try:
         fig = pio.from_json(json.dumps(plotly_json))
         st.plotly_chart(fig, use_container_width=True)
     except Exception as e:
-        st.error(f"Could not render Plotly chart: {e}")
-        st.json(plotly_json) # Show raw JSON on error
+        st.error(f"Error rendering Plotly chart: {e}")
+        st.json(plotly_json)
+
+
+def render_html_content(html_string: str):
+    """Renders an HTML string directly in the app."""
+    st.components.v1.html(html_string, height=600, scrolling=True)
 
 
 def render_file_link(file_path: str):
-    """Renders a downloadable link for a file artifact."""
+    """Provides a download link for a file."""
     try:
         with open(file_path, "rb") as fp:
             st.download_button(
