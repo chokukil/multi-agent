@@ -62,6 +62,9 @@ sandbox/datasets/
 # User-specified ignores
 multi_agent_supervisor.py
 
+# Project folders
+ai_ds_ref/
+
 # macOS system files
 .DS_Store
 .DS_Store?

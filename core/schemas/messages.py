@@ -211,3 +211,31 @@ except ImportError:
         data: Dict[str, Any]
 
     Content = BaseContent
+
+
+class ToolOutput(BaseModel):
+    """
+    Represents the standardized output of any tool or A2A skill execution.
+    This is used by the A2AExecutor to wrap results before passing them
+    back to the planner or other components.
+    """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    stdout: str = ""
+    stderr: str = ""
+    exit_code: int = 0
+    data: Dict[str, Any] = Field(default_factory=dict)
+
+
+class Step(BaseModel):
+    """A single step in an execution plan."""
+    id: str = Field(default_factory=lambda: f"step_{uuid4().hex[:8]}")
+    agent_name: str
+    skill_name: str
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+
+
+class Plan(BaseModel):
+    """Represents a multi-step execution plan."""
+    id: str = Field(default_factory=lambda: f"plan_{uuid4().hex[:8]}")
+    steps: List[Step] = Field(default_factory=list)

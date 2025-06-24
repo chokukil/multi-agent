@@ -1,5 +1,31 @@
 #!/bin/bash
-# system_start.sh - Complete System Startup: MCP Servers + Streamlit App
+# ==============================================================================
+# CherryAI - System Start Script (SH)
+# ==============================================================================
+# This script starts all the necessary agent servers for the CherryAI system
+# to be fully operational. It starts each agent in the background.
+#
+# Use system_stop.sh to terminate these agents.
+# ==============================================================================
+
+echo "🚀 Starting all CherryAI agent servers..."
+
+# Activate virtual environment if necessary and start agents
+# Using 'uv run' which handles the virtual environment automatically.
+uv run python -m mcp_agents.mcp_dataloader_agent &
+DATALOADER_PID=$!
+echo "   - Dataloader Agent started with PID: $DATALOADER_PID (Port 8001)"
+
+uv run python -m mcp_agents.mcp_datawrangling_agent &
+DATAWRANGLING_PID=$!
+echo "   - Data Wrangling Agent started with PID: $DATAWRANGLING_PID (Port 8002)"
+
+uv run python -m mcp_agents.mcp_datavisualization_agent &
+DATAVISUALIZATION_PID=$!
+echo "   - Data Visualization Agent started with PID: $DATAVISUALIZATION_PID (Port 8003)"
+
+echo -e "\n✅ All agents have been launched in the background."
+echo "   Use 'system_stop.sh' or the Streamlit UI to stop them."
 
 echo "================================================"
 echo "      CherryAI System Startup Script - macOS"

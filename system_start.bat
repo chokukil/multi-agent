@@ -1,4 +1,39 @@
 @echo off
+:: ==============================================================================
+:: CherryAI - System Start Script (BAT)
+:: ==============================================================================
+:: This script starts all the necessary agent servers for the CherryAI system
+:: to be fully operational. It starts each agent in a new background window.
+::
+:: Use system_stop.bat to terminate these agents.
+:: ==============================================================================
+
+echo.
+echo #############################################################
+echo #         Starting all CherryAI Agent Servers
+echo #############################################################
+echo.
+
+echo [INFO] Starting agents in separate background windows...
+echo.
+
+START "DataloaderAgent" /B uv run python -m mcp_agents.mcp_dataloader_agent
+echo   - Dataloader Agent (Port 8001) launched.
+
+START "WranglingAgent" /B uv run python -m mcp_agents.mcp_datawrangling_agent
+echo   - Data Wrangling Agent (Port 8002) launched.
+
+START "VisualizationAgent" /B uv run python -m mcp_agents.mcp_datavisualization_agent
+echo   - Data Visualization Agent (Port 8003) launched.
+
+echo.
+echo [SUCCESS] All agents have been launched.
+echo           They are running in the background. Use the Streamlit UI
+echo           or run 'system_stop.bat' to terminate them.
+echo.
+
+timeout /t 3 /nobreak > nul
+
 REM system_start.bat - Complete System Startup: MCP Servers + Streamlit App
 
 echo ================================================

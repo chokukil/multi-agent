@@ -1,5 +1,20 @@
 #!/bin/bash
-# system_stop.sh - Complete System Shutdown: Stop all MCP Servers and Streamlit
+# ==============================================================================
+# CherryAI - System Stop Script (SH)
+# ==============================================================================
+# This script finds and terminates all running CherryAI agent servers.
+# It uses pkill to find processes matching the agent module paths.
+# ==============================================================================
+
+echo "🛑 Stopping all CherryAI agent servers..."
+
+# Use pkill to find and kill processes whose command line matches the pattern.
+# The '-f' flag matches against the full command line.
+pkill -f "python -m mcp_agents.mcp_dataloader_agent"
+pkill -f "python -m mcp_agents.mcp_datawrangling_agent"
+pkill -f "python -m mcp_agents.mcp_datavisualization_agent"
+
+echo "✅ All agent processes have been terminated."
 
 echo "================================================"
 echo "      CherryAI System Shutdown Script - macOS"

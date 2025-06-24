@@ -1,9 +1,31 @@
 """Core Agents"""
-from .agent_registry import AgentRegistry
+from typing import Dict, Optional
+from google.adk.agents import Agent
 
+class AgentRegistry:
+    """A central registry to hold and manage agent instances."""
+    _agents: Dict[str, Agent] = {}
+
+    def register_agent(self, agent: Agent):
+        """Registers a new agent instance."""
+        if not agent.name:
+            raise ValueError("Agent must have a name to be registered.")
+        print(f"Registering agent: {agent.name}")
+        self._agents[agent.name] = agent
+
+    def get_agent(self, agent_name: str) -> Optional[Agent]:
+        """Retrieves an agent by its name."""
+        print(f"Looking up agent: {agent_name}")
+        return self._agents.get(agent_name)
+
+    def list_agents(self) -> Dict[str, Agent]:
+        """Returns all registered agents."""
+        return self._agents
+
+# A global instance of the registry for easy access across the application
 agent_registry = AgentRegistry()
 
 __all__ = [
     "AgentRegistry",
-    "agent_registry"
+    "agent_registry",
 ] 
