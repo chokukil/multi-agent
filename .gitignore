@@ -63,7 +63,7 @@ sandbox/datasets/
 multi_agent_supervisor.py
 
 # Project folders
-ai_ds_ref/
+core_logic/
 
 # macOS system files
 .DS_Store
