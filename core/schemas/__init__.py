@@ -1,14 +1,5 @@
 # core/schemas/__init__.py
-from .messages import *
-from .message_factory import MessageFactory
+# This directory is now minimal, as most schemas are handled by a2a.types.
+# It can be used for application-specific, non-A2A schemas in the future.
 
-__all__ = [
-    # Message types
-    'StreamMessage', 'MessageType', 'AgentType', 'ToolType',
-    'ProgressMessage', 'AgentStartMessage', 'AgentEndMessage',
-    'ToolCallMessage', 'ToolResultMessage', 'CodeExecutionMessage',
-    'VisualizationMessage', 'ErrorMessage', 'ResponseMessage',
-    
-    # Factory
-    'MessageFactory',
-]
+__all__ = []

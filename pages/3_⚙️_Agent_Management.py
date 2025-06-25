@@ -6,6 +6,7 @@ import time
 
 import httpx
 import streamlit as st
+from core.utils.logging import setup_logging
 
 # ------------------------------------------------------------------------------
 # Page Configuration
@@ -15,6 +16,9 @@ st.set_page_config(
     page_icon="⚙️",
     layout="wide",
 )
+
+# --- Initial Setup ---
+setup_logging()
 
 st.title("⚙️ Agent Process Management")
 st.markdown(
@@ -32,22 +36,10 @@ st.markdown(
 # In a real-world app, this might come from a config file or agent_registry.
 AGENTS = [
     {
-        "name": "Dataloader Agent",
-        "url": "http://localhost:8001",
-        "health_endpoint": "http://localhost:8001/health",
-        "description": "Loads data from files (CSV, Excel) into the system.",
-    },
-    {
-        "name": "Data Wrangling Agent",
-        "url": "http://localhost:8002",
-        "health_endpoint": "http://localhost:8002/health",
-        "description": "Cleans, transforms, and preprocesses datasets.",
-    },
-    {
-        "name": "Data Visualization Agent",
-        "url": "http://localhost:8003",
-        "health_endpoint": "http://localhost:8003/health",
-        "description": "Generates plots and charts from data.",
+        "name": "pandas_data_analyst",
+        "url": "http://localhost:10001",
+        "health_endpoint": "http://localhost:10001/.well-known/agent.json", # A2A standard endpoint
+        "description": "The main orchestrator agent for data analysis tasks.",
     },
 ]
 
@@ -64,7 +56,8 @@ async def check_agent_health(agent: dict):
     try:
         async with httpx.AsyncClient(timeout=2.0) as client:
             response = await client.get(agent["health_endpoint"])
-            if response.status_code == 200 and response.json().get("status") == "ok":
+            if response.status_code == 200:
+                # For A2A, we just check if we can get the agent card
                 return "🟢 Running"
             else:
                 return f"🔴 Stopped ({response.status_code})"
@@ -81,7 +74,7 @@ async def update_all_agent_statuses():
     for agent, status in zip(AGENTS, results):
         new_statuses[agent["name"]] = status
     st.session_state.agent_statuses = new_statuses
-    st.experimental_rerun()
+    st.rerun()
 
 def run_system_script(script_name: str):
     """Runs a system script (.sh or .bat) based on the OS."""
@@ -143,7 +136,13 @@ with status_placeholder.container():
 # This runs automatically when the page loads or refresh is clicked
 if any("Checking..." in status for status in st.session_state.agent_statuses.values()):
     try:
+        # This is the correct way to run an async function from the top-level script in Streamlit
         asyncio.run(update_all_agent_statuses())
     except Exception as e:
         # This can happen if another asyncio loop is running, e.g. in some versions of Streamlit/Jupyter
-        st.warning(f"Could not run status update automatically. Please use the Refresh button. Error: {e}") 
+        # Let's try to get the existing loop instead.
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(update_all_agent_statuses())
+        except RuntimeError:
+             st.warning(f"Could not run status update automatically. Please use the Refresh button. Error: {e}") 

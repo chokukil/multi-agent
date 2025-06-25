@@ -14,6 +14,10 @@ from datetime import datetime
 # Add log_event import
 from core.utils.helpers import log_event
 
+# --- DataManager Singleton ---
+# Make sure DataManager is imported correctly
+from core.data_manager import DataManager
+
 def render_mcp_config_section():
     """MCP Server Configuration 섹션 렌더링"""
     from core.utils.config import load_mcp_configs, save_mcp_config, delete_mcp_config
@@ -136,127 +140,88 @@ def render_mcp_config_section():
                         st.error(f"❌ JSON 형식 오류: {e}")
 
 def render_data_upload_section():
-    """데이터 업로드 섹션 렌더링"""
-    from core import data_manager, data_lineage_tracker
+    """
+    Renders the data upload and management section in the sidebar.
+    Uses the modern, multi-dataframe aware DataManager.
+    """
+    # Get the singleton instance of DataManager
+    data_manager = DataManager()
     
-    st.markdown("### 강화된 데이터 분석")
+    st.markdown("### 📊 데이터셋 관리")
+
+    # --- Display Loaded Datasets ---
+    loaded_data_info = data_manager.list_dataframe_info()
     
-    # SSOT 데이터 상태 표시
-    current_status = data_manager.get_status_message()
-    
-    if data_manager.is_data_loaded():
-        st.success(current_status)
-        
-        # 데이터 정보 표시
-        with st.expander("📈 현재 데이터 정보", expanded=False):
-            info = data_manager.get_data_info()
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.metric("행 수", f"{info['row_count']:,}")
-                st.metric("메모리", f"{info['memory_mb']:.2f}MB")
-            
-            with col2:
-                st.metric("열 수", f"{info['col_count']:,}")
-                st.metric("출처", info['source'])
-            
-            st.write("**컬럼 정보:**")
-            cols_display = ', '.join(info['columns'][:8])
-            if len(info['columns']) > 8:
-                cols_display += f" ... (+{len(info['columns']) - 8}개)"
-            st.text(cols_display)
-            
-            st.write("**통계:**")
-            st.text(f"수치형: {len(info['numeric_cols'])}개, 범주형: {len(info['categorical_cols'])}개, 결측값: {info['null_count']:,}개")
-        
-        # 데이터 관리 도구들
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🔄 새로고침", use_container_width=True):
-                if hasattr(st.session_state, 'uploaded_data') and st.session_state.uploaded_data is not None:
-                    success = data_manager.set_data(st.session_state.uploaded_data, "세션 데이터 새로고침")
-                    if success:
-                        st.success("✅ 데이터가 새로고침되었습니다!")
-                        st.rerun()
-        
-        with col2:
-            if st.button("✅ 일관성 검증", use_container_width=True):
-                is_valid, message = data_manager.validate_data_consistency()
-                if is_valid:
-                    st.success(f"✅ {message}")
-                else:
-                    st.error(f"❌ {message}")
+    if not loaded_data_info:
+        st.info("현재 로드된 데이터가 없습니다. CSV 또는 Excel 파일을 업로드해주세요.")
     else:
-        st.warning(current_status)
-    
-    # sandbox/datasets 폴더 생성
-    DATASETS_DIR = "./sandbox/datasets"
-    os.makedirs(DATASETS_DIR, exist_ok=True)
-    
-    uploaded_csv = st.file_uploader("📂 CSV 파일 업로드", type=["csv"], help="데이터 분석을 위한 CSV 파일을 업로드하세요")
-    if uploaded_csv:
-        try:
-            # 파일을 datasets 폴더에 저장
-            file_path = os.path.join(DATASETS_DIR, uploaded_csv.name)
-            with open(file_path, "wb") as f:
-                f.write(uploaded_csv.getvalue())
-                
-            # 저장된 파일을 DataFrame으로 로드
-            df = pd.read_csv(file_path)
+        df_count = len(loaded_data_info)
+        st.success(f"{df_count}개의 데이터셋이 로드되었습니다.")
+        
+        with st.expander("로드된 데이터셋 보기"):
+            for info in loaded_data_info:
+                df_id = info['data_id']
+                shape = info['shape']
+                st.markdown(f"- **{df_id}** (형태: {shape[0]}x{shape[1]})")
+                if st.button(f"🗑️ '{df_id}' 삭제", key=f"del_{df_id}", use_container_width=True):
+                    if data_manager.delete_dataframe(df_id):
+                        st.toast(f"'{df_id}'가 삭제되었습니다.")
+                        st.rerun()
+                    else:
+                        st.toast(f"'{df_id}' 삭제 실패.", icon="❌")
+
+    # --- File Uploader ---
+    uploaded_files = st.file_uploader(
+        "CSV 또는 Excel 파일 업로드",
+        type=['csv', 'xlsx'],
+        accept_multiple_files=True,
+        help="여러 파일을 한 번에 업로드할 수 있습니다."
+    )
+
+    if uploaded_files:
+        # Track which files are new vs already processed
+        existing_df_ids = set(data_manager.list_dataframes())
+        files_to_process = []
+        
+        # Only process files that aren't already loaded
+        for file in uploaded_files:
+            data_id = file.name
+            if data_id not in existing_df_ids:
+                files_to_process.append(file)
+        
+        if files_to_process:
+            files_loaded = 0
+            for file in files_to_process:
+                try:
+                    # Use a spinner for better user experience
+                    with st.spinner(f"'{file.name}' 처리 중..."):
+                        if file.name.endswith('.csv'):
+                            df = pd.read_csv(file)
+                        else:
+                            df = pd.read_excel(file)
+                        
+                        # Use the filename as the data_id
+                        data_id = file.name
+                        data_manager.add_dataframe(data_id=data_id, data=df, source="File Upload")
+                    
+                    log_event(f"File uploaded: {data_id}, shape={df.shape}", "data_upload_success")
+                    files_loaded += 1
+                    
+                except Exception as e:
+                    st.error(f"'{file.name}' 로드 중 오류: {e}")
+                    log_event(f"File upload failed for {file.name}: {e}", "data_upload_error")
             
-            # 강화된 SSOT에 데이터 설정
-            success = data_manager.set_data(df, f"업로드된 파일: {uploaded_csv.name}")
-            
-            if success:
-                # 데이터 계보 추적 시작
-                original_hash = data_lineage_tracker.set_original_data(df)
-                
-                # 세션 상태에도 백업 저장
-                st.session_state.uploaded_data = df
-                st.session_state.original_data_hash = original_hash
-                
-                st.success(f"✅ 강화된 SSOT 설정 완료: {uploaded_csv.name}")
-                
-                # 업데이트된 데이터 정보 표시
-                with st.expander("📈 업로드된 데이터 정보", expanded=True):
-                    info = data_manager.get_data_info()
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("행 수", f"{info['row_count']:,}")
-                    with col2:
-                        st.metric("열 수", f"{info['col_count']:,}")
-                    with col3:
-                        st.metric("메모리", f"{info['memory_mb']:.2f}MB")
-                    
-                    st.write("**파일 경로**: `" + file_path + "`")
-                    st.write("**컬럼 목록**: " + ', '.join(info['columns'][:5]) + ("..." if len(info['columns']) > 5 else ""))
-                    
-                    # 샘플 데이터 미리보기
-                    st.write("**미리보기:**")
-                    st.dataframe(df.head(3), use_container_width=True)
-                
-                # 시스템 초기화 안내
-                if st.session_state.get("graph_initialized", False):
-                    st.info("💡 모든 Executor가 동일한 데이터에 접근할 수 있습니다!")
+            if files_loaded > 0:
+                st.toast(f"{files_loaded}개의 파일이 성공적으로 로드되었습니다!", icon="✅")
+                # Only rerun if new files were actually processed
+                st.rerun()
+        else:
+            # All files are already loaded - show info message
+            file_names = [f.name for f in uploaded_files]
+            if len(file_names) == 1:
+                st.info(f"'{file_names[0]}'는 이미 로드되어 있습니다.")
             else:
-                st.error("❌ 강화된 SSOT 데이터 설정 실패")
-                
-        except Exception as e:
-            # SSOT 초기화
-            data_manager.clear_data()
-            if hasattr(st.session_state, 'uploaded_data'):
-                del st.session_state.uploaded_data
-            st.error(f"CSV 업로드 실패: {e}")
-    
-    # 데이터 삭제 옵션
-    if data_manager.is_data_loaded():
-        if st.button("🗑️ 데이터 삭제", use_container_width=True, type="secondary"):
-            data_manager.clear_data()
-            if hasattr(st.session_state, 'uploaded_data'):
-                del st.session_state.uploaded_data
-            st.success("✅ 데이터가 삭제되었습니다.")
-            st.rerun()
+                st.info(f"선택된 {len(file_names)}개 파일이 모두 이미 로드되어 있습니다.")
 
 def render_llm_status():
     """LLM 상태 및 도구 호출 능력 표시 - 향상된 버전"""

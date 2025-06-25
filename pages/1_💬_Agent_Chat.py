@@ -15,6 +15,10 @@ from core.plan_execute.a2a_executor import A2AExecutor
 from core.callbacks.progress_stream import progress_stream_manager
 from ui.artifact_manager import render_artifact
 from ui.sidebar_components import render_sidebar
+from core.utils.logging import setup_logging
+
+# --- Initial Setup ---
+setup_logging()
 
 # --- Environment Setup ---
 def setup_environment():
@@ -61,7 +65,7 @@ def render_chat_history():
 async def execute_and_render(execution_state: dict):
     """Asynchronously executes the plan and renders updates to the UI."""
     queue = asyncio.Queue()
-    progress_stream_manager.register_queue(queue)
+    await progress_stream_manager.register_queue(queue)
     
     # Instantiate the executor and run it
     executor = A2AExecutor()
@@ -108,7 +112,7 @@ async def execute_and_render(execution_state: dict):
         except Exception:
             is_done = True
     
-    progress_stream_manager.unregister_queue()
+    await progress_stream_manager.unregister_queue(queue)
     final_state = await executor_task
     if final_state and final_state.get("error"):
          st.error(f"최종 실행 실패: {final_state['error']}")
@@ -138,7 +142,7 @@ def process_user_query(prompt: str):
 
                 plan_summary = "📋 **Execution Plan**\n\n"
                 for step in plan_state["plan"]:
-                    plan_summary += f"**{step['step']}. `{step['agent_name']}`** �� `{step['skill_name']}`\n"
+                    plan_summary += f"**{step['step']}. `{step['agent_name']}`** 는 `{step['skill_name']}`\n"
                 
                 status.update(label="✅ Plan Created!", state="complete", expanded=False)
                 st.session_state.messages.append({"role": "assistant", "content": {"plan_summary": plan_summary}})
@@ -151,8 +155,7 @@ def process_user_query(prompt: str):
 
         # 2. Executor Execution
         try:
-            # The new executor class expects a Pydantic model, but for now we can pass the dict
-            # Let's ensure the core logic works first.
+            # The UI needs to run the async function to start the process
             asyncio.run(execute_and_render(plan_state))
         except Exception as e:
             st.error(f"An error occurred during execution: {e}")

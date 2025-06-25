@@ -12,10 +12,14 @@ import logging
 from core.plan_execute.a2a_executor import A2AExecutor
 from core.callbacks.progress_stream import progress_stream_manager
 from ui.artifact_manager import render_artifact
+from core.utils.logging import setup_logging
 
 # Apply nest_asyncio to allow running asyncio event loops within Streamlit
 def setup_environment():
     """Sets up the environment for asyncio."""
+    # Call the central logging setup
+    setup_logging()
+
     if platform.system() == "Windows":
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
     try:
@@ -24,7 +28,8 @@ def setup_environment():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     nest_asyncio.apply(loop)
-    logging.basicConfig(level=logging.INFO)
+    # The basicConfig call is now handled by setup_logging()
+    # logging.basicConfig(level=logging.INFO)
 
 async def run_and_render_eda_skill(skill_name: str, df_key: str, params: dict = None):
     """
@@ -75,7 +80,7 @@ async def run_and_render_eda_skill(skill_name: str, df_key: str, params: dict = 
                 st.error(f"An unexpected error occurred: {e}")
                 is_done = True
     
-    progress_stream_manager.unregister_queue()
+    progress_stream_manager.unregister_queue(queue)
     final_state = await executor_task
     if final_state and final_state.get("error"):
          st.error(f"Final execution failed: {final_state['error']}")
@@ -96,34 +101,44 @@ def render_eda_copilot():
 
     if uploaded_file is not None:
         try:
-            # Load data into a DataFrame
-            if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
-            
             # Use a unique key for the dataframe in the data manager
             df_key = f"eda_copilot_{uploaded_file.name}"
-            data_manager.add_dataframe(df_key, df)
-
-            st.success(f"Successfully loaded `{uploaded_file.name}`. The DataFrame is now available as `{df_key}`.")
-            st.dataframe(df.head())
-
-            st.subheader("Automated EDA Actions")
             
-            col1, col2, col3 = st.columns(3)
+            # Check if this file is already loaded to prevent infinite refresh
+            if df_key not in data_manager.list_dataframes():
+                # Load data into a DataFrame
+                if uploaded_file.name.endswith('.csv'):
+                    df = pd.read_csv(uploaded_file)
+                else:
+                    df = pd.read_excel(uploaded_file)
+                
+                data_manager.add_dataframe(df_key, df)
+                st.success(f"Successfully loaded `{uploaded_file.name}`. The DataFrame is now available as `{df_key}`.")
+            else:
+                st.info(f"`{uploaded_file.name}` is already loaded as `{df_key}`.")
+            
+            # Get the dataframe for display (whether newly loaded or existing)
+            df = data_manager.get_dataframe(df_key)
+            if df is not None:
+                st.dataframe(df.head())
 
-            with col1:
-                if st.button("Generate Profile Report", use_container_width=True, key="profile_report"):
-                    asyncio.run(run_and_render_eda_skill("generate_profile_report", df_key))
+                st.subheader("Automated EDA Actions")
+                
+                col1, col2, col3 = st.columns(3)
 
-            with col2:
-                if st.button("Analyze Missing Values", use_container_width=True, key="missing_values"):
-                    asyncio.run(run_and_render_eda_skill("get_missing_values_summary", df_key))
+                with col1:
+                    if st.button("Generate Profile Report", use_container_width=True, key="profile_report"):
+                        asyncio.run(run_and_render_eda_skill("generate_profile_report", df_key))
 
-            with col3:
-                if st.button("Run Correlation Analysis", use_container_width=True, key="correlation_analysis"):
-                    asyncio.run(run_and_render_eda_skill("get_correlation_matrix_plot", df_key))
+                with col2:
+                    if st.button("Analyze Missing Values", use_container_width=True, key="missing_values"):
+                        asyncio.run(run_and_render_eda_skill("get_missing_values_summary", df_key))
+
+                with col3:
+                    if st.button("Run Correlation Analysis", use_container_width=True, key="correlation_analysis"):
+                        asyncio.run(run_and_render_eda_skill("get_correlation_matrix_plot", df_key))
+            else:
+                st.error(f"Failed to retrieve dataframe `{df_key}` from DataManager.")
 
         except Exception as e:
             st.error(f"Failed to load or process the file: {e}")

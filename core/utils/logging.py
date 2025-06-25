@@ -1,5 +1,29 @@
-
 import os
+import logging
+import sys
+
+def setup_logging(level=logging.INFO):
+    """
+    Set up the root logger to output to the console.
+    This should be called once at the application's entry point.
+    """
+    # Check if handlers are already configured
+    if not logging.getLogger().handlers:
+        formatter = logging.Formatter(
+            "[%(asctime)s] [%(levelname)s] [%(name)s] - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+        
+        # Configure stream handler (for console output)
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(formatter)
+        
+        # Configure root logger
+        root_logger = logging.getLogger()
+        root_logger.setLevel(level)
+        root_logger.addHandler(handler)
+        
+        logging.info("Logging configured successfully.")
 
 def log_ai_function(response: str, file_name: str, log: bool = True, log_path: str = './logs/', overwrite: bool = True):
     """

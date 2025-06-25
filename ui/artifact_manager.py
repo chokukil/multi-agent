@@ -7,7 +7,7 @@ import altair as alt
 import logging
 from typing import List, Dict, Any, Optional
 from core.artifact_system import artifact_manager
-from core.data_manager import UnifiedDataManager as DataManager
+from core.data_manager import DataManager
 import plotly.io as pio
 
 def auto_detect_artifacts(content: str, agent_name: str) -> List[str]:

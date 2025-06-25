@@ -53,3 +53,4 @@ async def test_register_and_list_agents(registry_server):
         assert isinstance(agent_list, list)
         assert len(agent_list) == 1
         assert agent_list[0] == "test-agent-123"
+ 

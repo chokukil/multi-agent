@@ -4,15 +4,23 @@ import numpy as np
 import threading
 import hashlib
 import json
+import pickle
+import os
+from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 import logging
+
+# Shared directory for cross-process data sharing
+SHARED_DATA_DIR = Path("artifacts/data/shared_dataframes")
+SHARED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 class DataManager:
     """
     통합 데이터 관리자 - Single Source of Truth (SSOT)
     모든 에이전트가 생성하고 사용하는 데이터프레임을 ID 기반으로 관리합니다.
     여러 데이터프레임을 동시에 메모리에 저장하고, 고유 ID를 통해 접근합니다.
+    프로세스 간 공유를 위해 파일 기반 백업을 제공합니다.
     """
 
     _instance = None
@@ -32,7 +40,66 @@ class DataManager:
 
         self._data_store: Dict[str, Dict[str, Any]] = {}
         self._initialized = True
-        logging.info("DataManager initialized for multi-dataframe management.")
+        
+        # Load existing data from shared storage
+        self._load_from_shared_storage()
+        
+        logging.info("DataManager initialized for multi-dataframe management with cross-process sharing.")
+
+    def _get_shared_file_path(self, data_id: str) -> Path:
+        """Get the shared file path for a given data ID."""
+        safe_id = "".join(c for c in data_id if c.isalnum() or c in ('_', '-', '.'))
+        return SHARED_DATA_DIR / f"{safe_id}.pkl"
+
+    def _save_to_shared_storage(self, data_id: str):
+        """Save a dataframe to shared storage for cross-process access."""
+        try:
+            if data_id not in self._data_store:
+                return
+            
+            entry = self._data_store[data_id]
+            shared_data = {
+                'data': entry['data'],
+                'source': entry['source'],
+                'created_at': entry['created_at'].isoformat(),
+                'metadata': entry['metadata']
+            }
+            
+            file_path = self._get_shared_file_path(data_id)
+            with open(file_path, 'wb') as f:
+                pickle.dump(shared_data, f)
+            
+            logging.info(f"📁 Saved dataframe '{data_id}' to shared storage: {file_path}")
+            
+        except Exception as e:
+            logging.error(f"Failed to save dataframe '{data_id}' to shared storage: {e}")
+
+    def _load_from_shared_storage(self):
+        """Load all dataframes from shared storage."""
+        try:
+            for file_path in SHARED_DATA_DIR.glob("*.pkl"):
+                try:
+                    with open(file_path, 'rb') as f:
+                        shared_data = pickle.load(f)
+                    
+                    data_id = file_path.stem
+                    if data_id not in self._data_store:
+                        entry = {
+                            "data": shared_data['data'],
+                            "hash": self._compute_hash(shared_data['data']),
+                            "source": shared_data.get('source', 'Loaded from shared storage'),
+                            "created_at": datetime.fromisoformat(shared_data['created_at']),
+                            "access_count": 0,
+                            "metadata": shared_data.get('metadata', {})
+                        }
+                        self._data_store[data_id] = entry
+                        logging.info(f"📥 Loaded dataframe '{data_id}' from shared storage")
+                        
+                except Exception as e:
+                    logging.warning(f"Failed to load dataframe from {file_path}: {e}")
+                    
+        except Exception as e:
+            logging.error(f"Failed to load from shared storage: {e}")
 
     def _compute_hash(self, data: pd.DataFrame) -> str:
         """데이터프레임의 해시 계산"""
@@ -63,6 +130,10 @@ class DataManager:
             }
             
             self._data_store[data_id] = new_entry
+            
+            # Save to shared storage for cross-process access
+            self._save_to_shared_storage(data_id)
+            
             logging.info(f"DataFrame added/updated with ID: {data_id} from source: {source}, shape={data.shape}")
             return data_id
 
@@ -71,9 +142,19 @@ class DataManager:
         주어진 ID에 해당하는 데이터프레임의 복사본을 반환합니다.
         """
         with self._lock:
+            # Try to load from memory first
             entry = self._data_store.get(data_id)
+            
+            # If not in memory, try to load from shared storage
             if not entry:
-                logging.error(f"DataFrame with ID '{data_id}' not found.")
+                shared_file = self._get_shared_file_path(data_id)
+                if shared_file.exists():
+                    logging.info(f"🔄 Loading dataframe '{data_id}' from shared storage")
+                    self._load_from_shared_storage()
+                    entry = self._data_store.get(data_id)
+            
+            if not entry:
+                logging.error(f"DataFrame with ID '{data_id}' not found in memory or shared storage.")
                 return None
             
             entry["access_count"] += 1
@@ -137,7 +218,9 @@ class DataManager:
         }
 
     def list_dataframes(self) -> List[str]:
-        """Returns a list of available dataframe IDs."""
+        """Returns a list of available dataframe IDs from both memory and shared storage."""
+        # Check shared storage for any new dataframes
+        self._load_from_shared_storage()
         return list(self._data_store.keys())
 
 # --- 기존 하위 호환성 함수들 ---

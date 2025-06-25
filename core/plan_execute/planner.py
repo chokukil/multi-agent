@@ -7,9 +7,8 @@ from typing import Dict, List, Any
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, Field
-from core.agents.agent_registry import agent_registry # Import the registry
+from core.agents import agent_registry # Import the registry
 from ..llm_factory import create_llm_instance
-from ..schemas.messages import A2APlanState
 
 # ---------------- Pydantic 모델 정의 ----------------
 
@@ -30,109 +29,142 @@ class ExecutionPlan(BaseModel):
 
 class A2APlanStep(BaseModel):
     """A single step in the execution plan using A2A agents."""
-    step: int = Field(..., description="The step number, starting from 1.")
-    agent_name: str = Field(..., description="The name of the A2A agent to call (must be one from the AVAILABLE AGENTS list).")
+    agent_name: str = Field(..., description="The name of the A2A agent to call (must be from the available list).")
     skill_name: str = Field(..., description="The name of the skill to invoke on the agent.")
-    parameters: Dict[str, Any] = Field(default_factory=dict, description="The parameters to pass to the skill, as a dictionary.")
-    dependencies: List[int] = Field(default_factory=list, description="List of step numbers this step depends on. Use outputs from previous steps with the format '{{steps[N].output}}'.")
+    instructions: str = Field(..., description="The natural language instructions for the agent skill.")
+    data_id: str = Field(..., description="The ID of the dataframe to be used as input for this step.")
+    dependencies: List[int] = Field(default_factory=list, description="List of step numbers this step depends on. The output data from a previous step will be used as input for this one.")
     reasoning: str = Field(..., description="Brief reasoning for why this step is necessary.")
 
 class A2AExecutionPlan(BaseModel):
     """A complete, structured execution plan using A2A agents."""
-    user_request_summary: str = Field(..., description="A brief summary of the user's request.")
+    thought: str = Field(..., description="Your reasoning process for creating this plan.")
     plan: List[A2APlanStep] = Field(..., description="The list of agent-based steps to execute.")
 
 # ---------------- Planner Node 재작성 ----------------
 
-PLANNER_PROMPT = """
-# ... (rest of the prompt)
-<SCHEMA>
-{{
-  "plan": [
-    {{
-      "agent": "string",
-      "skill": "string",
-      "instructions": "string"
-    }}
-  ],
-  "thought": "string"
-}}
-</SCHEMA>
+PLANNER_PROMPT_TEMPLATE = """
+You are an expert planner for a multi-agent AI system. Your goal is to create a step-by-step execution plan to fulfill the user's request.
+You must use the available agents and their skills to build the plan.
 
-<AVAILABLE_AGENTS>
+**Available Agents and Skills:**
 {available_agents}
-</AVAILABLE_AGENTS>
 
-<HISTORY>
-**Previous Steps:**
-{previous_steps}
-</HISTORY>
-
-<USER_REQUEST>
+**User's Request:**
 {user_prompt}
-</USER_REQUEST>
 
-Now, create a JSON plan to fulfill the user's request.
+**Important Rules:**
+1.  The plan must be a sequence of steps. Each step calls one skill from one agent.
+2.  The `data_id` for the first step is always 'main_df'.
+3.  For subsequent steps, the `data_id` will be the output of the previous step, so you can just pass 'main_df' and the system will handle it.
+4.  Break down the user's request into logical, sequential steps.
+
+Now, generate a complete execution plan based on the user's request.
 """
 
-async def planner_node(state: A2APlanState, llm=None, agent_registry_instance=None) -> A2APlanState:
+def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Analyzes the user's request and the available agent skills to create a JSON-based execution plan.
+    Analyzes the user's request and available agent skills to create a structured execution plan.
+    This is a synchronous wrapper for the async planning logic.
     """
-    from core.agents.agent_registry import agent_registry
+    logging.info("🎯 A2A Planner: Generating structured plan...")
     
-    logging.info("🎯 A2A Planner: Generating structured plan for agent execution.")
+    # Get available dataframes from data manager
+    from core.data_manager import DataManager
+    data_manager = DataManager()
+    available_dataframes = data_manager.list_dataframes()
     
-    agent_skills_summary = agent_registry_instance.get_all_skills_summary()
+    logging.info(f"📊 Available dataframes: {available_dataframes}")
     
-    # Format previous steps for the prompt
-    formatted_previous_steps = "\n".join(
-        f"Step {i+1}: Called Agent '{step[0]}' with Skill '{step[1]}'. Result: {step[2]}" 
-        for i, step in enumerate(state.previous_steps)
-    )
+    # If no dataframes are available, return error state
+    if not available_dataframes:
+        logging.warning("❌ No dataframes available for analysis")
+        state["error"] = "No data available. Please upload a dataset first using the Data Loader page."
+        state["plan"] = []
+        return state
+    
+    # Use the first available dataframe as default (or could make this smarter)
+    default_data_id = available_dataframes[0]
+    logging.info(f"🎯 Using default data_id: {default_data_id}")
+    
+    # 1. Get available agent skills from the registry
+    available_agents = f"Agent: pandas_data_analyst, Skill: analyze_data (Executes a data analysis task based on a user query and dataframe ID: {default_data_id})"
 
-    system_prompt = PLANNER_PROMPT
+    # 2. Format the prompt with dataframes information
+    prompt = ChatPromptTemplate.from_template(PLANNER_PROMPT_TEMPLATE)
     
-    prompt = ChatPromptTemplate.from_template(system_prompt)
+    # 3. Create a structured output LLM instance
+    llm = create_llm_instance(
+        session_id=state.get("session_id"),
+        tags=["planner", "a2a"]
+    ).with_structured_output(A2AExecutionPlan)
     
-    # Use a default LLM if not provided, for easier testing and standalone use
-    if llm is None:
-        llm = create_llm_instance(
-            # llm_type is now handled by the factory's default
-            session_id=state.session_id,
-            tags=["planner", "a2a"]
-        ).with_structured_output(A2AExecutionPlan)
-    
+    # 4. Invoke the LLM to get the structured plan
     try:
-        # LLM 호출
-        response = await llm.ainvoke(prompt.format(
-            user_prompt=state.user_prompt,
-            previous_steps=formatted_previous_steps,
-            available_agents=agent_skills_summary
+        user_prompt = next((msg.content for msg in state["messages"] if isinstance(msg, HumanMessage)), "")
+        if not user_prompt:
+            raise ValueError("No user prompt found in the state.")
+
+        # Enhanced user prompt with available data information
+        enhanced_prompt = f"""
+User Request: {user_prompt}
+
+Available Datasets:
+{chr(10).join(f"• {df_id}" for df_id in available_dataframes)}
+
+Default Dataset: {default_data_id}
+
+Note: If no specific dataset is mentioned in the request, use the default dataset '{default_data_id}'.
+        """.strip()
+
+        structured_response = llm.invoke(prompt.format(
+            user_prompt=enhanced_prompt,
+            available_agents=available_agents
         ))
         
-        # 응답 파싱
-        response_dict = json.loads(response.content)
-        
-        # 상태 업데이트
-        if "plan" in response_dict and "thought" in response_dict:
-            state.plan = response_dict["plan"]
-            state.thought = response_dict["thought"]
-            state.plan_str = json.dumps(response_dict, indent=2)
-            logging.info(f"✅ Plan generated successfully.\n{state.plan_str}")
-        else:
-            state.thought = "LLM response must include 'plan' and 'thought' keys."
-            logging.error(state.thought)
+        # 5. Format the plan into the structure expected by the executor
+        plan = []
+        for i, step in enumerate(structured_response.plan):
+            # Auto-assign data_id if not specified or invalid
+            step_data_id = step.data_id
+            if not step_data_id or step_data_id not in available_dataframes:
+                step_data_id = default_data_id
+                logging.info(f"🔧 Auto-assigned data_id '{default_data_id}' to step {i+1}")
             
-    except json.JSONDecodeError:
-        error_message = f"Failed to parse LLM response into JSON. Response:\n{response.content}"
-        state.thought = error_message
-        logging.error(error_message)
-    except Exception as e:
-        error_message = f"An unexpected error occurred in planner: {e}"
-        state.thought = error_message
-        logging.error(error_message, exc_info=True)
+            plan.append({
+                "step": i + 1,
+                "agent_name": step.agent_name,
+                "skill_name": step.skill_name,
+                "parameters": {
+                    "user_instructions": step.instructions,
+                    "data_id": step_data_id  # Ensured to be valid
+                },
+                "reasoning": step.reasoning
+            })
         
+        state["plan"] = plan
+        logging.info(f"✅ Plan generated successfully with {len(plan)} steps.")
+        logging.info(f"📋 Plan details: {plan}")
+        
+    except Exception as e:
+        logging.error(f"An error occurred in the planner: {e}", exc_info=True)
+        state["error"] = f"Planner failed: {str(e)}"
+        # Create a default fallback plan with available data
+        if available_dataframes:
+            state["plan"] = [{
+                "step": 1,
+                "agent_name": "pandas_data_analyst",
+                "skill_name": "analyze_data",
+                "parameters": {
+                    "user_instructions": user_prompt if 'user_prompt' in locals() else "Analyze the data",
+                    "data_id": default_data_id
+                },
+                "reasoning": "Fallback plan with available data"
+            }]
+            logging.info(f"🔧 Created fallback plan with data_id: {default_data_id}")
+        else:
+            state["plan"] = []
+
     return state
 
 def extract_plan_from_text(content: str, user_request: str) -> Dict:

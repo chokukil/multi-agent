@@ -1,12 +1,19 @@
 import streamlit as st
+from ui.sidebar_components import render_sidebar
+from core.utils.logging import setup_logging
 
+# --- Page Configuration ---
 st.set_page_config(
-    page_title="CherryAI 2.0 - Home",
+    page_title="Cherry AI - Main",
     page_icon="🍒",
     layout="wide"
 )
 
-st.title("🍒 Welcome to CherryAI 2.0!")
+# --- Initial Setup ---
+setup_logging()
+
+# --- Main App ---
+st.title("🍒 Cherry AI: Your Data Science Partner")
 
 st.markdown("""
 ### An AI-powered, agent-based platform for modern data science.
