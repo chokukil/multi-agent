@@ -128,54 +128,88 @@ class PlanVisualization:
             status_text.text("✅ 계획 표시 완료!")
     
     def _create_step_card(self, step: dict, step_num: int, total_steps: int) -> None:
-        """개별 단계를 카드로 표시"""
+        """개별 단계를 카드로 표시 - A2A SDK 호환 개선 버전"""
+        # A2A 계획 구조 지원
         agent_name = step.get('agent_name', 'Unknown Agent')
         skill_name = step.get('skill_name', 'Unknown Skill')
         
+        # 파라미터에서 상세 정보 추출
+        parameters = step.get('parameters', {})
+        user_instructions = parameters.get('user_instructions', '지시사항이 없습니다.')
+        data_id = parameters.get('data_id', 'Unknown')
+        reasoning = step.get('reasoning', '추론 정보가 없습니다.')
+        
         # 단계별 색상 지정
         colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c']
-        color = colors[step_num % len(colors)]
+        color = colors[(step_num - 1) % len(colors)]
+        
+        # 에이전트 아이콘 결정
+        agent_icon = "🧠" if "pandas" in agent_name.lower() else "🤖"
         
         card_html = f"""
         <div style="
             background: linear-gradient(135deg, {color}15 0%, {color}05 100%);
             border-left: 4px solid {color};
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 18px;
+            margin: 12px 0;
+            border-radius: 12px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         ">
-            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; margin-bottom: 12px;">
                 <div style="
                     background: {color};
                     color: white;
-                    width: 30px;
-                    height: 30px;
+                    width: 35px;
+                    height: 35px;
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     font-weight: bold;
-                    margin-right: 12px;
+                    margin-right: 15px;
+                    font-size: 16px;
                 ">
                     {step_num}
                 </div>
-                <h4 style="margin: 0; color: #2c3e50;">
-                    🤖 {agent_name}
-                </h4>
+                <div>
+                    <h4 style="margin: 0; color: #2c3e50; display: flex; align-items: center;">
+                        {agent_icon} {agent_name}
+                    </h4>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #7f8c8d;">
+                        📊 데이터: <strong>{data_id}</strong>
+                    </p>
+                </div>
             </div>
-            <p style="margin: 5px 0; color: #34495e; font-size: 14px;">
-                <strong>수행 작업:</strong> {skill_name}
-            </p>
+            
+            <div style="margin-bottom: 12px;">
+                <p style="margin: 0; color: #34495e; font-size: 14px; font-weight: 600;">
+                    🎯 <strong>수행 작업:</strong> {skill_name}
+                </p>
+            </div>
+            
             <div style="
-                background: rgba(255,255,255,0.8);
-                padding: 8px 12px;
+                background: rgba(255,255,255,0.9);
+                padding: 12px;
+                border-radius: 8px;
+                margin-bottom: 8px;
+                border-left: 3px solid {color};
+            ">
+                <p style="margin: 0; font-size: 13px; color: #2c3e50; line-height: 1.4;">
+                    <strong>📝 상세 지시사항:</strong><br>
+                    {user_instructions}
+                </p>
+            </div>
+            
+            <div style="
+                background: rgba(52, 152, 219, 0.1);
+                padding: 10px 12px;
                 border-radius: 6px;
                 font-size: 12px;
-                color: #7f8c8d;
-                margin-top: 8px;
+                color: #34495e;
+                border-left: 2px solid #3498db;
             ">
-                💡 이 단계에서는 {agent_name}가 {skill_name} 작업을 수행합니다.
+                <strong>💡 추론:</strong> {reasoning}
             </div>
         </div>
         """

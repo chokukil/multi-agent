@@ -44,8 +44,7 @@ class A2AExecutionPlan(BaseModel):
 # ---------------- Planner Node 재작성 ----------------
 
 PLANNER_PROMPT_TEMPLATE = """
-You are an expert planner for a multi-agent AI system. Your goal is to create a step-by-step execution plan to fulfill the user's request.
-You must use the available agents and their skills to build the plan.
+You are an expert data analysis planner for a multi-agent AI system. Your goal is to create a detailed, step-by-step execution plan to fulfill the user's request with comprehensive analysis.
 
 **Available Agents and Skills:**
 {available_agents}
@@ -53,13 +52,30 @@ You must use the available agents and their skills to build the plan.
 **User's Request:**
 {user_prompt}
 
-**Important Rules:**
-1.  The plan must be a sequence of steps. Each step calls one skill from one agent.
-2.  The `data_id` for the first step is always 'main_df'.
-3.  For subsequent steps, the `data_id` will be the output of the previous step, so you can just pass 'main_df' and the system will handle it.
-4.  Break down the user's request into logical, sequential steps.
+**Planning Guidelines:**
+1. Create a thorough analysis plan with 3-5 detailed steps
+2. Each step should have specific, actionable instructions
+3. Include data exploration, statistical analysis, and insights generation
+4. Provide clear reasoning for each step
+5. Use data_id '{default_data_id}' for all steps
 
-Now, generate a complete execution plan based on the user's request.
+**Step Requirements:**
+- `agent_name`: Use 'pandas_data_analyst' (available agent)
+- `skill_name`: Use 'analyze_data' (available skill)
+- `instructions`: Write detailed, specific instructions for what analysis to perform
+- `data_id`: Use '{default_data_id}' 
+- `reasoning`: Explain why this step is important for answering the user's request
+
+**Analysis Focus Areas (include relevant ones):**
+- Data structure and quality assessment
+- Descriptive statistics and distributions
+- Correlation analysis and relationships
+- Trend analysis and patterns
+- Data visualization recommendations
+- Key insights and actionable findings
+- Business implications and recommendations
+
+Create a comprehensive plan that will provide the user with valuable insights and thorough analysis of their data.
 """
 
 def planner_node(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -119,7 +135,8 @@ Note: If no specific dataset is mentioned in the request, use the default datase
 
         structured_response = llm.invoke(prompt.format(
             user_prompt=enhanced_prompt,
-            available_agents=available_agents
+            available_agents=available_agents,
+            default_data_id=default_data_id
         ))
         
         # 5. Format the plan into the structure expected by the executor

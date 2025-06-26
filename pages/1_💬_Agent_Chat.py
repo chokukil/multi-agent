@@ -103,31 +103,37 @@ async def execute_and_render(execution_state: dict):
             
             elif event_type == "agent_end":
                 if step_num in active_statuses:
-                    active_statuses[step_num].update(label=f"✅ **Step {step_num}:** `{data['agent_name']}` 완료!", state="complete", expanded=False)
-                
-                # 🆕 A2A 메시지 처리 개선
-                if 'a2a_response' in data:
-                    # A2A 응답을 사용자 친화적으로 변환
-                    a2a_message = {"role": "assistant", "content": {"a2a_message": data['a2a_response']}}
-                    st.session_state.messages.append(a2a_message)
+                    # A2A 응답 성공 여부 확인
+                    output = data.get('output', {})
+                    is_success = output.get('success', True)  # 기본값을 True로 설정
                     
-                    with st.chat_message("assistant"):
-                        st.session_state.message_renderer.render_a2a_message(data['a2a_response'])
-                else:
-                    # 기존 아티팩트 처리
-                    artifact_message = {"role": "assistant", "content": {"artifact": data}}
-                    st.session_state.messages.append(artifact_message)
-                    
-                    with st.chat_message("assistant"):
-                        agent_name = data.get('agent_name', 'Unknown Agent')
-                        beautiful_results = BeautifulResults()
-                        beautiful_results.display_analysis_result(data, agent_name)
+                    if is_success and not output.get('error'):
+                        # 성공적인 완료
+                        active_statuses[step_num].update(label=f"✅ **Step {step_num}:** `{data['agent_name']}` 완료!", state="complete", expanded=False)
+                        
+                        # A2A 응답 처리 - 성공한 경우 내용 표시
+                        if output.get('content'):
+                            with active_statuses[step_num]:
+                                st.success(f"✅ {data['agent_name']} 분석 완료")
+                                
+                                # 응답 내용을 간단히 표시 (처음 200자)
+                                content_preview = str(output['content'])[:200]
+                                if len(str(output['content'])) > 200:
+                                    content_preview += "..."
+                                st.info(f"📊 결과 미리보기: {content_preview}")
+                    else:
+                        # 실패한 경우
+                        error_msg = output.get('error', '알 수 없는 오류')
+                        active_statuses[step_num].update(label=f"❌ **Step {step_num}:** `{data['agent_name']}` 오류 발생", state="error", expanded=True)
+                        with active_statuses[step_num]:
+                            st.error(f"오류: {error_msg}")
                 
             elif event_type == "agent_error":
                 if step_num in active_statuses:
                     active_statuses[step_num].update(label=f"❌ **Step {step_num}:** `{data['agent_name']}` 오류 발생", state="error", expanded=True)
                     with active_statuses[step_num]:
-                        st.error(data.get("error_message", "알 수 없는 오류"))
+                        error_msg = data.get("error", data.get("error_message", "알 수 없는 오류"))
+                        st.error(f"실행 오류: {error_msg}")
             
             queue.task_done()
 
@@ -139,10 +145,46 @@ async def execute_and_render(execution_state: dict):
     
     await progress_stream_manager.unregister_queue(queue)
     final_state = await executor_task
+    
     if final_state and final_state.get("error"):
-         st.error(f"최종 실행 실패: {final_state['error']}")
+        st.error(f"최종 실행 실패: {final_state['error']}")
     else:
-         st.success("🎉 모든 분석 단계가 성공적으로 완료되었습니다!")
+        st.success("🎉 모든 분석 단계가 성공적으로 완료되었습니다!")
+        
+        # 최종 분석 결과 통합 표시
+        step_outputs = final_state.get("step_outputs", {})
+        if step_outputs:
+            with st.expander("📊 **최종 분석 결과**", expanded=True):
+                for step_num, output in step_outputs.items():
+                    if output.get('success') and output.get('content'):
+                        st.markdown(f"### Step {step_num} 결과")
+                        content = output['content']
+                        
+                        # 마크다운 형식으로 결과 표시
+                        if isinstance(content, str) and len(content) > 500:
+                            # 긴 내용은 탭으로 구분
+                            tab1, tab2 = st.tabs(["요약", "전체 결과"])
+                            with tab1:
+                                st.markdown(content[:500] + "...")
+                            with tab2:
+                                st.markdown(content)
+                        else:
+                            st.markdown(str(content))
+                        
+                        st.divider()
+            
+            # 최종 결과를 세션 메시지에 저장
+            combined_results = []
+            for step_num, output in step_outputs.items():
+                if output.get('success') and output.get('content'):
+                    combined_results.append(f"**Step {step_num}:**\n{output['content']}")
+            
+            if combined_results:
+                final_content = "\n\n---\n\n".join(combined_results)
+                st.session_state.messages.append({
+                    "role": "assistant", 
+                    "content": f"# 📊 최종 분석 결과\n\n{final_content}"
+                })
 
 def process_user_query(prompt: str):
     """Processes the user query through the new A2A-based plan-and-execute flow."""
@@ -179,9 +221,38 @@ def process_user_query(prompt: str):
                 thinking_stream.add_thought("완벽한 분석 계획이 완성되었습니다!", "success")
                 thinking_stream.finish_thinking("계획 수립 완료! 이제 실행을 시작합니다.")
                 
-                # 🆕 아름다운 계획 시각화
+                # 🆕 아름다운 계획 시각화 (HTML 렌더링 수정)
                 plan_viz = PlanVisualization()
-                plan_viz.display_plan(plan_state["plan"], "🎯 데이터 분석 실행 계획")
+                
+                # 계획 표시를 컨테이너 내에서 처리
+                plan_container = st.container()
+                with plan_container:
+                    st.markdown("### 🎯 데이터 분석 실행 계획")
+                    
+                    # 각 단계를 마크다운으로 깔끔하게 표시 (HTML 태그 문제 해결)
+                    for i, step in enumerate(plan_state["plan"], 1):
+                        agent_name = step.get("agent_name", "Unknown Agent")
+                        skill_name = step.get("skill_name", "unknown_skill")
+                        params = step.get("parameters", {})
+                        user_instructions = params.get("user_instructions", "No instructions")
+                        reasoning = step.get("reasoning", "No reasoning provided")
+                        data_id = params.get("data_id", "unknown")
+                        
+                        # 단계별 색상
+                        colors = ['🔵', '🔴', '🟢', '🟡', '🟣', '🟠']
+                        color_icon = colors[i % len(colors)]
+                        
+                        # 마크다운으로 깔끔하게 표시
+                        step_markdown = f"""
+**{color_icon} Step {i}: {agent_name}**
+- 📊 **데이터**: `{data_id}`
+- 🎯 **작업**: `{skill_name}`
+- 📝 **지시사항**: {user_instructions}
+- 💡 **추론**: {reasoning}
+
+---
+"""
+                        st.markdown(step_markdown)
                 
                 status.update(label="✅ 계획 완성!", state="complete", expanded=False)
                 st.session_state.messages.append({"role": "assistant", "content": {"plan_summary": "계획이 성공적으로 수립되었습니다."}})

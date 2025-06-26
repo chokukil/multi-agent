@@ -11,6 +11,41 @@
 -   **동적인 시스템 구성**: 사용자는 UI를 통해 직접 에이전트를 추가/제거하고, 시스템 설정을 변경하며, 전체 구성을 템플릿으로 저장하고 불러올 수 있습니다.
 -   **실시간 인터랙션 및 시각화**: Streamlit 기반의 인터랙티브한 UI를 통해 실시간으로 시스템과 소통하고, 분석 결과와 시스템 아키텍처를 시각적으로 확인할 수 있습니다.
 
+## 🆕 A2A Protocol Standard Compliance
+
+**Important Update**: CherryAI now fully complies with the A2A (Agent-to-Agent) protocol standard by using the official **a2a-sdk** package.
+
+### A2A Implementation Details
+
+- **Server**: Uses `A2AFastAPIApplication` with standard `DefaultRequestHandler`
+- **Client**: Uses `A2AClient` with proper agent card discovery
+- **Components**: Complete integration with `AgentExecutor`, `TaskStore`, and `RequestContext`
+- **Standards**: Full compliance with A2A protocol specification v0.2.0+
+
+### Key A2A Features
+
+✅ **Standard Agent Card**: Served at `/.well-known/agent.json`  
+✅ **Message Handling**: Complete A2A message protocol support  
+✅ **Task Management**: Integrated with A2A task lifecycle  
+✅ **Streaming**: Support for real-time communication  
+✅ **Error Handling**: Proper A2A error responses  
+
+### A2A Architecture
+
+```
+┌─────────────────┐    A2A Protocol    ┌─────────────────┐
+│   CherryAI UI   │ ◄───────────────► │ Pandas A2A Agent│
+│   (Client)      │   (Standard SDK)   │   (Server)      │
+└─────────────────┘                    └─────────────────┘
+        │                                       │
+        │              A2A SDK                  │
+        ▼                                       ▼
+┌─────────────────┐                    ┌─────────────────┐
+│  A2AExecutor    │                    │ PandasExecutor  │
+│  (Planner)      │                    │ (Analyzer)      │
+└─────────────────┘                    └─────────────────┘
+```
+
 ## 🏛️ 프로젝트 구조
 
 ```
