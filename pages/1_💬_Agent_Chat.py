@@ -160,16 +160,8 @@ async def execute_and_render(execution_state: dict):
                         st.markdown(f"### Step {step_num} 결과")
                         content = output['content']
                         
-                        # 마크다운 형식으로 결과 표시
-                        if isinstance(content, str) and len(content) > 500:
-                            # 긴 내용은 탭으로 구분
-                            tab1, tab2 = st.tabs(["요약", "전체 결과"])
-                            with tab1:
-                                st.markdown(content[:500] + "...")
-                            with tab2:
-                                st.markdown(content)
-                        else:
-                            st.markdown(str(content))
+                        # 마크다운 형식으로 결과 표시 - 전체 내용 기본 표시
+                        st.markdown(str(content))
                         
                         st.divider()
             

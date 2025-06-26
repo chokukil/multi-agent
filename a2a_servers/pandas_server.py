@@ -83,63 +83,58 @@ class PandasDataAnalysisAgent:
     async def _perform_targeted_analysis(self, df, df_id: str, user_instruction: str) -> str:
         """LLM이 지시사항을 이해하고 적절한 분석을 자동으로 선택하여 수행"""
         
-        # LLM에게 지시사항을 해석하고 적절한 분석을 요청
-        analysis_director_prompt = f"""
-당신은 데이터 분석 전문가입니다. 사용자의 요청을 분석하여 가장 적절한 데이터 분석을 수행해주세요.
-
-데이터셋 정보:
-- 이름: {df_id}
-- 크기: {df.shape[0]:,}행 × {df.shape[1]}열
-- 컬럼: {', '.join(df.columns[:10])}{'...' if len(df.columns) > 10 else ''}
-
-사용자 요청: "{user_instruction}"
-
-위 요청에 가장 적합한 분석을 수행하고, 다음 형식으로 응답해주세요:
-
-# 📊 **[분석 제목]**
-
-**요청**: {user_instruction}
-**데이터셋**: {df_id}
-**분석 시간**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-## [적절한 섹션들]
-
-[실제 데이터를 활용한 구체적인 분석 결과]
-
-사용자의 요청을 정확히 이해하고, 데이터의 특성을 고려하여 가장 유용한 분석을 제공해주세요.
-바이너리 타겟 변수가 있다면 해당 변수를 중심으로 한 분석을, 일반 데이터라면 적절한 EDA를 수행해주세요.
-"""
-
         try:
             # LLM 호출을 위한 설정
             from langchain_ollama import ChatOllama
             
-            # Ollama LLM 초기화
+            # Ollama LLM 초기화 - gemma3 모델 사용
             llm = ChatOllama(
-                model="qwen2.5:latest",
+                model="gemma3:latest",
                 temperature=0.1,
                 base_url="http://localhost:11434"
             )
             
-            # 데이터 컨텍스트 준비
-            data_context = self._prepare_data_context(df)
+            # 분석 유형 선택을 위한 프롬프트
+            analysis_selector_prompt = f"""
+당신은 데이터 분석 전문가입니다. 사용자의 요청을 분석하여 가장 적절한 분석 유형을 선택해주세요.
+
+사용자 요청: "{user_instruction}"
+
+다음 중 하나를 선택해주세요:
+1. data_overview - 데이터 구조, 컬럼 정보, 기본 개요 분석
+2. descriptive_stats - 기술통계, 분포, 요약 통계 분석  
+3. correlation_analysis - 변수 간 상관관계, 관계성 분석
+4. trend_analysis - 패턴, 트렌드, 그룹별 분석
+5. insights_summary - 핵심 인사이트, 결론, 추천사항
+
+오직 숫자만 응답해주세요 (1, 2, 3, 4, 또는 5):
+"""
             
-            # 최종 프롬프트 구성
-            final_prompt = f"""{analysis_director_prompt}
-
-데이터 컨텍스트:
-{data_context}
-
-사용자가 요청한 구체적인 분석을 데이터에 기반하여 수행해주세요."""
-
-            # LLM에게 분석 요청
-            response = await llm.ainvoke(final_prompt)
+            # LLM에게 분석 유형 선택 요청
+            response = await llm.ainvoke(analysis_selector_prompt)
             
             # 응답 텍스트 추출
             if hasattr(response, 'content'):
-                return response.content
+                selection = response.content.strip()
             else:
-                return str(response)
+                selection = str(response).strip()
+            
+            logger.info(f"🎯 LLM이 선택한 분석 유형: {selection}")
+            
+            # 선택된 분석 함수 실행
+            if selection == "1":
+                return self._generate_data_overview(df, df_id, user_instruction)
+            elif selection == "2":
+                return self._generate_descriptive_stats(df, df_id, user_instruction)
+            elif selection == "3":
+                return self._generate_correlation_analysis(df, df_id, user_instruction)
+            elif selection == "4":
+                return self._generate_trend_analysis(df, df_id, user_instruction)
+            elif selection == "5":
+                return self._generate_insights_summary(df, df_id, user_instruction)
+            else:
+                logger.warning(f"⚠️ 알 수 없는 선택: {selection}, 종합 분석으로 폴백")
+                return self._generate_comprehensive_analysis(df, df_id, user_instruction)
                 
         except Exception as e:
             logger.error(f"❌ LLM 분석 중 오류: {e}")
@@ -153,46 +148,71 @@ class PandasDataAnalysisAgent:
         # 기본 정보
         context_parts.append(f"데이터 크기: {df.shape[0]:,}행 × {df.shape[1]}열")
         
-        # 컬럼 정보와 데이터 타입
+        # 컬럼 정보와 데이터 타입 (범용적)
         context_parts.append("컬럼 정보:")
+        numeric_count = 0
+        categorical_count = 0
+        binary_count = 0
+        
         for col, dtype in zip(df.columns, df.dtypes):
             sample_values = df[col].dropna().head(3).tolist()
-            context_parts.append(f"- {col} ({dtype}): 예시값 {sample_values}")
+            
+            # 컬럼 유형 분류
+            if df[col].dtype in ['int64', 'float64']:
+                if df[col].nunique() == 2 and set(df[col].unique()) == {0, 1}:
+                    binary_count += 1
+                    col_type = f"바이너리{binary_count}"
+                else:
+                    numeric_count += 1
+                    col_type = f"수치형{numeric_count}"
+            else:
+                categorical_count += 1
+                col_type = f"범주형{categorical_count}"
+            
+            context_parts.append(f"- {col_type} ({dtype}): 예시값 {sample_values}")
         
-        # 결측값 정보
+        # 결측값 정보 (범용적)
         missing_info = df.isnull().sum()
         if missing_info.sum() > 0:
             context_parts.append("\n결측값:")
+            missing_count = 0
             for col, count in missing_info.items():
                 if count > 0:
-                    context_parts.append(f"- {col}: {count}개 ({count/len(df)*100:.1f}%)")
+                    missing_count += 1
+                    col_type = "변수" + str(missing_count)
+                    context_parts.append(f"- {col_type}: {count}개 ({count/len(df)*100:.1f}%)")
         
-        # 수치형 데이터 기본 통계
+        # 수치형 데이터 기본 통계 (범용적)
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 0:
             context_parts.append("\n수치형 변수 요약:")
             desc = df[numeric_cols].describe()
+            numeric_display_count = 0
             for col in numeric_cols[:3]:  # 처음 3개만
                 if col in desc.columns:
-                    context_parts.append(f"- {col}: 평균 {desc.loc['mean', col]:.2f}, 범위 {desc.loc['min', col]:.2f}~{desc.loc['max', col]:.2f}")
+                    numeric_display_count += 1
+                    col_type = f"수치형{numeric_display_count}"
+                    context_parts.append(f"- {col_type}: 평균 {desc.loc['mean', col]:.2f}, 범위 {desc.loc['min', col]:.2f}~{desc.loc['max', col]:.2f}")
         
-        # 범주형 데이터 정보
+        # 범주형 데이터 정보 (범용적)
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns
         if len(categorical_cols) > 0:
             context_parts.append("\n범주형 변수 정보:")
-            for col in categorical_cols[:3]:  # 처음 3개만
+            for i, col in enumerate(categorical_cols[:3], 1):  # 처음 3개만
                 unique_count = df[col].nunique()
                 top_values = df[col].value_counts().head(3)
-                context_parts.append(f"- {col}: {unique_count}개 고유값, 상위값 {dict(top_values)}")
+                context_parts.append(f"- 범주형{i}: {unique_count}개 고유값, 상위값 {dict(top_values)}")
         
         # 바이너리 타겟 컬럼 자동 감지 (범용적)
         binary_target_info = []
+        binary_target_count = 0
         for col in df.columns:
             if df[col].dtype in ['int64', 'float64'] and df[col].nunique() == 2:
                 unique_vals = sorted(df[col].unique())
                 if set(unique_vals) == {0, 1}:
+                    binary_target_count += 1
                     positive_rate = df[col].mean() * 100
-                    binary_target_info.append(f"{col}: {positive_rate:.1f}% 양성")
+                    binary_target_info.append(f"바이너리{binary_target_count}: {positive_rate:.1f}% 양성")
         
         if binary_target_info:
             context_parts.append(f"\n바이너리 타겟: {', '.join(binary_target_info)}")
@@ -200,7 +220,7 @@ class PandasDataAnalysisAgent:
         return "\n".join(context_parts)
 
     def _generate_data_overview(self, df, df_id: str, instruction: str) -> str:
-        """데이터 구조 및 개요 분석"""
+        """데이터 구조 및 개요 분석 (완전 범용화)"""
         analysis_parts = []
         
         analysis_parts.append(f"# 📋 **데이터 구조 분석 보고서**\n")
@@ -214,12 +234,31 @@ class PandasDataAnalysisAgent:
         analysis_parts.append(f"- **총 열 수**: {df.shape[1]}개")
         analysis_parts.append(f"- **메모리 사용량**: {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
         
-        # 컬럼별 데이터 타입
-        analysis_parts.append("\n## 🔍 **컬럼별 상세 정보**")
+        # 컬럼별 데이터 타입 (범용화)
+        analysis_parts.append("\n## 🔍 **변수별 상세 정보**")
+        
+        # 변수 유형별 카운터
+        numeric_count = 0
+        categorical_count = 0
+        binary_count = 0
+        
         for i, (col, dtype) in enumerate(zip(df.columns, df.dtypes), 1):
             non_null_count = df[col].count()
             null_count = df[col].isnull().sum()
-            analysis_parts.append(f"{i}. **{col}** ({dtype})")
+            
+            # 변수 유형 결정
+            if df[col].dtype in ['int64', 'float64']:
+                if df[col].nunique() == 2 and set(df[col].unique()) == {0, 1}:
+                    binary_count += 1
+                    var_name = f"바이너리{binary_count}"
+                else:
+                    numeric_count += 1
+                    var_name = f"수치형{numeric_count}"
+            else:
+                categorical_count += 1
+                var_name = f"범주형{categorical_count}"
+            
+            analysis_parts.append(f"{i}. **{var_name}** ({dtype})")
             analysis_parts.append(f"   - 유효값: {non_null_count:,}개 ({non_null_count/len(df)*100:.1f}%)")
             if null_count > 0:
                 analysis_parts.append(f"   - 결측값: {null_count:,}개 ({null_count/len(df)*100:.1f}%)")
@@ -227,7 +266,7 @@ class PandasDataAnalysisAgent:
         return "\n".join(analysis_parts)
     
     def _generate_descriptive_stats(self, df, df_id: str, instruction: str) -> str:
-        """기술통계 및 분포 분석"""
+        """기술통계 및 분포 분석 (완전 범용화)"""
         analysis_parts = []
         
         analysis_parts.append(f"# 📈 **기술통계 분석 보고서**\n")
@@ -235,34 +274,46 @@ class PandasDataAnalysisAgent:
         analysis_parts.append(f"**데이터셋**: {df_id}")
         analysis_parts.append(f"**분석 시간**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         
-        # 수치형 변수 통계
+        # 수치형 변수 통계 (범용화)
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 0:
             analysis_parts.append("## 🔢 **수치형 변수 기술통계**")
             desc = df[numeric_cols].describe()
+            
+            numeric_count = 0
+            binary_count = 0
+            
             for col in numeric_cols:
                 if col in desc.columns:
-                    analysis_parts.append(f"\n**{col}**:")
+                    # 바이너리 변수와 일반 수치형 변수 구분
+                    if df[col].nunique() == 2 and set(df[col].unique()) == {0, 1}:
+                        binary_count += 1
+                        var_name = f"바이너리{binary_count}"
+                    else:
+                        numeric_count += 1
+                        var_name = f"수치형{numeric_count}"
+                    
+                    analysis_parts.append(f"\n**{var_name}**:")
                     analysis_parts.append(f"- 평균: {desc.loc['mean', col]:.2f}")
                     analysis_parts.append(f"- 중앙값: {desc.loc['50%', col]:.2f}")
                     analysis_parts.append(f"- 표준편차: {desc.loc['std', col]:.2f}")
                     analysis_parts.append(f"- 최솟값: {desc.loc['min', col]:.2f}")
                     analysis_parts.append(f"- 최댓값: {desc.loc['max', col]:.2f}")
         
-        # 범주형 변수 통계
+        # 범주형 변수 통계 (범용화)
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns
         if len(categorical_cols) > 0:
             analysis_parts.append("\n## 📝 **범주형 변수 빈도 분석**")
-            for col in categorical_cols[:3]:  # 상위 3개만
+            for i, col in enumerate(categorical_cols[:3], 1):  # 상위 3개만
                 value_counts = df[col].value_counts().head(5)
-                analysis_parts.append(f"\n**{col} (상위 5개 값):**")
+                analysis_parts.append(f"\n**범주형{i} (상위 5개 값):**")
                 for value, count in value_counts.items():
                     analysis_parts.append(f"- {value}: {count:,}개 ({count/len(df)*100:.1f}%)")
         
         return "\n".join(analysis_parts)
     
     def _generate_correlation_analysis(self, df, df_id: str, instruction: str) -> str:
-        """상관관계 분석"""
+        """상관관계 분석 (완전 범용화)"""
         analysis_parts = []
         
         analysis_parts.append(f"# 🔗 **상관관계 분석 보고서**\n")
@@ -270,10 +321,23 @@ class PandasDataAnalysisAgent:
         analysis_parts.append(f"**데이터셋**: {df_id}")
         analysis_parts.append(f"**분석 시간**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         
-        # 수치형 변수들 간의 상관관계
+        # 수치형 변수들 간의 상관관계 (범용화)
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 1:
             corr_matrix = df[numeric_cols].corr()
+            
+            # 컬럼명을 범용적 이름으로 매핑
+            col_name_mapping = {}
+            numeric_count = 0
+            binary_count = 0
+            
+            for col in numeric_cols:
+                if df[col].nunique() == 2 and set(df[col].unique()) == {0, 1}:
+                    binary_count += 1
+                    col_name_mapping[col] = f"바이너리{binary_count}"
+                else:
+                    numeric_count += 1
+                    col_name_mapping[col] = f"수치형{numeric_count}"
             
             analysis_parts.append("## 📊 **수치형 변수 상관관계**")
             
@@ -284,22 +348,26 @@ class PandasDataAnalysisAgent:
                     corr_val = corr_matrix.iloc[i, j]
                     if abs(corr_val) > 0.5:
                         col1, col2 = corr_matrix.columns[i], corr_matrix.columns[j]
-                        strong_correlations.append((col1, col2, corr_val))
+                        var1_name = col_name_mapping.get(col1, col1)
+                        var2_name = col_name_mapping.get(col2, col2)
+                        strong_correlations.append((var1_name, var2_name, corr_val))
             
             if strong_correlations:
                 analysis_parts.append("\n**강한 상관관계 (|r| > 0.5):**")
-                for col1, col2, corr_val in sorted(strong_correlations, key=lambda x: abs(x[2]), reverse=True):
-                    analysis_parts.append(f"- **{col1}** ↔ **{col2}**: {corr_val:.3f}")
+                for var1, var2, corr_val in sorted(strong_correlations, key=lambda x: abs(x[2]), reverse=True):
+                    analysis_parts.append(f"- **{var1}** ↔ **{var2}**: {corr_val:.3f}")
             else:
                 analysis_parts.append("\n강한 상관관계(|r| > 0.5)를 보이는 변수 쌍이 없습니다.")
             
-            # 상관관계 매트릭스 요약
+            # 상관관계 매트릭스 요약 (범용화)
             analysis_parts.append("\n**전체 상관관계 매트릭스:**")
             for col in numeric_cols[:4]:  # 상위 4개 변수만
-                analysis_parts.append(f"\n**{col}과의 상관관계:**")
+                var_name = col_name_mapping.get(col, col)
+                analysis_parts.append(f"\n**{var_name}과의 상관관계:**")
                 correlations = corr_matrix[col].drop(col).sort_values(key=abs, ascending=False)
                 for other_col, corr_val in correlations.head(3).items():
-                    analysis_parts.append(f"- {other_col}: {corr_val:.3f}")
+                    other_var_name = col_name_mapping.get(other_col, other_col)
+                    analysis_parts.append(f"- {other_var_name}: {corr_val:.3f}")
         else:
             analysis_parts.append("## ⚠️ **상관관계 분석 불가**")
             analysis_parts.append("수치형 변수가 2개 미만이어서 상관관계 분석을 수행할 수 없습니다.")
@@ -307,7 +375,7 @@ class PandasDataAnalysisAgent:
         return "\n".join(analysis_parts)
     
     def _generate_trend_analysis(self, df, df_id: str, instruction: str) -> str:
-        """트렌드 및 패턴 분석"""
+        """트렌드 및 패턴 분석 (완전 범용화)"""
         analysis_parts = []
         
         analysis_parts.append(f"# 📈 **트렌드 및 패턴 분석 보고서**\n")
@@ -315,7 +383,23 @@ class PandasDataAnalysisAgent:
         analysis_parts.append(f"**데이터셋**: {df_id}")
         analysis_parts.append(f"**분석 시간**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         
-        # 범용적인 패턴 분석
+        # 컬럼명 매핑 생성
+        col_name_mapping = {}
+        numeric_count = 0
+        categorical_count = 0
+        binary_count = 0
+        
+        for col in df.columns:
+            if df[col].dtype in ['int64', 'float64']:
+                if df[col].nunique() == 2 and set(df[col].unique()) == {0, 1}:
+                    binary_count += 1
+                    col_name_mapping[col] = f"바이너리{binary_count}"
+                else:
+                    numeric_count += 1
+                    col_name_mapping[col] = f"수치형{numeric_count}"
+            else:
+                categorical_count += 1
+                col_name_mapping[col] = f"범주형{categorical_count}"
         
         # 1. 바이너리 타겟 변수 패턴 분석 (범용적)
         binary_target_cols = []
@@ -329,15 +413,17 @@ class PandasDataAnalysisAgent:
             analysis_parts.append("## 🎯 **바이너리 타겟 변수 패턴 분석**")
             
             for target_col in binary_target_cols:
+                target_name = col_name_mapping.get(target_col, target_col)
                 positive_rate = df[target_col].mean() * 100
-                analysis_parts.append(f"\n**{target_col} 분포:**")
+                analysis_parts.append(f"\n**{target_name} 분포:**")
                 analysis_parts.append(f"- 양성(1): {df[target_col].sum():,}개 ({positive_rate:.1f}%)")
                 analysis_parts.append(f"- 음성(0): {(df[target_col] == 0).sum():,}개 ({100-positive_rate:.1f}%)")
                 
                 # 범주형 변수와의 관계 분석
                 categorical_cols = df.select_dtypes(include=['object', 'category']).columns
                 for cat_col in categorical_cols[:2]:  # 상위 2개 범주형 변수
-                    analysis_parts.append(f"\n**{cat_col}별 {target_col} 패턴:**")
+                    cat_name = col_name_mapping.get(cat_col, cat_col)
+                    analysis_parts.append(f"\n**{cat_name}별 {target_name} 패턴:**")
                     group_stats = df.groupby(cat_col)[target_col].agg(['count', 'sum', 'mean'])
                     for category in group_stats.index[:4]:  # 상위 4개 카테고리
                         total = group_stats.loc[category, 'count']
@@ -345,29 +431,31 @@ class PandasDataAnalysisAgent:
                         rate = group_stats.loc[category, 'mean'] * 100
                         analysis_parts.append(f"- **{category}**: {positive}/{total}개 ({rate:.1f}%)")
         
-        # 2. 범주형 변수 분포 패턴
+        # 2. 범주형 변수 분포 패턴 (범용화)
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns
         if len(categorical_cols) > 0:
             analysis_parts.append("\n## 📊 **범주형 변수 분포 패턴**")
             for col in categorical_cols[:3]:  # 상위 3개만
+                col_name = col_name_mapping.get(col, col)
                 value_counts = df[col].value_counts()
                 total_unique = df[col].nunique()
-                analysis_parts.append(f"\n**{col} ({total_unique}개 고유값):**")
+                analysis_parts.append(f"\n**{col_name} ({total_unique}개 고유값):**")
                 for i, (value, count) in enumerate(value_counts.head(4).items()):
                     analysis_parts.append(f"{i+1}. {value}: {count:,}개 ({count/len(df)*100:.1f}%)")
         
-        # 3. 수치형 변수 분포 패턴
+        # 3. 수치형 변수 분포 패턴 (범용화)
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         if len(numeric_cols) > 0:
             analysis_parts.append("\n## 📈 **수치형 변수 분포 특성**")
             desc = df[numeric_cols].describe()
             for col in numeric_cols[:3]:  # 상위 3개만
                 if col in desc.columns:
+                    col_name = col_name_mapping.get(col, col)
                     skewness = df[col].skew()
                     outlier_threshold = desc.loc['75%', col] + 1.5 * (desc.loc['75%', col] - desc.loc['25%', col])
                     outliers = (df[col] > outlier_threshold).sum()
                     
-                    analysis_parts.append(f"\n**{col}:**")
+                    analysis_parts.append(f"\n**{col_name}:**")
                     analysis_parts.append(f"- 범위: {desc.loc['min', col]:.2f} ~ {desc.loc['max', col]:.2f}")
                     analysis_parts.append(f"- 분포: {'왼쪽 치우침' if skewness > 1 else '오른쪽 치우침' if skewness < -1 else '정규분포에 가까움'}")
                     if outliers > 0:
@@ -376,13 +464,31 @@ class PandasDataAnalysisAgent:
         return "\n".join(analysis_parts)
     
     def _generate_insights_summary(self, df, df_id: str, instruction: str) -> str:
-        """핵심 인사이트 및 요약"""
+        """핵심 인사이트 및 요약 (완전 범용화)"""
         analysis_parts = []
         
         analysis_parts.append(f"# 💡 **핵심 인사이트 요약 보고서**\n")
         analysis_parts.append(f"**요청**: {instruction}")
         analysis_parts.append(f"**데이터셋**: {df_id}")
         analysis_parts.append(f"**분석 시간**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        
+        # 컬럼명 매핑 생성
+        col_name_mapping = {}
+        numeric_count = 0
+        categorical_count = 0
+        binary_count = 0
+        
+        for col in df.columns:
+            if df[col].dtype in ['int64', 'float64']:
+                if df[col].nunique() == 2 and set(df[col].unique()) == {0, 1}:
+                    binary_count += 1
+                    col_name_mapping[col] = f"바이너리{binary_count}"
+                else:
+                    numeric_count += 1
+                    col_name_mapping[col] = f"수치형{numeric_count}"
+            else:
+                categorical_count += 1
+                col_name_mapping[col] = f"범주형{categorical_count}"
         
         # 데이터 품질 인사이트
         total_entries = len(df)
@@ -398,32 +504,35 @@ class PandasDataAnalysisAgent:
         # 범용적인 데이터 인사이트
         analysis_parts.append(f"\n**2. 핵심 데이터 인사이트**")
         
-        # 바이너리 타겟 변수 인사이트
+        # 바이너리 타겟 변수 인사이트 (범용화)
         binary_targets = []
         for col in df.columns:
             if df[col].dtype in ['int64', 'float64'] and df[col].nunique() == 2:
                 unique_vals = sorted(df[col].unique())
                 if set(unique_vals) == {0, 1}:
                     positive_rate = df[col].mean() * 100
-                    binary_targets.append((col, positive_rate))
+                    col_name = col_name_mapping.get(col, col)
+                    binary_targets.append((col_name, positive_rate))
         
         if binary_targets:
-            for target_col, rate in binary_targets:
+            for target_name, rate in binary_targets:
                 balance_status = "균형잡힌" if 40 <= rate <= 60 else "불균형한"
-                analysis_parts.append(f"- {target_col}: {rate:.1f}% 양성률로 {balance_status} 분포")
+                analysis_parts.append(f"- {target_name}: {rate:.1f}% 양성률로 {balance_status} 분포")
         
-        # 결측값 패턴 인사이트
+        # 결측값 패턴 인사이트 (범용화)
         missing_rates = df.isnull().mean() * 100
         high_missing = missing_rates[missing_rates > 20]
         if len(high_missing) > 0:
-            analysis_parts.append(f"- 결측값 주의: {list(high_missing.index)} 컬럼의 결측률이 20% 이상")
+            missing_var_names = [col_name_mapping.get(col, col) for col in high_missing.index]
+            analysis_parts.append(f"- 결측값 주의: {missing_var_names} 변수의 결측률이 20% 이상")
         
-        # 범주형 변수 다양성 인사이트
+        # 범주형 변수 다양성 인사이트 (범용화)
         categorical_cols = df.select_dtypes(include=['object', 'category']).columns
         if len(categorical_cols) > 0:
             high_cardinality = [col for col in categorical_cols if df[col].nunique() > len(df) * 0.1]
             if high_cardinality:
-                analysis_parts.append(f"- 고유값 과다: {high_cardinality} 컬럼은 범주 수가 매우 높음")
+                high_card_names = [col_name_mapping.get(col, col) for col in high_cardinality]
+                analysis_parts.append(f"- 고유값 과다: {high_card_names} 변수는 범주 수가 매우 높음")
         
         # 데이터 구조 인사이트
         numeric_cols = df.select_dtypes(include=[np.number]).columns

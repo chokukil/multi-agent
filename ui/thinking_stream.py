@@ -304,15 +304,8 @@ class BeautifulResults:
         
         st.markdown(markdown_style, unsafe_allow_html=True)
         
-        # 마크다운 내용을 섹션별로 분리하여 표시
-        sections = content.split('\n## ')
-        
-        for i, section in enumerate(sections):
-            if i == 0:
-                st.markdown(f'<div class="custom-markdown">{section}</div>', unsafe_allow_html=True)
-            else:
-                with st.expander(f"📊 {section.split(chr(10))[0]}", expanded=True):
-                    st.markdown(f'<div class="custom-markdown">## {section}</div>', unsafe_allow_html=True)
+        # 마크다운 내용을 펼친 상태로 전체 표시
+        st.markdown(f'<div class="custom-markdown">{content}</div>', unsafe_allow_html=True)
     
     def _display_code_result(self, content: str) -> None:
         """코드 결과 표시"""
