@@ -15,8 +15,8 @@ AGENT_HOST = "127.0.0.1"
 AGENT_SERVERS = {
     "pandas_analyst": {
         "host": AGENT_HOST,
-        "port": 8001,
-        "url": f"http://{AGENT_HOST}:8001"
+        "port": 10001,
+        "url": f"http://{AGENT_HOST}:10001"
     },
     "sql_analyst": {
         "host": AGENT_HOST,

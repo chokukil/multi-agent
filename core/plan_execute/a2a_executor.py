@@ -103,25 +103,33 @@ class A2AExecutor:
     def _process_response(self, response: Any, step_info: Dict[str, Any]) -> Dict[str, Any]:
         """A2A 응답 처리 (표준 방식)"""
         logger.info(f"🎯 Processing A2A response: {type(response)}")
+        logger.info(f"🔍 Response content: {response}")
         
         try:
             # A2A 응답 구조 확인
             if hasattr(response, 'root'):
                 result = response.root
-                logger.info(f"✅ A2A response structure found")
+                logger.info(f"✅ A2A response structure found: {type(result)}")
+                logger.info(f"🔍 Result attributes: {dir(result)}")
                 
                 if hasattr(result, 'result'):
                     # 성공 응답
                     actual_result = result.result
                     logger.info(f"📊 Response type: {type(actual_result)}")
+                    logger.info(f"🔍 Actual result content: {actual_result}")
                     
                     if isinstance(actual_result, Message):
                         # 메시지 응답 처리
                         content = ""
                         if actual_result.parts:
                             for part in actual_result.parts:
-                                if hasattr(part, 'text') and part.text:
+                                # Part 구조: Part(root=TextPart(...))
+                                if hasattr(part, 'root') and hasattr(part.root, 'text') and part.root.text:
+                                    content += part.root.text
+                                elif hasattr(part, 'text') and part.text:  # fallback
                                     content += part.text
+                        
+                        logger.info(f"📝 Extracted message content length: {len(content)}")
                         
                         return {
                             "messageId": getattr(actual_result, 'messageId', str(uuid.uuid4())),
@@ -200,8 +208,20 @@ class A2AExecutor:
             })
 
             try:
-                # A2A 에이전트 URL (설정에서 가져와야 함)
-                agent_url = f"http://localhost:10001"  # TODO: 에이전트 레지스트리에서 조회
+                # A2A 에이전트 URL을 config에서 가져오기
+                from config import AGENT_SERVERS
+                
+                # agent_name을 config key에 매핑
+                agent_mapping = {
+                    "pandas_data_analyst": "pandas_analyst",
+                    "EDA": "pandas_analyst",  # EDA Copilot용
+                }
+                
+                config_key = agent_mapping.get(agent_name, agent_name)
+                agent_config = AGENT_SERVERS.get(config_key, {})
+                agent_url = agent_config.get("url", "http://localhost:10001")
+                
+                logger.info(f"🌐 Agent URL for '{agent_name}' -> '{config_key}': {agent_url}")
                 
                 # A2A 클라이언트와 HTTP 클라이언트 생성
                 httpx_client, client = await self._create_agent_client_context(agent_url)
@@ -227,6 +247,17 @@ Please analyze the dataset with ID '{data_id}' based on the user's instructions.
                     
                     # 메시지 전송 및 응답 처리
                     result = await self._send_message(httpx_client, client, user_message, step_info)
+                    logger.info(f"📥 A2A Response received: {type(result)}")
+                    logger.info(f"📊 Response keys: {list(result.keys()) if isinstance(result, dict) else 'Not a dict'}")
+                    
+                    # 응답 내용 로깅
+                    if isinstance(result, dict):
+                        if result.get("content"):
+                            content_preview = str(result["content"])[:200]
+                            logger.info(f"✅ Content received ({len(str(result['content']))} chars): {content_preview}...")
+                        else:
+                            logger.warning("⚠️ No content in response")
+                    
                     step_outputs[step_info["step"]] = result
                     
                     # 완료 알림
