@@ -6,407 +6,227 @@ import re
 from datetime import datetime
 from typing import Dict, Any, AsyncGenerator
 import uvicorn
+import click
 
-# A2A SDK 공식 컴포넌트 사용 (완전한 표준 구현)
+# A2A SDK 공식 컴포넌트 사용 (공식 Hello World Agent 패턴)
 import uuid
-from a2a.server.apps import A2AFastAPIApplication
+from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.server.agent_execution.agent_executor import AgentExecutor, RequestContext
 from a2a.server.events.event_queue import EventQueue
-from a2a.server.tasks import InMemoryTaskStore
-from a2a.types import (
-    AgentCard, AgentSkill, Message, Task, TaskState, TextPart, Role
-)
-from a2a.utils.message import new_agent_text_message
+from a2a.server.tasks.inmemory_task_store import InMemoryTaskStore
+from a2a.types import AgentCard, AgentSkill, Message, Task, AgentCapabilities
+from a2a.utils.message import new_agent_text_message, get_message_text
 
 from langchain_ollama import ChatOllama
 
 # Import core modules
 import sys
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(project_root, 'core'))
+sys.path.insert(0, project_root)
 
-from utils.logging import setup_logging
-from data_manager import DataManager
+from core.data_manager import DataManager
 
-# --- Logging Setup ---
-setup_logging()
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- Initialize Global Components ---
-try:
-    llm = ChatOllama(model="gemma3:latest", temperature=0)
-    data_manager = DataManager()
-    logger.info("✅ Global components initialized successfully")
-except Exception as e:
-    logger.exception(f"💥 Critical error during initialization: {e}")
-    exit(1)
+# Global data manager instance
+data_manager = DataManager()
 
-class PandasAgentExecutor(AgentExecutor):
-    """A2A SDK 표준을 완전히 준수하는 Pandas 분석 AgentExecutor"""
+# 1. Define the core agent (공식 Hello World Agent 패턴)
+class PandasDataAnalysisAgent:
+    """Pandas 데이터 분석 에이전트 (공식 Hello World Agent 패턴)"""
     
-    def __init__(self, data_manager: DataManager, llm):
-        self.data_manager = data_manager
-        self.llm = llm
-        logger.info("🔧 PandasAgentExecutor initialized")
-
-    async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """A2A SDK 표준 실행 인터페이스 - 실시간 피드백 강화"""
-        logger.info("🎯 A2A AGENT EXECUTE METHOD CALLED!")
-        logger.info(f"📥 Request message_id: {getattr(context.message, 'messageId', 'unknown')}")
-        logger.info(f"📥 Request user: {getattr(context.message, 'role', 'unknown')}")
+    async def invoke(self, user_input: str = "") -> str:
+        """
+        데이터 분석 수행 (공식 Hello World Agent의 invoke 패턴)
+        """
+        logger.info(f"🎯 PandasDataAnalysisAgent.invoke() called with: {user_input}")
         
         try:
-            # 메시지에서 텍스트 추출
-            message_text = ""
-            if context.message and context.message.parts:
-                for part in context.message.parts:
-                    if hasattr(part, 'text') and part.text:
-                        message_text += part.text + " "
-            
-            message_text = message_text.strip()
-            logger.info(f"📝 FULL ANALYSIS REQUEST: {message_text}")
-            
-            # 데이터 분석 수행 (A2A 표준 방식)
-            logger.info("🔍 Starting comprehensive data analysis...")
-            
-            result = await self.analyze_data(message_text)
-            logger.info(f"✅ Analysis completed successfully. Result length: {len(result)} chars")
-            
-            # A2A 표준 메시지 응답 생성 및 전송 (작동하는 패턴 적용)
-            response_message = new_agent_text_message(result)
-            await event_queue.put(response_message)
-            
-            logger.info("📤 Analysis result sent via EventQueue successfully")
-            
-        except Exception as e:
-            logger.error(f"💥 A2A Agent execution failed: {e}", exc_info=True)
-            
-            # A2A 표준 오류 메시지 생성 및 전송
-            error_message = new_agent_text_message(f"""❌ **Analysis Failed**
-
-**Error Details:** {str(e)}
-
-**Troubleshooting:**
-1. Check if the dataset is properly loaded
-2. Verify the analysis request format
-3. Try again with a simpler request
-
-Please contact support if the issue persists.
-""")
-            await event_queue.put(error_message)
-
-    async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """A2A SDK 표준 취소 인터페이스"""
-        logger.info(f"🛑 Cancelling task")
-        # 현재 구현에서는 취소 로직이 필요하지 않음
-        pass
-
-
-
-    async def analyze_data(self, prompt: str = "Analyze this dataset") -> str:
-        """pandas 데이터 분석 실행"""
-        logger.info(f"🎯 ANALYZE_DATA SKILL CALLED")
-        logger.debug(f"📝 Prompt: {prompt}")
-        
-        try:
-            # 데이터 ID 추출
-            df_id = self._extract_data_id(prompt)
-            available_dfs = self.data_manager.list_dataframes()
-            
+            # 사용 가능한 데이터프레임 확인
+            available_dfs = data_manager.list_dataframes()
             logger.info(f"💾 Available dataframes: {available_dfs}")
             
             if not available_dfs:
-                return """❌ **No Data Available**
+                result_text = """❌ **데이터 없음**
 
-**Issue:** No dataset has been uploaded yet.
+**문제**: 아직 업로드된 데이터셋이 없습니다.
 
-**To use the Pandas Data Analyst:**
-1. 🔄 Go to the **Data Loader** page first
-2. 📁 Upload a CSV, Excel, or other data file  
-3. 📊 Return here to analyze your uploaded data
+**해결방법:**
+1. 🔄 **데이터 로더** 페이지로 이동
+2. 📁 CSV, Excel 등의 데이터 파일 업로드  
+3. 📊 다시 돌아와서 데이터 분석 요청
 
-**Available datasets:** None (please upload data first)
+**현재 사용 가능한 데이터셋**: 없음
 """
+                return result_text
             
-            # 데이터 ID 자동 할당
-            if not df_id:
-                df_id = available_dfs[0]
-                logger.info(f"🔧 Auto-assigned dataframe: '{df_id}'")
+            # 첫 번째 데이터프레임 사용
+            df_id = available_dfs[0]
+            df = data_manager.get_dataframe(df_id)
             
-            # 데이터프레임 로드
-            df = self.data_manager.get_dataframe(df_id)
             if df is None:
-                return f"""❌ **Dataset Not Found: '{df_id}'**
-
-**Available datasets:**
-{chr(10).join(f"• `{df_id}`" for df_id in available_dfs)}
-
-**Solution:** Use one of the available dataset IDs above, or upload new data via the Data Loader page.
-"""
+                return "❌ 데이터프레임을 로드할 수 없습니다."
+            
+            logger.info(f"📊 Analyzing dataframe: {df_id}, shape: {df.shape}")
             
             # 데이터 분석 수행
-            analysis_result = await self._perform_analysis(df, df_id, prompt)
-            return analysis_result
+            analysis_parts = []
+            
+            # 1. 기본 정보
+            analysis_parts.append("# 📊 **데이터 분석 보고서**\n")
+            analysis_parts.append(f"**데이터셋**: {df_id}")
+            analysis_parts.append(f"**크기**: {df.shape[0]:,}행 × {df.shape[1]}열")
+            analysis_parts.append(f"**분석 시간**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            
+            # 2. 데이터 개요
+            analysis_parts.append("## 📋 **데이터 개요**")
+            analysis_parts.append("**컬럼 정보:**")
+            for i, (col, dtype) in enumerate(zip(df.columns, df.dtypes), 1):
+                analysis_parts.append(f"{i}. **{col}** ({dtype})")
+            analysis_parts.append("")
+            
+            # 3. 기본 통계
+            analysis_parts.append("## 📈 **기본 통계**")
+            desc = df.describe()
+            if not desc.empty:
+                analysis_parts.append("**수치형 변수 통계:**")
+                for col in desc.columns[:3]:  # 처음 3개 컬럼만
+                    analysis_parts.append(f"- **{col}**: 평균 {desc.loc['mean', col]:.2f}, 표준편차 {desc.loc['std', col]:.2f}")
+            
+            # 4. 결측치 분석
+            missing = df.isnull().sum()
+            if missing.sum() > 0:
+                analysis_parts.append("\n## ⚠️ **결측치 분석**")
+                for col, count in missing.items():
+                    if count > 0:
+                        pct = (count / len(df)) * 100
+                        analysis_parts.append(f"- **{col}**: {count}개 ({pct:.1f}%)")
+            else:
+                analysis_parts.append("\n## ✅ **결측치**: 없음")
+            
+            # 5. 특별 분석 (Titanic 데이터셋인 경우)
+            if 'Survived' in df.columns:
+                analysis_parts.append("\n## 🚢 **타이타닉 생존 분석**")
+                survival_rate = df['Survived'].mean() * 100
+                analysis_parts.append(f"- **전체 생존율**: {survival_rate:.1f}%")
+                
+                if 'Sex' in df.columns:
+                    survival_by_sex = df.groupby('Sex')['Survived'].mean() * 100
+                    for sex, rate in survival_by_sex.items():
+                        analysis_parts.append(f"- **{sex} 생존율**: {rate:.1f}%")
+                
+                if 'Pclass' in df.columns:
+                    survival_by_class = df.groupby('Pclass')['Survived'].mean() * 100
+                    for pclass, rate in survival_by_class.items():
+                        analysis_parts.append(f"- **{pclass}등석 생존율**: {rate:.1f}%")
+            
+            # 6. 추천사항
+            analysis_parts.append("\n## 💡 **분석 추천사항**")
+            analysis_parts.append("1. 🔍 **상관관계 분석**: 수치형 변수들 간의 관계 탐색")
+            analysis_parts.append("2. 📊 **시각화**: 히스토그램, 상자그림 등으로 분포 확인")
+            analysis_parts.append("3. 🎯 **세분화 분석**: 카테고리별 상세 분석 수행")
+            
+            result_text = "\n".join(analysis_parts)
+            
+            logger.info(f"✅ Analysis completed, length: {len(result_text)} characters")
+            return result_text
             
         except Exception as e:
-            logger.error(f"❌ Analysis failed: {e}", exc_info=True)
-            return f"Analysis failed: {str(e)}"
+            logger.error(f"❌ Error in analyze_data: {e}", exc_info=True)
+            return f"❌ 분석 중 오류가 발생했습니다: {str(e)}"
 
-    def _extract_data_id(self, prompt: str) -> str:
-        """프롬프트에서 데이터 ID 추출"""
-        if not prompt:
-            return None
-            
-        # Pattern 1: Explicit "Data ID: something"
-        data_id_match = re.search(r"Data ID:\s*([^\n\r\s]+)", prompt, re.IGNORECASE)
-        if data_id_match:
-            return data_id_match.group(1).strip().strip("'\"")
-        
-        # Pattern 2: "dataset with ID 'something'"
-        id_pattern2 = re.search(r"dataset\s+with\s+ID\s+['\"]([^'\"]+)['\"]", prompt, re.IGNORECASE)
-        if id_pattern2:
-            return id_pattern2.group(1).strip()
-        
-        # Pattern 3: Common dataset names
-        common_patterns = [
-            r"titanic",
-            r"customer_data", 
-            r"sales_data",
-            r"([a-zA-Z0-9_-]+\.(?:csv|xlsx|json|parquet))"
-        ]
-        for pattern in common_patterns:
-            match = re.search(pattern, prompt, re.IGNORECASE)
-            if match:
-                return match.group(0).strip()
-                
-        return None
+# 2. AgentExecutor 구현 (공식 Hello World Agent 패턴)
+class PandasAgentExecutor(AgentExecutor):
+    """공식 Hello World Agent 패턴을 사용하는 AgentExecutor"""
+    
+    def __init__(self):
+        self.agent = PandasDataAnalysisAgent()
+        logger.info("🔧 PandasAgentExecutor 초기화 완료")
 
-    async def _perform_analysis(self, df: pd.DataFrame, df_id: str, prompt: str) -> str:
-        """실제 데이터 분석 수행 - 상세한 분석 리포트 생성"""
-        import numpy as np
-        from datetime import datetime
-        
-        logger.info(f"🔍 Starting comprehensive analysis for {df_id}")
-        
-        # 1. 기본 데이터 프로파일링
-        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-        categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
-        datetime_cols = df.select_dtypes(include=['datetime']).columns.tolist()
-        
-        # 2. 데이터 품질 메트릭
-        total_rows = len(df)
-        total_cols = len(df.columns)
-        missing_data_summary = df.isnull().sum()
-        completeness = ((total_rows * total_cols - missing_data_summary.sum()) / (total_rows * total_cols)) * 100
-        
-        # 3. 상세 통계 분석
-        analysis_results = []
-        
-        # 숫자형 컬럼 분석
-        if numeric_cols:
-            numeric_summary = df[numeric_cols].describe()
-            correlations = df[numeric_cols].corr() if len(numeric_cols) > 1 else None
-        
-        # 범주형 컬럼 분석  
-        categorical_summary = {}
-        for col in categorical_cols[:5]:  # 상위 5개 컬럼만
-            value_counts = df[col].value_counts().head(10)
-            categorical_summary[col] = {
-                'unique_count': df[col].nunique(),
-                'top_values': value_counts.to_dict()
-            }
-        
-        # 4. 고급 분석 생성
-        advanced_prompt = f"""
-당신은 전문 데이터 분석가입니다. 다음 데이터셋에 대해 상세하고 통찰력 있는 분석 보고서를 작성해주세요:
-
-**사용자 요청**: {prompt}
-
-**데이터셋 정보**:
-- 데이터셋명: {df_id}
-- 전체 크기: {total_rows:,}행 × {total_cols}열
-- 데이터 완성도: {completeness:.1f}%
-- 숫자형 컬럼: {len(numeric_cols)}개 ({numeric_cols[:5]})
-- 범주형 컬럼: {len(categorical_cols)}개 ({categorical_cols[:5]})
-
-**숫자형 데이터 요약**:
-{numeric_summary.to_string() if numeric_cols else "숫자형 데이터 없음"}
-
-**범주형 데이터 요약**:
-{str(categorical_summary) if categorical_summary else "범주형 데이터 없음"}
-
-**분석 요구사항**:
-1. 📊 **데이터 개요 및 구조 분석**
-2. 🔍 **데이터 품질 평가** (결측값, 이상값, 데이터 타입 적절성)
-3. 📈 **주요 통계적 특성** (분포, 중심경향, 변동성)
-4. 🔗 **변수 간 관계 분석** (상관관계, 패턴)
-5. 💡 **핵심 인사이트 및 비즈니스 함의**
-6. 📋 **추가 분석 권장사항**
-
-**출력 형식**: 마크다운으로 구조화된 상세 보고서
-**톤**: 전문적이면서도 이해하기 쉽게
-**목표**: 실무진이 의사결정에 활용할 수 있는 실용적 인사이트 제공
-        """
+    async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """A2A SDK 표준 실행 (공식 Hello World Agent 패턴)"""
+        logger.info("🎯 PandasAgentExecutor.execute() 호출됨")
         
         try:
-            # LLM을 통한 전문 분석 생성
-            logger.info("🧠 Generating AI-powered analysis...")
-            response = await asyncio.get_event_loop().run_in_executor(
-                None, lambda: self.llm.invoke(advanced_prompt)
-            )
+            # 사용자 입력 추출 (공식 패턴)
+            user_message = context.get_user_input()
+            logger.info(f"📝 사용자 입력: {user_message}")
             
-            # 분석 결과에 메타데이터 추가
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            final_result = f"""# 📊 데이터 분석 보고서
-
-**분석 대상**: {df_id}  
-**분석 일시**: {timestamp}  
-**요청 내용**: {prompt}
-
----
-
-{response.content}
-
----
-
-## 📋 분석 메타데이터
-
-| 항목 | 값 |
-|-----|-----|
-| 데이터셋 크기 | {total_rows:,} 행 × {total_cols} 열 |
-| 데이터 완성도 | {completeness:.1f}% |
-| 숫자형 변수 | {len(numeric_cols)}개 |
-| 범주형 변수 | {len(categorical_cols)}개 |
-| 결측값 총량 | {missing_data_summary.sum()} 개 |
-
-**분석 엔진**: Pandas Data Analyst (A2A Protocol)  
-**버전**: 1.0.0
-"""
+            # 에이전트 실행 (공식 패턴)
+            result = await self.agent.invoke(user_message)
             
-            logger.info("✅ Comprehensive analysis completed")
-            return final_result
+            # 결과 전송 (공식 패턴 - 중요: await 추가!)
+            message = new_agent_text_message(result)
+            await event_queue.enqueue_event(message)
+            
+            logger.info("✅ Task completed successfully")
             
         except Exception as e:
-            logger.error(f"❌ Advanced analysis failed, falling back to basic: {e}")
-            
-            # 기본 분석 결과로 대체 (더 상세하게)
-            return f"""# 📊 데이터 분석 보고서
+            logger.error(f"❌ Error in execute: {e}", exc_info=True)
+            error_message = new_agent_text_message(f"❌ 실행 중 오류가 발생했습니다: {str(e)}")
+            await event_queue.enqueue_event(error_message)
 
-**분석 대상**: {df_id}  
-**분석 일시**: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}  
-**요청 내용**: {prompt}
+    async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """Task 취소 처리 (공식 Hello World Agent 패턴)"""
+        logger.info("🛑 PandasAgentExecutor.cancel() 호출됨")
+        raise Exception("Cancel not supported")
 
-## 📋 데이터 개요
-
-### 기본 정보
-- **데이터셋 크기**: {total_rows:,} 행 × {total_cols} 열
-- **데이터 완성도**: {completeness:.1f}%
-- **메모리 사용량**: {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB
-
-### 변수 구성
-| 변수 타입 | 개수 | 컬럼명 |
-|----------|------|--------|
-| 숫자형 | {len(numeric_cols)} | {', '.join(numeric_cols[:5])} |
-| 범주형 | {len(categorical_cols)} | {', '.join(categorical_cols[:5])} |
-| 날짜형 | {len(datetime_cols)} | {', '.join(datetime_cols[:5])} |
-
-## 🔍 데이터 품질 분석
-
-### 결측값 현황
-{chr(10).join(f"- **{col}**: {count:,}개 ({count/total_rows*100:.1f}%)" for col, count in missing_data_summary.items() if count > 0) or "✅ 결측값이 없습니다."}
-
-### 숫자형 변수 요약 통계
-{numeric_summary.round(2).to_markdown() if not numeric_summary.empty else "숫자형 변수가 없습니다."}
-
-## 💡 주요 관찰점
-
-1. **데이터 크기**: {total_rows:,}개의 관측값으로 {"충분한" if total_rows > 1000 else "제한적인"} 분석 가능
-2. **데이터 완성도**: {completeness:.1f}%로 {"우수한" if completeness > 95 else "보통" if completeness > 80 else "개선 필요한"} 수준
-3. **변수 다양성**: {total_cols}개 변수로 {"다양한" if total_cols > 10 else "기본적인"} 분석 차원 제공
-
-## 📈 추천 분석 방향
-
-1. **탐색적 데이터 분석**: 변수별 분포 및 패턴 확인
-2. **상관관계 분석**: 변수 간 연관성 탐색
-3. **이상값 탐지**: 데이터 품질 개선
-4. **시각화**: 주요 패턴의 시각적 표현
-
----
-**분석 엔진**: Pandas Data Analyst (A2A Protocol)  
-**상태**: 기본 분석 완료 ✅
-"""
-
+# 3. Agent Card 생성 (공식 A2A 표준 메타데이터)
 def create_agent_card() -> AgentCard:
-    """A2A 표준 Agent Card 생성"""
+    """A2A 표준 Agent Card 생성 (공식 Hello World Agent 패턴)"""
+    
+    # 기본 스킬 정의 (공식 패턴)
     skill = AgentSkill(
-        id="analyze_data",
-        name="Data Analysis",
-        description="Analyze datasets using pandas and provide comprehensive insights",
-        tags=["data", "analysis", "pandas", "statistics"],
-        examples=["analyze the titanic dataset", "show me insights about sales data"]
+        id="pandas_data_analysis",
+        name="Pandas Data Analysis",
+        description="Performs comprehensive data analysis on uploaded datasets using pandas",
+        tags=["data", "analysis", "pandas", "statistics", "EDA"],
+        examples=["Analyze my data", "What insights can you find?", "Show me data statistics"]
     )
     
     return AgentCard(
         name="Pandas Data Analyst",
-        description="Expert data analyst using pandas for comprehensive dataset analysis",
-        url="http://localhost:10001",
-        version="1.0.0",
-        capabilities={
-            "streaming": True,
-            "pushNotifications": False,
-            "stateTransitionHistory": True
-        },
+        description="A comprehensive data analysis agent powered by pandas and AI",
+        url="http://localhost:10001/",
+        version="2.0.0",
+        capabilities=AgentCapabilities(streaming=False),
         defaultInputModes=["text"],
         defaultOutputModes=["text"],
-        authentication={"schemes": ["none"]},  # 인증 없음
-        skills=[skill],
-        provider={
-            "organization": "CherryAI",
-            "description": "AI-powered data analysis platform",
-            "url": "http://localhost:10001"
-        }
+        skills=[skill]
     )
 
-def create_a2a_server() -> A2AFastAPIApplication:
-    """A2A SDK를 사용한 완전한 표준 서버 생성"""
+# 4. Wire everything together (공식 Hello World Agent 패턴)
+@click.command()
+@click.option('--host', default='localhost', help='Host to bind to')
+@click.option('--port', default=10001, help='Port to bind to')
+def main(host: str, port: int):
+    """A2A 표준 Pandas 서버 실행 (공식 Hello World Agent 패턴)"""
+    
+    logger.info("🚀 Starting Pandas A2A Server...")
     
     # Agent Card 생성
     agent_card = create_agent_card()
     
-    # AgentExecutor 생성
-    agent_executor = PandasAgentExecutor(data_manager, llm)
-    
-    # TaskStore 생성
-    task_store = InMemoryTaskStore()
-    
-    # A2A 표준 RequestHandler 생성
-    http_handler = DefaultRequestHandler(
-        agent_executor=agent_executor,
-        task_store=task_store
+    # RequestHandler 초기화 (공식 패턴)
+    request_handler = DefaultRequestHandler(
+        agent_executor=PandasAgentExecutor(),
+        task_store=InMemoryTaskStore()
     )
     
-    # A2A FastAPI 애플리케이션 생성
-    server = A2AFastAPIApplication(
+    # A2A Starlette Application 생성 (공식 패턴)
+    a2a_app = A2AStarletteApplication(
         agent_card=agent_card,
-        http_handler=http_handler
+        http_handler=request_handler
     )
     
-    logger.info("✅ A2A 서버가 표준 SDK로 생성되었습니다")
-    return server
+    logger.info(f"🌐 Server starting at http://{host}:{port}")
+    logger.info("📋 Agent Card available at /.well-known/agent.json")
+    
+    # Uvicorn으로 서버 실행
+    uvicorn.run(a2a_app.build(), host=host, port=port)
 
 if __name__ == "__main__":
-    logger.info("🚀 Starting Pandas Data Analyst A2A Server...")
-    
-    try:
-        # A2A 표준 서버 생성
-        server = create_a2a_server()
-        app = server.build()
-        
-        # 서버 시작
-        logger.info("🌐 Server starting on http://0.0.0.0:10001")
-        uvicorn.run(app, host="0.0.0.0", port=10001)
-        
-    except Exception as e:
-        logger.exception(f"💥 Server startup failed: {e}")
-        exit(1) 
+    main() 
