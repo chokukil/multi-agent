@@ -189,14 +189,30 @@ class DataManager:
             return summary_list
 
     def delete_dataframe(self, data_id: str) -> bool:
-        """Deletes a dataframe by its ID."""
+        """Deletes a dataframe by its ID from both memory and shared storage."""
         with self._lock:
+            deleted = False
+            
+            # Delete from memory
             if data_id in self._data_store:
                 del self._data_store[data_id]
-                logging.info(f"DataFrame with ID '{data_id}' has been deleted.")
-                return True
-            logging.warning(f"Attempted to delete non-existent DataFrame with ID '{data_id}'.")
-            return False
+                logging.info(f"DataFrame with ID '{data_id}' has been deleted from memory.")
+                deleted = True
+            
+            # Delete from shared storage
+            shared_file = self._get_shared_file_path(data_id)
+            if shared_file.exists():
+                try:
+                    shared_file.unlink()
+                    logging.info(f"DataFrame file '{data_id}' has been deleted from shared storage: {shared_file}")
+                    deleted = True
+                except Exception as e:
+                    logging.error(f"Failed to delete shared file for '{data_id}': {e}")
+            
+            if not deleted:
+                logging.warning(f"Attempted to delete non-existent DataFrame with ID '{data_id}'.")
+            
+            return deleted
 
     def clear(self):
         """Clears all dataframes from the manager. Used for testing."""
@@ -219,9 +235,12 @@ class DataManager:
 
     def list_dataframes(self) -> List[str]:
         """Returns a list of available dataframe IDs from both memory and shared storage."""
-        # Check shared storage for any new dataframes
-        self._load_from_shared_storage()
-        return list(self._data_store.keys())
+        with self._lock:
+            # Always reload from shared storage to get most current data
+            self._load_from_shared_storage()
+            dataframe_ids = list(self._data_store.keys())
+            logging.debug(f"📋 Available dataframes: {dataframe_ids}")
+            return dataframe_ids
 
 # --- 기존 하위 호환성 함수들 ---
 def get_current_df() -> Optional[pd.DataFrame]:
