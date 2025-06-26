@@ -9,6 +9,7 @@ from a2a.types import SendMessageRequest, MessageSendParams, TaskState, GetTaskR
 from a2a.utils.message import new_agent_text_message
 
 from core.callbacks.progress_stream import progress_stream_manager
+from core.utils.logging import log_a2a_request, log_a2a_response
 
 logger = logging.getLogger(__name__)
 
@@ -22,29 +23,44 @@ class A2AExecutor:
 
     async def _poll_task_status(self, client: A2AClient, task_id: str, step_info: Dict[str, Any]):
         """Polls the agent server for task completion."""
-        while True:
+        logger.debug(f"🔄 Starting task polling for task_id: {task_id}")
+        poll_count = 0
+        max_polls = 120  # 2 minutes with 1-second intervals
+        
+        while poll_count < max_polls:
+            poll_count += 1
             await asyncio.sleep(1)  # Polling interval
+            
             try:
+                logger.debug(f"📊 Poll #{poll_count}/{max_polls} for task {task_id}")
                 get_task_req = GetTaskRequest(
                     id=str(uuid.uuid4()),  # Required JSON-RPC id field
                     params=TaskQueryParams(id=task_id)
                 )
+                
+                log_a2a_request("GET", f"/tasks/{task_id}", {"task_id": task_id})
                 response = await client.get_task(get_task_req)
                 
                 if not response or not hasattr(response.root, "result"):
-                    # Handle cases where the response is not as expected
-                    logger.warning(f"Polling for task {task_id} returned an invalid response.")
+                    logger.warning(f"⚠️ Poll #{poll_count}: Invalid response for task {task_id}")
+                    log_a2a_response(0, error="Invalid response structure")
                     continue
 
                 task = response.root.result
+                logger.debug(f"📋 Poll #{poll_count}: Task {task_id} status = {task.status.state}")
                 
                 if task.status.state in (TaskState.completed, TaskState.failed, TaskState.canceled, TaskState.rejected):
-                    logger.info(f"Task {task_id} finished with state: {task.status.state}")
+                    logger.info(f"🏁 Task {task_id} finished with state: {task.status.state} after {poll_count} polls")
+                    log_a2a_response(200, {"task_id": task_id, "status": task.status.state})
                     return task
+                    
             except Exception as e:
-                logger.error(f"Error polling task {task_id}: {e}", exc_info=True)
-                # On polling error, we assume the task has failed to avoid infinite loops
-                return None
+                logger.error(f"💥 Poll #{poll_count} error for task {task_id}: {e}", exc_info=True)
+                log_a2a_response(0, error=str(e))
+                # Continue polling on error, don't fail immediately
+                
+        logger.error(f"⏰ Task {task_id} polling timeout after {max_polls} attempts")
+        return None
 
     async def execute(self, state: Dict[str, Any], timeout: int = 120) -> Dict[str, Any]:
         """Executes a plan from a state dictionary and streams progress."""
@@ -53,6 +69,7 @@ class A2AExecutor:
 
         logger.info("🎬 A2A EXECUTOR STARTING")
         logger.info(f"📋 Plan has {len(plan_steps)} steps")
+        logger.debug(f"🔍 Full plan: {plan_steps}")
 
         for step_info in plan_steps:
             agent_name = step_info.get("agent_name")
@@ -67,7 +84,8 @@ class A2AExecutor:
             logger.info(f"   - Skill: {skill_name}")
             logger.info(f"   - User prompt: {repr(user_prompt[:100])}...")
             logger.info(f"   - Data ID: {data_id}")
-            logger.info(f"   - All params: {params}")
+            logger.debug(f"   - All params: {params}")
+            logger.debug(f"   - Step info: {step_info}")
 
             await self.progress_stream.stream_update({"event_type": "agent_start", "data": step_info})
 
@@ -77,15 +95,31 @@ class A2AExecutor:
                 agent_url = f"http://localhost:10001"  # TODO: Get from a config based on agent_name
                 logger.info(f"🌐 Connecting to agent at: {agent_url}")
 
+                # First, let's test if the server is reachable
+                try:
+                    async with httpx.AsyncClient(timeout=5.0) as test_client:
+                        logger.debug(f"🔍 Testing server connectivity to {agent_url}")
+                        test_response = await test_client.get(f"{agent_url}/health", timeout=5.0)
+                        logger.debug(f"✅ Server health check: {test_response.status_code}")
+                        log_a2a_response(test_response.status_code, {"health_check": "passed"})
+                except Exception as health_error:
+                    logger.error(f"❌ Server health check failed: {health_error}")
+                    log_a2a_response(0, error=f"Health check failed: {health_error}")
+
                 async with httpx.AsyncClient(timeout=timeout) as httpx_client:
                     # 1. Get client from agent card
                     logger.info("📋 Fetching agent card...")
-                    client = await A2AClient.get_client_from_agent_card_url(httpx_client, agent_url)
-                    logger.info("✅ Agent card fetched successfully")
+                    try:
+                        log_a2a_request("GET", f"{agent_url}/agent.json")
+                        client = await A2AClient.get_client_from_agent_card_url(httpx_client, agent_url)
+                        logger.info("✅ Agent card fetched successfully")
+                        log_a2a_response(200, {"agent_card": "fetched"})
+                    except Exception as card_error:
+                        logger.error(f"❌ Failed to fetch agent card: {card_error}")
+                        log_a2a_response(0, error=f"Agent card fetch failed: {card_error}")
+                        raise
 
                     # 2. Create A2A message according to the official protocol
-                    # The message should contain the skill request in natural language
-                    # The server will parse this and route to the appropriate skill
                     skill_instruction = f"""
 Please execute the '{skill_name}' skill with the following request:
 
@@ -96,17 +130,17 @@ Please analyze the dataset with ID '{data_id}' based on the user's instructions.
                     """.strip()
                     
                     logger.info("📝 CREATING A2A MESSAGE:")
-                    logger.info(f"   - Skill instruction: {repr(skill_instruction)}")
+                    logger.debug(f"   - Skill instruction: {repr(skill_instruction)}")
                     
                     user_message = new_agent_text_message(skill_instruction)
-                    logger.info(f"   - Message type: {type(user_message)}")
-                    logger.info(f"   - Message parts count: {len(user_message.parts) if hasattr(user_message, 'parts') else 'N/A'}")
+                    logger.debug(f"   - Message type: {type(user_message)}")
+                    logger.debug(f"   - Message parts count: {len(user_message.parts) if hasattr(user_message, 'parts') else 'N/A'}")
                     
                     # 3. Create MessageSendParams with ONLY the message field (per A2A spec)
                     send_params = MessageSendParams(
                         message=user_message
                     )
-                    logger.info(f"   - Send params type: {type(send_params)}")
+                    logger.debug(f"   - Send params type: {type(send_params)}")
                     
                     # 4. Create SendMessageRequest with required JSON-RPC id field
                     request_id = str(uuid.uuid4())
@@ -115,20 +149,37 @@ Please analyze the dataset with ID '{data_id}' based on the user's instructions.
                         params=send_params
                     )
                     logger.info(f"   - Request ID: {request_id}")
-                    logger.info(f"   - Request type: {type(request)}")
+                    logger.debug(f"   - Request type: {type(request)}")
                     
                     # 5. Send the message using the correct A2A protocol
-                    # Using message/send (NOT tasks/send) as per A2A v0.2.0 specification
                     logger.info("📤 SENDING MESSAGE via A2A protocol...")
-                    response = await client.send_message(request)
-                    logger.info(f"📥 RESPONSE RECEIVED: {type(response)}")
+                    try:
+                        log_a2a_request("POST", f"{agent_url}/message/send", {
+                            "request_id": request_id,
+                            "skill_instruction": skill_instruction[:200] + "..." if len(skill_instruction) > 200 else skill_instruction
+                        })
+                        
+                        response = await client.send_message(request)
+                        logger.info(f"📥 RESPONSE RECEIVED: {type(response)}")
+                        log_a2a_response(200, {"response_type": str(type(response))})
+                        
+                    except httpx.HTTPStatusError as http_error:
+                        logger.error(f"❌ HTTP Error: {http_error.response.status_code} - {http_error.response.text}")
+                        log_a2a_response(http_error.response.status_code, error=http_error.response.text)
+                        raise
+                    except Exception as send_error:
+                        logger.error(f"❌ Send message failed: {send_error}")
+                        log_a2a_response(0, error=str(send_error))
+                        raise
 
                     if not response or not hasattr(response.root, "result"):
                         logger.error("❌ No valid response received from agent")
+                        log_a2a_response(0, error="No valid response structure")
                         raise ConnectionError("Failed to initiate task with agent.")
 
                     result = response.root.result
                     logger.info(f"🎯 RESULT TYPE: {type(result)}")
+                    logger.debug(f"🔍 Result attributes: {dir(result)}")
                     
                     # 6. Handle both Message and Task response types per A2A specification
                     if hasattr(result, 'kind'):
@@ -138,9 +189,9 @@ Please analyze the dataset with ID '{data_id}' based on the user's instructions.
                         # Fallback: try to determine type from available attributes
                         result_kind = "task" if hasattr(result, 'status') else "message"
                         logger.info(f"🔍 Determined result kind from attributes: {result_kind}")
-                        logger.info(f"   - Has 'status': {hasattr(result, 'status')}")
-                        logger.info(f"   - Has 'parts': {hasattr(result, 'parts')}")
-                        logger.info(f"   - Has 'messageId': {hasattr(result, 'messageId')}")
+                        logger.debug(f"   - Has 'status': {hasattr(result, 'status')}")
+                        logger.debug(f"   - Has 'parts': {hasattr(result, 'parts')}")
+                        logger.debug(f"   - Has 'messageId': {hasattr(result, 'messageId')}")
                     
                     if result_kind == "message":
                         # Direct message response - immediate completion
@@ -150,7 +201,7 @@ Please analyze the dataset with ID '{data_id}' based on the user's instructions.
                             "parts": getattr(result, 'parts', []),
                             "response_type": "direct_message"
                         }
-                        logger.info(f"   - Output created: {step_outputs[step_info['step']]}")
+                        logger.debug(f"   - Output created: {step_outputs[step_info['step']]}")
                         
                         await self.progress_stream.stream_update({
                             "event_type": "agent_end", 
@@ -165,6 +216,7 @@ Please analyze the dataset with ID '{data_id}' based on the user's instructions.
                         task_id = task.id
                         logger.info(f"   - Task ID: {task_id}")
                         logger.info(f"   - Task status: {task.status.state}")
+                        logger.debug(f"   - Task details: {task}")
                         
                         # Check if task is already completed
                         if task.status.state == TaskState.completed:
@@ -200,6 +252,8 @@ Please analyze the dataset with ID '{data_id}' based on the user's instructions.
             except Exception as e:
                 logger.error("="*50)
                 logger.error(f"💥 ERROR executing step for agent '{agent_name}': {e}")
+                logger.error(f"💥 Error type: {type(e)}")
+                logger.error(f"💥 Error args: {e.args}")
                 logger.error("="*50, exc_info=True)
                 error_message = str(e)
                 await self.progress_stream.stream_update({

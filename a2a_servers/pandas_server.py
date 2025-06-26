@@ -4,13 +4,14 @@ import os
 import pandas as pd
 import re
 from typing import Dict, Any
+import json
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 
 from langchain_ollama import ChatOllama
-from a2a.server.apps.jsonrpc.fastapi_app import A2AFastAPIApplication
-from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
 from a2a.types import AgentCard, AgentSkill, Message
 from a2a.utils.message import new_agent_text_message
-from a2a.server.tasks.inmemory_task_store import InMemoryTaskStore
 
 # Import core modules directly without adding project root to path
 import sys
@@ -20,32 +21,9 @@ sys.path.insert(0, os.path.join(project_root, 'core'))
 from utils.logging import setup_logging
 from data_manager import DataManager
 
-# Import required modules for AgentExecutor
-from a2a.server.agent_execution.agent_executor import AgentExecutor, RequestContext
-from a2a.server.events.event_queue import EventQueue
-
 # --- Logging Setup ---
 setup_logging()
 logger = logging.getLogger(__name__)
-
-# Force debug level for detailed logging
-logging.getLogger().setLevel(logging.DEBUG)
-logger.setLevel(logging.DEBUG)
-
-# Also set the root logger to debug
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.DEBUG)
-
-# Ensure all handlers are set to debug
-for handler in root_logger.handlers:
-    handler.setLevel(logging.DEBUG)
-
-# Add console handler to ensure logs appear in terminal
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-console_handler.setFormatter(formatter)
-root_logger.addHandler(console_handler)
 
 # --- Initialize Global Components ---
 try:
@@ -56,53 +34,124 @@ except Exception as e:
     logger.exception(f"💥 Critical error during initialization: {e}")
     exit(1)
 
-# --- A2A Skill Function ---
+# --- A2A Agent Card Definition ---
+AGENT_CARD = {
+    "name": "pandas_data_analyst",
+    "description": "Expert data analyst using pandas for comprehensive dataset analysis",
+    "version": "1.0.0",
+    "skills": [
+        {
+            "id": "analyze_data",
+            "name": "analyze_data",
+            "description": "Analyze datasets using pandas and provide comprehensive insights",
+            "tags": ["data", "analysis", "pandas", "statistics"],
+            "parameters": {
+                "df_id": {
+                    "type": "string",
+                    "description": "The ID of the dataset to analyze (optional - can be auto-detected)"
+                },
+                "prompt": {
+                    "type": "string",
+                    "description": "Analysis instructions from the user"
+                }
+            }
+        }
+    ]
+}
+
+# --- Create FastAPI App ---
+app = FastAPI(title="Pandas Data Analyst A2A Server", version="1.0.0")
+
+# --- A2A Protocol Endpoints ---
+
+@app.get("/.well-known/agent.json")
+async def get_agent_card():
+    """A2A Protocol: Serve agent card at the standard location."""
+    logger.info("📋 Agent card requested via A2A protocol")
+    return JSONResponse(content=AGENT_CARD)
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint."""
+    logger.debug("🏥 Health check requested")
+    try:
+        available_dfs = data_manager.list_dataframes()
+        return {
+            "status": "healthy",
+            "timestamp": pd.Timestamp.now().isoformat(),
+            "agent_name": "pandas_data_analyst",
+            "available_datasets": len(available_dfs),
+            "dataset_ids": available_dfs[:5],
+            "server_version": "1.0.0"
+        }
+    except Exception as e:
+        logger.error(f"❌ Health check failed: {e}")
+        return {"status": "unhealthy", "error": str(e)}
+
+@app.post("/message/send")
+async def send_message(request: dict):
+    """A2A Protocol: Handle message send requests."""
+    logger.info("📨 A2A Message send request received")
+    logger.debug(f"📦 Request: {request}")
+    
+    try:
+        # Extract message from A2A request structure
+        if "params" in request and "message" in request["params"]:
+            message_data = request["params"]["message"]
+            
+            # Extract text from message parts
+            text_content = ""
+            if "parts" in message_data:
+                for part in message_data["parts"]:
+                    if isinstance(part, dict) and "text" in part:
+                        text_content += part["text"] + " "
+                    elif hasattr(part, 'text'):
+                        text_content += part.text + " "
+                        
+            text_content = text_content.strip()
+            logger.info(f"📝 Extracted text: {text_content}")
+            
+            # Call the analysis function
+            result_message = await analyze_data(prompt=text_content)
+            
+            # Return A2A compliant response
+            response = {
+                "jsonrpc": "2.0",
+                "id": request.get("id"),
+                "result": {
+                    "kind": "message",
+                    "messageId": f"msg_{pd.Timestamp.now().timestamp()}",
+                    "parts": result_message.parts,
+                    "response_type": "direct_message"
+                }
+            }
+            
+            logger.info("✅ A2A message response sent")
+            return JSONResponse(content=response)
+            
+    except Exception as e:
+        logger.error(f"💥 Error processing A2A message: {e}", exc_info=True)
+        error_response = {
+            "jsonrpc": "2.0",
+            "id": request.get("id"),
+            "error": {
+                "code": -32603,
+                "message": "Internal error",
+                "data": str(e)
+            }
+        }
+        return JSONResponse(content=error_response, status_code=500)
+
+# --- Analysis Function ---
 async def analyze_data(df_id: str = None, prompt: str = "Analyze this dataset") -> Message:
     """
     A2A skill function for pandas data analysis.
     Returns a Message object as required by A2A protocol.
-    
-    This function is called directly by the A2A DefaultRequestHandler.
     """
-    logger.info("🎯🎯🎯 ANALYZE_DATA SKILL CALLED DIRECTLY BY A2A 🎯🎯🎯")
-    logger.info(f"📥 Parameters received:")
-    logger.info(f"   - df_id: {repr(df_id)}")
-    logger.info(f"   - prompt: {repr(prompt)}")
+    logger.info("🎯 ANALYZE_DATA SKILL CALLED")
+    logger.debug(f"📥 Parameters: df_id={repr(df_id)}, prompt={repr(prompt)}")
     
     try:
-        # Enhanced parameter processing for A2A calls
-        if isinstance(prompt, dict):
-            # Sometimes A2A passes structured data
-            logger.info(f"🔍 Received structured prompt: {prompt}")
-            
-            # Extract message text from A2A message structure
-            if 'message' in prompt and isinstance(prompt['message'], dict):
-                message_obj = prompt['message']
-                if 'parts' in message_obj:
-                    extracted_text = ""
-                    for part in message_obj['parts']:
-                        if isinstance(part, dict):
-                            # Try different ways to extract text
-                            if 'text' in part:
-                                extracted_text += part['text'] + " "
-                            elif hasattr(part, 'text'):
-                                extracted_text += part.text + " "
-                            elif hasattr(part, 'root') and hasattr(part.root, 'text'):
-                                extracted_text += part.root.text + " "
-                    
-                    if extracted_text.strip():
-                        prompt = extracted_text.strip()
-                        logger.info(f"✅ Extracted text from message parts: {repr(prompt)}")
-            
-            # If still structured, try to extract string representation
-            if isinstance(prompt, dict):
-                prompt = str(prompt)
-                
-        if not isinstance(prompt, str):
-            prompt = str(prompt)
-            
-        logger.info(f"🔧 Final processed prompt: {repr(prompt)}")
-        
         # Enhanced Data ID extraction from prompt if not provided
         if not df_id:
             logger.info("🔍 No df_id provided, attempting extraction from prompt...")
@@ -119,15 +168,17 @@ async def analyze_data(df_id: str = None, prompt: str = "Analyze this dataset") 
                     df_id = id_pattern2.group(1).strip()
                     logger.info(f"✅ Found Data ID pattern 2: '{df_id}'")
                 else:
-                    # Pattern 3: Look for file patterns in prompt
-                    file_patterns = [
-                        r"([a-zA-Z0-9_-]+\.(?:csv|xlsx|json|parquet))",  # filename.ext
-                        r"(?:analyze|process)[\s]+([a-zA-Z0-9_.-]+)",  # analyze something
+                    # Pattern 3: Look for common dataset names
+                    common_patterns = [
+                        r"titanic",
+                        r"customer_data",
+                        r"sales_data",
+                        r"([a-zA-Z0-9_-]+\.(?:csv|xlsx|json|parquet))"
                     ]
-                    for i, pattern in enumerate(file_patterns, 3):
+                    for i, pattern in enumerate(common_patterns, 3):
                         match = re.search(pattern, prompt, re.IGNORECASE)
                         if match:
-                            df_id = match.group(1).strip()
+                            df_id = match.group(0).strip()
                             logger.info(f"✅ Found Data ID pattern {i}: '{df_id}'")
                             break
         
@@ -155,20 +206,6 @@ async def analyze_data(df_id: str = None, prompt: str = "Analyze this dataset") 
                 # Auto-assign first available dataframe
                 df_id = available_dfs[0]
                 logger.info(f"🔧 Auto-assigned first available dataframe: '{df_id}'")
-                
-                error_msg = f"""✅ **Analysis Starting**
-
-**Auto-selected Dataset:** `{df_id}`
-
-**Available datasets:**
-{chr(10).join(f"• `{df_id}`" for df_id in available_dfs)}
-
-**Note:** Since no specific dataset was mentioned, I'll analyze the first available dataset.
-
----
-
-"""
-                # Continue with analysis using auto-assigned df_id
         
         # Get dataframe if df_id is available
         if df_id:
@@ -208,8 +245,9 @@ async def analyze_data(df_id: str = None, prompt: str = "Analyze this dataset") 
             - Columns: {analysis_result['columns']}
             - Data Types: {analysis_result['data_types']}
             
-            Provide insights and recommendations in markdown format.
+            Provide comprehensive insights and recommendations in markdown format.
             Focus on answering the user's specific question if provided.
+            Include statistical analysis, data quality assessment, and actionable insights.
             """
             
             # Use LLM for analysis
@@ -231,122 +269,29 @@ async def analyze_data(df_id: str = None, prompt: str = "Analyze this dataset") 
             logger.info(f"✅ Analysis completed successfully for df_id='{df_id}'")
             return new_agent_text_message(result_text)
         else:
-            return new_agent_text_message(error_msg)
+            return new_agent_text_message("❌ No valid dataset found for analysis.")
         
     except Exception as e:
         error_msg = f"💥 Error during data analysis: {str(e)}"
         logger.error(error_msg, exc_info=True)
         return new_agent_text_message(f"❌ **Error:** {error_msg}")
 
-# --- A2A Agent Executor ---
-class PandasAgentExecutor(AgentExecutor):
-    """Simple A2A AgentExecutor that directly calls the analyze_data skill."""
-    
-    def __init__(self):
-        logger.info("🔧 Initializing PandasAgentExecutor")
-    
-    async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """Execute the analyze_data skill based on the incoming request."""
-        logger.info("🔥🔥🔥 AGENTEXECUTOR.EXECUTE CALLED BY A2A 🔥🔥🔥")
-        logger.info(f"📝 Context type: {type(context)}")
-        
-        try:
-            # Extract message from context
-            if not context.message or not context.message.parts:
-                logger.error("❌ No message content in context")
-                error_message = new_agent_text_message("Error: No message content provided.")
-                await event_queue.enqueue_event(error_message)
-                return
-            
-            # Extract text from message parts
-            message_text = ""
-            for i, part in enumerate(context.message.parts):
-                logger.info(f"📄 Part {i}: {type(part)}")
-                
-                # Extract text using A2A message part structure
-                if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                    text = part.root.text
-                    if text:
-                        message_text += text + " "
-                        logger.info(f"✅ Extracted text from part {i}: {repr(text[:100])}...")
-                elif hasattr(part, 'text') and part.text:
-                    message_text += part.text + " "
-                    logger.info(f"✅ Extracted text from part {i}: {repr(part.text[:100])}...")
-                else:
-                    logger.warning(f"⚠️ Could not extract text from part {i}")
-            
-            message_text = message_text.strip()
-            logger.info(f"📧 Complete message: {repr(message_text)}")
-            
-            # Call our analyze_data function
-            # We'll pass the full message as prompt and let the function extract df_id
-            result = await analyze_data(df_id=None, prompt=message_text)
-            
-            logger.info(f"✅ Analysis completed, result type: {type(result)}")
-            
-            # Send result to event queue
-            await event_queue.enqueue_event(result)
-            logger.info("📤 Result sent to A2A event queue")
-            
-        except Exception as e:
-            logger.error(f"💥 Error in AgentExecutor: {e}", exc_info=True)
-            error_message = new_agent_text_message(f"Error: {str(e)}")
-            await event_queue.enqueue_event(error_message)
-    
-    async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """Cancel execution - not implemented."""
-        logger.info("⚠️ Cancel requested but not implemented")
-        pass
-
-# --- Server Setup ---
+# --- Server Startup ---
 if __name__ == "__main__":
     try:
-        logger.info("🚀 Initializing A2A Pandas Data Analyst Server...")
+        logger.info("🚀 Starting A2A Pandas Data Analyst Server...")
+        logger.info(f"📋 Agent card will be served at: /.well-known/agent.json")
+        logger.info(f"📨 Message endpoint will be served at: /message/send")
+        logger.info(f"🏥 Health check available at: /health")
         
-        # Create AgentCard with skill definition
-        agent_card = AgentCard(
-            name="pandas_data_analyst",
-            description="A Streamlit-compatible agent for pandas data analysis using A2A protocol.",
-            version="0.1.0",
-            url="http://localhost:10001",
-            capabilities={"streaming": False},
-            defaultInputModes=["application/json", "text/plain"],
-            defaultOutputModes=["application/json", "text/plain"],
-            skills=[
-                AgentSkill(
-                    id="analyze_data",
-                    name="Analyze Data",
-                    description="Performs comprehensive data analysis on a pandas DataFrame based on user instructions.",
-                    tags=["data", "analysis", "pandas"],
-                ),
-            ]
+        # Start the server
+        uvicorn.run(
+            app,
+            host="127.0.0.1",
+            port=10001,
+            log_level="info"
         )
         
-        logger.info("✅ Agent card created")
-        
-        # Create A2A server components with proper AgentExecutor
-        agent_executor = PandasAgentExecutor()
-        task_store = InMemoryTaskStore()
-        request_handler = DefaultRequestHandler(
-            agent_executor=agent_executor,
-            task_store=task_store
-        )
-        
-        logger.info("✅ Request handler created with AgentExecutor")
-        
-        # Create the A2A FastAPI application
-        a2a_app = A2AFastAPIApplication(
-            agent_card=agent_card, 
-            http_handler=request_handler
-        )
-        app = a2a_app.build()
-        
-        logger.info("✅ A2A FastAPI application created")
-        logger.info("🌐 Starting server on port 10001...")
-        
-        import uvicorn
-        uvicorn.run(app, host="0.0.0.0", port=10001)
-
     except Exception as e:
-        logger.critical(f"💥 Failed to start A2A server: {e}", exc_info=True)
+        logger.critical(f"💥 Failed to start A2A server: {e}")
         exit(1) 

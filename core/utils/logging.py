@@ -1,29 +1,94 @@
 import os
 import logging
 import sys
+from datetime import datetime
+from pathlib import Path
 
-def setup_logging(level=logging.INFO):
+def setup_logging(level=logging.DEBUG):
     """
-    Set up the root logger to output to the console.
-    This should be called once at the application's entry point.
+    Set up comprehensive logging with both console and file output.
+    Enhanced for debugging A2A communication issues.
     """
     # Check if handlers are already configured
-    if not logging.getLogger().handlers:
-        formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] [%(name)s] - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
-        )
-        
-        # Configure stream handler (for console output)
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(formatter)
-        
-        # Configure root logger
-        root_logger = logging.getLogger()
-        root_logger.setLevel(level)
-        root_logger.addHandler(handler)
-        
-        logging.info("Logging configured successfully.")
+    if logging.getLogger().handlers:
+        return
+    
+    # Create logs directory if it doesn't exist
+    log_dir = Path("./logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    # Create formatters
+    detailed_formatter = logging.Formatter(
+        "[%(asctime)s] [%(levelname)-8s] [%(name)-20s] [%(filename)s:%(lineno)d] - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    
+    simple_formatter = logging.Formatter(
+        "[%(asctime)s] [%(levelname)s] - %(message)s",
+        datefmt="%H:%M:%S"
+    )
+    
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+    
+    # Console handler (simplified for readability)
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(simple_formatter)
+    console_handler.setLevel(logging.INFO)  # Less verbose for console
+    root_logger.addHandler(console_handler)
+    
+    # File handler (detailed for debugging)
+    log_file = log_dir / f"cherryai_{datetime.now().strftime('%Y%m%d')}.log"
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setFormatter(detailed_formatter)
+    file_handler.setLevel(logging.DEBUG)  # Full detail for file
+    root_logger.addHandler(file_handler)
+    
+    # Special handler for A2A communication debugging
+    a2a_log_file = log_dir / f"a2a_debug_{datetime.now().strftime('%Y%m%d')}.log"
+    a2a_handler = logging.FileHandler(a2a_log_file, encoding='utf-8')
+    a2a_handler.setFormatter(detailed_formatter)
+    a2a_handler.setLevel(logging.DEBUG)
+    
+    # Add A2A handler to specific loggers
+    a2a_loggers = [
+        'core.plan_execute.a2a_executor',
+        'a2a_servers.pandas_server',
+        'httpx',
+        'a2a'
+    ]
+    
+    for logger_name in a2a_loggers:
+        logger = logging.getLogger(logger_name)
+        logger.addHandler(a2a_handler)
+        logger.setLevel(logging.DEBUG)
+    
+    logging.info("🔧 Enhanced logging configured successfully")
+    logging.info(f"📁 Log files: {log_file} and {a2a_log_file}")
+
+def log_a2a_request(method: str, url: str, data: dict = None, headers: dict = None):
+    """Log A2A request details for debugging"""
+    logger = logging.getLogger('a2a.request')
+    logger.debug("=" * 60)
+    logger.debug(f"🌐 A2A REQUEST: {method} {url}")
+    if headers:
+        logger.debug(f"📋 Headers: {headers}")
+    if data:
+        logger.debug(f"📦 Data: {data}")
+    logger.debug("=" * 60)
+
+def log_a2a_response(status_code: int, response_data: dict = None, error: str = None):
+    """Log A2A response details for debugging"""
+    logger = logging.getLogger('a2a.response')
+    logger.debug("=" * 60)
+    if error:
+        logger.error(f"❌ A2A RESPONSE ERROR: {status_code} - {error}")
+    else:
+        logger.debug(f"✅ A2A RESPONSE: {status_code}")
+    if response_data:
+        logger.debug(f"📦 Response Data: {response_data}")
+    logger.debug("=" * 60)
 
 def log_ai_function(response: str, file_name: str, log: bool = True, log_path: str = './logs/', overwrite: bool = True):
     """

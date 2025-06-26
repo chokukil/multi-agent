@@ -1,5 +1,10 @@
 # File: pages/1_💬_Agent_Chat.py
 
+# Python 경로 설정을 맨 위로 이동
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import streamlit as st
 import asyncio
 import logging
@@ -16,6 +21,8 @@ from core.callbacks.progress_stream import progress_stream_manager
 from ui.artifact_manager import render_artifact
 from ui.sidebar_components import render_sidebar
 from core.utils.logging import setup_logging
+from ui.thinking_stream import ThinkingStream, PlanVisualization, BeautifulResults
+from ui.message_translator import MessageRenderer
 
 # --- Initial Setup ---
 setup_logging()
@@ -44,6 +51,10 @@ def initialize_session_state():
         st.session_state.messages = []
     if "session_id" not in st.session_state:
         st.session_state.session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    if "message_renderer" not in st.session_state:
+        st.session_state.message_renderer = MessageRenderer()
+    if "thinking_stream" not in st.session_state:
+        st.session_state.thinking_stream = None
 
 # --- UI Rendering ---
 def render_chat_history():
@@ -56,9 +67,14 @@ def render_chat_history():
             elif isinstance(content, dict) and "artifact" in content:
                 artifact = content["artifact"]
                 agent_name = artifact.get('agent_name', 'Unknown Agent')
-                exp = st.expander(f"✨ **{agent_name}**로부터 아티팩트 도착", expanded=True)
-                if exp:
-                    render_artifact(artifact.get('output_type'), artifact.get('output'), exp)
+                
+                # 🆕 아름다운 결과 표시 사용
+                beautiful_results = BeautifulResults()
+                beautiful_results.display_analysis_result(artifact, agent_name)
+                
+            elif isinstance(content, dict) and "a2a_message" in content:
+                # 🆕 A2A 메시지 친화적 렌더링
+                st.session_state.message_renderer.render_a2a_message(content["a2a_message"])
             else:
                 st.markdown(str(content))
 
@@ -89,14 +105,23 @@ async def execute_and_render(execution_state: dict):
                 if step_num in active_statuses:
                     active_statuses[step_num].update(label=f"✅ **Step {step_num}:** `{data['agent_name']}` 완료!", state="complete", expanded=False)
                 
-                artifact_message = {"role": "assistant", "content": {"artifact": data}}
-                st.session_state.messages.append(artifact_message)
-                
-                with st.chat_message("assistant"):
-                    agent_name = data.get('agent_name', 'Unknown Agent')
-                    exp = st.expander(f"✨ **{agent_name}**로부터 아티팩트 도착", expanded=True)
-                    if exp:
-                        render_artifact(data.get('output_type'), data.get('output'), exp)
+                # 🆕 A2A 메시지 처리 개선
+                if 'a2a_response' in data:
+                    # A2A 응답을 사용자 친화적으로 변환
+                    a2a_message = {"role": "assistant", "content": {"a2a_message": data['a2a_response']}}
+                    st.session_state.messages.append(a2a_message)
+                    
+                    with st.chat_message("assistant"):
+                        st.session_state.message_renderer.render_a2a_message(data['a2a_response'])
+                else:
+                    # 기존 아티팩트 처리
+                    artifact_message = {"role": "assistant", "content": {"artifact": data}}
+                    st.session_state.messages.append(artifact_message)
+                    
+                    with st.chat_message("assistant"):
+                        agent_name = data.get('agent_name', 'Unknown Agent')
+                        beautiful_results = BeautifulResults()
+                        beautiful_results.display_analysis_result(data, agent_name)
                 
             elif event_type == "agent_error":
                 if step_num in active_statuses:
@@ -130,26 +155,41 @@ def process_user_query(prompt: str):
             "session_id": st.session_state.session_id,
         }
 
+        # 🆕 1. 사고 과정 스트리밍 시작
+        thinking_container = st.container()
+        thinking_stream = ThinkingStream(thinking_container)
+        st.session_state.thinking_stream = thinking_stream
+        
+        thinking_stream.start_thinking("요청을 분석하고 있습니다...")
+        thinking_stream.add_thought("사용자의 요청을 이해하고 적절한 분석 방법을 찾고 있습니다.", "analysis")
+        
         # 1. Planner Execution
-        with st.status("🧠 **Thinking...** Analyzing request and building a plan.", expanded=True) as status:
+        with st.status("🧠 **계획 수립 중...** 최적의 분석 전략을 설계하고 있습니다.", expanded=True) as status:
             try:
+                thinking_stream.add_thought("데이터 분석에 필요한 단계들을 계획하고 있습니다.", "planning")
+                
                 plan_state = planner_node(initial_state)
                 if not plan_state.get("plan"):
-                    status.update(label="Planning Failed", state="error", expanded=False)
-                    st.error("Could not create a plan for this request. Please try rephrasing.")
-                    st.session_state.messages.append({"role": "assistant", "content": "I was unable to create a plan for this request."})
+                    thinking_stream.add_thought("계획 수립에 실패했습니다. 다시 시도해주세요.", "error")
+                    status.update(label="계획 수립 실패", state="error", expanded=False)
+                    st.error("요청에 대한 계획을 수립할 수 없습니다. 다시 표현해 주세요.")
+                    st.session_state.messages.append({"role": "assistant", "content": "요청에 대한 계획을 수립할 수 없었습니다."})
                     return
 
-                plan_summary = "📋 **Execution Plan**\n\n"
-                for step in plan_state["plan"]:
-                    plan_summary += f"**{step['step']}. `{step['agent_name']}`** 는 `{step['skill_name']}`\n"
+                thinking_stream.add_thought("완벽한 분석 계획이 완성되었습니다!", "success")
+                thinking_stream.finish_thinking("계획 수립 완료! 이제 실행을 시작합니다.")
                 
-                status.update(label="✅ Plan Created!", state="complete", expanded=False)
-                st.session_state.messages.append({"role": "assistant", "content": {"plan_summary": plan_summary}})
-                st.markdown(plan_summary)
+                # 🆕 아름다운 계획 시각화
+                plan_viz = PlanVisualization()
+                plan_viz.display_plan(plan_state["plan"], "🎯 데이터 분석 실행 계획")
+                
+                status.update(label="✅ 계획 완성!", state="complete", expanded=False)
+                st.session_state.messages.append({"role": "assistant", "content": {"plan_summary": "계획이 성공적으로 수립되었습니다."}})
+                
             except Exception as e:
-                status.update(label="Error during planning!", state="error")
-                st.error(f"An error occurred during the planning phase: {e}")
+                thinking_stream.add_thought(f"계획 수립 중 문제가 발생했습니다: {str(e)[:100]}", "error")
+                status.update(label="계획 수립 오류!", state="error")
+                st.error(f"계획 수립 중 오류가 발생했습니다: {e}")
                 logging.error(f"Planning error: {e}", exc_info=True)
                 return
 
