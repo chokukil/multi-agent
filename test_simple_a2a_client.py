@@ -1,100 +1,116 @@
 #!/usr/bin/env python3
-"""간단한 A2A 클라이언트 테스트"""
+"""
+Simple A2A Client Test
+Based on official A2A SDK patterns
+"""
 
 import asyncio
-import json
-import aiohttp
-from datetime import datetime
+import logging
+import httpx
+from uuid import uuid4
 
-async def test_simple_a2a():
-    """간단한 A2A 테스트"""
-    
-    # 서버 주소
-    server_url = "http://localhost:10001"  # 포트를 10001로 수정
-    
-    print(f"🧪 간단한 A2A TaskUpdater 패턴 테스트")
-    print("=" * 60)
-    
-    # 1. Agent Card 확인
-    print("🔍 Agent Card 확인...")
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{server_url}/.well-known/agent.json") as resp:
-                resp.raise_for_status()
-                agent_card = await resp.json()
-                print(f"✅ Agent '{agent_card.get('name')}' 확인 완료. 버전: {agent_card.get('version')}")
+from a2a.client import A2ACardResolver, A2AClient
+from a2a.types import SendMessageRequest, MessageSendParams
 
-    except aiohttp.ClientError as e:
-        print(f"❌ Agent Card 확인 실패: {e}")
-        print("💡 서버가 실행 중인지, 포트 번호가 올바른지 확인하세요.")
-        return
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-    print("\n🚀 A2A 간단한 테스트 시작")
-    print("📡 서버: " + server_url)
-    print("=" * 60)
+async def test_pandas_analyst():
+    """Test pandas analyst server."""
+    base_url = "http://localhost:8200"
     
-    # 요청 데이터
-    request_data = {
-        "jsonrpc": "2.0",
-        "id": "simple-test-001",
-        "method": "message/send",
-        "params": {
-            "message": {
-                "role": "user",
-                "parts": [
-                    {
-                        "kind": "text",
-                        "text": "간단한 테스트 해줘"
-                    }
-                ],
-                "messageId": "msg-001"
-            }
+    async with httpx.AsyncClient(timeout=30.0) as httpx_client:
+        # Get agent card
+        resolver = A2ACardResolver(httpx_client=httpx_client, base_url=base_url)
+        agent_card = await resolver.get_agent_card()
+        
+        logger.info(f"✅ Agent card fetched: {agent_card.name}")
+        logger.info(f"📝 Description: {agent_card.description}")
+        logger.info(f"🔧 Skills: {[skill.name for skill in agent_card.skills]}")
+        
+        # Create client
+        client = A2AClient(httpx_client=httpx_client, agent_card=agent_card)
+        
+        # Send message
+        query = "Analyze the titanic dataset"
+        send_message_payload = {
+            'message': {
+                'role': 'user',
+                'parts': [{'kind': 'text', 'text': query}],
+                'messageId': uuid4().hex,
+            },
         }
-    }
-    
-    print(f"📤 요청 전송: {request_data['params']['message']['parts'][0]['text']}")
-    print(f"⏰ 시작 시간: {datetime.now().strftime('%H:%M:%S')}")
-    print("-" * 60)
-    
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                server_url,
-                json=request_data,
-                headers={"Content-Type": "application/json"}
-            ) as response:
-                
-                response_text = await response.text()
-                print(f"📊 응답 상태: {response.status}")
-                
-                if response.status == 200:
-                    try:
-                        response_json = json.loads(response_text)
-                        if "result" in response_json:
-                            print("✅ 성공 응답:")
-                            result = response_json["result"]
-                            print(f"ID: {response_json.get('id')}")
-                            print(f"Task ID: {result.get('id')}")
-                            print(f"상태: {result.get('status', {}).get('state')}")
-                            if 'artifacts' in result:
-                                for artifact in result['artifacts']:
-                                    for part in artifact.get('parts', []):
-                                        if part.get('kind') == 'text':
-                                            print(f"결과: {part.get('text')}")
-                        else:
-                            print("❌ 오류 응답:")
-                            print(f"오류: {response_json}")
-                    except json.JSONDecodeError:
-                        print("❌ JSON 파싱 오류")
-                        print(f"원시 응답: {response_text}")
-                else:
-                    print(f"❌ HTTP 오류: {response.status}")
-                    print(f"응답: {response_text}")
+        
+        request = SendMessageRequest(
+            id=str(uuid4()), 
+            params=MessageSendParams(**send_message_payload)
+        )
+        
+        logger.info(f"🚀 Sending request: {query}")
+        response = await client.send_message(request)
+        
+        # Debug response structure
+        logger.info(f"📦 Response type: {type(response)}")
+        
+        # Check if it's a union type and get the actual response
+        actual_response = response
+        if hasattr(response, 'root'):
+            logger.info(f"📦 Response has root: {response.root}")
+            actual_response = response.root
+        
+        logger.info(f"📦 Actual response type: {type(actual_response)}")
+        
+        # Try model_dump first
+        if hasattr(actual_response, 'model_dump'):
+            response_dict = actual_response.model_dump()
+            logger.info(f"📦 Response model dump: {response_dict}")
+        
+        # Extract response content using different approaches
+        response_text = ""
+        
+        # Method 1: Try accessing result directly
+        if hasattr(actual_response, 'result'):
+            result = actual_response.result
+            logger.info(f"📊 Result: {result}")
+            logger.info(f"📊 Result type: {type(result)}")
+            
+            if hasattr(result, 'parts'):
+                logger.info(f"📊 Parts: {result.parts}")
+                for i, part in enumerate(result.parts):
+                    logger.info(f"📊 Part {i}: {part}")
                     
+                    # Try different ways to access text
+                    if hasattr(part, 'root') and hasattr(part.root, 'text'):
+                        response_text += part.root.text
+                        logger.info(f"✅ Found text via part.root.text: {part.root.text[:100]}...")
+                    elif hasattr(part, 'text'):
+                        response_text += part.text
+                        logger.info(f"✅ Found text via part.text: {part.text[:100]}...")
+        
+        # Method 2: Try using model_dump
+        if not response_text and hasattr(actual_response, 'model_dump'):
+            try:
+                dump = actual_response.model_dump()
+                if 'result' in dump and 'parts' in dump['result']:
+                    for part in dump['result']['parts']:
+                        if 'text' in part:
+                            response_text += part['text']
+                            logger.info(f"✅ Found text via model_dump: {part['text'][:100]}...")
+            except Exception as e:
+                logger.error(f"Error accessing model_dump: {e}")
+        
+        if response_text:
+            logger.info(f"✅ Final response received: {response_text[:200]}...")
+        else:
+            logger.error("❌ No response text found after trying all methods")
+
+async def main():
+    """Main test function."""
+    try:
+        await test_pandas_analyst()
     except Exception as e:
-        print(f"❌ 요청 실행 중 오류: {e}")
-    
-    print(f"⏰ 완료 시간: {datetime.now().strftime('%H:%M:%S')}")
+        logger.error(f"❌ Test failed: {e}", exc_info=True)
 
 if __name__ == "__main__":
-    asyncio.run(test_simple_a2a()) 
+    asyncio.run(main()) 

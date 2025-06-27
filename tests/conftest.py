@@ -5,8 +5,8 @@ from contextlib import closing
 import pytest_asyncio
 from uvicorn import Config, Server
 
-from a2a_servers.registry_server import app
-
+# from a2a_servers.registry_server import app
+# from core.agent_registry import AgentRegistry
 
 REGISTRY_HOST = "127.0.0.1"
 
