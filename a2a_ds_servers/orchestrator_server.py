@@ -89,6 +89,7 @@ class OrchestratorAgent:
                 "data_visualization": "http://localhost:8202",
                 "eda_tools": "http://localhost:8203",
                 "feature_engineering": "http://localhost:8204",
+                "data_cleaning": "http://localhost:8205",
             }
             
             try:
