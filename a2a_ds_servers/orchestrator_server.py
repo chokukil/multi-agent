@@ -86,6 +86,7 @@ class OrchestratorAgent:
             agent_urls = {
                 "pandas_data_analyst": "http://localhost:8200",
                 "sql_data_analyst": "http://localhost:8201",
+                "data_visualization": "http://localhost:8202",
             }
             
             try:
