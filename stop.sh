@@ -16,7 +16,7 @@ if [ ! -d "$PID_DIR" ]; then
     exit 0
 fi
 
-# Server names
+# Server names - 최신 구성
 SERVERS=(
     "orchestrator"
     "pandas_analyst"
@@ -97,8 +97,18 @@ done
 echo ""
 echo "🧹 Cleaning up any remaining processes..."
 
-# Kill any remaining A2A server processes
-for script in "orchestrator_server.py" "pandas_data_analyst_server.py" "sql_data_analyst_server.py" "data_visualization_server.py" "eda_tools_server.py" "feature_engineering_server.py" "data_cleaning_server.py"; do
+# Kill any remaining A2A server processes - 최신 서버 이름
+SERVER_SCRIPTS=(
+    "orchestrator_server.py"
+    "pandas_data_analyst_server.py"
+    "sql_data_analyst_server.py"
+    "data_visualization_server.py"
+    "eda_tools_server.py"
+    "feature_engineering_server.py"
+    "data_cleaning_server.py"
+)
+
+for script in "${SERVER_SCRIPTS[@]}"; do
     PIDS=$(pgrep -f "$script" 2>/dev/null || true)
     if [ -n "$PIDS" ]; then
         echo "🔄 Found remaining $script processes: $PIDS"
@@ -127,9 +137,10 @@ fi
 echo ""
 echo "🔍 Final status check..."
 
-# Check ports
+# Check ports - 최신 포트 번호
+PORTS=(8100 8200 8201 8202 8203 8204 8205 8501)
 ports_in_use=0
-for port in 8100 8200 8201 8202 8203 8204 8205 8501; do
+for port in "${PORTS[@]}"; do
     if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
         echo "⚠️  Port $port is still in use"
         ports_in_use=$((ports_in_use + 1))
@@ -143,10 +154,25 @@ if [ $ports_in_use -eq 0 ]; then
     echo "✅ A2A Data Science System completely stopped!"
     echo "📊 Stopped $stopped_count out of $total_count services"
     echo "🌐 All ports are now free"
+    echo ""
+    echo "🎯 Stopped Services:"
+    echo "   📱 Streamlit UI (8501)"
+    echo "   🎯 Orchestrator (8100)"
+    echo "   🐼 Pandas Data Analyst (8200)"
+    echo "   🗃️  SQL Data Analyst (8201)"
+    echo "   📈 Data Visualization (8202)"
+    echo "   🔍 EDA Tools (8203)"
+    echo "   🔧 Feature Engineering (8204)"
+    echo "   🧹 Data Cleaning (8205)"
 else
     echo "⚠️  System mostly stopped, but $ports_in_use ports still in use"
     echo "📊 Stopped $stopped_count out of $total_count services"
     echo "💡 You may need to manually kill remaining processes"
+    echo ""
+    echo "🔧 Troubleshooting:"
+    echo "   - Check running processes: ps aux | grep python"
+    echo "   - Check port usage: lsof -i :PORT_NUMBER"
+    echo "   - Force kill: kill -9 PID"
 fi
 echo "================================================"
 

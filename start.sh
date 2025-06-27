@@ -12,7 +12,7 @@ PID_DIR="$PROJECT_ROOT/logs/pids"
 mkdir -p "$LOG_DIR"
 mkdir -p "$PID_DIR"
 
-# Server configurations (name:script:port)
+# Server configurations (name:script:port) - 최신 포트 구성
 SERVERS=(
     "orchestrator:a2a_ds_servers/orchestrator_server.py:8100"
     "pandas_analyst:a2a_ds_servers/pandas_data_analyst_server.py:8200"
@@ -76,7 +76,7 @@ check_port() {
 wait_for_server() {
     local name=$1
     local port=$2
-    local max_attempts=20
+    local max_attempts=30
     local attempt=0
     
     echo "⏳ Waiting for $name..."
@@ -164,7 +164,7 @@ done
 
 echo ""
 echo "⏱️  Waiting for servers to initialize..."
-sleep 3
+sleep 5
 
 # Check all servers are ready
 echo "🔍 Checking server status..."
@@ -199,74 +199,29 @@ echo ""
 echo "================================================"
 echo "🎉 A2A Data Science System is operational!"
 echo "================================================"
+echo "📊 Available Services:"
+echo "   🎯 Orchestrator:          http://localhost:8100"
+echo "   🐼 Pandas Data Analyst:   http://localhost:8200"
+echo "   🗃️  SQL Data Analyst:      http://localhost:8201"
+echo "   📈 Data Visualization:    http://localhost:8202"
+echo "   🔍 EDA Tools:             http://localhost:8203"
+echo "   🔧 Feature Engineering:   http://localhost:8204"
+echo "   🧹 Data Cleaning:         http://localhost:8205"
 echo ""
-echo "🌐 Available A2A Services:"
-echo "   📋 Orchestrator:        http://localhost:8100"
-echo "   📊 Pandas Analyst:      http://localhost:8200"
-echo "   🗄️  SQL Analyst:        http://localhost:8201"
-echo "   🎨 Data Visualization:  http://localhost:8202"
-echo "   🔬 EDA Tools:           http://localhost:8203"
-echo "   🔧 Feature Engineering: http://localhost:8204"
-echo "   🧹 Data Cleaning:       http://localhost:8205"
-echo ""
-
-# Start Streamlit UI
-echo "🎨 Starting Streamlit UI..."
-echo "🌐 Streamlit will be available at: http://localhost:8501"
-echo ""
-
-# Run Streamlit in the foreground
+echo "🌐 Starting Streamlit UI on http://localhost:8501"
 echo "================================================"
-echo "📱 Launching CherryAI Streamlit Application"
-echo "You will see the Streamlit logs below."
-echo "Press Ctrl+C to stop the entire system."
-echo "================================================"
-echo ""
 
-# Start Streamlit and capture its PID
-uv run streamlit run app.py --server.port 8501 &
+# Start Streamlit
+echo "🎨 Starting Streamlit..."
+uv run streamlit run app.py &
 STREAMLIT_PID=$!
 echo $STREAMLIT_PID > "$PID_DIR/streamlit.pid"
 
-# Wait for Streamlit to be ready
-echo "⏳ Starting Streamlit..."
-sleep 5
-
-# Show status and keep running
 echo ""
-echo "✅ System is fully operational!"
-echo "📱 Streamlit UI: http://localhost:8501"
-echo "🔄 A2A Test: python test_orchestrator_simple.py"
-echo ""
-echo "🛑 Press Ctrl+C to stop all services"
+echo "🎉 System ready!"
+echo "📱 Open your browser to: http://localhost:8501"
+echo "🛑 Press Ctrl+C to stop the system"
 echo ""
 
-# Keep the script running and monitor
-while true; do
-    # Check if Streamlit is still running
-    if ! ps -p "$STREAMLIT_PID" > /dev/null 2>&1; then
-        echo "❌ Streamlit stopped unexpectedly"
-        break
-    fi
-    
-    # Check if any A2A server stopped
-    servers_running=true
-    for server_config in "${SERVERS[@]}"; do
-        IFS=':' read -r name script port <<< "$server_config"
-        PID_FILE="$PID_DIR/${name}.pid"
-        if [ -f "$PID_FILE" ]; then
-            PID=$(cat "$PID_FILE")
-            if ! ps -p "$PID" > /dev/null 2>&1; then
-                echo "❌ $name server stopped unexpectedly"
-                servers_running=false
-            fi
-        fi
-    done
-    
-    if [ "$servers_running" = false ]; then
-        echo "❌ Some A2A servers stopped. Shutting down..."
-        break
-    fi
-    
-    sleep 10
-done 
+# Wait for user interrupt
+wait $STREAMLIT_PID 

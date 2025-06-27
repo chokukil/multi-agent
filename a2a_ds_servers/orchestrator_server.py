@@ -56,18 +56,34 @@ class OrchestratorAgent:
         try:
             logger.info(f"🎯 Planning multi-step analysis: {query[:100]}...")
             
-            # Use real LLM for planning
-            result = self.planner_node.invoke({"messages": [self.HumanMessage(content=query)]})
+            # Use real LLM for planning - 올바른 함수 호출 방식
+            state = {"messages": [self.HumanMessage(content=query)]}
+            result = self.planner_node(state)  # invoke 메서드가 아닌 함수 호출
             
-            if result and "plan" in result:
+            if result and "plan" in result and result["plan"]:
+                plan_text = ""
+                for step in result["plan"]:
+                    plan_text += f"\n**Step {step['step']}:** {step.get('parameters', {}).get('user_instructions', 'N/A')}"
+                    plan_text += f"\n  - Agent: {step.get('agent_name', 'N/A')}"
+                    plan_text += f"\n  - Data ID: {step.get('parameters', {}).get('data_id', 'N/A')}"
+                    plan_text += f"\n  - Reasoning: {step.get('reasoning', 'N/A')}\n"
+                
                 return f"""🎯 **Data Science Analysis Plan Created**
 
 **Query:** {query}
 
-**Multi-Step Analysis Plan:**
-{result['plan']}
+**Multi-Step Analysis Plan:**{plan_text}
 
-**Status:** Plan created successfully. Ready for step-by-step execution."""
+**Status:** Plan created successfully with {len(result['plan'])} steps. Ready for step-by-step execution."""
+            elif result and "error" in result:
+                logger.warning(f"Planner returned error: {result['error']}")
+                return f"""⚠️ **Planning Notice**
+
+**Query:** {query}
+
+**Status:** {result['error']}
+
+**Recommendation:** Please ensure data is uploaded and try again, or rephrase your request."""
             else:
                 return f"""🎯 **Analysis Plan**
 
@@ -94,8 +110,8 @@ class OrchestratorExecutor(AgentExecutor):
         
         try:
             # Submit and start work
-            task_updater.submit()
-            task_updater.start_work()
+            await task_updater.submit()  # await 추가
+            await task_updater.start_work()  # await 추가
             
             # Extract user message
             user_query = context.get_user_input()
@@ -109,7 +125,7 @@ class OrchestratorExecutor(AgentExecutor):
             
             # Complete task with result
             from a2a.types import TaskState, TextPart
-            task_updater.update_status(
+            await task_updater.update_status(  # await 추가
                 TaskState.completed,
                 message=task_updater.new_agent_message(parts=[TextPart(text=result)])
             )
@@ -118,7 +134,7 @@ class OrchestratorExecutor(AgentExecutor):
             logger.error(f"Error in execute: {e}", exc_info=True)
             # Report error through TaskUpdater
             from a2a.types import TaskState, TextPart
-            task_updater.update_status(
+            await task_updater.update_status(  # await 추가
                 TaskState.failed,
                 message=task_updater.new_agent_message(parts=[TextPart(text=f"Orchestration failed: {str(e)}")])
             )
@@ -126,7 +142,7 @@ class OrchestratorExecutor(AgentExecutor):
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Cancel the operation."""
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
-        task_updater.reject()
+        await task_updater.reject()  # await 추가
         logger.info(f"Operation cancelled for context {context.context_id}")
 
 def main():
