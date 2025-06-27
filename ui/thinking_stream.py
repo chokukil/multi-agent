@@ -121,9 +121,10 @@ class PlanVisualization:
                 # 진행률 업데이트
                 progress = (i + 1) / len(plan_steps)
                 progress_bar.progress(progress)
-                status_text.text(f"계획 표시 중... {i + 1}/{len(plan_steps)}")
+                status_text.text(f"✅ 계획 표시 완료!")
                 
-                time.sleep(0.3)  # 부드러운 애니메이션
+                # 부드러운 애니메이션 대신 빠른 표시
+                time.sleep(0.1)  # 부드러운 애니메이션
             
             status_text.text("✅ 계획 표시 완료!")
     
@@ -340,7 +341,7 @@ class BeautifulResults:
         # 텍스트를 읽기 쉽게 포맷팅
         formatted_content = content.replace('\n\n', '\n\n---\n\n')
         
-        st.markdown("### �� 분석 결과")
+        st.markdown("### 분석 결과")
         st.markdown(formatted_content)
 
 

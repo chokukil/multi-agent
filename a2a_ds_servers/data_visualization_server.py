@@ -104,8 +104,8 @@ class DataVisualizationExecutor(AgentExecutor):
         
         try:
             # Submit and start work
-            task_updater.submit()
-            task_updater.start_work()
+            await task_updater.submit()
+            await task_updater.start_work()
             
             # Extract user message
             user_query = context.get_user_input()
@@ -119,7 +119,7 @@ class DataVisualizationExecutor(AgentExecutor):
             
             # Complete task with result
             from a2a.types import TaskState, TextPart
-            task_updater.update_status(
+            await task_updater.update_status(
                 TaskState.completed,
                 message=task_updater.new_agent_message(parts=[TextPart(text=result)])
             )
@@ -128,7 +128,7 @@ class DataVisualizationExecutor(AgentExecutor):
             logger.error(f"Error in execute: {e}", exc_info=True)
             # Report error through TaskUpdater
             from a2a.types import TaskState, TextPart
-            task_updater.update_status(
+            await task_updater.update_status(
                 TaskState.failed,
                 message=task_updater.new_agent_message(parts=[TextPart(text=f"Visualization failed: {str(e)}")])
             )
@@ -136,7 +136,7 @@ class DataVisualizationExecutor(AgentExecutor):
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Cancel the operation."""
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
-        task_updater.reject()
+        await task_updater.reject()
         logger.info(f"Operation cancelled for context {context.context_id}")
 
 def main():
