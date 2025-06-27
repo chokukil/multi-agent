@@ -87,6 +87,7 @@ class OrchestratorAgent:
                 "pandas_data_analyst": "http://localhost:8200",
                 "sql_data_analyst": "http://localhost:8201",
                 "data_visualization": "http://localhost:8202",
+                "eda_tools": "http://localhost:8203",
             }
             
             try:
