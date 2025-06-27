@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 AI Data Science Orchestrator Server - A2A Compatible
-Following official A2A SDK patterns
+Following official A2A SDK patterns with real LLM integration
 """
 
 import logging
 import uvicorn
 import asyncio
 import httpx
+import os
 from uuid import uuid4
 
 # A2A SDK imports
@@ -20,29 +21,68 @@ from a2a.types import AgentCard, AgentSkill, AgentCapabilities
 from a2a.utils import new_agent_text_message
 
 # A2A Client imports
-from a2a.client import A2AClient, A2ACardResolver
+from a2a.client import A2ACardResolver, A2AClient
 from a2a.types import SendMessageRequest, MessageSendParams
-
-# Mock implementation for testing A2A protocol
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class OrchestratorAgent:
-    """AI Data Science Orchestrator Agent."""
+    """AI Data Science Orchestrator Agent with LLM integration."""
+
+    def __init__(self):
+        # Try to initialize with real LLM if API key is available
+        self.use_real_llm = False
+        self.planner_node = None
+        
+        try:
+            if os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY'):
+                from core.plan_execute.planner import planner_node
+                from langchain_core.messages import HumanMessage
+                
+                self.planner_node = planner_node
+                self.HumanMessage = HumanMessage
+                self.use_real_llm = True
+                logger.info("✅ Real LLM initialized for Orchestrator")
+            else:
+                logger.info("⚠️  No LLM API key found, using mock planning")
+        except Exception as e:
+            logger.warning(f"⚠️  Failed to initialize LLM planner, falling back to mock: {e}")
 
     async def invoke(self, query: str) -> str:
         """Orchestrate data analysis across multiple agents."""
         try:
-            # Mock orchestration response for testing A2A protocol
-            plan_summary = "🎯 **데이터 분석 실행 계획**\n\n"
-            plan_summary += "**Step 1**: Pandas Data Analyst\n- Perform exploratory data analysis on the dataset\n\n"
-            plan_summary += "**Step 2**: Data Visualization Agent\n- Create visualizations for key insights\n\n"
-            plan_summary += "**Step 3**: Statistical Analysis Agent\n- Conduct statistical tests and analysis\n\n"
+            if self.use_real_llm and self.planner_node:
+                # Use real LLM for planning
+                logger.info(f"🧠 Creating real plan for: {query[:100]}...")
+                
+                initial_state = {
+                    "messages": [self.HumanMessage(content=query)],
+                    "session_id": str(uuid4()),
+                }
+                
+                plan_state = await asyncio.to_thread(self.planner_node, initial_state)
+                plan = plan_state.get("plan")
+                
+                if not plan:
+                    plan_summary = "🎯 **데이터 분석 실행 계획**\n\n**기본 계획**: Pandas Data Analyst를 사용한 분석\n\n"
+                else:
+                    plan_summary = "🎯 **데이터 분석 실행 계획**\n\n"
+                    for i, step in enumerate(plan, 1):
+                        agent_name = step.get("agent_name", "Unknown Agent")
+                        reasoning = step.get("reasoning", "No reasoning provided")
+                        plan_summary += f"**Step {i}**: {agent_name}\n- {reasoning}\n\n"
+            else:
+                # Use mock planning
+                logger.info(f"🤖 Creating mock plan for: {query[:100]}...")
+                plan_summary = "🎯 **데이터 분석 실행 계획** (Mock)\n\n"
+                plan_summary += "**Step 1**: Pandas Data Analyst\n- Perform comprehensive exploratory data analysis\n- Identify patterns, correlations, and missing values\n\n"
+                plan_summary += "**Step 2**: Statistical Analysis Agent\n- Conduct statistical tests and hypothesis testing\n- Generate descriptive and inferential statistics\n\n"
+                plan_summary += "**Step 3**: Visualization Agent\n- Create informative charts and plots\n- Generate executive summary dashboards\n\n"
             
             result_summary = plan_summary
             
-            # Try to call pandas agent if available
+            # Execute Step 1: Try to call pandas agent if available
             agent_urls = {
                 "pandas_data_analyst": "http://localhost:8200",
             }
@@ -67,15 +107,17 @@ class OrchestratorAgent:
                         params=MessageSendParams(**send_message_payload)
                     )
                     
+                    logger.info(f"🔗 Calling Pandas Data Analyst...")
                     response = await client.send_message(request)
                     
-                    # Extract response text
+                    # Extract response text (using the correct pattern we learned)
                     response_text = ""
-                    if hasattr(response, 'result') and response.result:
-                        if hasattr(response.result, 'parts') and response.result.parts:
-                            for part in response.result.parts:
-                                if hasattr(part, 'text'):
-                                    response_text += part.text
+                    actual_response = response.root if hasattr(response, 'root') else response
+                    if hasattr(actual_response, 'result') and actual_response.result:
+                        if hasattr(actual_response.result, 'parts') and actual_response.result.parts:
+                            for part in actual_response.result.parts:
+                                if hasattr(part, 'root') and hasattr(part.root, 'text'):
+                                    response_text += part.root.text
                     
                     if response_text:
                         result_summary += f"\n---\n\n**✅ Step 1 완료**: Pandas Data Analyst\n\n{response_text}\n"
@@ -85,6 +127,11 @@ class OrchestratorAgent:
             except Exception as step_e:
                 logger.error(f"Error calling pandas agent: {step_e}")
                 result_summary += f"\n---\n\n**❌ Step 1**: Pandas Data Analyst - Error: {step_e}\n"
+            
+            # Mock execution for remaining steps (if using real LLM, could call actual agents)
+            if not self.use_real_llm:
+                result_summary += f"\n---\n\n**⏭️ Step 2**: Statistical Analysis Agent - Ready for implementation\n"
+                result_summary += f"\n---\n\n**⏭️ Step 3**: Visualization Agent - Ready for implementation\n"
             
             result_summary += "\n\n🎉 **오케스트레이션 완료!**"
             return result_summary
@@ -101,17 +148,13 @@ class OrchestratorExecutor(AgentExecutor):
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Execute the orchestration."""
-        # Extract user message
-        user_query = ""
-        if context.message and context.message.parts:
-            for part in context.message.parts:
-                if hasattr(part, 'text'):
-                    user_query += part.text
+        # Extract user message using the official A2A pattern
+        user_query = context.get_user_input()
         
         if not user_query:
             user_query = "Please provide a data analysis request."
         
-        logger.info(f"Orchestrating query: {user_query}")
+        logger.info(f"🎯 Orchestrating query: {user_query}")
         
         # Get result from the agent
         result = await self.agent.invoke(user_query)

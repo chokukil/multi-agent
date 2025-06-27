@@ -71,7 +71,8 @@ class TestA2ADataScienceSystem:
                             response_text += part.root.text
             
             assert response_text, "No response text received"
-            assert "Mock analysis" in response_text, f"Expected mock response, got: {response_text[:100]}"
+            assert "Analysis Completed Successfully" in response_text, f"Expected analysis response, got: {response_text[:100]}"
+            assert "Query:" in response_text, f"Expected to see the actual query in response, got: {response_text[:100]}"
             
             logger.info("Pandas analyst test completed successfully")
             logger.info(f"Response: {response_text[:100]}...")
