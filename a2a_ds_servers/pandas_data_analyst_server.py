@@ -7,6 +7,14 @@ Following official A2A SDK patterns with real LLM integration
 import logging
 import uvicorn
 import os
+import sys
+from dotenv import load_dotenv
+
+# Add parent directory to path for core modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Load environment variables
+load_dotenv()
 
 # A2A SDK imports
 from a2a.server.apps import A2AStarletteApplication
@@ -16,6 +24,7 @@ from a2a.server.tasks import InMemoryTaskStore
 from a2a.server.events import EventQueue
 from a2a.types import AgentCard, AgentSkill, AgentCapabilities
 from a2a.utils import new_agent_text_message
+from a2a.server.tasks.task_updater import TaskUpdater
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,68 +33,111 @@ class PandasDataAnalystAgent:
     """Pandas Data Analyst Agent with LLM integration."""
 
     def __init__(self):
-        # Try to initialize with real LLM if API key is available
-        self.use_real_llm = False
+        # Initialize data manager for real data processing
+        try:
+            from core.data_manager import DataManager
+            self.data_manager = DataManager()
+            logger.info("✅ Data Manager initialized")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Data Manager: {e}")
+            raise RuntimeError("Data Manager is required for operation") from e
+        
+        # Initialize with real LLM - required, no fallback
         self.llm = None
         self.agent = None
         
         try:
-            if os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY'):
-                from core.llm_factory import create_llm_instance
-                from ai_data_science_team.multiagents import PandasDataAnalyst
+            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
+            if not api_key:
+                raise ValueError("No LLM API key found in environment variables")
                 
-                self.llm = create_llm_instance()
-                self.agent = PandasDataAnalyst(llm=self.llm)
-                self.use_real_llm = True
-                logger.info("✅ Real LLM initialized for Pandas Data Analyst")
-            else:
-                logger.info("⚠️  No LLM API key found, using mock responses")
+            from core.llm_factory import create_llm_instance
+            from ai_data_science_team.multiagents import PandasDataAnalyst
+            from ai_data_science_team.agents import DataWranglingAgent, DataVisualizationAgent
+            
+            self.llm = create_llm_instance()
+            
+            # Initialize sub-agents
+            data_wrangling_agent = DataWranglingAgent(model=self.llm)
+            data_visualization_agent = DataVisualizationAgent(model=self.llm)
+            
+            # Initialize the pandas data analyst with sub-agents
+            self.agent = PandasDataAnalyst(
+                model=self.llm,
+                data_wrangling_agent=data_wrangling_agent,
+                data_visualization_agent=data_visualization_agent
+            )
+            logger.info("✅ Real LLM initialized for Pandas Data Analyst")
         except Exception as e:
-            logger.warning(f"⚠️  Failed to initialize LLM, falling back to mock: {e}")
+            logger.error(f"❌ Failed to initialize LLM: {e}")
+            raise RuntimeError("LLM initialization is required for operation") from e
 
     async def invoke(self, query: str) -> str:
         """Invoke the pandas data analyst with a query."""
         try:
-            if self.use_real_llm and self.agent:
-                # Use real LLM
-                logger.info(f"🧠 Processing with real LLM: {query[:100]}...")
-                result = self.agent.invoke({"question": query})
-                if isinstance(result, dict) and "answer" in result:
-                    return result["answer"]
-                elif isinstance(result, str):
-                    return result
+            logger.info(f"🧠 Processing with real LLM: {query[:100]}...")
+            
+            # Get actual data for analysis
+            data_raw = None
+            if self.data_manager:
+                dataframe_ids = self.data_manager.list_dataframes()
+                if dataframe_ids:
+                    # Use the first available dataframe
+                    data_raw = self.data_manager.get_dataframe(dataframe_ids[0])
+                    logger.info(f"📊 Using dataframe '{dataframe_ids[0]}' with shape: {data_raw.shape}")
                 else:
-                    return "Analysis completed successfully."
+                    logger.info("📊 No uploaded data found, using sample data")
+                    
+            # If no data available, create sample data for demonstration
+            if data_raw is None:
+                import pandas as pd
+                data_raw = pd.DataFrame({
+                    'category': ['A', 'B', 'A', 'C', 'B', 'A'],
+                    'value': [10, 20, 15, 30, 25, 12],
+                    'date': pd.date_range('2024-01-01', periods=6)
+                })
+                logger.info("📊 Using sample data for demonstration")
+            
+            # Invoke the agent with proper parameters
+            self.agent.invoke_agent(
+                user_instructions=query,
+                data_raw=data_raw
+            )
+            
+            if self.agent.response:
+                # Extract results from the response
+                messages = self.agent.response.get("messages", [])
+                if messages:
+                    # Get the last message content
+                    last_message = messages[-1]
+                    if hasattr(last_message, 'content'):
+                        return last_message.content
+                    
+                # Try to get specific outputs
+                data_wrangled = self.agent.get_data_wrangled()
+                plotly_graph = self.agent.get_plotly_graph()
+                wrangler_function = self.agent.get_data_wrangler_function()
+                viz_function = self.agent.get_data_visualization_function()
+                
+                response_text = f"✅ **Pandas Data Analysis Complete!**\n\n"
+                response_text += f"**Query:** {query}\n\n"
+                
+                if data_wrangled is not None:
+                    response_text += f"**Data Shape:** {data_wrangled.shape}\n\n"
+                if wrangler_function:
+                    response_text += f"**Data Processing:**\n```python\n{wrangler_function}\n```\n\n"
+                if plotly_graph:
+                    response_text += f"**Visualization:** Interactive chart generated\n\n"
+                if viz_function:
+                    response_text += f"**Visualization Code:**\n```python\n{viz_function}\n```\n\n"
+                    
+                return response_text
             else:
-                # Use mock response
-                logger.info(f"🤖 Processing with mock: {query[:100]}...")
-                return f"""📊 **Pandas Data Analysis Result**
-
-**Query:** {query}
-
-✅ **Analysis Completed Successfully!**
-
-🔍 **Sample Analysis Results:**
-- Dataset loaded and processed
-- Shape: (891, 12) - 891 rows, 12 columns  
-- Missing values detected in Age (177), Cabin (687), Embarked (2)
-- Survival rate: 38.4% (342/891 passengers survived)
-
-📈 **Key Insights:**
-- Higher survival rates for females (74.2%) vs males (18.9%)
-- First class passengers had better survival chances (62.9%)
-- Age distribution shows most passengers were 20-40 years old
-
-💡 **Recommendations:**
-- Focus analysis on gender and passenger class correlations
-- Investigate age group survival patterns
-- Consider family size impact on survival
-
-*Note: This is enhanced mock data for demonstration. Enable LLM integration for real analysis.*"""
+                return "Analysis completed successfully."
 
         except Exception as e:
             logger.error(f"Error in pandas analyst: {e}", exc_info=True)
-            return f"Error occurred during analysis: {str(e)}"
+            raise RuntimeError(f"Analysis failed: {str(e)}") from e
 
 class PandasDataAnalystExecutor(AgentExecutor):
     """Pandas Data Analyst Agent Executor."""
@@ -94,58 +146,60 @@ class PandasDataAnalystExecutor(AgentExecutor):
         self.agent = PandasDataAnalystAgent()
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """Execute the pandas data analysis."""
-        # Debug: Check different ways to extract user input
-        logger.info(f"🔍 Debug context: {context}")
-        logger.info(f"🔍 Debug context.message: {context.message}")
-        if context.message:
-            logger.info(f"🔍 Debug context.message.parts: {context.message.parts}")
+        """Execute the pandas data analysis using TaskUpdater pattern."""
+        # Initialize TaskUpdater
+        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
-        # Extract user message using the official A2A pattern
-        user_query = context.get_user_input()
-        logger.info(f"🔍 get_user_input() returned: '{user_query}'")
-        
-        # Alternative extraction methods if get_user_input fails
-        if not user_query and context.message and context.message.parts:
-            logger.info("🔍 Trying alternative extraction...")
-            for i, part in enumerate(context.message.parts):
-                logger.info(f"🔍 Part {i}: {part}")
-                if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                    user_query += part.root.text
-                    logger.info(f"🔍 Found text via part.root.text: {part.root.text}")
-                elif hasattr(part, 'text'):
-                    user_query += part.text
-                    logger.info(f"🔍 Found text via part.text: {part.text}")
-        
-        if not user_query:
-            user_query = "Please provide a data analysis query."
-        
-        logger.info(f"📥 Final query to process: {user_query}")
-        
-        # Get result from the agent
-        result = await self.agent.invoke(user_query)
-        
-        # Send result back via event queue
-        await event_queue.enqueue_event(new_agent_text_message(result))
+        try:
+            # Submit and start work
+            task_updater.submit()
+            task_updater.start_work()
+            
+            # Extract user message
+            user_query = context.get_user_input()
+            logger.info(f"📥 Processing query: {user_query}")
+            
+            if not user_query:
+                user_query = "Please provide a data analysis query."
+            
+            # Get result from the agent
+            result = await self.agent.invoke(user_query)
+            
+            # Complete task with result
+            from a2a.types import TaskState, TextPart
+            task_updater.update_status(
+                TaskState.completed,
+                message=task_updater.new_agent_message(parts=[TextPart(text=result)])
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in execute: {e}", exc_info=True)
+            # Report error through TaskUpdater
+            from a2a.types import TaskState, TextPart
+            task_updater.update_status(
+                TaskState.failed,
+                message=task_updater.new_agent_message(parts=[TextPart(text=f"Analysis failed: {str(e)}")])
+            )
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Cancel the operation."""
-        logger.warning(f"Cancel called for context {context.context_id}")
-        await event_queue.enqueue_event(new_agent_text_message("Operation cancelled."))
+        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        task_updater.reject()
+        logger.info(f"Operation cancelled for context {context.context_id}")
 
 def main():
     """Main function to start the pandas analyst server."""
     skill = AgentSkill(
         id="pandas_data_analysis",
         name="Pandas Data Analysis",
-        description="Performs data analysis using pandas library",
-        tags=["pandas", "data-analysis", "statistics"],
-        examples=["analyze my data", "show me sales trends", "calculate statistics"]
+        description="Performs comprehensive data analysis using pandas library on uploaded datasets",
+        tags=["pandas", "data-analysis", "statistics", "eda"],
+        examples=["analyze my data", "show me sales trends", "calculate statistics", "perform EDA on uploaded dataset"]
     )
 
     agent_card = AgentCard(
         name="Pandas Data Analyst",
-        description="An AI agent that specializes in data analysis using the pandas library.",
+        description="An AI agent that specializes in data analysis using the pandas library with real uploaded data.",
         url="http://localhost:8200/",
         version="1.0.0",
         defaultInputModes=["text"],
