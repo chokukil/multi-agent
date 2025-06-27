@@ -8,7 +8,7 @@ set "LOG_DIR=%PROJECT_ROOT%\logs"
 set "PID_FILE=%LOG_DIR%\pandas_server.pid"
 
 echo ================================================
-echo Stopping CherryAI System for Windows...
+echo Stopping CherryAI A2A Data Science System for Windows...
 echo Project Root: %PROJECT_ROOT%
 echo ================================================
 
@@ -38,29 +38,77 @@ goto :eof
 
 :skip_functions
 
-:: 1. Stop background pandas server from PID file
+:: 1. Stop A2A Data Science Servers
 echo.
-echo Step 1: Stopping Pandas Data Analyst Server...
-if exist "%PID_FILE%" (
-    for /f %%i in ('type "%PID_FILE%"') do (
-        call :kill_process_by_pid %%i "Pandas Server"
+echo Step 1: Stopping A2A Data Science Servers...
+
+echo Stopping Data Loader Server (Port 8000)...
+taskkill /F /IM python.exe /FI "WINDOWTITLE eq Data Loader Server" 2>nul
+if errorlevel 1 (echo - Data Loader Server not running) else (echo ✅ Data Loader Server stopped)
+
+echo Stopping Pandas Data Analyst Server (Port 8001)...
+taskkill /F /IM python.exe /FI "WINDOWTITLE eq Pandas Data Analyst Server" 2>nul
+if errorlevel 1 (echo - Pandas Data Analyst Server not running) else (echo ✅ Pandas Data Analyst Server stopped)
+
+echo Stopping SQL Data Analyst Server (Port 8002)...
+taskkill /F /IM python.exe /FI "WINDOWTITLE eq SQL Data Analyst Server" 2>nul
+if errorlevel 1 (echo - SQL Data Analyst Server not running) else (echo ✅ SQL Data Analyst Server stopped)
+
+echo Stopping EDA Tools Server (Port 8003)...
+taskkill /F /IM python.exe /FI "WINDOWTITLE eq EDA Tools Server" 2>nul
+if errorlevel 1 (echo - EDA Tools Server not running) else (echo ✅ EDA Tools Server stopped)
+
+echo Stopping Data Visualization Server (Port 8004)...
+taskkill /F /IM python.exe /FI "WINDOWTITLE eq Data Visualization Server" 2>nul
+if errorlevel 1 (echo - Data Visualization Server not running) else (echo ✅ Data Visualization Server stopped)
+
+echo Stopping Orchestrator Server (Port 8100)...
+taskkill /F /IM python.exe /FI "WINDOWTITLE eq Orchestrator Server" 2>nul
+if errorlevel 1 (echo - Orchestrator Server not running) else (echo ✅ Orchestrator Server stopped)
+
+:: 2. Stop any remaining A2A server processes by port
+echo.
+echo Step 2: Stopping A2A servers by port...
+netstat -ano | findstr ":8000 " | findstr "LISTENING" >nul && (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8000 " ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a >nul 2>&1
+        echo ✅ Process on port 8000 terminated
     )
-    del "%PID_FILE%" >nul 2>&1
-    echo PID file removed.
-) else (
-    echo - No PID file found at: %PID_FILE%
 )
 
-:: 2. Stop any remaining pandas_server processes
-echo.
-echo Step 2: Searching for remaining pandas_server processes...
-set "FOUND_PANDAS=false"
-for /f "tokens=2 delims=," %%a in ('tasklist /nh /fi "imagename eq python.exe" /fo csv 2^>nul ^| findstr "pandas_server"') do (
-    set "FOUND_PANDAS=true"
-    call :kill_process_by_pid %%~a "Pandas Server Process"
+netstat -ano | findstr ":8001 " | findstr "LISTENING" >nul && (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8001 " ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a >nul 2>&1
+        echo ✅ Process on port 8001 terminated
+    )
 )
-if "!FOUND_PANDAS!"=="false" (
-    echo - No pandas_server processes found.
+
+netstat -ano | findstr ":8002 " | findstr "LISTENING" >nul && (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8002 " ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a >nul 2>&1
+        echo ✅ Process on port 8002 terminated
+    )
+)
+
+netstat -ano | findstr ":8003 " | findstr "LISTENING" >nul && (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8003 " ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a >nul 2>&1
+        echo ✅ Process on port 8003 terminated
+    )
+)
+
+netstat -ano | findstr ":8004 " | findstr "LISTENING" >nul && (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8004 " ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a >nul 2>&1
+        echo ✅ Process on port 8004 terminated
+    )
+)
+
+netstat -ano | findstr ":8100 " | findstr "LISTENING" >nul && (
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8100 " ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a >nul 2>&1
+        echo ✅ Process on port 8100 terminated
+    )
 )
 
 :: 3. Stop Streamlit processes

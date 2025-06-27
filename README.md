@@ -30,20 +30,56 @@
 ✅ **Streaming**: Support for real-time communication  
 ✅ **Error Handling**: Proper A2A error responses  
 
+### 🔬 A2A Data Science Agents
+
+CherryAI includes a comprehensive suite of A2A-compliant data science agents:
+
+#### Available Agents
+
+| Agent | Port | Description |
+|-------|------|-------------|
+| **Data Loader** | 8000 | File operations, data loading, and preprocessing |
+| **Pandas Analyst** | 8001 | Advanced pandas analysis with interactive visualizations |
+| **SQL Analyst** | 8002 | Database queries and SQL-based analysis |
+| **EDA Tools** | 8003 | Exploratory data analysis and statistical insights |
+| **Data Visualization** | 8004 | Interactive charts and dashboard creation |
+| **Orchestrator** | 8100 | Central management and coordination |
+
+#### Key Features
+
+🚀 **Real-time Streaming**: Live progress updates during analysis  
+📊 **Interactive Visualizations**: Streamlit-optimized Plotly charts  
+🔄 **Agent Orchestration**: Coordinated multi-agent workflows  
+📁 **Artifact Management**: Automatic file and result storage  
+🧪 **Sample Data**: Pre-loaded datasets for testing  
+
+#### Usage
+
+1. **Web Interface**: Visit the "🔬 A2A Data Science" page in CherryAI
+2. **Agent Management**: Monitor and control agents via "⚙️ Agent Management"
+3. **Direct API**: Send A2A protocol requests to individual agents
+4. **System Control**: Use `system_start.bat` to launch all agents
+
 ### A2A Architecture
 
 ```
 ┌─────────────────┐    A2A Protocol    ┌─────────────────┐
-│   CherryAI UI   │ ◄───────────────► │ Pandas A2A Agent│
-│   (Client)      │   (Standard SDK)   │   (Server)      │
+│   CherryAI UI   │ ◄───────────────► │ A2A Data Science│
+│   (Client)      │   (Standard SDK)   │    Agents       │
 └─────────────────┘                    └─────────────────┘
         │                                       │
         │              A2A SDK                  │
         ▼                                       ▼
 ┌─────────────────┐                    ┌─────────────────┐
-│  A2AExecutor    │                    │ PandasExecutor  │
-│  (Planner)      │                    │ (Analyzer)      │
+│  A2AExecutor    │                    │ Specialized     │
+│  (Orchestrator) │                    │ Data Agents     │
 └─────────────────┘                    └─────────────────┘
+                                              │
+                                              ▼
+                                    ┌─────────────────┐
+                                    │ AI Data Science │
+                                    │ Team Library    │
+                                    └─────────────────┘
 ```
 
 ## 🏛️ 프로젝트 구조
@@ -135,10 +171,43 @@ Cherry AI는 Ollama의 도구 호출을 완전히 지원합니다:
 
 ### 4. 애플리케이션 실행
 
-다음 명령어를 사용하여 Streamlit 애플리케이션을 실행합니다.
+#### Option A: 전체 시스템 실행 (A2A 포함)
+
+A2A 데이터 사이언스 에이전트와 함께 전체 시스템을 실행합니다:
+
+```bash
+# Windows
+system_start.bat
+
+# Linux/macOS
+./system_start.sh
+```
+
+#### Option B: Streamlit만 실행
+
+기본 CherryAI 인터페이스만 실행합니다:
 
 ```bash
 streamlit run app.py
 ```
 
-브라우저에서 애플리케이션이 열리면, 사이드바의 "Quick Start" 템플릿을 사용하거나 직접 에이전트를 구성하여 데이터 분석을 시작할 수 있습니다.
+### 5. 사용 방법
+
+브라우저에서 애플리케이션이 열리면 다음 옵션을 사용할 수 있습니다:
+
+#### 🔬 A2A Data Science Agents (권장)
+- **직접 에이전트 상호작용**: A2A 프로토콜을 통한 실시간 데이터 분석
+- **전문화된 에이전트**: 각 분야별 특화된 AI 에이전트 활용
+- **샘플 데이터**: 즉시 테스트 가능한 데이터셋 제공
+
+#### ⚙️ Agent Management
+- **서버 상태 모니터링**: 모든 A2A 에이전트의 실시간 상태 확인
+- **시스템 제어**: 개별 또는 전체 에이전트 시작/중지
+
+#### 💬 Agent Chat (기존)
+- **대화형 분석**: 자연어로 데이터 분석 요청
+- **계획-실행 패턴**: 복잡한 작업의 체계적 수행
+
+#### 📊 EDA Copilot (기존)
+- **탐색적 데이터 분석**: 가이드된 데이터 탐색 도구
+- **자동 인사이트**: AI 기반 데이터 패턴 발견

@@ -1,0 +1,63 @@
+{
+  "server": "pandas_analyst",
+  "name": "Pandas Data Analyst",
+  "port": 8001,
+  "agent_card": {
+    "capabilities": {
+      "streaming": true
+    },
+    "defaultInputModes": [
+      "text"
+    ],
+    "defaultOutputModes": [
+      "text"
+    ],
+    "description": "Advanced data loading agent powered by LangGraph that can load data from various sources, inspect file systems, and provide comprehensive data loading capabilities",
+    "name": "AI Data Loader Agent",
+    "skills": [
+      {
+        "description": "Loads data from various file sources, inspects file systems, and provides data loading capabilities using advanced tools",
+        "examples": [
+          "load data from file.csv",
+          "list directory contents",
+          "read file information",
+          "load all CSV files from directory",
+          "inspect data structure"
+        ],
+        "id": "data_loader",
+        "name": "Load data from files and directories",
+        "tags": [
+          "data",
+          "loader",
+          "filesystem",
+          "csv",
+          "json",
+          "parquet"
+        ]
+      }
+    ],
+    "url": "http://localhost:8001/",
+    "version": "2.0.0"
+  },
+  "message_tests": [
+    {
+      "message": "Analyze sample data and create visualizations",
+      "response": {
+        "error": "HTTP 404",
+        "response": "Not Found"
+      },
+      "duration": 0.002668142318725586,
+      "success": false
+    },
+    {
+      "message": "Perform data cleaning and show summary statistics",
+      "response": {
+        "error": "HTTP 404",
+        "response": "Not Found"
+      },
+      "duration": 0.0037720203399658203,
+      "success": false
+    }
+  ],
+  "overall_status": "failed"
+}

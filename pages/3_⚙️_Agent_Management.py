@@ -33,15 +33,74 @@ st.markdown(
 # ------------------------------------------------------------------------------
 # Agent Definitions
 # ------------------------------------------------------------------------------
-# In a real-world app, this might come from a config file or agent_registry.
-AGENTS = [
-    {
-        "name": "pandas_data_analyst",
-        "url": "http://localhost:10001",
-        "health_endpoint": "http://localhost:10001/.well-known/agent.json", # A2A standard endpoint
-        "description": "The main orchestrator agent for data analysis tasks.",
-    },
-]
+# Import from config.py for centralized management
+try:
+    from config import AGENT_SERVERS
+    
+    # Convert config format to agent management format
+    AGENTS = []
+    for key, config in AGENT_SERVERS.items():
+        AGENTS.append({
+            "name": key,
+            "display_name": config.get("name", key.replace("_", " ").title()),
+            "url": config["url"],
+            "health_endpoint": f"{config['url']}/.well-known/agent.json",
+            "description": config.get("description", "A2A Data Science Agent"),
+            "port": config["port"]
+        })
+        
+except ImportError:
+    # Fallback if config.py is not available
+    AGENTS = [
+        {
+            "name": "data_loader",
+            "display_name": "Data Loader Agent",
+            "url": "http://localhost:8000",
+            "health_endpoint": "http://localhost:8000/.well-known/agent.json",
+            "description": "Data loading and processing with file operations",
+            "port": 8000
+        },
+        {
+            "name": "pandas_analyst",
+            "display_name": "Pandas Data Analyst",
+            "url": "http://localhost:8001",
+            "health_endpoint": "http://localhost:8001/.well-known/agent.json",
+            "description": "Advanced pandas data analysis with interactive visualizations",
+            "port": 8001
+        },
+        {
+            "name": "sql_analyst",
+            "display_name": "SQL Data Analyst",
+            "url": "http://localhost:8002",
+            "health_endpoint": "http://localhost:8002/.well-known/agent.json",
+            "description": "SQL database analysis with query generation",
+            "port": 8002
+        },
+        {
+            "name": "eda_tools",
+            "display_name": "EDA Tools Analyst",
+            "url": "http://localhost:8003",
+            "health_endpoint": "http://localhost:8003/.well-known/agent.json",
+            "description": "Comprehensive exploratory data analysis and statistical insights",
+            "port": 8003
+        },
+        {
+            "name": "data_visualization",
+            "display_name": "Data Visualization Analyst",
+            "url": "http://localhost:8004",
+            "health_endpoint": "http://localhost:8004/.well-known/agent.json",
+            "description": "Interactive chart and dashboard creation with Plotly",
+            "port": 8004
+        },
+        {
+            "name": "orchestrator",
+            "display_name": "Data Science Orchestrator",
+            "url": "http://localhost:8100",
+            "health_endpoint": "http://localhost:8100/.well-known/agent.json",
+            "description": "Central management and orchestration of all data science agents",
+            "port": 8100
+        }
+    ]
 
 # Initialize session state for agent statuses
 if "agent_statuses" not in st.session_state:
@@ -127,10 +186,30 @@ status_placeholder = st.empty()
 with status_placeholder.container():
     for agent in AGENTS:
         status = st.session_state.agent_statuses.get(agent["name"], "Unknown")
+        display_name = agent.get("display_name", agent["name"])
         
-        with st.expander(f"{agent['name']} - {status}", expanded=True):
-            st.markdown(f"**URL:** `{agent['url']}`")
-            st.markdown(f"**Description:** {agent['description']}")
+        with st.expander(f"{display_name} - {status}", expanded=False):
+            col1, col2 = st.columns([1, 1])
+            
+            with col1:
+                st.markdown(f"**Service:** `{agent['name']}`")
+                st.markdown(f"**URL:** `{agent['url']}`")
+                st.markdown(f"**Port:** `{agent['port']}`")
+            
+            with col2:
+                st.markdown(f"**Description:** {agent['description']}")
+                
+                # Individual agent control buttons
+                col_start, col_stop = st.columns(2)
+                with col_start:
+                    if st.button(f"🚀 Start", key=f"start_{agent['name']}", use_container_width=True):
+                        st.info(f"Starting {display_name}...")
+                        # You can add individual start logic here
+                        
+                with col_stop:
+                    if st.button(f"🛑 Stop", key=f"stop_{agent['name']}", use_container_width=True):
+                        st.info(f"Stopping {display_name}...")
+                        # You can add individual stop logic here
 
 # --- Logic to run the async status update ---
 # This runs automatically when the page loads or refresh is clicked
