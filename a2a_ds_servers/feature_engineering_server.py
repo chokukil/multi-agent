@@ -7,7 +7,11 @@ Following official A2A SDK patterns with real LLM integration
 import logging
 import uvicorn
 import os
+import sys
 from dotenv import load_dotenv
+
+# Add parent directory to path for core modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Load environment variables
 load_dotenv()
