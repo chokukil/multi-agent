@@ -85,6 +85,7 @@ class OrchestratorAgent:
             # Execute Step 1: Try to call pandas agent if available
             agent_urls = {
                 "pandas_data_analyst": "http://localhost:8200",
+                "sql_data_analyst": "http://localhost:8201",
             }
             
             try:
