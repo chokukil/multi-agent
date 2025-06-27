@@ -16,10 +16,9 @@ if [ ! -d "$PID_DIR" ]; then
     exit 0
 fi
 
-# Server names - 최신 구성
+# Server names - pandas_analyst 제거됨
 SERVERS=(
     "orchestrator"
-    "pandas_analyst"
     "sql_analyst"
     "data_viz"
     "eda_tools"
@@ -61,7 +60,6 @@ for name in "${SERVERS[@]}"; do
     # Get display name
     case $name in
         "orchestrator") display_name="Orchestrator" ;;
-        "pandas_analyst") display_name="Pandas Data Analyst" ;;
         "sql_analyst") display_name="SQL Data Analyst" ;;
         "data_viz") display_name="Data Visualization" ;;
         "eda_tools") display_name="EDA Tools" ;;
@@ -100,7 +98,6 @@ echo "🧹 Cleaning up any remaining processes..."
 # Kill any remaining A2A server processes - 최신 서버 이름
 SERVER_SCRIPTS=(
     "orchestrator_server.py"
-    "pandas_data_analyst_server.py"
     "sql_data_analyst_server.py"
     "data_visualization_server.py"
     "eda_tools_server.py"
@@ -137,8 +134,8 @@ fi
 echo ""
 echo "🔍 Final status check..."
 
-# Check ports - 최신 포트 번호
-PORTS=(8100 8200 8201 8202 8203 8204 8205 8501)
+# Check ports - pandas_analyst(8200) 제거됨
+PORTS=(8100 8201 8202 8203 8204 8205 8501)
 ports_in_use=0
 for port in "${PORTS[@]}"; do
     if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
@@ -158,7 +155,6 @@ if [ $ports_in_use -eq 0 ]; then
     echo "🎯 Stopped Services:"
     echo "   📱 Streamlit UI (8501)"
     echo "   🎯 Orchestrator (8100)"
-    echo "   🐼 Pandas Data Analyst (8200)"
     echo "   🗃️  SQL Data Analyst (8201)"
     echo "   📈 Data Visualization (8202)"
     echo "   🔍 EDA Tools (8203)"

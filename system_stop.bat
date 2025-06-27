@@ -19,10 +19,6 @@ echo Stopping Orchestrator Server...
 taskkill /F /IM python.exe /FI "WINDOWTITLE eq Orchestrator Server" 2>nul
 taskkill /F /IM python.exe /FI "COMMANDLINE eq *orchestrator_server.py*" 2>nul
 
-echo Stopping Pandas Data Analyst Server...
-taskkill /F /IM python.exe /FI "WINDOWTITLE eq Pandas Data Analyst Server" 2>nul
-taskkill /F /IM python.exe /FI "COMMANDLINE eq *pandas_data_analyst_server.py*" 2>nul
-
 echo Stopping SQL Data Analyst Server...
 taskkill /F /IM python.exe /FI "WINDOWTITLE eq SQL Data Analyst Server" 2>nul
 taskkill /F /IM python.exe /FI "COMMANDLINE eq *sql_data_analyst_server.py*" 2>nul
@@ -52,19 +48,12 @@ taskkill /F /IM python.exe /FI "COMMANDLINE eq *a2a_ds_servers*" 2>nul
 echo.
 echo 🔍 Checking port status...
 
-REM Check if ports are still in use
+REM Check if ports are still in use (pandas data analyst port 8200 제거됨)
 netstat -an | findstr ":8100 " >nul 2>&1
 if %errorlevel% neq 0 (
     echo ✅ Port 8100 (Orchestrator): Free
 ) else (
     echo ⚠️  Port 8100 (Orchestrator): Still in use
-)
-
-netstat -an | findstr ":8200 " >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ✅ Port 8200 (Pandas Analyst): Free
-) else (
-    echo ⚠️  Port 8200 (Pandas Analyst): Still in use
 )
 
 netstat -an | findstr ":8201 " >nul 2>&1
@@ -116,7 +105,6 @@ echo ================================================
 echo 🎯 Stopped Services:
 echo    📱 Streamlit UI (8501)
 echo    🎯 Orchestrator (8100)
-echo    🐼 Pandas Data Analyst (8200)
 echo    🗃️  SQL Data Analyst (8201)
 echo    📈 Data Visualization (8202)
 echo    🔍 EDA Tools (8203)

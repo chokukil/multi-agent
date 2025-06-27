@@ -20,9 +20,6 @@ echo ================================================
 echo Starting Orchestrator Server (Port 8100)...
 start "Orchestrator Server" /B uv run python a2a_ds_servers/orchestrator_server.py
 
-echo Starting Pandas Data Analyst Server (Port 8200)...
-start "Pandas Data Analyst Server" /B uv run python a2a_ds_servers/pandas_data_analyst_server.py
-
 echo Starting SQL Data Analyst Server (Port 8201)...
 start "SQL Data Analyst Server" /B uv run python a2a_ds_servers/sql_data_analyst_server.py
 
@@ -56,14 +53,6 @@ if %errorlevel% equ 0 (
     echo ✅ Orchestrator: Ready
 ) else (
     echo ❌ Orchestrator: Not responding
-)
-
-echo Checking Pandas Data Analyst (8200)...
-curl -s -f "http://localhost:8200/.well-known/agent.json" >nul 2>&1
-if %errorlevel% equ 0 (
-    echo ✅ Pandas Data Analyst: Ready
-) else (
-    echo ❌ Pandas Data Analyst: Not responding
 )
 
 echo Checking SQL Data Analyst (8201)...
@@ -114,7 +103,6 @@ echo 🎉 A2A Data Science System is operational!
 echo ================================================
 echo 📊 Available Services:
 echo    🎯 Orchestrator:          http://localhost:8100
-echo    🐼 Pandas Data Analyst:   http://localhost:8200
 echo    🗃️  SQL Data Analyst:      http://localhost:8201
 echo    📈 Data Visualization:    http://localhost:8202
 echo    🔍 EDA Tools:             http://localhost:8203
@@ -134,7 +122,6 @@ echo Streamlit app stopped. Cleaning up A2A servers...
 REM Kill all A2A server processes - 최신 서버명 기준
 echo Stopping A2A Data Science Servers...
 taskkill /F /IM python.exe /FI "WINDOWTITLE eq Orchestrator Server" 2>nul
-taskkill /F /IM python.exe /FI "WINDOWTITLE eq Pandas Data Analyst Server" 2>nul  
 taskkill /F /IM python.exe /FI "WINDOWTITLE eq SQL Data Analyst Server" 2>nul
 taskkill /F /IM python.exe /FI "WINDOWTITLE eq Data Visualization Server" 2>nul
 taskkill /F /IM python.exe /FI "WINDOWTITLE eq EDA Tools Server" 2>nul
@@ -145,7 +132,6 @@ echo.
 echo 🧹 Additional cleanup...
 REM Force kill any remaining A2A processes
 for /f "tokens=2" %%i in ('tasklist /fi "imagename eq python.exe" /fo list ^| findstr /i "orchestrator_server.py"') do taskkill /F /PID %%i 2>nul
-for /f "tokens=2" %%i in ('tasklist /fi "imagename eq python.exe" /fo list ^| findstr /i "pandas_data_analyst_server.py"') do taskkill /F /PID %%i 2>nul
 for /f "tokens=2" %%i in ('tasklist /fi "imagename eq python.exe" /fo list ^| findstr /i "sql_data_analyst_server.py"') do taskkill /F /PID %%i 2>nul
 for /f "tokens=2" %%i in ('tasklist /fi "imagename eq python.exe" /fo list ^| findstr /i "data_visualization_server.py"') do taskkill /F /PID %%i 2>nul
 for /f "tokens=2" %%i in ('tasklist /fi "imagename eq python.exe" /fo list ^| findstr /i "eda_tools_server.py"') do taskkill /F /PID %%i 2>nul

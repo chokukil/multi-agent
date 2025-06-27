@@ -12,10 +12,9 @@ PID_DIR="$PROJECT_ROOT/logs/pids"
 mkdir -p "$LOG_DIR"
 mkdir -p "$PID_DIR"
 
-# Server configurations (name:script:port) - 최신 포트 구성
+# Server configurations (name:script:port) - pandas_analyst 제거됨
 SERVERS=(
     "orchestrator:a2a_ds_servers/orchestrator_server.py:8100"
-    "pandas_analyst:a2a_ds_servers/pandas_data_analyst_server.py:8200"
     "sql_analyst:a2a_ds_servers/sql_data_analyst_server.py:8201"
     "data_viz:a2a_ds_servers/data_visualization_server.py:8202"
     "eda_tools:a2a_ds_servers/eda_tools_server.py:8203"
@@ -143,7 +142,6 @@ for server_config in "${SERVERS[@]}"; do
     # Get display name
     case $name in
         "orchestrator") display_name="Orchestrator" ;;
-        "pandas_analyst") display_name="Pandas Data Analyst" ;;
         "sql_analyst") display_name="SQL Data Analyst" ;;
         "data_viz") display_name="Data Visualization" ;;
         "eda_tools") display_name="EDA Tools" ;;
@@ -174,7 +172,6 @@ for server_config in "${SERVERS[@]}"; do
     
     case $name in
         "orchestrator") display_name="Orchestrator" ;;
-        "pandas_analyst") display_name="Pandas Data Analyst" ;;
         "sql_analyst") display_name="SQL Data Analyst" ;;
         "data_viz") display_name="Data Visualization" ;;
         "eda_tools") display_name="EDA Tools" ;;
@@ -201,7 +198,6 @@ echo "🎉 A2A Data Science System is operational!"
 echo "================================================"
 echo "📊 Available Services:"
 echo "   🎯 Orchestrator:          http://localhost:8100"
-echo "   🐼 Pandas Data Analyst:   http://localhost:8200"
 echo "   🗃️  SQL Data Analyst:      http://localhost:8201"
 echo "   📈 Data Visualization:    http://localhost:8202"
 echo "   🔍 EDA Tools:             http://localhost:8203"
