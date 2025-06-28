@@ -25,6 +25,7 @@ import time
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
+from typing import Dict, Any
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -447,13 +448,184 @@ def display_data_summary_ai_ds_team(data, dataset_name):
         st.dataframe(data.describe(), use_container_width=True)
 
 async def process_ai_ds_team_query(prompt: str):
-    """AI_DS_Team 통합 쿼리 처리"""
+    """AI_DS_Team 오케스트레이터로 쿼리 처리 - 실제 실행 포함"""
     try:
-        # Universal AI Orchestrator를 통한 A2A 프로토콜 처리
+        from core.a2a_task_executor import task_executor, ExecutionPlan
+        from ui.real_time_orchestration import create_orchestration_ui, StreamlitProgressCallback
+        
+        thinking_stream = ThinkingStream()
+        
+        with thinking_stream.container():
+            # 1단계: 사용자 요청 분석
+            thinking_stream.step("🎯 사용자 요청 분석")
+            thinking_stream.thought(f"요청: {prompt}")
+            
+            # 2단계: 에이전트 발견
+            thinking_stream.step("🔍 A2A 에이전트 발견")
+            available_agents = check_ai_ds_team_agents()
+            discovered_count = len([agent for agent in available_agents.values() if agent['status'] == 'available'])
+            thinking_stream.thought(f"발견된 에이전트: {discovered_count}개")
+            
+            if discovered_count == 0:
+                thinking_stream.error("❌ 사용 가능한 A2A 에이전트가 없습니다.")
+                return "❌ 사용 가능한 A2A 에이전트가 없습니다. 시스템을 시작해주세요."
+            
+            # 3단계: 오케스트레이션 계획 생성
+            thinking_stream.step("🧠 오케스트레이션 계획 생성")
+            
+            # 실제 LLM 호출로 계획 생성
+            plan_result = await generate_orchestration_plan_real(prompt, available_agents)
+            
+            if plan_result.get("error"):
+                thinking_stream.error(f"❌ 계획 생성 실패: {plan_result['error']}")
+                return f"❌ 계획 생성 실패: {plan_result['error']}"
+            
+            thinking_stream.thought("✅ 오케스트레이션 계획 생성 완료")
+            
+            # 4단계: 계획 시각화
+            thinking_stream.step("📊 실행 계획 시각화")
+            plan_viz = PlanVisualization()
+            plan_viz.display_plan(plan_result)
+            
+            # 5단계: 실제 실행
+            thinking_stream.step("🚀 오케스트레이션 실행")
+            
+            # 실시간 UI 생성
+            orchestration_ui = create_orchestration_ui()
+            progress_callback = StreamlitProgressCallback(orchestration_ui)
+            
+            # 실행 계획 객체 생성
+            execution_plan = ExecutionPlan(
+                objective=plan_result.get("objective", prompt),
+                reasoning=plan_result.get("reasoning", ""),
+                steps=plan_result.get("steps", []),
+                selected_agents=plan_result.get("selected_agents", [])
+            )
+            
+            # 데이터 컨텍스트 준비
+            data_context = None
+            if st.session_state.uploaded_data is not None:
+                data_context = {
+                    "dataset_info": f"Shape: {st.session_state.uploaded_data.shape}",
+                    "columns": st.session_state.uploaded_data.columns.tolist(),
+                    "dtypes": st.session_state.uploaded_data.dtypes.astype(str).to_dict()
+                }
+            
+            # 실제 실행
+            execution_result = await task_executor.execute_orchestration_plan(
+                execution_plan,
+                data_context=data_context,
+                progress_callback=progress_callback
+            )
+            
+            # 실행 결과 표시
+            orchestration_ui.display_execution_metrics(execution_result)
+            orchestration_ui.display_progress_timeline(execution_result)
+            orchestration_ui.display_execution_results(execution_result)
+            
+            # Phase 2: 고급 아티팩트 렌더링
+            if execution_result.get("final_artifacts"):
+                thinking_stream.step("🎨 결과 아티팩트 렌더링")
+                from ui.advanced_artifact_renderer import artifact_renderer
+                artifact_renderer.render_artifact_collection(
+                    execution_result["final_artifacts"],
+                    title="🎯 AI_DS_Team 분석 결과"
+                )
+            
+            if execution_result.get("status") == "completed":
+                thinking_stream.thought("✅ 오케스트레이션 실행 완료")
+                
+                # 결과 요약
+                artifacts_count = len(execution_result.get("final_artifacts", []))
+                execution_time = execution_result.get("execution_time", 0)
+                
+                # Phase 4: 성능 모니터링 메트릭 수집
+                from core.performance_monitor import performance_monitor
+                performance_monitor._add_metric("orchestration_success", 1, "count")
+                performance_monitor._add_metric("orchestration_duration", execution_time, "seconds")
+                performance_monitor._add_metric("artifacts_generated", artifacts_count, "count")
+                
+                summary = f"""
+🎉 **AI_DS_Team 오케스트레이션 성공적으로 완료!**
+
+📊 **실행 요약:**
+- 완료된 단계: {execution_result.get('steps_completed', 0)}/{execution_result.get('total_steps', 0)}
+- 생성된 아티팩트: {artifacts_count}개
+- 실행 시간: {execution_time:.2f}초
+- 참여 에이전트: {discovered_count}개
+
+🎯 **생성된 결과:**
+{chr(10).join([f"- {artifact.get('type', 'Unknown').title()}: {artifact.get('title', 'Untitled')}" for artifact in execution_result.get('final_artifacts', [])[:5]])}
+
+💡 **성능 정보:**
+- 평균 단계 실행 시간: {execution_time / max(execution_result.get('total_steps', 1), 1):.2f}초
+- 성공률: 100%
+"""
+                return summary
+            else:
+                thinking_stream.error(f"❌ 실행 실패: {execution_result.get('error', 'Unknown error')}")
+                
+                # Phase 4: 실패 메트릭 수집
+                from core.performance_monitor import performance_monitor
+                performance_monitor._add_metric("orchestration_failure", 1, "count")
+                performance_monitor._add_alert("orchestration_error", f"실행 실패: {execution_result.get('error', 'Unknown')}")
+                
+                return f"""
+❌ **AI_DS_Team 실행 실패**
+
+🔍 **오류 정보:**
+- 실패 단계: {execution_result.get('stage', 'execution')}
+- 오류 메시지: {execution_result.get('error', 'Unknown error')}
+- 완료된 단계: {execution_result.get('steps_completed', 0)}/{execution_result.get('total_steps', 0)}
+
+💡 **해결 방안:**
+- 에이전트 상태를 확인해주세요
+- 데이터 형식이 올바른지 확인해주세요
+- 시스템을 재시작해보세요
+"""
+        
+    except Exception as e:
+        st.error(f"오케스트레이터 오류: {str(e)}")
+        return f"처리 중 오류 발생: {str(e)}"
+
+async def generate_orchestration_plan_real(prompt: str, available_agents: Dict) -> Dict[str, Any]:
+    """실제 LLM을 사용한 오케스트레이션 계획 생성"""
+    try:
+        # Universal AI Orchestrator를 통한 계획 생성
         orchestrator_url = "http://localhost:8100"
         
+        # 에이전트 정보를 포함한 프롬프트 구성
+        agent_list = []
+        for agent_name, agent_info in available_agents.items():
+            if agent_info['status'] == 'available':
+                agent_list.append(f"- {agent_name}: {agent_info['description']}")
+        
+        enhanced_prompt = f"""
+사용자 요청: {prompt}
+
+사용 가능한 AI_DS_Team 에이전트들:
+{chr(10).join(agent_list)}
+
+위 에이전트들을 활용하여 사용자 요청을 처리할 수 있는 단계별 실행 계획을 생성해주세요.
+각 단계마다 어떤 에이전트를 사용할지, 무엇을 수행할지 명확히 기술해주세요.
+
+응답 형식 (JSON):
+{{
+    "objective": "목표 설명",
+    "reasoning": "계획 수립 이유",
+    "steps": [
+        {{
+            "step_number": 1,
+            "agent_name": "AI_DS_Team DataLoaderToolsAgent",
+            "task_description": "구체적인 작업 설명"
+        }}
+    ],
+    "selected_agents": ["에이전트 이름 목록"]
+}}
+"""
+        
         # A2A 프로토콜에 맞는 메시지 구성
-        message_id = f"msg_{int(time.time())}"
+        message_id = f"plan_{int(time.time())}"
         payload = {
             "jsonrpc": "2.0",
             "method": "message/send",
@@ -464,7 +636,7 @@ async def process_ai_ds_team_query(prompt: str):
                     "parts": [
                         {
                             "type": "text",
-                            "text": prompt
+                            "text": enhanced_prompt
                         }
                     ]
                 }
@@ -487,17 +659,83 @@ async def process_ai_ds_team_query(prompt: str):
                     if isinstance(message_result, dict) and "parts" in message_result:
                         for part in message_result["parts"]:
                             if part.get("type") == "text":
-                                return part.get("text", "응답을 받지 못했습니다.")
-                    return str(message_result)
+                                plan_text = part.get("text", "")
+                                # JSON 파싱 시도
+                                try:
+                                    # JSON 부분만 추출
+                                    json_start = plan_text.find('{')
+                                    json_end = plan_text.rfind('}') + 1
+                                    if json_start >= 0 and json_end > json_start:
+                                        json_str = plan_text[json_start:json_end]
+                                        plan_data = json.loads(json_str)
+                                        return plan_data
+                                except json.JSONDecodeError:
+                                    pass
+                                
+                                # JSON 파싱 실패 시 기본 계획 생성
+                                return generate_default_plan(prompt, available_agents)
+                    
                 elif "error" in result:
-                    return f"A2A 오류: {result['error'].get('message', 'Unknown error')}"
+                    return {"error": f"A2A 오류: {result['error'].get('message', 'Unknown error')}"}
                 else:
-                    return "응답을 받지 못했습니다."
+                    return {"error": "계획 생성 응답을 받지 못했습니다."}
             else:
-                return f"오케스트레이터 오류: HTTP {response.status_code}"
+                return {"error": f"오케스트레이터 오류: HTTP {response.status_code}"}
                 
     except Exception as e:
-        return f"처리 중 오류 발생: {str(e)}"
+        return {"error": f"계획 생성 중 오류 발생: {str(e)}"}
+
+def generate_default_plan(prompt: str, available_agents: Dict) -> Dict[str, Any]:
+    """기본 오케스트레이션 계획 생성"""
+    # 사용 가능한 에이전트 목록
+    available_agent_names = [name for name, info in available_agents.items() if info['status'] == 'available']
+    
+    # 기본 EDA 계획
+    default_steps = []
+    step_num = 1
+    
+    # 데이터 로딩 단계
+    if "AI_DS_Team DataLoaderToolsAgent" in available_agent_names:
+        default_steps.append({
+            "step_number": step_num,
+            "agent_name": "AI_DS_Team DataLoaderToolsAgent",
+            "task_description": "데이터셋 로딩 및 기본 정보 확인"
+        })
+        step_num += 1
+    
+    # EDA 단계
+    if "AI_DS_Team EDAToolsAgent" in available_agent_names:
+        default_steps.append({
+            "step_number": step_num,
+            "agent_name": "AI_DS_Team EDAToolsAgent",
+            "task_description": "탐색적 데이터 분석 (EDA) 수행"
+        })
+        step_num += 1
+    
+    # 데이터 시각화 단계
+    if "AI_DS_Team DataVisualizationAgent" in available_agent_names:
+        default_steps.append({
+            "step_number": step_num,
+            "agent_name": "AI_DS_Team DataVisualizationAgent",
+            "task_description": "데이터 시각화 및 차트 생성"
+        })
+        step_num += 1
+    
+    # 데이터 클리닝 단계
+    if "AI_DS_Team DataCleaningAgent" in available_agent_names:
+        default_steps.append({
+            "step_number": step_num,
+            "agent_name": "AI_DS_Team DataCleaningAgent",
+            "task_description": "데이터 품질 검사 및 클리닝"
+        })
+        step_num += 1
+    
+    return {
+        "objective": f"사용자 요청 처리: {prompt}",
+        "reasoning": "사용 가능한 에이전트들을 활용한 기본 데이터 분석 워크플로우를 구성했습니다.",
+        "steps": default_steps,
+        "selected_agents": [step["agent_name"] for step in default_steps]
+    }
 
 def render_ai_ds_team_chat():
     """AI_DS_Team 채팅 인터페이스"""
@@ -532,6 +770,54 @@ def render_ai_ds_team_chat():
                     st.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
+def render_performance_monitoring_tab():
+    """Phase 4: 성능 모니터링 탭 렌더링"""
+    st.markdown("""
+    <div class="main-container">
+        <h3>🔍 시스템 성능 모니터링</h3>
+        <p>A2A 에이전트 시스템의 실시간 성능을 모니터링합니다.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    try:
+        from core.performance_monitor import performance_monitor
+        
+        # 모니터링 활성화 체크
+        if not performance_monitor.monitoring_active:
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                st.warning("⚠️ 성능 모니터링이 비활성화되어 있습니다.")
+            with col2:
+                if st.button("🔍 모니터링 시작"):
+                    performance_monitor.start_monitoring()
+                    st.success("모니터링이 시작되었습니다!")
+                    st.rerun()
+        
+        # 성능 대시보드 렌더링
+        performance_monitor.render_performance_dashboard()
+        
+    except Exception as e:
+        st.error(f"성능 모니터링 로드 실패: {e}")
+        st.info("기본 성능 정보를 표시합니다...")
+        
+        # 기본 성능 정보 표시
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("시스템 상태", "🟢 정상")
+        with col2:
+            agent_status = check_ai_ds_team_agents()
+            active_agents = sum(1 for status in agent_status.values() if status['status'] == 'available')
+            st.metric("활성 에이전트", f"{active_agents}/{len(agent_status)}")
+        with col3:
+            st.metric("총 메시지", len(st.session_state.messages))
+        with col4:
+            try:
+                import psutil
+                cpu_percent = psutil.cpu_percent(interval=1)
+                st.metric("CPU 사용률", f"{cpu_percent:.1f}%")
+            except:
+                st.metric("CPU 사용률", "N/A")
+
 def main():
     """메인 애플리케이션"""
     setup_environment()
@@ -551,6 +837,21 @@ def main():
     with st.sidebar:
         st.markdown("## 🎛️ 시스템 제어")
         
+        # Phase 4: 성능 모니터링 제어
+        try:
+            from core.performance_monitor import performance_monitor
+            if performance_monitor.monitoring_active:
+                st.success("🔍 성능 모니터링 활성")
+                if st.button("🛑 모니터링 중지"):
+                    performance_monitor.stop_monitoring()
+                    st.rerun()
+            else:
+                if st.button("🔍 성능 모니터링 시작"):
+                    performance_monitor.start_monitoring()
+                    st.rerun()
+        except:
+            pass
+        
         # 에이전트 상태 확인
         if st.button("🔄 에이전트 상태 새로고침"):
             st.rerun()
@@ -560,7 +861,6 @@ def main():
         with col1:
             if st.button("🚀 시스템 시작"):
                 with st.spinner("AI_DS_Team 시스템 시작 중..."):
-                    # 시스템 시작 스크립트 실행
                     st.info("시스템 시작 중입니다. 잠시 후 에이전트 상태를 확인해주세요.")
         
         with col2:
@@ -580,7 +880,7 @@ def main():
             st.rerun()
     
     # 메인 콘텐츠
-    tab1, tab2, tab3, tab4 = st.tabs(["🏠 대시보드", "📊 데이터 업로드", "💬 AI 채팅", "📈 결과 분석"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 대시보드", "📊 데이터 업로드", "💬 AI 채팅", "📈 결과 분석", "🔍 성능 모니터링"])
     
     with tab1:
         # 에이전트 상태 대시보드
@@ -591,13 +891,16 @@ def main():
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("활성 에이전트", sum(agent_status.values()), f"/{len(agent_status)}")
+            active_agents = sum(1 for status in agent_status.values() if status['status'] == 'available')
+            st.metric("활성 에이전트", active_agents, f"/{len(agent_status)}")
         with col2:
             st.metric("처리된 작업", len(st.session_state.messages), "개")
         with col3:
             st.metric("업로드된 데이터", 1 if st.session_state.uploaded_data is not None else 0, "개")
         with col4:
-            st.metric("세션 시간", f"{(time.time() - time.mktime(datetime.now().timetuple())) // 3600:.0f}", "시간")
+            session_start = st.session_state.get('session_start_time', time.time())
+            session_duration = (time.time() - session_start) / 3600
+            st.metric("세션 시간", f"{session_duration:.1f}", "시간")
     
     with tab2:
         handle_data_upload_with_ai_ds_team()
@@ -613,7 +916,22 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         
-        # 생성된 아티팩트들 표시
+        # Phase 2: 고급 아티팩트 렌더링
+        try:
+            from ui.advanced_artifact_renderer import artifact_renderer
+            
+            # 세션 상태에서 아티팩트 확인
+            if 'execution_artifacts' in st.session_state and st.session_state.execution_artifacts:
+                artifact_renderer.render_artifact_collection(
+                    st.session_state.execution_artifacts,
+                    title="🎯 최근 실행 결과"
+                )
+            else:
+                st.info("아직 생성된 분석 결과가 없습니다. AI 채팅 탭에서 데이터 분석을 요청해보세요.")
+        except Exception as e:
+            st.error(f"아티팩트 렌더링 오류: {e}")
+        
+        # 생성된 아티팩트들 표시 (기존 로직)
         artifacts_path = "a2a_ds_servers/artifacts/"
         
         if os.path.exists(artifacts_path):
@@ -645,6 +963,10 @@ def main():
                 st.session_state.uploaded_data, 
                 st.session_state.data_id or "업로드된 데이터"
             )
+    
+    with tab5:
+        # Phase 4: 성능 모니터링 대시보드
+        render_performance_monitoring_tab()
 
 if __name__ == "__main__":
     main() 
