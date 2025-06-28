@@ -62,13 +62,17 @@ class UniversalAgentDiscovery:
     
     def __init__(self):
         """Initialize agent discovery system."""
-        # Default agent endpoints for discovery (excluding pandas_data_analyst)
+        # Default agent endpoints for discovery (실제 A2A 에이전트 포트 사용)
         self.discovery_endpoints = [
-            "http://localhost:8203",  # EDA Tools
-            "http://localhost:8202",  # Data Visualization
-            "http://localhost:8205",  # Data Cleaning
-            "http://localhost:8204",  # Feature Engineering
-            "http://localhost:8000",  # Data Loader
+            "http://localhost:8306",  # Data Cleaning
+            "http://localhost:8307",  # Data Loader  
+            "http://localhost:8308",  # Data Visualization
+            "http://localhost:8309",  # Data Wrangling
+            "http://localhost:8310",  # Feature Engineering
+            "http://localhost:8311",  # SQL Database
+            "http://localhost:8312",  # EDA Tools
+            "http://localhost:8313",  # H2O ML
+            "http://localhost:8314",  # MLflow Tools
         ]
         self.discovered_agents: Dict[str, DiscoveredAgent] = {}
         
@@ -355,15 +359,10 @@ class UniversalOrchestratorExecutor(AgentExecutor):
         self.orchestration_engine = LLMOrchestrationEngine()
         self.discovered_agents: Dict[str, DiscoveredAgent] = {}
         
-    async def execute(self, context: RequestContext) -> None:
+    async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Execute universal orchestration with dynamic agent discovery."""
-        event_queue: EventQueue = context.deps.event_queue
-        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
-            await task_updater.submit()
-            await task_updater.start_work()
-            
             # Extract user request and context
             user_request, data_context = self._extract_request_context(context)
             
@@ -385,17 +384,14 @@ class UniversalOrchestratorExecutor(AgentExecutor):
                 orchestration_plan, user_request, data_context
             )
             
-            await task_updater.update_status(
-                TaskState.completed,
-                message=new_agent_text_message(response)
-            )
+            # Send response through event queue
+            message = new_agent_text_message(response)
+            await event_queue.enqueue_event(message)
             
         except Exception as e:
             logger.error(f"❌ Universal orchestration failed: {e}")
-            await task_updater.update_status(
-                TaskState.failed,
-                message=new_agent_text_message(f"Orchestration failed: {str(e)}")
-            )
+            error_message = new_agent_text_message(f"Orchestration failed: {str(e)}")
+            await event_queue.enqueue_event(error_message)
             raise RuntimeError(f"Universal orchestration failed: {str(e)}") from e
             
     def _extract_request_context(self, context: RequestContext) -> tuple[str, Optional[Dict[str, Any]]]:
@@ -405,18 +401,28 @@ class UniversalOrchestratorExecutor(AgentExecutor):
         
         if context.message and context.message.parts:
             for part in context.message.parts:
-                if part.kind == "text":
-                    content = part.text
-                    user_request += content + " "
+                try:
+                    # A2A SDK의 Part는 RootModel이므로 root 속성을 통해 실제 파트에 접근
+                    actual_part = part.root
                     
-                    # Extract data context if present
-                    if "data_info:" in content:
-                        try:
-                            data_start = content.find("data_info:") + len("data_info:")
-                            data_json = content[data_start:].strip()
-                            data_context = json.loads(data_json)
-                        except Exception as e:
-                            logger.warning(f"⚠️  Could not parse data context: {e}")
+                    # TextPart인지 확인하고 텍스트 추출
+                    if hasattr(actual_part, 'kind') and actual_part.kind == "text":
+                        content = actual_part.text
+                        user_request += content + " "
+                        
+                        # Extract data context if present
+                        if "data_info:" in content:
+                            try:
+                                data_start = content.find("data_info:") + len("data_info:")
+                                data_json = content[data_start:].strip()
+                                data_context = json.loads(data_json)
+                            except Exception as e:
+                                logger.warning(f"⚠️  Could not parse data context: {e}")
+                except Exception as e:
+                    logger.warning(f"⚠️  Could not parse message part: {e}")
+                    # Fallback: try direct access
+                    if hasattr(part, 'text'):
+                        user_request += part.text + " "
                             
         return user_request.strip(), data_context
         

@@ -449,24 +449,50 @@ def display_data_summary_ai_ds_team(data, dataset_name):
 async def process_ai_ds_team_query(prompt: str):
     """AI_DS_Team 통합 쿼리 처리"""
     try:
-        # Universal AI Orchestrator를 통한 처리
+        # Universal AI Orchestrator를 통한 A2A 프로토콜 처리
         orchestrator_url = "http://localhost:8100"
+        
+        # A2A 프로토콜에 맞는 메시지 구성
+        message_id = f"msg_{int(time.time())}"
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "messageId": message_id,
+                    "role": "user",
+                    "parts": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        }
+                    ]
+                }
+            },
+            "id": 1
+        }
         
         with httpx.Client(timeout=30.0) as client:
             response = client.post(
-                f"{orchestrator_url}/invoke",
-                json={
-                    "message": {
-                        "parts": [{"text": prompt}]
-                    },
-                    "context_id": st.session_state.session_id,
-                    "task_id": f"ai_ds_team_{int(time.time())}"
-                }
+                orchestrator_url,
+                json=payload,
+                headers={"Content-Type": "application/json"}
             )
             
             if response.status_code == 200:
                 result = response.json()
-                return result.get("response", {}).get("parts", [{}])[0].get("text", "응답을 받지 못했습니다.")
+                if "result" in result:
+                    # A2A 응답에서 텍스트 추출
+                    message_result = result["result"]
+                    if isinstance(message_result, dict) and "parts" in message_result:
+                        for part in message_result["parts"]:
+                            if part.get("type") == "text":
+                                return part.get("text", "응답을 받지 못했습니다.")
+                    return str(message_result)
+                elif "error" in result:
+                    return f"A2A 오류: {result['error'].get('message', 'Unknown error')}"
+                else:
+                    return "응답을 받지 못했습니다."
             else:
                 return f"오케스트레이터 오류: HTTP {response.status_code}"
                 
