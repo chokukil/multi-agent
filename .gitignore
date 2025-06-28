@@ -78,3 +78,6 @@ a2a-samples/
 # Cloned repositories for reference
 a2a-python/
 a2a-samples/
+*.db
+*.sqlite
+*.sqlite3

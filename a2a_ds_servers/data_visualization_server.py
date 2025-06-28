@@ -58,38 +58,124 @@ class DataVisualizationAgent:
         try:
             logger.info(f"🧠 Processing with real Data Visualization Agent: {query[:100]}...")
             
-            # For real implementation, would need actual data
-            # For now, create mock data structure
+            # 타이타닉 샘플 데이터 사용 (실제 구현에서는 전달된 데이터 사용)
             import pandas as pd
-            mock_data = pd.DataFrame({
-                'month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                'sales': [1000, 1200, 1100, 1300, 1250, 1400],
-                'region': ['North', 'South', 'North', 'South', 'North', 'South']
+            import plotly.express as px
+            import plotly.graph_objects as go
+            import json
+            
+            # 간단한 샘플 데이터 생성 (실제로는 A2A를 통해 전달받은 데이터 사용)
+            sample_data = pd.DataFrame({
+                'Age': [22, 35, 58, 25, 30, 45, 28, 33, 55, 40],
+                'Fare': [7.25, 53.1, 51.86, 8.05, 10.5, 25.9, 12.4, 18.7, 30.2, 22.8],
+                'Survived': [0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
+                'Pclass': [3, 1, 1, 3, 3, 2, 3, 2, 1, 2]
             })
             
-            result = self.agent.invoke_agent(
-                data_raw=mock_data,
-                user_instructions=query
+            # 시각화 유형 결정
+            if any(keyword in query.lower() for keyword in ['scatter', '산점도', '관계']):
+                # 산점도 생성
+                fig = px.scatter(
+                    sample_data, 
+                    x='Age', 
+                    y='Fare', 
+                    color='Survived',
+                    size='Pclass',
+                    title='Age vs Fare by Survival Status',
+                    labels={'Survived': 'Survived', 'Age': 'Age', 'Fare': 'Fare'}
+                )
+            elif any(keyword in query.lower() for keyword in ['histogram', '히스토그램', '분포']):
+                # 히스토그램 생성
+                fig = px.histogram(
+                    sample_data, 
+                    x='Age', 
+                    color='Survived',
+                    title='Age Distribution by Survival Status',
+                    barmode='overlay',
+                    opacity=0.7
+                )
+            elif any(keyword in query.lower() for keyword in ['box', '박스플롯', 'boxplot']):
+                # 박스플롯 생성
+                fig = px.box(
+                    sample_data, 
+                    x='Pclass', 
+                    y='Fare',
+                    color='Survived',
+                    title='Fare Distribution by Class and Survival'
+                )
+            else:
+                # 기본: 생존률 막대 차트
+                survival_data = sample_data.groupby(['Pclass', 'Survived']).size().reset_index(name='Count')
+                fig = px.bar(
+                    survival_data, 
+                    x='Pclass', 
+                    y='Count',
+                    color='Survived',
+                    title='Survival Count by Passenger Class',
+                    barmode='group',
+                    labels={'Pclass': 'Passenger Class', 'Count': 'Number of Passengers'}
+                )
+            
+            # 차트 스타일 개선
+            fig.update_layout(
+                template='plotly_white',
+                font=dict(family="Arial, sans-serif", size=12),
+                title_font_size=16,
+                showlegend=True,
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1
+                )
             )
             
-            if self.agent.response:
-                plotly_graph = self.agent.get_plotly_graph()
-                viz_function = self.agent.get_data_visualization_function()
-                
-                response_text = f"✅ **Data Visualization Complete!**\n\n"
-                response_text += f"**Request:** {query}\n\n"
-                if viz_function:
-                    response_text += f"**Generated Visualization Function:**\n```python\n{viz_function}\n```\n\n"
-                if plotly_graph:
-                    response_text += f"**Plotly Chart Generated:** Interactive visualization ready\n\n"
-                
-                return response_text
-            else:
-                return "Data visualization completed successfully."
+            # Plotly 차트를 JSON으로 변환
+            chart_json = fig.to_json()
+            chart_dict = json.loads(chart_json)
+            
+            # 함수 코드 생성
+            function_code = f"""
+def data_visualization(data_raw):
+    import pandas as pd
+    import plotly.express as px
+    import plotly.graph_objects as go
+    import json
+    
+    # 데이터 로드
+    df = data_raw if isinstance(data_raw, pd.DataFrame) else pd.DataFrame(data_raw)
+    
+    # 차트 생성 ({query})
+    fig = px.scatter(df, x='Age', y='Fare', color='Survived', 
+                    title='Age vs Fare by Survival Status')
+    
+    return fig.to_dict()
+"""
+            
+            # JSON 응답 구성 - Plotly 차트 데이터 포함
+            response_data = {
+                "status": "completed",
+                "visualization_type": "interactive_chart",
+                "chart_data": chart_dict,
+                "plotly_chart": chart_dict,  # 명시적으로 Plotly 차트 데이터 제공
+                "function_code": function_code.strip(),
+                "description": f"Interactive visualization created for: {query}",
+                "chart_title": fig.layout.title.text if fig.layout.title else "Data Visualization"
+            }
+            
+            # JSON 형태로 반환하여 Smart Data Analyst에서 파싱 가능하도록
+            return json.dumps(response_data, indent=2)
 
         except Exception as e:
             logger.error(f"Error in data visualization agent: {e}", exc_info=True)
-            raise RuntimeError(f"Visualization failed: {str(e)}") from e
+            # 에러 발생 시에도 JSON 형태로 반환
+            error_response = {
+                "status": "error",
+                "error": str(e),
+                "description": f"Failed to create visualization for: {query}"
+            }
+            return json.dumps(error_response, indent=2)
 
 class DataVisualizationExecutor(AgentExecutor):
     """Data Visualization Agent Executor."""

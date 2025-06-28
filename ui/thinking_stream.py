@@ -17,9 +17,11 @@ class ThinkingStream:
         self.container = container or st.container()
         self.thinking_placeholder = None
         self.current_thoughts = []
+        self.is_active = False
         
     def start_thinking(self, initial_thought: str = "🤔 생각 중...") -> None:
         """사고 과정 시작"""
+        self.is_active = True
         with self.container:
             # 사고 과정 헤더
             st.markdown("### 💭 AI 사고 과정")
@@ -32,6 +34,9 @@ class ThinkingStream:
     
     def add_thought(self, thought: str, thought_type: str = "analysis") -> None:
         """새로운 사고 추가"""
+        if not self.is_active:
+            return
+            
         # 시간 제거
         thought_data = {
             "content": thought,
@@ -46,7 +51,7 @@ class ThinkingStream:
     
     def stream_thought(self, thought: str, delay: float = 0.03) -> None:
         """사고를 글자 단위로 스트리밍"""
-        if not self.thinking_placeholder:
+        if not self.thinking_placeholder or not self.is_active:
             return
             
         current_text = ""
@@ -56,12 +61,20 @@ class ThinkingStream:
             time.sleep(delay)
     
     def finish_thinking(self, final_thought: str = "✅ 분석 완료!") -> None:
-        """사고 과정 완료"""
-        if self.thinking_placeholder:
+        """사고 과정 완료 - 영역을 제거하지 않고 최종 상태로 표시"""
+        if self.thinking_placeholder and self.is_active:
+            # 최종 사고를 추가
+            self.current_thoughts.append({
+                "content": final_thought,
+                "type": "success"
+            })
             self._update_thinking_display(final_thought, is_thinking=False)
+        
+        # 사고 과정을 비활성화하지만 내용은 유지
+        # self.is_active = False  # 이 줄을 주석처리하여 사고 과정이 계속 표시되도록 함
     
     def _update_thinking_display(self, current_thought: str, is_thinking: bool = True) -> None:
-        """사고 과정 표시 업데이트"""
+        """사고 과정 표시 업데이트 - 개선된 버전"""
         if not self.thinking_placeholder:
             return
         
@@ -75,9 +88,10 @@ class ThinkingStream:
             else:
                 st.success(f"{indicator} **완료:** {current_thought}")
             
-            # 사고 히스토리를 expander로 표시 (진행 중일 때는 펼치고, 완료되면 접기)
+            # 사고 히스토리를 expander로 표시 (완료된 후에도 계속 표시)
             if self.current_thoughts:
-                with st.expander("🧠 사고 과정", expanded=is_thinking):
+                # 완료된 경우 expanded=True로 설정하여 사고 과정을 계속 보여줌
+                with st.expander("🧠 상세 사고 과정", expanded=not is_thinking):
                     for thought in self.current_thoughts:
                         icon = self._get_thought_icon(thought["type"])
                         content = thought["content"]
@@ -129,7 +143,7 @@ class PlanVisualization:
             status_text.text("✅ 계획 표시 완료!")
     
     def _create_step_card(self, step: dict, step_num: int, total_steps: int) -> None:
-        """개별 단계를 카드로 표시 - A2A SDK 호환 개선 버전"""
+        """개별 단계를 카드로 표시 - Streamlit 네이티브 컴포넌트 사용"""
         # A2A 계획 구조 지원
         agent_name = step.get('agent_name', 'Unknown Agent')
         skill_name = step.get('skill_name', 'Unknown Skill')
@@ -140,26 +154,17 @@ class PlanVisualization:
         data_id = parameters.get('data_id', 'Unknown')
         reasoning = step.get('reasoning', '추론 정보가 없습니다.')
         
-        # 단계별 색상 지정
-        colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c']
-        color = colors[(step_num - 1) % len(colors)]
-        
         # 에이전트 아이콘 결정
         agent_icon = "🧠" if "pandas" in agent_name.lower() else "🤖"
         
-        card_html = f"""
-        <div style="
-            background: linear-gradient(135deg, {color}15 0%, {color}05 100%);
-            border-left: 4px solid {color};
-            padding: 18px;
-            margin: 12px 0;
-            border-radius: 12px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        ">
-            <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        # Streamlit 네이티브 컴포넌트로 카드 구성
+        with st.container():
+            # 헤더 섹션
+            col1, col2 = st.columns([1, 8])
+            with col1:
+                st.markdown(f"""
                 <div style="
-                    background: {color};
+                    background: #3498db;
                     color: white;
                     width: 35px;
                     height: 35px;
@@ -168,54 +173,28 @@ class PlanVisualization:
                     align-items: center;
                     justify-content: center;
                     font-weight: bold;
-                    margin-right: 15px;
                     font-size: 16px;
+                    text-align: center;
+                    line-height: 35px;
                 ">
                     {step_num}
                 </div>
-                <div>
-                    <h4 style="margin: 0; color: #2c3e50; display: flex; align-items: center;">
-                        {agent_icon} {agent_name}
-                    </h4>
-                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #7f8c8d;">
-                        📊 데이터: <strong>{data_id}</strong>
-                    </p>
-                </div>
-            </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"#### {agent_icon} {agent_name}")
+                st.markdown(f"📊 데이터: **{data_id}**")
             
-            <div style="margin-bottom: 12px;">
-                <p style="margin: 0; color: #34495e; font-size: 14px; font-weight: 600;">
-                    🎯 <strong>수행 작업:</strong> {skill_name}
-                </p>
-            </div>
+            # 작업 설명
+            st.markdown(f"🎯 **수행 작업:** {skill_name}")
             
-            <div style="
-                background: rgba(255,255,255,0.9);
-                padding: 12px;
-                border-radius: 8px;
-                margin-bottom: 8px;
-                border-left: 3px solid {color};
-            ">
-                <p style="margin: 0; font-size: 13px; color: #2c3e50; line-height: 1.4;">
-                    <strong>📝 상세 지시사항:</strong><br>
-                    {user_instructions}
-                </p>
-            </div>
+            # 상세 지시사항 박스
+            st.info(f"📝 **상세 지시사항:**\n{user_instructions}")
             
-            <div style="
-                background: rgba(52, 152, 219, 0.1);
-                padding: 10px 12px;
-                border-radius: 6px;
-                font-size: 12px;
-                color: #34495e;
-                border-left: 2px solid #3498db;
-            ">
-                <strong>💡 추론:</strong> {reasoning}
-            </div>
-        </div>
-        """
-        
-        st.markdown(card_html, unsafe_allow_html=True)
+            # 추론 인사이트
+            st.markdown(f"💡 **추론:** {reasoning}")
+            
+            # 구분선
+            st.markdown("---")
 
 
 class BeautifulResults:

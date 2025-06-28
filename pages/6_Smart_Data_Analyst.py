@@ -22,6 +22,9 @@ import pandas as pd
 import json
 import httpx
 import time
+import plotly.graph_objects as go
+import plotly.express as px
+import plotly.io as pio
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +47,71 @@ def setup_environment():
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
+
+# UI 스타일링 개선 - 검은색 배경 제거
+def apply_custom_styling():
+    """깔끔한 흰색 배경과 개선된 UI 스타일 적용"""
+    st.markdown("""
+    <style>
+        /* 메인 배경을 깔끔한 흰색으로 */
+        .stApp {
+            background-color: #ffffff;
+        }
+        
+        /* 사이드바 스타일링 */
+        .css-1d391kg {
+            background-color: #f8f9fa;
+        }
+        
+        /* 카드 스타일 개선 */
+        .stContainer {
+            background-color: #ffffff;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* 버튼 스타일 개선 */
+        .stButton > button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .stButton > button:hover {
+            background-color: #0056b3;
+        }
+        
+        /* 경고/에러 메시지 스타일 개선 */
+        .stAlert {
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+        
+        /* 차트 컨테이너 개선 */
+        .plotly-graph-div {
+            background-color: #ffffff !important;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* 검은색 배경 요소들 제거 */
+        div[data-testid="stSidebar"] {
+            background-color: #f8f9fa !important;
+        }
+        
+        /* 메시지 컨테이너 스타일 개선 */
+        .stChatMessage {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
 def initialize_session_state():
     """세션 상태 초기화"""
@@ -832,118 +900,74 @@ async def process_user_query(prompt: str):
             else:
                 st.error("모든 단계가 실패했습니다. 서버 상태를 확인해주세요.")
 
-if __name__ == "__main__":
+# --- 메인 함수 ---
+def main():
+    """Smart Data Analyst 메인 함수"""
+    # 페이지 설정
     st.set_page_config(
-        page_title="Smart Data Analyst",
-        layout="wide",
+        page_title="🧠 Smart Data Analyst",
         page_icon="🧠",
-        initial_sidebar_state="collapsed"
+        layout="wide",
+        initial_sidebar_state="expanded"
     )
     
     # 환경 설정
     setup_environment()
+    
+    # UI 스타일링 적용
+    apply_custom_styling()
+    
+    # 세션 상태 초기화
     initialize_session_state()
     
-    # 메인 타이틀
-    st.title("🧠 Smart Data Analyst")
-    st.markdown("**A2A 프로토콜 기반 지능형 데이터 분석 어시스턴트** - Agent Chat의 우수한 패턴 적용")
+    # 헤더
+    st.markdown("""
+    # 🧠 Smart Data Analyst
+    ### 🤖 A2A Protocol Enhanced Multi-Agent Data Analysis System
+    
+    **핵심 특징:**
+    - 🧠 **ThinkingStream**: AI 사고 과정 실시간 표시
+    - 📋 **PlanVisualization**: 분석 계획을 아름다운 카드로 시각화
+    - 📊 **BeautifulResults**: 전문적인 UI로 최종 결과 표시
+    - 🤖 **A2A Protocol**: 진정한 에이전트 간 협업 분석
+    """)
     
     # 사이드바 설정
     with st.sidebar:
-        st.markdown("### ⚙️ 설정")
+        st.markdown("### 🔧 시스템 설정")
         
-        # 서버 상태 확인
-        if st.button("🔍 A2A 서버 상태 확인"):
-            check_a2a_server_status()
+        # A2A 서버 상태 확인
+        if st.button("🔍 A2A 서버 상태 확인", type="secondary"):
+            status_results = check_a2a_server_status()
+            
+            running_servers = sum(1 for status in status_results.values() if status)
+            total_servers = len(status_results)
+            
+            if running_servers == total_servers:
+                st.success(f"✅ 모든 서버 연결됨 ({running_servers}/{total_servers})")
+            elif running_servers > 0:
+                st.warning(f"⚠️ 일부 서버 연결됨 ({running_servers}/{total_servers})")
+            else:
+                st.error("❌ 서버 연결 실패")
         
         st.markdown("---")
         
         # 데이터 업로드
-        handle_data_upload()
+        data_uploaded = handle_data_upload()
         
+        # 현재 데이터 상태 표시
         if st.session_state.uploaded_data is not None:
             st.success(f"✅ 데이터 준비됨: {st.session_state.data_id}")
             st.info(f"📊 {st.session_state.uploaded_data.shape[0]} 행, {st.session_state.uploaded_data.shape[1]} 열")
         else:
-            st.info("📁 데이터를 업로드하거나 샘플 데이터를 선택하세요")
-        
-        st.markdown("---")
-        
-        # 추가 도구
-        if st.button("🗑️ 대화 내역 초기화"):
-            st.session_state.messages = []
-            st.rerun()
+            st.info("📂 데이터를 업로드해주세요")
     
-    # 환영 메시지 (첫 방문시)
-    if not st.session_state.messages:
-        welcome_html = """
-        <div style="
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin: 20px 0;
-            text-align: center;
-        ">
-            <h2>👋 Smart Data Analyst에 오신 것을 환영합니다!</h2>
-            <p style="font-size: 18px; margin: 15px 0;">
-                A2A 프로토콜로 구동되는 차세대 지능형 데이터 분석 시스템
-            </p>
-            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
-                <div>🧠 사고 과정 표시</div>
-                <div>📋 계획 시각화</div>
-                <div>🎨 아름다운 결과</div>
-            </div>
-        </div>
-        """
-        st.markdown(welcome_html, unsafe_allow_html=True)
-        
-        st.markdown("""
-        ### 🚀 사용 방법
-        1. **데이터 업로드**: 사이드바에서 CSV, Excel, JSON 파일을 업로드하거나 샘플 데이터를 선택하세요
-        2. **분석 요청**: 아래 입력창에 원하는 분석을 입력하세요
-        3. **실시간 관찰**: AI의 사고 과정, 계획 수립, 실행 과정을 실시간으로 확인하세요
-        
-        ### 💡 예시 질문
-        - "이 데이터에 대해 전반적인 EDA를 수행해줘"
-        - "데이터 요약 통계를 보여줘"  
-        - "컬럼 간 상관관계를 분석해줘"
-        - "데이터 품질 문제를 찾아줘"
-        - "시각화를 만들어줘"
-        """)
-    
-    # 채팅 히스토리 표시
+    # 메인 콘텐츠
     render_chat_history()
     
-    # 채팅 입력 - 완전한 기능 구현
-    if prompt := st.chat_input("🎯 어떤 데이터 분석을 원하시나요? (예: 'EDA 수행해줘', '데이터 요약해줘')"):
-        # 비동기 처리를 위한 이벤트 루프
-        try:
-            # nest_asyncio가 적용되어 있으므로 바로 실행
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # 이미 실행 중인 루프에서는 create_task 사용
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(asyncio.run, process_user_query(prompt))
-                    future.result()
-            else:
-                asyncio.run(process_user_query(prompt))
-        except Exception as e:
-            st.error(f"처리 중 오류가 발생했습니다: {e}")
-            logging.error(f"Query processing error: {e}", exc_info=True)
-            
-            # 오류 발생 시 기본 응답 제공
-            with st.chat_message("assistant"):
-                st.markdown(f"""
-                ### ⚠️ 오류가 발생했습니다
-                
-                **오류 내용:** {str(e)}
-                
-                **해결 방법:**
-                1. A2A 서버가 실행 중인지 확인해주세요 (`./start.sh`)
-                2. 사이드바의 "A2A 서버 상태 확인" 버튼을 눌러 서버 상태를 확인해주세요
-                3. 네트워크 연결을 확인해주세요
-                
-                문제가 지속되면 개발팀에 문의해주세요.
-                """)
+    # 채팅 입력
+    if prompt := st.chat_input("데이터 분석을 요청하세요 (예: EDA 진행해줘, 시각화해줘)"):
+        asyncio.run(process_user_query(prompt))
+
+if __name__ == "__main__":
+    main()
