@@ -12,14 +12,18 @@ PID_DIR="$PROJECT_ROOT/logs/pids"
 mkdir -p "$LOG_DIR"
 mkdir -p "$PID_DIR"
 
-# Server configurations (name:script:port) - pandas_analyst 제거됨
+# Server configurations (name:script:port)
 SERVERS=(
     "orchestrator:a2a_ds_servers/orchestrator_server.py:8100"
-    "sql_analyst:a2a_ds_servers/sql_data_analyst_server.py:8201"
-    "data_viz:a2a_ds_servers/data_visualization_server.py:8202"
-    "eda_tools:a2a_ds_servers/eda_tools_server.py:8203"
-    "feature_eng:a2a_ds_servers/feature_engineering_server.py:8204"
-    "data_cleaning:a2a_ds_servers/data_cleaning_server.py:8205"
+    "data_loader:a2a_ds_servers/ai_ds_team_data_loader_server.py:8200"
+    "data_cleaning:a2a_ds_servers/ai_ds_team_data_cleaning_server.py:8201"
+    "data_wrangling:a2a_ds_servers/ai_ds_team_data_wrangling_server.py:8202"
+    "eda_tools:a2a_ds_servers/ai_ds_team_eda_tools_server.py:8203"
+    "data_viz:a2a_ds_servers/ai_ds_team_data_visualization_server.py:8204"
+    "feature_eng:a2a_ds_servers/ai_ds_team_feature_engineering_server.py:8205"
+    "h2o_ml:a2a_ds_servers/ai_ds_team_h2o_ml_server.py:8206"
+    "mlflow_tools:a2a_ds_servers/ai_ds_team_mlflow_tools_server.py:8207"
+    "sql_database:a2a_ds_servers/ai_ds_team_sql_database_server.py:8208"
 )
 
 # Cleanup function
@@ -142,11 +146,15 @@ for server_config in "${SERVERS[@]}"; do
     # Get display name
     case $name in
         "orchestrator") display_name="Orchestrator" ;;
-        "sql_analyst") display_name="SQL Data Analyst" ;;
-        "data_viz") display_name="Data Visualization" ;;
-        "eda_tools") display_name="EDA Tools" ;;
-        "feature_eng") display_name="Feature Engineering" ;;
+        "data_loader") display_name="Data Loader" ;;
         "data_cleaning") display_name="Data Cleaning" ;;
+        "data_wrangling") display_name="Data Wrangling" ;;
+        "eda_tools") display_name="EDA Tools" ;;
+        "data_viz") display_name="Data Visualization" ;;
+        "feature_eng") display_name="Feature Engineering" ;;
+        "h2o_ml") display_name="H2O ML" ;;
+        "mlflow_tools") display_name="MLflow Tools" ;;
+        "sql_database") display_name="SQL Database" ;;
         *) display_name="$name" ;;
     esac
     
@@ -172,11 +180,15 @@ for server_config in "${SERVERS[@]}"; do
     
     case $name in
         "orchestrator") display_name="Orchestrator" ;;
-        "sql_analyst") display_name="SQL Data Analyst" ;;
-        "data_viz") display_name="Data Visualization" ;;
-        "eda_tools") display_name="EDA Tools" ;;
-        "feature_eng") display_name="Feature Engineering" ;;
+        "data_loader") display_name="Data Loader" ;;
         "data_cleaning") display_name="Data Cleaning" ;;
+        "data_wrangling") display_name="Data Wrangling" ;;
+        "eda_tools") display_name="EDA Tools" ;;
+        "data_viz") display_name="Data Visualization" ;;
+        "feature_eng") display_name="Feature Engineering" ;;
+        "h2o_ml") display_name="H2O ML" ;;
+        "mlflow_tools") display_name="MLflow Tools" ;;
+        "sql_database") display_name="SQL Database" ;;
         *) display_name="$name" ;;
     esac
     
@@ -198,11 +210,15 @@ echo "🎉 A2A Data Science System is operational!"
 echo "================================================"
 echo "📊 Available Services:"
 echo "   🎯 Orchestrator:          http://localhost:8100"
-echo "   🗃️  SQL Data Analyst:      http://localhost:8201"
-echo "   📈 Data Visualization:    http://localhost:8202"
+echo "   📂 Data Loader:          http://localhost:8200"
+echo "   🧹 Data Cleaning:         http://localhost:8201"
+echo "   🛠️ Data Wrangling:        http://localhost:8202"
 echo "   🔍 EDA Tools:             http://localhost:8203"
-echo "   🔧 Feature Engineering:   http://localhost:8204"
-echo "   🧹 Data Cleaning:         http://localhost:8205"
+echo "   🎨 Data Visualization:    http://localhost:8204"
+echo "   🔧 Feature Engineering:   http://localhost:8205"
+echo "   🤖 H2O ML:              http://localhost:8206"
+echo "   📈 MLflow Tools:        http://localhost:8207"
+echo "   🗄️ SQL Database:        http://localhost:8208"
 echo ""
 echo "🌐 Starting Streamlit UI on http://localhost:8501"
 echo "================================================"

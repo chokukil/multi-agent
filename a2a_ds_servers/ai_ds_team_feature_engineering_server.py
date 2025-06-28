@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+from a2a.utils import new_agent_text_message#!/usr/bin/env python3
 """
 AI_DS_Team FeatureEngineeringAgent A2A Server
 Port: 8310
@@ -74,9 +74,9 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
         self.agent = FeatureEngineeringAgent(model=self.llm)
         logger.info("FeatureEngineeringAgent initialized")
     
-    async def execute(self, context: RequestContext) -> None:
+    async def execute(self, context: RequestContext, event_queue) -> None:
         """A2A 프로토콜에 따른 실행"""
-        event_queue = context.deps.event_queue
+        # event_queue passed as parameter
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
@@ -88,8 +88,8 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
             user_instructions = ""
             if context.message and context.message.parts:
                 for part in context.message.parts:
-                    if part.kind == "text":
-                        user_instructions += part.text + " "
+                    if part.root.kind == "text":
+                        user_instructions += part.root.text + " "
                 
                 user_instructions = user_instructions.strip()
                 logger.info(f"Processing data visualization request: {user_instructions}")
@@ -123,7 +123,7 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
                         )
                         
                         # 결과 처리
-                        ai_message = self.agent.get_ai_message(markdown=True)
+                        workflow_summary = self.agent.get_workflow_summary(markdown=True)
                         
                         # 생성된 차트 정보 수집
                         charts_info = ""
@@ -151,7 +151,7 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
                         
                         response_text = f"""## 📊 데이터 시각화 완료
 
-{ai_message}
+{workflow_summary}
 
 {charts_info}
 
@@ -207,7 +207,6 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
 """
                 
                 # 작업 완료
-                from a2a.server.request_handlers.response_helpers import new_agent_text_message
                 await task_updater.update_status(
                     TaskState.completed,
                     message=new_agent_text_message(response_text)
@@ -215,7 +214,6 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
                 
             else:
                 # 메시지가 없는 경우
-                from a2a.server.request_handlers.response_helpers import new_agent_text_message
                 await task_updater.update_status(
                     TaskState.completed,
                     message=new_agent_text_message("시각화 요청이 비어있습니다. 구체적인 차트나 그래프 요청을 해주세요.")
@@ -223,7 +221,6 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
                 
         except Exception as e:
             logger.error(f"Error in FeatureEngineeringAgent execution: {e}")
-            from a2a.server.request_handlers.response_helpers import new_agent_text_message
             await task_updater.update_status(
                 TaskState.failed,
                 message=new_agent_text_message(f"데이터 시각화 중 오류 발생: {str(e)}")

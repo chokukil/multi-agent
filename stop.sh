@@ -16,14 +16,18 @@ if [ ! -d "$PID_DIR" ]; then
     exit 0
 fi
 
-# Server names - pandas_analyst 제거됨
+# Server names
 SERVERS=(
     "orchestrator"
-    "sql_analyst"
-    "data_viz"
-    "eda_tools"
-    "feature_eng"
+    "data_loader"
     "data_cleaning"
+    "data_wrangling"
+    "eda_tools"
+    "data_viz"
+    "feature_eng"
+    "h2o_ml"
+    "mlflow_tools"
+    "sql_database"
 )
 
 stopped_count=0
@@ -60,11 +64,15 @@ for name in "${SERVERS[@]}"; do
     # Get display name
     case $name in
         "orchestrator") display_name="Orchestrator" ;;
-        "sql_analyst") display_name="SQL Data Analyst" ;;
-        "data_viz") display_name="Data Visualization" ;;
-        "eda_tools") display_name="EDA Tools" ;;
-        "feature_eng") display_name="Feature Engineering" ;;
+        "data_loader") display_name="Data Loader" ;;
         "data_cleaning") display_name="Data Cleaning" ;;
+        "data_wrangling") display_name="Data Wrangling" ;;
+        "eda_tools") display_name="EDA Tools" ;;
+        "data_viz") display_name="Data Visualization" ;;
+        "feature_eng") display_name="Feature Engineering" ;;
+        "h2o_ml") display_name="H2O ML" ;;
+        "mlflow_tools") display_name="MLflow Tools" ;;
+        "sql_database") display_name="SQL Database" ;;
         *) display_name="$name" ;;
     esac
     
@@ -98,11 +106,15 @@ echo "🧹 Cleaning up any remaining processes..."
 # Kill any remaining A2A server processes - 최신 서버 이름
 SERVER_SCRIPTS=(
     "orchestrator_server.py"
-    "sql_data_analyst_server.py"
-    "data_visualization_server.py"
-    "eda_tools_server.py"
-    "feature_engineering_server.py"
-    "data_cleaning_server.py"
+    "ai_ds_team_data_loader_server.py"
+    "ai_ds_team_data_cleaning_server.py"
+    "ai_ds_team_data_wrangling_server.py"
+    "ai_ds_team_eda_tools_server.py"
+    "ai_ds_team_data_visualization_server.py"
+    "ai_ds_team_feature_engineering_server.py"
+    "ai_ds_team_h2o_ml_server.py"
+    "ai_ds_team_mlflow_tools_server.py"
+    "ai_ds_team_sql_database_server.py"
 )
 
 for script in "${SERVER_SCRIPTS[@]}"; do
@@ -134,8 +146,8 @@ fi
 echo ""
 echo "🔍 Final status check..."
 
-# Check ports - pandas_analyst(8200) 제거됨
-PORTS=(8100 8201 8202 8203 8204 8205 8501)
+# Check ports
+PORTS=(8100 8200 8201 8202 8203 8204 8205 8206 8207 8208 8501)
 ports_in_use=0
 for port in "${PORTS[@]}"; do
     if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
@@ -155,11 +167,15 @@ if [ $ports_in_use -eq 0 ]; then
     echo "🎯 Stopped Services:"
     echo "   📱 Streamlit UI (8501)"
     echo "   🎯 Orchestrator (8100)"
-    echo "   🗃️  SQL Data Analyst (8201)"
-    echo "   📈 Data Visualization (8202)"
+    echo "   📂 Data Loader (8200)"
+    echo "   🧹 Data Cleaning (8201)"
+    echo "   🛠️ Data Wrangling (8202)"
     echo "   🔍 EDA Tools (8203)"
-    echo "   🔧 Feature Engineering (8204)"
-    echo "   🧹 Data Cleaning (8205)"
+    echo "   🎨 Data Visualization (8204)"
+    echo "   🔧 Feature Engineering (8205)"
+    echo "   🤖 H2O ML (8206)"
+    echo "   📈 MLflow Tools (8207)"
+    echo "   🗄️ SQL Database (8208)"
 else
     echo "⚠️  System mostly stopped, but $ports_in_use ports still in use"
     echo "📊 Stopped $stopped_count out of $total_count services"

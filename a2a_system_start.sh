@@ -16,12 +16,15 @@ mkdir -p "$PID_DIR"
 # Server definitions
 declare -A SERVERS=(
     ["orchestrator"]="a2a_ds_servers/orchestrator_server.py:8100"
-    ["pandas_analyst"]="a2a_ds_servers/pandas_data_analyst_server.py:8200"
-    ["sql_analyst"]="a2a_ds_servers/sql_data_analyst_server.py:8201"
-    ["data_viz"]="a2a_ds_servers/data_visualization_server.py:8202"
-    ["eda_tools"]="a2a_ds_servers/eda_tools_server.py:8203"
-    ["feature_eng"]="a2a_ds_servers/feature_engineering_server.py:8204"
-    ["data_cleaning"]="a2a_ds_servers/data_cleaning_server.py:8205"
+    ["data_loader"]="a2a_ds_servers/ai_ds_team_data_loader_server.py:8200"
+    ["data_cleaning"]="a2a_ds_servers/ai_ds_team_data_cleaning_server.py:8201"
+    ["data_wrangling"]="a2a_ds_servers/ai_ds_team_data_wrangling_server.py:8202"
+    ["eda_tools"]="a2a_ds_servers/ai_ds_team_eda_tools_server.py:8203"
+    ["data_viz"]="a2a_ds_servers/ai_ds_team_data_visualization_server.py:8204"
+    ["feature_eng"]="a2a_ds_servers/ai_ds_team_feature_engineering_server.py:8205"
+    ["h2o_ml"]="a2a_ds_servers/ai_ds_team_h2o_ml_server.py:8206"
+    ["mlflow_tools"]="a2a_ds_servers/ai_ds_team_mlflow_tools_server.py:8207"
+    ["sql_database"]="a2a_ds_servers/ai_ds_team_sql_database_server.py:8208"
 )
 
 # Store PIDs for cleanup
@@ -135,8 +138,8 @@ fi
 echo ""
 
 # Start agent servers
-agents=("pandas_analyst" "sql_analyst" "data_viz" "eda_tools" "feature_eng" "data_cleaning")
-agent_names=("Pandas Data Analyst" "SQL Data Analyst" "Data Visualization" "EDA Tools" "Feature Engineering" "Data Cleaning")
+agents=("data_loader" "data_cleaning" "data_wrangling" "eda_tools" "data_viz" "feature_eng" "h2o_ml" "mlflow_tools" "sql_database")
+agent_names=("Data Loader" "Data Cleaning" "Data Wrangling" "EDA Tools" "Data Visualization" "Feature Engineering" "H2O ML" "MLflow Tools" "SQL Database")
 
 for i in "${!agents[@]}"; do
     name="${agents[$i]}"
@@ -164,12 +167,15 @@ echo "================================================"
 echo ""
 echo "🌐 Available Services:"
 echo "   📋 Orchestrator:        http://localhost:8100"
-echo "   📊 Pandas Analyst:      http://localhost:8200"
-echo "   🗄️  SQL Analyst:        http://localhost:8201"
-echo "   🎨 Data Visualization:  http://localhost:8202"
+echo "   📂 Data Loader:          http://localhost:8200"
+echo "   🧹 Data Cleaning:       http://localhost:8201"
+echo "   🛠️ Data Wrangling:      http://localhost:8202"
 echo "   🔬 EDA Tools:           http://localhost:8203"
-echo "   🔧 Feature Engineering: http://localhost:8204"
-echo "   🧹 Data Cleaning:       http://localhost:8205"
+echo "   🎨 Data Visualization:  http://localhost:8204"
+echo "   🔧 Feature Engineering: http://localhost:8205"
+echo "   🤖 H2O ML:              http://localhost:8206"
+echo "   📈 MLflow Tools:        http://localhost:8207"
+echo "   🗄️ SQL Database:        http://localhost:8208"
 echo ""
 echo "📋 Agent Cards:"
 for name in "${!SERVERS[@]}"; do

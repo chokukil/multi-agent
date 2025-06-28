@@ -1,0 +1,309 @@
+{
+  "timestamp": "2025-06-28 11:37:50",
+  "summary": {
+    "total_scenarios": 7,
+    "successful_scenarios": 0,
+    "total_tests": 31,
+    "successful_tests": 0,
+    "success_rate": 0.0
+  },
+  "scenario_results": {
+    "EDA_Tools_Agent_Test": {
+      "success": false,
+      "successful_tests": 0,
+      "total_tests": 7,
+      "test_results": [
+        {
+          "test_case": "What tools do you have access to? Return a table.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Give me information on the correlation funnel tool.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "What are the first 5 rows of the data?",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Describe the dataset.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Analyze missing data patterns using missingno.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Generate a sweetviz EDA report.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Create a correlation funnel analysis.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        }
+      ]
+    },
+    "Pandas_Data_Analyst_Test": {
+      "success": false,
+      "successful_tests": 0,
+      "total_tests": 5,
+      "test_results": [
+        {
+          "test_case": "What are the first 5 rows of the data?",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Calculate summary statistics for numerical columns.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Filter customers who have churned.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Group by customer segment and calculate average monthly charges.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Create a pivot table of churn by contract type and payment method.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        }
+      ]
+    },
+    "SQL_Data_Analyst_Test": {
+      "success": false,
+      "successful_tests": 0,
+      "total_tests": 4,
+      "test_results": [
+        {
+          "test_case": "Convert the dataset to SQL format and analyze.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Write SQL query to find high-value customers.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Analyze churn rate by customer demographics using SQL.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Create a SQL report on customer retention patterns.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        }
+      ]
+    },
+    "H2O_ML_Agent_Test": {
+      "success": false,
+      "successful_tests": 0,
+      "total_tests": 4,
+      "test_results": [
+        {
+          "test_case": "Train an H2O AutoML model to predict customer churn.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Evaluate the model performance using H2O metrics.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Generate feature importance analysis.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Create model interpretation plots.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        }
+      ]
+    },
+    "MLflow_Tools_Test": {
+      "success": false,
+      "successful_tests": 0,
+      "total_tests": 4,
+      "test_results": [
+        {
+          "test_case": "Set up MLflow experiment tracking.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Log model metrics and parameters.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Register a model in MLflow model registry.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Compare different model versions.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        }
+      ]
+    },
+    "Data_Visualization_Test": {
+      "success": false,
+      "successful_tests": 0,
+      "total_tests": 4,
+      "test_results": [
+        {
+          "test_case": "Create a distribution plot of monthly charges.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Plot churn rate by customer tenure.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Generate a correlation heatmap.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Create an interactive dashboard showing key metrics.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        }
+      ]
+    },
+    "Orchestrator_Integration_Test": {
+      "success": false,
+      "successful_tests": 0,
+      "total_tests": 3,
+      "test_results": [
+        {
+          "test_case": "Perform a complete data science analysis on the customer churn dataset including EDA, feature engineering, and modeling.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Clean the data, create visualizations, and build a predictive model.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        },
+        {
+          "test_case": "Generate a comprehensive report with data insights and model recommendations.",
+          "result": {
+            "success": false,
+            "error": "HTTP 404",
+            "response": "Not Found"
+          }
+        }
+      ]
+    }
+  }
+}

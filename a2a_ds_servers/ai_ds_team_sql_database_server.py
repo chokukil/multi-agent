@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+from a2a.utils import new_agent_text_message#!/usr/bin/env python3
 """
 AI_DS_Team SQLDatabaseAgent A2A Server
 Port: 8311
@@ -79,9 +79,9 @@ class SQLDatabaseAgentExecutor(AgentExecutor):
         self.agent = SQLDatabaseAgent(model=self.llm, connection=self.connection)
         logger.info("SQLDatabaseAgent initialized with in-memory SQLite database")
     
-    async def execute(self, context: RequestContext) -> None:
+    async def execute(self, context: RequestContext, event_queue) -> None:
         """A2A 프로토콜에 따른 실행"""
-        event_queue = context.deps.event_queue
+        # event_queue passed as parameter
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
@@ -93,8 +93,8 @@ class SQLDatabaseAgentExecutor(AgentExecutor):
             user_instructions = ""
             if context.message and context.message.parts:
                 for part in context.message.parts:
-                    if part.kind == "text":
-                        user_instructions += part.text + " "
+                    if part.root.kind == "text":
+                        user_instructions += part.root.text + " "
                 
                 user_instructions = user_instructions.strip()
                 logger.info(f"Processing SQL database request: {user_instructions}")
@@ -131,7 +131,7 @@ class SQLDatabaseAgentExecutor(AgentExecutor):
                         )
                         
                         # 결과 처리
-                        ai_message = self.agent.get_ai_message(markdown=True)
+                        workflow_summary = self.agent.get_workflow_summary(markdown=True)
                         
                         # SQL 쿼리 결과 수집
                         sql_info = ""
@@ -160,7 +160,7 @@ class SQLDatabaseAgentExecutor(AgentExecutor):
                         
                         response_text = f"""## 🗄️ SQL 데이터베이스 분석 완료
 
-{ai_message}
+{workflow_summary}
 
 {sql_info}
 
@@ -217,7 +217,6 @@ SQL 데이터베이스 분석을 수행하려면 먼저 데이터를 업로드�
 """
                 
                 # 작업 완료
-                from a2a.server.request_handlers.response_helpers import new_agent_text_message
                 await task_updater.update_status(
                     TaskState.completed,
                     message=new_agent_text_message(response_text)
@@ -225,7 +224,6 @@ SQL 데이터베이스 분석을 수행하려면 먼저 데이터를 업로드�
                 
             else:
                 # 메시지가 없는 경우
-                from a2a.server.request_handlers.response_helpers import new_agent_text_message
                 await task_updater.update_status(
                     TaskState.completed,
                     message=new_agent_text_message("SQL 분석 요청이 비어있습니다. 구체적인 데이터베이스 쿼리 요청을 해주세요.")
@@ -233,7 +231,6 @@ SQL 데이터베이스 분석을 수행하려면 먼저 데이터를 업로드�
                 
         except Exception as e:
             logger.error(f"Error in SQLDatabaseAgent execution: {e}")
-            from a2a.server.request_handlers.response_helpers import new_agent_text_message
             await task_updater.update_status(
                 TaskState.failed,
                 message=new_agent_text_message(f"SQL 데이터베이스 분석 중 오류 발생: {str(e)}")
