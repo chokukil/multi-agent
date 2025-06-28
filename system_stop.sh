@@ -14,15 +14,15 @@ echo "================================================"
 # Server definitions (must match the start script)
 declare -A SERVERS=(
     ["orchestrator"]="a2a_ds_servers/orchestrator_server.py:8100"
-    ["data_loader"]="a2a_ds_servers/ai_ds_team_data_loader_server.py:8200"
-    ["data_cleaning"]="a2a_ds_servers/ai_ds_team_data_cleaning_server.py:8201"
-    ["data_wrangling"]="a2a_ds_servers/ai_ds_team_data_wrangling_server.py:8202"
-    ["eda_tools"]="a2a_ds_servers/ai_ds_team_eda_tools_server.py:8203"
-    ["data_viz"]="a2a_ds_servers/ai_ds_team_data_visualization_server.py:8204"
-    ["feature_eng"]="a2a_ds_servers/ai_ds_team_feature_engineering_server.py:8205"
-    ["h2o_ml"]="a2a_ds_servers/ai_ds_team_h2o_ml_server.py:8206"
-    ["mlflow_tools"]="a2a_ds_servers/ai_ds_team_mlflow_tools_server.py:8207"
-    ["sql_database"]="a2a_ds_servers/ai_ds_team_sql_database_server.py:8208"
+    ["data_loader"]="a2a_ds_servers/ai_ds_team_data_loader_server.py:8307"
+    ["data_cleaning"]="a2a_ds_servers/ai_ds_team_data_cleaning_server.py:8306"
+    ["data_wrangling"]="a2a_ds_servers/ai_ds_team_data_wrangling_server.py:8309"
+    ["eda_tools"]="a2a_ds_servers/ai_ds_team_eda_tools_server.py:8312"
+    ["data_viz"]="a2a_ds_servers/ai_ds_team_data_visualization_server.py:8308"
+    ["feature_eng"]="a2a_ds_servers/ai_ds_team_feature_engineering_server.py:8310"
+    ["h2o_ml"]="a2a_ds_servers/ai_ds_team_h2o_ml_server.py:8313"
+    ["mlflow_tools"]="a2a_ds_servers/ai_ds_team_mlflow_tools_server.py:8314"
+    ["sql_database"]="a2a_ds_servers/ai_ds_team_sql_database_server.py:8311"
 )
 
 # Kill all background processes

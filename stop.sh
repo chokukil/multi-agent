@@ -147,7 +147,7 @@ echo ""
 echo "🔍 Final status check..."
 
 # Check ports
-PORTS=(8100 8200 8201 8202 8203 8204 8205 8206 8207 8208 8501)
+PORTS=(8100 8307 8306 8309 8312 8308 8310 8313 8314 8311 8501)
 ports_in_use=0
 for port in "${PORTS[@]}"; do
     if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
@@ -167,15 +167,15 @@ if [ $ports_in_use -eq 0 ]; then
     echo "🎯 Stopped Services:"
     echo "   📱 Streamlit UI (8501)"
     echo "   🎯 Orchestrator (8100)"
-    echo "   📂 Data Loader (8200)"
-    echo "   🧹 Data Cleaning (8201)"
-    echo "   🛠️ Data Wrangling (8202)"
-    echo "   🔍 EDA Tools (8203)"
-    echo "   🎨 Data Visualization (8204)"
-    echo "   🔧 Feature Engineering (8205)"
-    echo "   🤖 H2O ML (8206)"
-    echo "   📈 MLflow Tools (8207)"
-    echo "   🗄️ SQL Database (8208)"
+    echo "   📂 Data Loader (8307)"
+    echo "   🧹 Data Cleaning (8306)"
+    echo "   🛠️ Data Wrangling (8309)"
+    echo "   🔍 EDA Tools (8312)"
+    echo "   🎨 Data Visualization (8308)"
+    echo "   🔧 Feature Engineering (8310)"
+    echo "   🤖 H2O ML (8313)"
+    echo "   📈 MLflow Tools (8314)"
+    echo "   🗄️ SQL Database (8311)"
 else
     echo "⚠️  System mostly stopped, but $ports_in_use ports still in use"
     echo "📊 Stopped $stopped_count out of $total_count services"
