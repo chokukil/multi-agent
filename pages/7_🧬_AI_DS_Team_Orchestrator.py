@@ -434,7 +434,7 @@ def display_data_summary_ai_ds_team(data, dataset_name):
         st.markdown("#### 🔍 컬럼 정보")
         col_info = pd.DataFrame({
             '컬럼명': data.columns,
-            '데이터 타입': data.dtypes.values,
+            '데이터 타입': data.dtypes.astype(str),  # PyArrow 호환성을 위해 문자열로 변환
             '누락값 수': data.isnull().sum().values,
             '누락값 비율(%)': (data.isnull().sum() / len(data) * 100).round(2).values,
             '고유값 수': data.nunique().values

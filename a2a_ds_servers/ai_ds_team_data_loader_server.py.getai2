@@ -1,0 +1,264 @@
+from a2a.utils import new_agent_text_message#!/usr/bin/env python3
+"""
+AI_DS_Team DataLoaderToolsAgent A2A Server
+Port: 8307
+
+AI_DS_Team의 DataLoaderToolsAgent를 A2A 프로토콜로 래핑하여 제공합니다.
+다양한 데이터 소스 로딩 및 전처리 전문
+"""
+
+import asyncio
+import sys
+import os
+from pathlib import Path
+
+# 프로젝트 루트 경로 추가
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "ai_ds_team"))
+
+from a2a.server.apps import A2AStarletteApplication
+from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
+from a2a.server.tasks.inmemory_task_store import InMemoryTaskStore
+from a2a.server.tasks.task_updater import TaskUpdater
+from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.types import TextPart, TaskState, AgentCard, AgentSkill, AgentCapabilities
+import uvicorn
+import logging
+
+# AI_DS_Team imports
+from ai_data_science_team.tools.dataframe import get_dataframe_summary
+from ai_data_science_team.agents import DataLoaderToolsAgent
+import pandas as pd
+import json
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def get_dataframe_summary(df, n_sample=5):
+    """간단한 데이터프레임 요약 생성"""
+    try:
+        summary = f"""
+**Shape**: {df.shape[0]:,} rows × {df.shape[1]:,} columns
+
+**Columns**: {', '.join(df.columns.tolist())}
+
+**Data Types**:
+{df.dtypes.to_string()}
+
+**Sample Data**:
+{df.head(n_sample).to_string()}
+
+**Missing Values**:
+{df.isnull().sum().to_string()}
+"""
+        return [summary]
+    except Exception as e:
+        return [f"데이터 요약 생성 중 오류: {str(e)}"]
+
+
+class DataLoaderToolsAgentExecutor(AgentExecutor):
+    """AI_DS_Team DataLoaderToolsAgent를 A2A 프로토콜로 래핑"""
+    
+    def __init__(self):
+        # LLM 설정
+        from core.llm_factory import create_llm_instance
+        self.llm = create_llm_instance()
+        self.agent = DataLoaderToolsAgent(model=self.llm)
+        logger.info("DataLoaderToolsAgent initialized")
+    
+    async def execute(self, context: RequestContext, event_queue) -> None:
+        """A2A 프로토콜에 따른 실행"""
+        # event_queue passed as parameter
+        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        
+        try:
+            # 작업 시작
+            await task_updater.submit()
+            await task_updater.start_work()
+            
+            # 사용자 메시지 추출
+            user_instructions = ""
+            if context.message and context.message.parts:
+                for part in context.message.parts:
+                    if part.kind == "text":
+                        user_instructions += part.root.text + " "
+                
+                user_instructions = user_instructions.strip()
+                logger.info(f"Processing data loading request: {user_instructions}")
+                
+                # DataLoaderToolsAgent 실행
+                try:
+                    # 에이전트에 직접 요청 전달
+                    result = self.agent.invoke_agent(
+                        user_instructions=user_instructions
+                    )
+                    
+                    # 결과 처리
+                    workflow_summary = self.agent.get_workflow_summary(markdown=True)
+                    
+                    # 로드된 데이터가 있는지 확인
+                    loaded_data_info = ""
+                    if hasattr(self.agent, 'data') and self.agent.data is not None:
+                        # 데이터를 공유 폴더에 저장
+                        data_path = "a2a_ds_servers/artifacts/data/shared_dataframes/"
+                        os.makedirs(data_path, exist_ok=True)
+                        
+                        output_file = f"loaded_data_{context.task_id}.csv"
+                        output_path = os.path.join(data_path, output_file)
+                        self.agent.data.to_csv(output_path, index=False)
+                        
+                        # 데이터 요약 생성
+                        data_summary = get_dataframe_summary(self.agent.data, n_sample=10)
+                        
+                        loaded_data_info = f"""
+### 📊 로드된 데이터 정보
+- **파일 위치**: `{output_path}`
+- **데이터 크기**: {self.agent.data.shape[0]:,} 행 × {self.agent.data.shape[1]:,} 열
+- **메모리 사용량**: {self.agent.data.memory_usage(deep=True).sum() / 1024**2:.2f} MB
+
+### 📋 데이터 요약
+{data_summary[0] if data_summary else '데이터 요약을 생성할 수 없습니다.'}
+"""
+                    
+                    # 사용 가능한 데이터 소스 확인
+                    available_sources = []
+                    data_dirs = [
+                        "ai_ds_team/data/",
+                        "a2a_ds_servers/artifacts/data/shared_dataframes/",
+                        "data/"
+                    ]
+                    
+                    for data_dir in data_dirs:
+                        if os.path.exists(data_dir):
+                            files = [f for f in os.listdir(data_dir) if f.endswith(('.csv', '.xlsx', '.json'))]
+                            if files:
+                                available_sources.extend([f"{data_dir}{f}" for f in files])
+                    
+                    sources_info = ""
+                    if available_sources:
+                        sources_info = f"""
+### 📁 사용 가능한 데이터 소스
+{chr(10).join([f"- {source}" for source in available_sources[:10]])}
+"""
+                    
+                    response_text = f"""## 📁 데이터 로딩 완료
+
+{ai_message}
+
+{loaded_data_info}
+
+{sources_info}
+
+### 🛠️ Data Loader Tools 기능
+- **파일 로딩**: CSV, Excel, JSON, Parquet 등 다양한 형식 지원
+- **데이터베이스 연결**: SQL 데이터베이스 연결 및 쿼리
+- **API 통합**: REST API를 통한 데이터 수집
+- **데이터 검증**: 로드된 데이터의 품질 및 형식 검증
+- **자동 타입 추론**: 컬럼 타입 자동 감지 및 변환
+"""
+                    
+                except Exception as agent_error:
+                    logger.warning(f"Agent execution failed, providing guidance: {agent_error}")
+                    response_text = f"""## 📁 데이터 로딩 가이드
+
+요청을 처리하는 중 문제가 발생했습니다: {str(agent_error)}
+
+### 💡 데이터 로딩 사용법
+다음과 같은 요청을 시도해보세요:
+
+1. **파일 로딩**:
+   - "CSV 파일을 로드해주세요"
+   - "Excel 파일의 특정 시트를 읽어주세요"
+
+2. **데이터 검색**:
+   - "사용 가능한 데이터 파일들을 보여주세요"
+   - "데이터 소스를 확인해주세요"
+
+3. **데이터 형식 변환**:
+   - "JSON을 DataFrame으로 변환해주세요"
+   - "데이터 타입을 자동으로 감지해주세요"
+
+요청: {user_instructions}
+"""
+                
+                # 작업 완료
+                await task_updater.update_status(
+                    TaskState.completed,
+                    message=new_agent_text_message(response_text)
+                )
+                
+            else:
+                # 메시지가 없는 경우
+                await task_updater.update_status(
+                    TaskState.completed,
+                    message=new_agent_text_message("데이터 로딩 요청이 비어있습니다. 로드할 데이터 파일이나 소스를 지정해주세요.")
+                )
+                
+        except Exception as e:
+            logger.error(f"Error in DataLoaderToolsAgent execution: {e}")
+            await task_updater.update_status(
+                TaskState.failed,
+                message=new_agent_text_message(f"데이터 로딩 중 오류 발생: {str(e)}")
+            )
+    
+    async def cancel(self, context: RequestContext) -> None:
+        """작업 취소"""
+        logger.info(f"DataLoaderToolsAgent task cancelled: {context.task_id}")
+
+
+def main():
+    """A2A 서버 생성 및 실행"""
+    
+    # AgentSkill 정의
+    skill = AgentSkill(
+        id="data_loading",
+        name="Data Loading & File Processing",
+        description="다양한 데이터 소스 로딩 및 전처리 전문가. 파일, 데이터베이스, API 등에서 데이터를 로드하고 DataFrame으로 변환합니다.",
+        tags=["data-loading", "etl", "file-processing", "database", "api-integration"],
+        examples=[
+            "CSV 파일을 로드해주세요",
+            "데이터베이스에서 고객 테이블을 가져와주세요",
+            "API에서 실시간 데이터를 수집해주세요",
+            "Excel 파일의 특정 시트를 읽어주세요",
+            "사용 가능한 데이터 파일들을 보여주세요"
+        ]
+    )
+    
+    # Agent Card 정의
+    agent_card = AgentCard(
+        name="AI_DS_Team DataLoaderToolsAgent",
+        description="다양한 데이터 소스 로딩 및 전처리 전문가. 파일, 데이터베이스, API 등에서 데이터를 로드하고 DataFrame으로 변환합니다.",
+        url="http://localhost:8307/",
+        version="1.0.0",
+        defaultInputModes=["text"],
+        defaultOutputModes=["text"],
+        capabilities=AgentCapabilities(streaming=False),
+        skills=[skill],
+        supportsAuthenticatedExtendedCard=False
+    )
+    
+    # Request Handler 생성
+    request_handler = DefaultRequestHandler(
+        agent_executor=DataLoaderToolsAgentExecutor(),
+        task_store=InMemoryTaskStore(),
+    )
+    
+    # A2A Server 생성
+    server = A2AStarletteApplication(
+        agent_card=agent_card,
+        http_handler=request_handler,
+    )
+    
+    print("📁 Starting AI_DS_Team DataLoaderToolsAgent Server")
+    print("🌐 Server starting on http://localhost:8307")
+    print("📋 Agent card: http://localhost:8307/.well-known/agent.json")
+    print("🛠️ Features: Data loading, file processing, database integration")
+    
+    uvicorn.run(server.build(), host="0.0.0.0", port=8307, log_level="info")
+
+
+if __name__ == "__main__":
+    main() 

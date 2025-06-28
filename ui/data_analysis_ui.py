@@ -165,7 +165,7 @@ class DataAnalysisUI:
             st.markdown("### 📊 컬럼 정보")
             col_info = pd.DataFrame({
                 '컬럼명': df.columns,
-                '데이터 타입': df.dtypes,
+                '데이터 타입': df.dtypes.astype(str),  # PyArrow 호환성을 위해 문자열로 변환
                 '결측값': df.isnull().sum(),
                 '결측값 비율(%)': (df.isnull().sum() / len(df) * 100).round(2)
             })
