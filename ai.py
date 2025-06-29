@@ -42,7 +42,6 @@ from core.session_data_manager import SessionDataManager  # 세션 기반 데이
 from ui.thinking_stream import ThinkingStream, PlanVisualization, BeautifulResults # 기존 클래스 활용 가능
 
 # 디버깅 로거 설정
-DEBUG_MODE = True
 debug_logger = logging.getLogger("ai_ds_debug")
 debug_logger.setLevel(logging.DEBUG)
 if not debug_logger.handlers:
@@ -52,8 +51,11 @@ if not debug_logger.handlers:
     debug_logger.addHandler(handler)
 
 def debug_log(message: str, level: str = "info"):
-    """향상된 디버깅 로그 - 터미널, 파일, UI 모두 출력"""
+    """향상된 디버깅 로그 - 사이드바 설정에 따라 제어"""
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+    
+    # 디버깅 모드 확인 (세션 상태에서)
+    debug_enabled = getattr(st.session_state, 'debug_enabled', False)
     
     # 로그 메시지 포맷
     if level == "error":
@@ -81,18 +83,19 @@ def debug_log(message: str, level: str = "info"):
     except Exception as e:
         print(f"[{timestamp}] ❌ 로그 파일 기록 실패: {e}")
     
-    # Streamlit UI에도 표시 (기존 동작 유지)
-    try:
-        if level == "error":
-            st.error(f"🐛 DEBUG: {message}")
-        elif level == "warning":
-            st.warning(f"🐛 DEBUG: {message}")
-        elif level == "success":
-            st.success(f"🐛 DEBUG: {message}")
-        else:
-            st.info(f"🐛 DEBUG: {message}")
-    except:
-        pass  # Streamlit 컨텍스트가 없을 때는 무시
+    # Streamlit UI에는 디버깅 모드가 켜져있을 때만 표시
+    if debug_enabled:
+        try:
+            if level == "error":
+                st.error(f"🐛 DEBUG: {message}")
+            elif level == "warning":
+                st.warning(f"🐛 DEBUG: {message}")
+            elif level == "success":
+                st.success(f"🐛 DEBUG: {message}")
+            else:
+                st.info(f"🐛 DEBUG: {message}")
+        except:
+            pass  # Streamlit 컨텍스트가 없을 때는 무시
 
 # AI_DS_Team 유틸리티 임포트
 try:
@@ -576,7 +579,6 @@ async def process_query_streaming(prompt: str):
                         if 'error' in result:
                             st.error(f"오류: {result['error']}")
                         else:
-                            # 🔥 핵심 수정: 실제 데이터 구조에 맞게 결과 렌더링
                             step_results = result.get('results', [])
                             
                             if not step_results:
@@ -593,7 +595,6 @@ async def process_query_streaming(prompt: str):
                                 
                                 if chunk_type == 'message' and chunk_content.get('text'):
                                     text = chunk_content['text']
-                                    # 시스템 메시지 필터링
                                     if text and not text.startswith('✅') and len(text.strip()) > 5:
                                         messages.append(text)
                                 elif chunk_type == 'artifact':
@@ -603,324 +604,35 @@ async def process_query_streaming(prompt: str):
                             if messages:
                                 st.markdown("#### 💬 에이전트 응답")
                                 for msg in messages:
-                                    # JSON 형태의 결과인지 확인
-                                    try:
-                                        if msg.strip().startswith('{') and msg.strip().endswith('}'):
-                                            # JSON 형태의 응답을 파싱해서 표시
-                                            import json
-                                            data = json.loads(msg)
-                                            
-                                            # 데이터가 분석 결과인 경우 구조화해서 표시
-                                            if isinstance(data, dict):
-                                                for key, value in data.items():
-                                                    if key == 'summary':
-                                                        st.markdown(f"**📊 요약**: {value}")
-                                                    elif key == 'shape':
-                                                        st.markdown(f"**📏 데이터 형태**: {value}")
-                                                    elif key == 'columns':
-                                                        st.markdown(f"**📋 컬럼**: {', '.join(value) if isinstance(value, list) else value}")
-                                                    elif key == 'missing_values':
-                                                        if value:
-                                                            st.markdown(f"**⚠️ 결측값**: {value}")
-                                                    elif key == 'data_types':
-                                                        if isinstance(value, dict):
-                                                            st.markdown("**📊 데이터 타입**:")
-                                                            for col, dtype in value.items():
-                                                                st.markdown(f"  - {col}: {dtype}")
-                                                    else:
-                                                        st.markdown(f"**{key}**: {value}")
-                                            else:
-                                                st.markdown(msg)
-                                        else:
-                                            st.markdown(msg)
-                                    except (json.JSONDecodeError, ValueError):
-                                        st.markdown(msg)
+                                    st.markdown(msg)
                             
-                            # 🔥 핵심 수정: 아티팩트 렌더링 개선 (시각화 차트 표시)
-                            if artifacts:
-                                st.markdown("#### 🎯 생성된 아티팩트")
-                                
-                                for artifact_idx, artifact in enumerate(artifacts):
-                                    artifact_name = artifact.get('name', f'아티팩트 {artifact_idx + 1}')
-                                    artifact_metadata = artifact.get('metadata', {})
-                                    
-                                    with st.expander(f"📄 {artifact_name}", expanded=True):
-                                        # 아티팩트 타입 확인
-                                        content_type = artifact_metadata.get('content_type', 'unknown')
-                                        
-                                        # 텍스트 파트 처리
-                                        if 'parts' in artifact and artifact['parts']:
-                                            for part in artifact['parts']:
-                                                if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                                                    content = part.root.text
-                                                elif isinstance(part, dict) and 'text' in part:
-                                                    content = part['text']
-                                                elif isinstance(part, dict) and 'root' in part:
-                                                    content = part['root'].get('text', str(part))
-                                                else:
-                                                    content = str(part)
-                                                
-                                                # JSON 형태의 Plotly 차트 감지 및 렌더링
-                                                try:
-                                                    if content.strip().startswith('{') and ('plotly' in content.lower() or 'data' in content.lower() and 'layout' in content.lower()):
-                                                        import json
-                                                        chart_data = json.loads(content)
-                                                        
-                                                        # Plotly 차트 렌더링
-                                                        if isinstance(chart_data, dict) and ('data' in chart_data or 'layout' in chart_data):
-                                                            import plotly.graph_objects as go
-                                                            fig = go.Figure(chart_data)
-                                                            st.plotly_chart(fig, use_container_width=True)
-                                                            st.success("📊 시각화 차트가 성공적으로 표시되었습니다!")
-                                                        else:
-                                                            st.json(chart_data)
-                                                    else:
-                                                        # 일반 텍스트 또는 마크다운
-                                                        if content.strip():
-                                                            try:
-                                                                # JSON 형태인지 확인
-                                                                data = json.loads(content)
-                                                                st.json(data)
-                                                            except:
-                                                                st.markdown(content)
-                                                except Exception as e:
-                                                    debug_log(f"⚠️ 아티팩트 렌더링 오류: {e}", "warning")
-                                                    st.text(content)
-                                        else:
-                                            # 직접 아티팩트 데이터 표시
-                                            if isinstance(artifact, dict):
-                                                st.json(artifact)
-                                            else:
-                                                st.text(str(artifact))
-                            
-                            # 아티팩트 표시
+                            # 아티팩트 렌더링
                             if artifacts:
                                 st.markdown("#### 📦 생성된 아티팩트")
                                 for i, artifact in enumerate(artifacts):
                                     artifact_name = artifact.get('name', f'Artifact {i+1}')
-                                    artifact_data = artifact.get('data', '')
-                                    artifact_metadata = artifact.get('metadata', {})
-                                    content_type = artifact.get('contentType', artifact_metadata.get('content_type', 'text/plain'))
-                                    
-                                    st.markdown(f"**{artifact_name}**")
-                                    
-                                    # 🔥 핵심 개선: render_artifact 함수 활용으로 Plotly 차트 올바른 렌더링
-                                    try:
-                                        # render_artifact 함수에 맞는 형식으로 데이터 구성
-                                        artifact_for_render = {
-                                            "contentType": content_type,
-                                            "data": artifact_data,
-                                            "metadata": artifact_metadata
-                                        }
-                                        
-                                        # Plotly 차트인 경우 특별 처리
-                                        if content_type == "application/vnd.plotly.v1+json":
-                                            debug_log(f"📊 Plotly 차트 렌더링: {artifact_name}")
-                                            render_artifact(artifact_for_render)
-                                        else:
-                                            # 기타 아티팩트 타입 처리
-                                            render_artifact(artifact_for_render)
-                                            
-                                    except Exception as render_error:
-                                        debug_log(f"❌ 아티팩트 렌더링 실패: {render_error}", "error")
-                                        st.error(f"아티팩트 렌더링 오류: {render_error}")
-                                        
-                                        # 폴백: 기본 텍스트 표시
-                                        with st.expander("🔍 원시 아티팩트 데이터", expanded=False):
-                                            st.text(f"Content Type: {content_type}")
-                                            st.text(f"Data Type: {type(artifact_data)}")
-                                            st.text(f"Data: {str(artifact_data)[:1000]}...")
-                            
-                            # 결과가 전혀 없는 경우
-                            if not messages and not artifacts:
-                                st.warning(f"{agent_name}에서 유의미한 결과를 생성하지 못했습니다.")
-                                
-                                # 디버깅을 위해 원시 데이터 표시
-                                with st.expander("🔍 원시 응답 데이터", expanded=False):
-                                    st.json(step_results)
+                                    with st.expander(f"📄 {artifact_name}", expanded=True):
+                                        render_artifact(artifact)
             
-            # 🎉 예쁜 최종 종합 보고서 추가
-            st.markdown("---")
-            st.markdown("## 🎉 AI_DS_Team 종합 분석 보고서")
-            
-            # 분석 성과 요약
-            successful_steps = [r for r in all_results if 'error' not in r]
-            failed_steps = [r for r in all_results if 'error' in r]
-            
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("총 실행 단계", len(all_results))
-            with col2:
-                st.metric("성공한 단계", len(successful_steps))
-            with col3:
-                st.metric("실패한 단계", len(failed_steps))
-            with col4:
-                success_rate = (len(successful_steps) / len(all_results) * 100) if all_results else 0
-                st.metric("성공률", f"{success_rate:.1f}%")
-            
-            # 단계별 요약
-            st.markdown("### 📋 단계별 실행 요약")
-            for result in all_results:
-                step_num = result['step']
-                agent_name = result['agent']
-                task = result['task']
-                
-                if 'error' in result:
-                    st.markdown(f"❌ **단계 {step_num}**: {agent_name} - {task[:50]}... (실패)")
-                else:
-                    st.markdown(f"✅ **단계 {step_num}**: {agent_name} - {task[:50]}...")
-            
-            # 생성된 아티팩트 종합
-            all_artifacts = []
-            all_charts = 0
-            all_reports = 0
-            
-            for result in successful_steps:
-                step_results = result.get('results', [])
-                for chunk in step_results:
-                    if chunk.get('type') == 'artifact':
-                        artifact = chunk.get('content', {})
-                        all_artifacts.append({
-                            'step': result['step'],
-                            'agent': result['agent'],
-                            'artifact': artifact
-                        })
-                        
-                        # 아티팩트 타입별 카운트
-                        content_type = artifact.get('metadata', {}).get('content_type', '')
-                        if 'plotly' in content_type or 'chart' in artifact.get('name', '').lower():
-                            all_charts += 1
-                        elif 'report' in artifact.get('name', '').lower() or 'markdown' in content_type:
-                            all_reports += 1
-            
-            if all_artifacts:
-                st.markdown("### 📦 생성된 아티팩트 요약")
-                st.markdown(f"- 📊 **시각화 차트**: {all_charts}개")
-                st.markdown(f"- 📄 **분석 보고서**: {all_reports}개")
-                st.markdown(f"- 📋 **전체 아티팩트**: {len(all_artifacts)}개")
-                
-                # 주요 아티팩트 하이라이트
-                st.markdown("### 🌟 주요 결과물")
-                
-                for artifact_info in all_artifacts[-3:]:  # 최근 3개 아티팩트만 표시
-                    artifact = artifact_info['artifact']
-                    artifact_name = artifact.get('name', 'Unknown Artifact')
-                    agent_name = artifact_info['agent']
-                    
-                    with st.expander(f"⭐ {artifact_name} (by {agent_name})", expanded=False):
-                        # 아티팩트 메타데이터 기반으로 렌더링
-                        content_type = artifact.get('metadata', {}).get('content_type', 'text/plain')
-                        
-                        if 'parts' in artifact and artifact['parts']:
-                            for part in artifact['parts']:
-                                if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                                    content = part.root.text
-                                elif isinstance(part, dict) and 'text' in part:
-                                    content = part['text']
-                                elif isinstance(part, dict) and 'root' in part:
-                                    content = part['root'].get('text', str(part))
-                                else:
-                                    content = str(part)
-                                
-                                # 컨텐츠 타입에 따른 렌더링
-                                if content_type == 'text/markdown':
-                                    st.markdown(content)
-                                elif 'plotly' in content_type.lower() or ('data' in content and 'layout' in content):
-                                    try:
-                                        import json
-                                        import plotly.graph_objects as go
-                                        chart_data = json.loads(content) if isinstance(content, str) else content
-                                        if isinstance(chart_data, dict) and ('data' in chart_data or 'layout' in chart_data):
-                                            fig = go.Figure(chart_data)
-                                            st.plotly_chart(fig, use_container_width=True)
-                                        else:
-                                            st.json(chart_data)
-                                    except Exception as e:
-                                        st.text(content[:500] + "..." if len(content) > 500 else content)
-                                else:
-                                    st.text(content[:500] + "..." if len(content) > 500 else content)
-            
-            # 분석 완료 메시지
-            st.markdown("### 🎯 분석 완료")
-            if success_rate >= 80:
-                st.success(f"🎉 **우수한 성과!** {len(successful_steps)}개 단계가 성공적으로 완료되었습니다. 모든 분석 결과를 위에서 확인하세요.")
-            elif success_rate >= 60:
-                st.info(f"✅ **양호한 성과!** {len(successful_steps)}개 단계가 완료되었습니다. 일부 제한사항이 있지만 대부분의 분석이 성공했습니다.")
-            else:
-                st.warning(f"⚠️ **부분적 성과** {len(successful_steps)}개 단계가 완료되었습니다. 일부 단계에서 문제가 발생했지만 가능한 분석을 수행했습니다.")
-            
-            st.markdown("---")
-            st.markdown("*🤖 Powered by AI_DS_Team LLM Dynamic Context-Aware Orchestrator v6*")
-            
-            # 🎉 추가: 오케스트레이터 최종 보고서가 있으면 별도로 강조 표시
+            # 🎯 오케스트레이터 최종 보고서 표시 (단순한 마크다운 렌더링)
             if orchestrator_artifacts:
                 st.markdown("---")
-                st.markdown("## 🎯 오케스트레이터 최종 종합 분석 보고서")
+                st.markdown("## 🎯 최종 분석 보고서")
                 
                 for artifact in orchestrator_artifacts:
-                    artifact_name = artifact.get('name', 'Final Analysis Report')
-                    
-                    with st.expander(f"📊 {artifact_name}", expanded=True):
-                        # 아티팩트 내용 렌더링
-                        if 'parts' in artifact and artifact['parts']:
-                            for part in artifact['parts']:
-                                if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                                    content = part.root.text
-                                elif isinstance(part, dict) and 'text' in part:
-                                    content = part['text']
-                                elif isinstance(part, dict) and 'root' in part:
-                                    content = part['root'].get('text', str(part))
-                                else:
-                                    content = str(part)
-                                
-                                # 마크다운으로 렌더링
-                                st.markdown(content)
-                        else:
-                            st.markdown("최종 분석 보고서를 표시할 수 없습니다.")
-            else:
-                # 오케스트레이터 보고서가 없는 경우 자체 생성한 요약 표시
-                debug_log("📝 오케스트레이터 보고서가 없어서 자체 요약을 표시합니다")
-                
-                st.markdown("---")
-                st.markdown("## 🎯 AI_DS_Team 자체 생성 종합 보고서")
-                
-                # 자체 생성한 종합 분석 표시 (이미 위에 있는 내용)
-                st.markdown(f"""
-### 📊 분석 실행 요약
-
-이번 분석에서 AI_DS_Team은 **{len(plan_steps)}단계**의 체계적인 워크플로우를 통해 데이터를 종합적으로 분석했습니다.
-
-#### 🎯 주요 성과
-- **총 실행 단계**: {len(all_results)}개
-- **성공한 단계**: {len(successful_steps)}개  
-- **성공률**: {success_rate:.1f}%
-- **생성된 아티팩트**: {total_artifacts}개
-
-#### 📋 실행된 분석 단계
-""")
-                
-                for i, result in enumerate(all_results):
-                    step_num = result['step']
-                    agent_name = result['agent']
-                    task = result['task']
-                    status = "✅ 성공" if 'error' not in result else "❌ 실패"
-                    
-                    st.markdown(f"**{step_num}.** {agent_name}: {task[:80]}{'...' if len(task) > 80 else ''} - {status}")
-                
-                if total_artifacts > 0:
-                    st.markdown(f"""
-#### 🎨 생성된 결과물
-총 **{total_artifacts}개**의 아티팩트가 생성되어 위의 각 단계에서 확인할 수 있습니다. 
-이는 시각화 차트, 분석 보고서, 데이터 요약 등을 포함합니다.
-""")
-                
-                st.markdown("""
-#### 🔍 분석 결론
-AI_DS_Team의 다중 에이전트 시스템을 통해 체계적이고 포괄적인 데이터 분석이 완료되었습니다. 
-각 전문 에이전트가 담당 영역에서 최적의 분석을 수행하여 종합적인 인사이트를 제공했습니다.
-
-추가 분석이나 더 자세한 설명이 필요하시면 언제든 요청해 주세요.
-""")
+                    if 'parts' in artifact and artifact['parts']:
+                        for part in artifact['parts']:
+                            if hasattr(part, 'root') and hasattr(part.root, 'text'):
+                                content = part.root.text
+                            elif isinstance(part, dict) and 'text' in part:
+                                content = part['text']
+                            elif isinstance(part, dict) and 'root' in part:
+                                content = part['root'].get('text', str(part))
+                            else:
+                                content = str(part)
+                            
+                            # 단순한 마크다운 렌더링
+                            st.markdown(content)
             
             # 세션 상태 업데이트
             response_summary = f"AI_DS_Team이 {len(plan_steps)}단계 분석을 완료했습니다."
@@ -1204,6 +916,23 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
+    
+    # 사이드바에 디버깅 제어 추가
+    with st.sidebar:
+        st.markdown("### 🔧 시스템 설정")
+        
+        # 디버깅 토글
+        debug_enabled = st.toggle(
+            "🐛 디버깅 모드",
+            value=getattr(st.session_state, 'debug_enabled', False),
+            help="디버깅 메시지를 UI에 표시할지 선택합니다. 터미널과 로그 파일에는 항상 기록됩니다."
+        )
+        st.session_state.debug_enabled = debug_enabled
+        
+        if debug_enabled:
+            st.success("🐛 디버깅 모드 활성화")
+        else:
+            st.info("🔇 디버깅 메시지 숨김")
     
     # 강화된 디버깅 로깅
     debug_log("🚀 Streamlit 애플리케이션 시작", "success")
