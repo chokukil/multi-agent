@@ -139,6 +139,33 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
             
             await task_updater.stream_update(f"✅ {len(execution_plan.get('steps', []))}단계 실행 계획 완료")
             
+            # 계획을 아티팩트로 전송 (클라이언트 파싱용)
+            plan_artifact = {
+                "plan_executed": [
+                    {
+                        "step": i + 1,
+                        "agent": step.get('agent', step.get('agent_name', 'unknown')),
+                        "task_description": step.get('enriched_task', step.get('purpose', '')),
+                        "reasoning": step.get('purpose', ''),
+                        "expected_output": step.get('expected_output', '')
+                    }
+                    for i, step in enumerate(execution_plan.get('steps', []))
+                ]
+            }
+            
+            # 아티팩트로 계획 전송
+            try:
+                await task_updater.add_artifact(
+                    parts=[TextPart(text=json.dumps(plan_artifact, ensure_ascii=False))],
+                    name="execution_plan",
+                    metadata={
+                        "content_type": "application/json",
+                        "plan_type": "ai_ds_team_orchestration"
+                    }
+                )
+            except Exception as artifact_error:
+                logger.warning(f"Failed to send plan artifact: {artifact_error}")
+            
             # 3. 각 에이전트 실행 (컨텍스트 전달)
             agent_results = {}
             for i, step in enumerate(execution_plan.get('steps', [])):
