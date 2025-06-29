@@ -65,7 +65,7 @@ AI_DS_SERVERS=(
 )
 
 CORE_SERVERS=(
-    "A2A_Orchestrator:8100:a2a_ds_servers/a2a_orchestrator.py"
+    "A2A_Orchestrator:8100:a2a_ds_servers/a2a_orchestrator_v6.py"
 )
 
 # 함수: 포트 사용 중인지 확인
