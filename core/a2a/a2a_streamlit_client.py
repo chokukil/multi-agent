@@ -555,6 +555,11 @@ class A2AStreamlitClient:
         """텍스트에서 JSON 계획 추출"""
         self._debug_log(f"📝 텍스트에서 계획 추출 중... (길이: {len(text)})")
         
+        # 완료 메시지나 간단한 상태 메시지는 건너뛰기
+        if text.strip().startswith("✅") or text.strip().startswith("❌") or len(text.strip()) < 50:
+            self._debug_log("⚠️ 완료 메시지 또는 간단한 상태 메시지 감지, 계획 추출 건너뛰기", "warning")
+            return []
+        
         try:
             # JSON 블록 찾기 (```json ... ``` 형식)
             import re
@@ -563,8 +568,11 @@ class A2AStreamlitClient:
                 plan_text = json_matches[0].strip()
                 self._debug_log("✅ JSON 블록에서 계획 발견")
             else:
-                # 직접 JSON 파싱 시도
+                # 직접 JSON 파싱 시도 - 하지만 JSON 형태인지 먼저 확인
                 plan_text = text.strip()
+                if not (plan_text.startswith('{') and plan_text.endswith('}')):
+                    self._debug_log("⚠️ 텍스트가 JSON 형태가 아님, 계획 추출 건너뛰기", "warning")
+                    return []
                 self._debug_log("🔍 직접 JSON 파싱 시도")
             
             plan_data = json.loads(plan_text)
@@ -582,8 +590,8 @@ class A2AStreamlitClient:
                 return []
                 
         except json.JSONDecodeError as e:
-            self._debug_log(f"❌ JSON 파싱 실패: {e}", "error")
-            self._debug_log(f"🔍 파싱 시도한 텍스트: {text[:200]}...", "error")
+            self._debug_log(f"🐛 A2A DEBUG: ❌ JSON 파싱 실패: {e}", "error")
+            self._debug_log(f"🐛 A2A DEBUG: 🔍 파싱 시도한 텍스트: {text[:200]}...", "error")
             return []
         except Exception as e:
             self._debug_log(f"❌ 텍스트 계획 추출 실패: {e}", "error")

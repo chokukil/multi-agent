@@ -106,14 +106,48 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
                     pass
                 
                 if available_data:
-                    # 가장 최근 데이터 사용
-                    # FALLBACK REMOVED - data_file = available_data[0]
-                    if data_file.endswith('.csv'):
-                        df = pd.read_csv(os.path.join(data_path, data_file))
-                    else:
-                        df = pd.read_pickle(os.path.join(data_path, data_file))
+                    # 데이터 파일 선택 로직 개선
+                    data_file = None
                     
-                    logger.info(f"Loaded data: {data_file}, shape: {df.shape}")
+                    # 1. ion_implant 데이터 우선 선택
+                    for file in available_data:
+                        if "ion_implant" in file.lower():
+                            data_file = file
+                            break
+                    
+                    # 2. 찾지 못한 경우 가장 최근 파일 선택
+                    if not data_file and available_data:
+                        # 파일 수정 시간 기준으로 정렬
+                        try:
+                            files_with_time = []
+                            for file in available_data:
+                                file_path = os.path.join(data_path, file)
+                                if os.path.exists(file_path):
+                                    mtime = os.path.getmtime(file_path)
+                                    files_with_time.append((file, mtime))
+                            
+                            if files_with_time:
+                                # 가장 최근 파일 선택
+                                files_with_time.sort(key=lambda x: x[1], reverse=True)
+                                data_file = files_with_time[0][0]
+                            else:
+                                data_file = available_data[0]
+                        except Exception as e:
+                            logger.warning(f"Error sorting files by time: {e}")
+                            data_file = available_data[0]
+                    
+                    if data_file:
+                        try:
+                            # 데이터 로드
+                            if data_file.endswith('.csv'):
+                                df = pd.read_csv(os.path.join(data_path, data_file))
+                            else:
+                                df = pd.read_pickle(os.path.join(data_path, data_file))
+                            
+                            logger.info(f"✅ Loaded data: {data_file}, shape: {df.shape}")
+                        except Exception as load_error:
+                            logger.error(f"❌ Failed to load data file {data_file}: {load_error}")
+                            raise load_error
                     
                     # FeatureEngineeringAgent 실행
                     try:
@@ -184,7 +218,7 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
                         
                     except Exception as agent_error:
                         logger.warning(f"Agent execution failed, providing guidance: {agent_error}")
-                        response_text = f"""## 📊 데이터 시각화 가이드
+                        response_text = f"""## �� 데이터 시각화 가이드
 
 요청을 처리하는 중 문제가 발생했습니다: {str(agent_error)}
 
