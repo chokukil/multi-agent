@@ -71,4 +71,4 @@ echo "You will see live logs below. Press Ctrl+C to stop."
 echo "================================================"
 
 # Run streamlit in the foreground of the current terminal
-uv run streamlit run app.py 
+uv run streamlit run ai.py 

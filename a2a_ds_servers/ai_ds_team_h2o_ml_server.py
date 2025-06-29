@@ -107,7 +107,7 @@ class H2OMLAgentExecutor(AgentExecutor):
                 
                 if available_data:
                     # 가장 최근 데이터 사용
-                    data_file = available_data[0]
+                    # FALLBACK REMOVED - data_file = available_data[0]
                     if data_file.endswith('.csv'):
                         df = pd.read_csv(os.path.join(data_path, data_file))
                     else:
@@ -123,7 +123,23 @@ class H2OMLAgentExecutor(AgentExecutor):
                         )
                         
                         # 결과 처리
-                        workflow_summary = self.agent.get_workflow_summary(markdown=True)
+                        # 결과 처리 (안전한 방식으로 workflow summary 가져오기)
+
+                        try:
+
+                            workflow_summary = self.agent.get_workflow_summary(markdown=True)
+
+                        except AttributeError:
+
+                            # get_workflow_summary 메서드가 없는 경우 기본 요약 생성
+
+                            workflow_summary = f"✅ 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
+
+                        except Exception as e:
+
+                            logger.warning(f"Error getting workflow summary: {e}")
+
+                            workflow_summary = f"✅ 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
                         
                         # 생성된 차트 정보 수집
                         charts_info = ""

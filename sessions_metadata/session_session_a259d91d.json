@@ -1,0 +1,19 @@
+{
+  "session_id": "session_a259d91d",
+  "created_at": "2025-06-29T18:42:00.593615",
+  "last_activity": "2025-06-29T18:42:00.593617",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-29T18:42:00.577911",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "TW 값의 기초 통계량을 확인하고 트렌드를 탐색합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-06-30T18:42:00.593615",
+  "status": "active"
+}

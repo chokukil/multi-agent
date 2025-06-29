@@ -15,7 +15,7 @@ mkdir -p "$PID_DIR"
 
 # Server definitions
 declare -A SERVERS=(
-    ["orchestrator"]="a2a_ds_servers/orchestrator_server.py:8100"
+    ["orchestrator"]="a2a_ds_servers/a2a_orchestrator_v5_standard.py:8100"
     ["data_loader"]="a2a_ds_servers/ai_ds_team_data_loader_server.py:8307"
     ["data_cleaning"]="a2a_ds_servers/ai_ds_team_data_cleaning_server.py:8306"
     ["data_wrangling"]="a2a_ds_servers/ai_ds_team_data_wrangling_server.py:8309"

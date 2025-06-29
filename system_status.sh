@@ -8,13 +8,13 @@ echo "================================================"
 
 # Server configurations (name:script:port)
 SERVERS=(
-    "Orchestrator:orchestrator_server.py:8100"
-    "Pandas Data Analyst:pandas_data_analyst_server.py:8200"
-    "SQL Data Analyst:sql_data_analyst_server.py:8201"
-    "Data Visualization:data_visualization_server.py:8202"
-    "EDA Tools:eda_tools_server.py:8203"
-    "Feature Engineering:feature_engineering_server.py:8204"
-    "Data Cleaning:data_cleaning_server.py:8205"
+    "Orchestrator:a2a_orchestrator_v4.py:8100"
+    "Pandas_Analyst:pandas_data_analyst_server.py:8200"
+    "SQL_Analyst:sql_data_analyst_server.py:8201"
+    "Data_Viz:data_visualization_server.py:8202"
+    "EDA_Tools:eda_tools_server.py:8203"
+    "Feature_Eng:feature_engineering_server.py:8204"
+    "Data_Cleaning:data_cleaning_server.py:8205"
 )
 
 # Colors for output

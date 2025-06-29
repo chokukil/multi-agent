@@ -1,0 +1,10 @@
+{
+  "user_instructions": "반도체 이온주입 공정 엔지니어로서 EDA 진행",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    3,
+    6
+  ],
+  "created_at": "2025-06-29T02:55:42.573918",
+  "file_path": "ai_ds_team/data/session_8a24c080/ion_implant_3lot_dataset.xlsx"
+}

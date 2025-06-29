@@ -5,7 +5,7 @@ echo 🛑 Stopping A2A Data Science Team System for Windows
 echo ================================================
 
 echo 🎨 Stopping Streamlit...
-taskkill /F /IM python.exe /FI "COMMANDLINE eq *streamlit*app.py*" 2>nul
+taskkill /F /IM python.exe /FI "COMMANDLINE eq *streamlit*ai.py*" 2>nul
 if %errorlevel% equ 0 (
     echo ✅ Streamlit stopped
 ) else (

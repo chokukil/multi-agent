@@ -1,0 +1,10 @@
+{
+  "user_instructions": "TW 값의 기초 통계량을 확인하고 트렌드를 탐색합니다.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-29T18:42:00.593640",
+  "file_path": "ai_ds_team/data/session_a259d91d/ion_implant_3lot_dataset.xlsx"
+}

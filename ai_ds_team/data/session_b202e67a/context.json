@@ -1,0 +1,10 @@
+{
+  "user_instructions": "데이터의 통계적 요약 및 분포 분석을 통해 TW 값의 이상 여부를 판단할 수 있는 초기 인사이트를 제공합니다.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-29T12:50:40.134803",
+  "file_path": "ai_ds_team/data/session_b202e67a/ion_implant_3lot_dataset.xlsx"
+}

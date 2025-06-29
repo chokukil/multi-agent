@@ -609,12 +609,16 @@ class A2AStreamlitClient:
             agent_name = step.get("agent_name") or step.get("agent", "unknown")
             mapped_agent = agent_mapping.get(agent_name, agent_name)
             
+            # 에이전트별 구체적인 예상 결과 생성
+            expected_result = self._generate_expected_result(mapped_agent, step.get("task_description", ""))
+            
             # 표준화된 단계 생성
             standardized_step = {
                 "step_number": step.get("step_number", step.get("step", i + 1)),
                 "agent_name": mapped_agent,
                 "task_description": step.get("task_description") or step.get("description") or step.get("task", ""),
                 "reasoning": step.get("reasoning", f"{mapped_agent} 전문 역량 활용"),
+                "expected_result": expected_result,
                 "parameters": {
                     "user_instructions": step.get("task_description") or step.get("description") or step.get("task", ""),
                     "priority": step.get("priority", "medium")
@@ -633,11 +637,47 @@ class A2AStreamlitClient:
                     fallback_agent = available_agents[0]
                     standardized_step["agent_name"] = fallback_agent
                     standardized_step["task_description"] += f" (원래: {mapped_agent})"
+                    standardized_step["expected_result"] = self._generate_expected_result(fallback_agent, standardized_step["task_description"])
                     valid_steps.append(standardized_step)
                     self._debug_log(f"  🔄 대체 에이전트 사용: {fallback_agent}")
         
         self._debug_log(f"🎉 총 {len(valid_steps)}개 유효한 단계 처리 완료")
         return valid_steps
+
+    def _generate_expected_result(self, agent_name: str, task_description: str) -> str:
+        """에이전트별 구체적인 예상 결과 생성"""
+        
+        # 에이전트별 전문 예상 결과
+        if agent_name == "📁 Data Loader":
+            return "로드된 데이터셋 정보, 컬럼 구조, 데이터 타입 요약 및 기본 품질 검증 결과"
+        
+        elif agent_name == "🧹 Data Cleaning":
+            return "결측값 처리 보고서, 중복 데이터 제거 현황, 데이터 타입 최적화 결과 및 정제된 데이터셋"
+        
+        elif agent_name == "🔍 EDA Tools":
+            return "기초 통계량, 분포 분석, 상관관계 매트릭스, 이상값 탐지 결과 및 데이터 패턴 인사이트"
+        
+        elif agent_name == "📊 Data Visualization":
+            return "히스토그램, 산점도, 박스플롯, 히트맵 등 시각화 차트 및 패턴 해석 보고서"
+        
+        elif agent_name == "🔧 Data Wrangling":
+            return "데이터 변환 스크립트, 새로운 파생 변수, 데이터 구조 재편성 결과 및 처리 로그"
+        
+        elif agent_name == "⚙️ Feature Engineering":
+            return "새로운 특성 변수, 특성 중요도 분석, 차원 축소 결과 및 특성 선택 추천사항"
+        
+        elif agent_name == "🗄️ SQL Database":
+            return "SQL 쿼리 결과, 데이터베이스 스키마 분석, 조인 테이블 정보 및 성능 최적화 제안"
+        
+        elif agent_name == "🤖 H2O ML":
+            return "AutoML 모델 성능 비교, 최적 모델 추천, 예측 정확도 지표 및 모델 해석 결과"
+        
+        elif agent_name == "📈 MLflow Tools":
+            return "실험 추적 결과, 모델 버전 관리 정보, 성능 메트릭 비교 및 모델 배포 가이드"
+        
+        else:
+            # 기본 예상 결과 (알 수 없는 에이전트)
+            return "전문 분석 결과 및 도메인별 인사이트"
 
     def _get_agent_mapping(self) -> Dict[str, str]:
         """에이전트 이름 매핑 테이블 반환"""

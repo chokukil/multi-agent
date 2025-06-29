@@ -1,0 +1,19 @@
+{
+  "session_id": "session_b202e67a",
+  "created_at": "2025-06-29T12:50:40.134784",
+  "last_activity": "2025-06-29T12:50:40.134787",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-29T12:50:40.049789",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "데이터의 통계적 요약 및 분포 분석을 통해 TW 값의 이상 여부를 판단할 수 있는 초기 인사이트를 제공합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-06-30T12:50:40.134784",
+  "status": "active"
+}

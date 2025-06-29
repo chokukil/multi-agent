@@ -57,7 +57,7 @@ done
 # Stop any remaining Streamlit app
 echo "🔄 Stopping Streamlit app..."
 # Adding -f to match the full command, making it more specific
-STREAMLIT_PIDS=$(pgrep -f "streamlit run app.py")
+STREAMLIT_PIDS=$(pgrep -f "streamlit run ai.py")
 if [ -n "$STREAMLIT_PIDS" ]; then
     kill -9 $STREAMLIT_PIDS
     echo "✅ Streamlit app stopped."

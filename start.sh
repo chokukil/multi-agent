@@ -12,9 +12,9 @@ PID_DIR="$PROJECT_ROOT/logs/pids"
 mkdir -p "$LOG_DIR"
 mkdir -p "$PID_DIR"
 
-# Server configurations (name:script:port)
+# Server definitions (name:script:port)
 SERVERS=(
-    "orchestrator:a2a_ds_servers/orchestrator_server.py:8100"
+    "orchestrator:a2a_ds_servers/a2a_orchestrator.py:8100"
     "data_loader:a2a_ds_servers/ai_ds_team_data_loader_server.py:8307"
     "data_cleaning:a2a_ds_servers/ai_ds_team_data_cleaning_server.py:8306"
     "data_wrangling:a2a_ds_servers/ai_ds_team_data_wrangling_server.py:8309"
@@ -225,7 +225,7 @@ echo "================================================"
 
 # Start Streamlit
 echo "🎨 Starting Streamlit..."
-uv run streamlit run app.py &
+uv run streamlit run ai.py &
 STREAMLIT_PID=$!
 echo $STREAMLIT_PID > "$PID_DIR/streamlit.pid"
 

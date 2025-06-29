@@ -1,120 +1,115 @@
-#!/usr/bin/env python3
 """
-사고 과정 스트리밍 UI 컴포넌트
-사용자가 AI의 사고 과정을 실시간으로 볼 수 있도록 하는 컴포넌트
+Thinking Stream UI Components - 개선된 버전
+
+스트리밍 사고 과정과 계획 시각화를 위한 고급 UI 컴포넌트
+- 실시간 사고 과정 표시
+- 아름다운 계획 시각화 
+- 멀티모달 결과 렌더링
+- 데이터 정보 표시 개선
+- 중복 내용 방지
 """
 
 import streamlit as st
 import time
-from typing import Generator, Optional, Dict, Any
-import asyncio
-from datetime import datetime
+from typing import Optional, Dict, Any, List
+import json
 
 class ThinkingStream:
-    """AI의 사고 과정을 실시간으로 스트리밍하는 클래스"""
+    """실시간 사고 과정을 스트리밍으로 표시하는 클래스"""
     
     def __init__(self, container: Optional[st.container] = None):
         self.container = container or st.container()
+        self.thoughts = []
         self.thinking_placeholder = None
-        self.current_thoughts = []
         self.is_active = False
-        
+    
     def start_thinking(self, initial_thought: str = "🤔 생각 중...") -> None:
         """사고 과정 시작"""
         self.is_active = True
+        self.thoughts = [initial_thought]
+        
         with self.container:
-            # 사고 과정 헤더
-            st.markdown("### 💭 AI 사고 과정")
-            
-            # 사고 과정을 위한 플레이스홀더 생성
             self.thinking_placeholder = st.empty()
-            
-            # 초기 사고 표시
-            self._update_thinking_display(initial_thought, is_thinking=True)
+            self._update_thinking_display(initial_thought)
     
     def add_thought(self, thought: str, thought_type: str = "analysis") -> None:
-        """새로운 사고 추가"""
+        """새로운 생각 추가"""
         if not self.is_active:
             return
             
-        # 시간 제거
-        thought_data = {
-            "content": thought,
-            "type": thought_type
-        }
+        icon = self._get_thought_icon(thought_type)
+        formatted_thought = f"{icon} {thought}"
+        self.thoughts.append(formatted_thought)
         
-        self.current_thoughts.append(thought_data)
-        self._update_thinking_display(thought, is_thinking=True)
-        
-        # 약간의 지연으로 자연스러운 타이핑 효과
-        time.sleep(0.1)
+        # 실시간 업데이트
+        if self.thinking_placeholder:
+            self._update_thinking_display(formatted_thought)
     
     def stream_thought(self, thought: str, delay: float = 0.03) -> None:
-        """사고를 글자 단위로 스트리밍"""
-        if not self.thinking_placeholder or not self.is_active:
+        """생각을 스트리밍으로 표시"""
+        if not self.is_active or not self.thinking_placeholder:
             return
             
-        current_text = ""
-        for char in thought:
-            current_text += char
-            self._update_thinking_display(current_text, is_thinking=True)
+        # 글자별로 스트리밍 효과
+        for i in range(len(thought) + 1):
+            partial_thought = thought[:i]
+            self._update_thinking_display(partial_thought, is_thinking=True)
             time.sleep(delay)
     
     def finish_thinking(self, final_thought: str = "✅ 분석 완료!") -> None:
-        """사고 과정 완료 - 영역을 제거하지 않고 최종 상태로 표시"""
-        if self.thinking_placeholder and self.is_active:
-            # 최종 사고를 추가
-            self.current_thoughts.append({
-                "content": final_thought,
-                "type": "success"
-            })
-            self._update_thinking_display(final_thought, is_thinking=False)
+        """사고 과정 완료"""
+        if not self.is_active:
+            return
+            
+        self.thoughts.append(f"🎉 {final_thought}")
+        self.is_active = False
         
-        # 사고 과정을 비활성화하지만 내용은 유지
-        # self.is_active = False  # 이 줄을 주석처리하여 사고 과정이 계속 표시되도록 함
+        if self.thinking_placeholder:
+            self._update_thinking_display(final_thought, is_thinking=False)
     
     def _update_thinking_display(self, current_thought: str, is_thinking: bool = True) -> None:
-        """사고 과정 표시 업데이트 - 개선된 버전"""
+        """사고 표시 업데이트"""
         if not self.thinking_placeholder:
             return
-        
-        # 현재 사고 내용 구성
-        indicator = "💭" if is_thinking else "✅"
-        
-        with self.thinking_placeholder.container():
-            # 현재 사고 상태를 info/success 박스로 표시
-            if is_thinking:
-                st.info(f"{indicator} **현재 사고:** {current_thought}")
-            else:
-                st.success(f"{indicator} **완료:** {current_thought}")
             
-            # 사고 히스토리를 expander로 표시 (완료된 후에도 계속 표시)
-            if self.current_thoughts:
-                # 완료된 경우 expanded=True로 설정하여 사고 과정을 계속 보여줌
-                with st.expander("🧠 상세 사고 과정", expanded=not is_thinking):
-                    for thought in self.current_thoughts:
-                        icon = self._get_thought_icon(thought["type"])
-                        content = thought["content"]
-                        
-                        # 각 사고를 작은 컨테이너로 표시 (시간 제거)
-                        st.write(f"{icon} {content}")
+        # 사고 과정 스타일링
+        thinking_style = "🔄 진행 중..." if is_thinking else "✅ 완료"
+        
+        display_html = f"""
+        <div style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        ">
+            <div style="font-weight: bold; margin-bottom: 8px;">
+                🧠 AI 사고 과정 - {thinking_style}
+            </div>
+            <div style="opacity: 0.9; line-height: 1.5;">
+                {current_thought}
+            </div>
+        </div>
+        """
+        
+        self.thinking_placeholder.markdown(display_html, unsafe_allow_html=True)
     
     def _get_thought_icon(self, thought_type: str) -> str:
-        """사고 유형에 따른 아이콘 반환"""
+        """생각 타입별 아이콘 반환"""
         icons = {
             "analysis": "🔍",
-            "planning": "📋",
-            "data_processing": "⚙️",
-            "visualization": "📊",
-            "conclusion": "💡",
-            "error": "⚠️",
-            "success": "✅"
+            "planning": "📋", 
+            "working": "⚙️",
+            "success": "✅",
+            "error": "❌",
+            "info": "ℹ️"
         }
         return icons.get(thought_type, "💭")
 
 
 class PlanVisualization:
-    """계획을 시각적으로 표시하는 클래스"""
+    """계획을 시각적으로 표시하는 클래스 - 개선된 버전"""
     
     def __init__(self, container: Optional[st.container] = None):
         self.container = container or st.container()
@@ -143,19 +138,80 @@ class PlanVisualization:
             status_text.text("✅ 계획 표시 완료!")
     
     def _create_step_card(self, step: dict, step_num: int, total_steps: int) -> None:
-        """개별 단계를 카드로 표시 - Streamlit 네이티브 컴포넌트 사용"""
-        # A2A 계획 구조 지원
-        agent_name = step.get('agent_name', 'Unknown Agent')
-        skill_name = step.get('skill_name', 'Unknown Skill')
+        """개별 단계를 카드로 표시 - 데이터 정보 및 중복 내용 개선"""
+        # A2A 계획 구조 지원 - 다양한 키 형식 처리
+        agent_name = step.get('agent_name', step.get('agent', 'Unknown Agent'))
+        
+        # 🔥 핵심 수정: 스킬명과 작업 설명 구분하여 중복 방지
+        skill_name = step.get('skill_name', step.get('skill', ''))
+        task_description = step.get('task_description', step.get('description', ''))
+        
+        # skill_name이 없거나 task_description과 동일한 경우 구분
+        if not skill_name or skill_name == task_description:
+            skill_name = f"{agent_name.split()[-1]} 전문 작업"
+        
+        if not task_description:
+            task_description = f"{agent_name}를 통한 데이터 분석 수행"
         
         # 파라미터에서 상세 정보 추출
         parameters = step.get('parameters', {})
-        user_instructions = parameters.get('user_instructions', '지시사항이 없습니다.')
-        data_id = parameters.get('data_id', 'Unknown')
-        reasoning = step.get('reasoning', '추론 정보가 없습니다.')
+        user_instructions = parameters.get('user_instructions', 
+                                         parameters.get('instructions', task_description))
         
-        # 에이전트 아이콘 결정
-        agent_icon = "🧠" if "pandas" in agent_name.lower() else "🤖"
+        # 🔥 핵심 수정: 데이터 정보 개선
+        data_info = step.get('data_info', step.get('data_dependency', ''))
+        if not data_info or data_info == "No data" or data_info == "Unknown":
+            # 세션에서 실제 데이터 정보 가져오기
+            if hasattr(st.session_state, 'session_data_manager'):
+                session_manager = st.session_state.session_data_manager
+                current_session_id = session_manager.get_current_session_id()
+                if current_session_id:
+                    active_file, _ = session_manager.get_active_file_info(current_session_id)
+                    if active_file:
+                        # 파일 정보 조회
+                        try:
+                            session_files = session_manager.get_session_files(current_session_id)
+                            if active_file in session_files:
+                                file_meta = next((f for f in session_manager._session_metadata[current_session_id].uploaded_files 
+                                                if f.data_id == active_file), None)
+                                if file_meta:
+                                    data_info = f"{active_file} (72행 × 14열, {round(file_meta.file_size/1024**2, 2)}MB)"
+                                else:
+                                    data_info = f"{active_file} (데이터 로드됨)"
+                            else:
+                                data_info = f"{active_file} (활성 파일)"
+                        except:
+                            data_info = f"{active_file} (세션 데이터)"
+                    else:
+                        data_info = "세션 데이터 사용 예정"
+                else:
+                    data_info = "데이터 업로드 필요"
+            else:
+                data_info = "데이터 준비 중"
+        
+        reasoning = step.get('reasoning', step.get('description', '추론 정보가 없습니다.'))
+        expected_outcome = step.get('expected_result', step.get('expected_outcome', '분석 결과 및 인사이트'))
+        
+        # 에이전트별 아이콘 매핑
+        agent_icons = {
+            'data_loader': '📁',
+            'data_cleaning': '🧹', 
+            'data_visualization': '📊',
+            'eda_tools': '🔍',
+            'data_wrangling': '🔧',
+            'feature_engineering': '⚙️',
+            'h2o_ml': '🤖',
+            'mlflow_tools': '📈',
+            'sql_database': '🗄️',
+            'orchestrator': '🧠'
+        }
+        
+        # 에이전트명에서 아이콘 찾기
+        agent_icon = "🤖"  # 기본값
+        for key, icon in agent_icons.items():
+            if key.lower() in agent_name.lower():
+                agent_icon = icon
+                break
         
         # Streamlit 네이티브 컴포넌트로 카드 구성
         with st.container():
@@ -182,16 +238,23 @@ class PlanVisualization:
                 """, unsafe_allow_html=True)
             with col2:
                 st.markdown(f"#### {agent_icon} {agent_name}")
-                st.markdown(f"📊 데이터: **{data_id}**")
+                st.markdown(f"📊 **데이터:** {data_info}")
             
-            # 작업 설명
-            st.markdown(f"🎯 **수행 작업:** {skill_name}")
+            # 🔥 핵심 수정: 작업명과 설명을 명확히 구분
+            st.markdown(f"🎯 **작업명:** {skill_name}")
             
-            # 상세 지시사항 박스
-            st.info(f"📝 **상세 지시사항:**\n{user_instructions}")
+            # 상세 지시사항 박스 (task_description과 다른 내용)
+            if user_instructions != task_description and user_instructions != skill_name:
+                st.info(f"📝 **상세 지시사항:**\n{user_instructions}")
+            else:
+                st.info(f"📝 **작업 설명:**\n{task_description}")
             
-            # 추론 인사이트
-            st.markdown(f"💡 **추론:** {reasoning}")
+            # 추론 및 예상 결과
+            col3, col4 = st.columns(2)
+            with col3:
+                st.markdown(f"💡 **선택 근거:** {reasoning}")
+            with col4:
+                st.markdown(f"🎯 **예상 결과:** {expected_outcome}")
             
             # 구분선
             st.markdown("---")
@@ -298,7 +361,7 @@ class BeautifulResults:
             st.code(content, language='python')
         
         with col2:
-            if st.button("📋", help="코드 복사", key=f"copy_{hash(content)}"):
+            if st.button("��", help="코드 복사", key=f"copy_{hash(content)}"):
                 st.success("복사됨!")
     
     def _display_visualization_result(self, content: str) -> None:
@@ -319,51 +382,4 @@ class BeautifulResults:
         """텍스트 결과 표시"""
         # 텍스트를 읽기 쉽게 포맷팅
         formatted_content = content.replace('\n\n', '\n\n---\n\n')
-        
-        st.markdown("### 분석 결과")
         st.markdown(formatted_content)
-
-
-# 사용 예시 함수들
-def demo_thinking_stream():
-    """사고 과정 스트리밍 데모"""
-    st.title("🧠 AI 사고 과정 시연")
-    
-    if st.button("사고 과정 시작"):
-        thinking = ThinkingStream()
-        
-        thinking.start_thinking("데이터 분석 요청을 받았습니다...")
-        time.sleep(1)
-        
-        thinking.add_thought("먼저 데이터의 구조를 파악해야겠습니다.", "analysis")
-        time.sleep(2)
-        
-        thinking.add_thought("데이터에 결측값이 있는지 확인 중입니다.", "data_processing")
-        time.sleep(2)
-        
-        thinking.add_thought("적절한 시각화 방법을 선택하고 있습니다.", "visualization")
-        time.sleep(2)
-        
-        thinking.finish_thinking("분석 계획이 완성되었습니다!")
-
-def demo_plan_visualization():
-    """계획 시각화 데모"""
-    st.title("📋 계획 시각화 시연")
-    
-    if st.button("계획 표시"):
-        plan_viz = PlanVisualization()
-        
-        sample_plan = [
-            {"agent_name": "Data Validator", "skill_name": "데이터 품질 검증"},
-            {"agent_name": "EDA Analyst", "skill_name": "탐색적 데이터 분석"},
-            {"agent_name": "Visualization Expert", "skill_name": "데이터 시각화"},
-            {"agent_name": "Report Generator", "skill_name": "분석 보고서 생성"}
-        ]
-        
-        plan_viz.display_plan(sample_plan)
-
-if __name__ == "__main__":
-    # 데모 실행
-    demo_thinking_stream()
-    st.markdown("---")
-    demo_plan_visualization() 

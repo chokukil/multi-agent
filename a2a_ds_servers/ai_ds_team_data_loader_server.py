@@ -31,6 +31,8 @@ from ai_data_science_team.tools.dataframe import get_dataframe_summary
 from ai_data_science_team.agents import DataLoaderToolsAgent
 import pandas as pd
 import json
+from core.data_manager import DataManager
+from core.session_data_manager import SessionDataManager
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -81,76 +83,126 @@ class DataLoaderToolsAgentExecutor(AgentExecutor):
             
             # 사용자 메시지 추출
             user_instructions = ""
+            data_reference = None
+            
             if context.message and context.message.parts:
                 for part in context.message.parts:
                     if part.root.kind == "text":
                         user_instructions += part.root.text + " "
+                    elif part.root.kind == "data" and hasattr(part.root, 'data'):
+                        data_reference = part.root.data.get('data_reference', {})
                 
                 user_instructions = user_instructions.strip()
                 logger.info(f"Processing data loading request: {user_instructions}")
                 
-                # DataLoaderToolsAgent 실행
-                try:
-                    # 에이전트에 직접 요청 전달
-                    result = self.agent.invoke_agent(
-                        user_instructions=user_instructions
-                    )
+                # DataManager를 통한 데이터 관리
+                data_manager = DataManager()
+                available_data_ids = data_manager.list_dataframes()
+                
+                response_text = ""
+                
+                # 요청된 데이터 확인
+                if data_reference and 'data_id' in data_reference:
+                    requested_data_id = data_reference['data_id']
+                    logger.info(f"Requested data: {requested_data_id}")
                     
-                    # 결과 처리
-                    workflow_summary = self.agent.get_workflow_summary(markdown=True)
-                    
-                    # 로드된 데이터가 있는지 확인
-                    loaded_data_info = ""
-                    if hasattr(self.agent, 'data') and self.agent.data is not None:
-                        # 데이터를 공유 폴더에 저장
-                        data_path = "a2a_ds_servers/artifacts/data/shared_dataframes/"
-                        os.makedirs(data_path, exist_ok=True)
-                        
-                        output_file = f"loaded_data_{context.task_id}.csv"
-                        output_path = os.path.join(data_path, output_file)
-                        self.agent.data.to_csv(output_path, index=False)
-                        
-                        # 데이터 요약 생성
-                        data_summary = get_dataframe_summary(self.agent.data, n_sample=10)
-                        
-                        loaded_data_info = f"""
+                    if requested_data_id in available_data_ids:
+                        # 요청된 데이터가 이미 로드되어 있음
+                        df = data_manager.get_dataframe(requested_data_id)
+                        if df is not None:
+                            response_text = f"""## 📁 데이터 로딩 완료
+✅ 요청하신 데이터가 이미 로드되어 있습니다.
+
+**요청**: {user_instructions}
+
 ### 📊 로드된 데이터 정보
-- **파일 위치**: `{output_path}`
-- **데이터 크기**: {self.agent.data.shape[0]:,} 행 × {self.agent.data.shape[1]:,} 열
-- **메모리 사용량**: {self.agent.data.memory_usage(deep=True).sum() / 1024**2:.2f} MB
+- **데이터 ID**: `{requested_data_id}`
+- **데이터 크기**: {df.shape[0]:,} 행 × {df.shape[1]:,} 열
+- **메모리 사용량**: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB
 
-### 📋 데이터 요약
-{data_summary[0] if data_summary else '데이터 요약을 생성할 수 없습니다.'}
+### 📋 데이터 미리보기
+```
+{df.head().to_string()}
+```
+
+### 🔍 데이터 정보
+```
+{df.info()}
+```
 """
-                    
-                    # 사용 가능한 데이터 소스 확인
-                    available_sources = []
-                    data_dirs = [
-                        "ai_ds_team/data/",
-                        "a2a_ds_servers/artifacts/data/shared_dataframes/",
-                        "data/"
-                    ]
-                    
-                    for data_dir in data_dirs:
-                        if os.path.exists(data_dir):
-                            files = [f for f in os.listdir(data_dir) if f.endswith(('.csv', '.xlsx', '.json'))]
-                            if files:
-                                available_sources.extend([f"{data_dir}{f}" for f in files])
-                    
-                    sources_info = ""
-                    if available_sources:
-                        sources_info = f"""
-### 📁 사용 가능한 데이터 소스
-{chr(10).join([f"- {source}" for source in available_sources[:10]])}
+                        else:
+                            response_text = f"""## ❌ 데이터 로드 실패
+
+요청하신 데이터 '{requested_data_id}'를 DataManager에서 로드할 수 없습니다.
+
+**해결 방법**: 
+1. UI에서 파일을 다시 업로드해주세요
+2. 다른 사용 가능한 데이터를 선택해주세요
 """
-                    
-                    response_text = f"""## 📁 데이터 로딩 완료
+                    else:
+                        # 요청된 데이터가 없는 경우
+                        if available_data_ids:
+                            response_text = f"""## ❌ 요청된 데이터를 찾을 수 없음
 
-{workflow_summary}
+요청하신 데이터 파일 '{requested_data_id}'을 찾을 수 없습니다.
 
-{loaded_data_info}
+### 📁 사용 가능한 데이터
+{chr(10).join([f"- {data_id}" for data_id in available_data_ids])}
 
-{sources_info}
+**해결 방법**:
+1. 위의 사용 가능한 데이터 중 하나를 선택하여 요청하세요
+2. 원하는 파일을 먼저 업로드해주세요
+
+**요청**: {user_instructions}
+"""
+                        else:
+                            response_text = f"""## ❌ 데이터 없음
+
+데이터 로딩을 수행하려면 먼저 데이터를 업로드해야 합니다.
+
+**요청**: {user_instructions}
+
+### 📤 데이터 업로드 방법
+1. **UI에서 파일 업로드**: 메인 페이지에서 CSV, Excel 파일을 업로드하세요
+2. **파일명 명시**: 자연어로 "{requested_data_id} 파일로 분석해줘"와 같이 요청하세요
+3. **지원 형식**: CSV, Excel (.xlsx, .xls), JSON, Pickle
+
+**현재 상태**: 사용 가능한 데이터가 없습니다.
+"""
+                else:
+                    # 데이터 참조가 없는 경우 - 일반적인 데이터 로딩 가이드
+                    if available_data_ids:
+                        # 첫 번째 데이터를 로드하지 말고 사용자에게 선택하도록 안내
+                        response_text = f"""## 📁 데이터 로딩 가이드
+
+**요청**: {user_instructions}
+
+### 📁 사용 가능한 데이터
+{chr(10).join([f"- {data_id}" for data_id in available_data_ids])}
+
+### 💡 데이터 로딩 방법
+구체적인 파일명을 명시하여 요청해주세요:
+
+**예시**:
+- "sales_data.csv 파일을 로드해주세요"
+- "employee_data.csv로 분석을 시작해주세요"
+
+### 🛠️ Data Loader Tools 기능
+- **파일 로딩**: CSV, Excel, JSON, Parquet 등 다양한 형식 지원
+- **데이터 검증**: 로드된 데이터의 품질 및 형식 검증
+- **자동 타입 추론**: 컬럼 타입 자동 감지 및 변환
+"""
+                    else:
+                        response_text = f"""## 📁 데이터 로딩 가이드
+
+**요청**: {user_instructions}
+
+### ❌ 사용 가능한 데이터가 없습니다
+
+### 📤 데이터 업로드 방법
+1. **UI에서 파일 업로드**: 메인 페이지에서 CSV, Excel 파일을 업로드하세요
+2. **파일명 명시**: 자연어로 "data.xlsx 파일을 로드해줘"와 같이 요청하세요
+3. **지원 형식**: CSV, Excel (.xlsx, .xls), JSON, Pickle
 
 ### 🛠️ Data Loader Tools 기능
 - **파일 로딩**: CSV, Excel, JSON, Parquet 등 다양한 형식 지원
@@ -158,30 +210,6 @@ class DataLoaderToolsAgentExecutor(AgentExecutor):
 - **API 통합**: REST API를 통한 데이터 수집
 - **데이터 검증**: 로드된 데이터의 품질 및 형식 검증
 - **자동 타입 추론**: 컬럼 타입 자동 감지 및 변환
-"""
-                    
-                except Exception as agent_error:
-                    logger.warning(f"Agent execution failed, providing guidance: {agent_error}")
-                    response_text = f"""## 📁 데이터 로딩 가이드
-
-요청을 처리하는 중 문제가 발생했습니다: {str(agent_error)}
-
-### 💡 데이터 로딩 사용법
-다음과 같은 요청을 시도해보세요:
-
-1. **파일 로딩**:
-   - "CSV 파일을 로드해주세요"
-   - "Excel 파일의 특정 시트를 읽어주세요"
-
-2. **데이터 검색**:
-   - "사용 가능한 데이터 파일들을 보여주세요"
-   - "데이터 소스를 확인해주세요"
-
-3. **데이터 형식 변환**:
-   - "JSON을 DataFrame으로 변환해주세요"
-   - "데이터 타입을 자동으로 감지해주세요"
-
-요청: {user_instructions}
 """
                 
                 # 작업 완료

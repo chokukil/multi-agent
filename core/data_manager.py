@@ -6,6 +6,8 @@ import hashlib
 import json
 import pickle
 import os
+import shutil
+import uuid
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, Any, List
@@ -15,12 +17,17 @@ import logging
 SHARED_DATA_DIR = Path("artifacts/data/shared_dataframes")
 SHARED_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
+# AI DS Team data directory for session-based data
+AI_DS_TEAM_DATA_DIR = Path("ai_ds_team/data")
+AI_DS_TEAM_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
 class DataManager:
     """
     통합 데이터 관리자 - Single Source of Truth (SSOT)
     모든 에이전트가 생성하고 사용하는 데이터프레임을 ID 기반으로 관리합니다.
     여러 데이터프레임을 동시에 메모리에 저장하고, 고유 ID를 통해 접근합니다.
     프로세스 간 공유를 위해 파일 기반 백업을 제공합니다.
+    세션 기반 AI DS Team 데이터 폴더 관리를 지원합니다.
     """
 
     _instance = None
@@ -39,12 +46,16 @@ class DataManager:
             return
 
         self._data_store: Dict[str, Dict[str, Any]] = {}
+        
+        
         self._initialized = True
         
         # Load existing data from shared storage
         self._load_from_shared_storage()
         
-        logging.info("DataManager initialized for multi-dataframe management with cross-process sharing.")
+        # Initialize default AI DS Team data
+        
+        logging.info("DataManager initialized for multi-dataframe management with .")
 
     def _get_shared_file_path(self, data_id: str) -> Path:
         """Get the shared file path for a given data ID."""
@@ -234,13 +245,138 @@ class DataManager:
         }
 
     def list_dataframes(self) -> List[str]:
-        """Returns a list of available dataframe IDs from both memory and shared storage."""
+        """저장된 모든 데이터프레임의 ID 목록을 반환합니다."""
         with self._lock:
-            # Always reload from shared storage to get most current data
-            self._load_from_shared_storage()
-            dataframe_ids = list(self._data_store.keys())
-            logging.debug(f"📋 Available dataframes: {dataframe_ids}")
-            return dataframe_ids
+            return list(self._data_store.keys())
+
+    def create_session(self, session_id: Optional[str] = None, context: Optional[Dict[str, Any]] = None) -> str:
+        """새로운 세션 생성"""
+        import uuid
+        if session_id is None:
+            session_id = f"session_{uuid.uuid4().hex[:8]}"
+        
+        session_dir = AI_DS_TEAM_DATA_DIR / session_id
+        session_dir.mkdir(exist_ok=True)
+        
+        # 세션 컨텍스트 저장
+        if context:
+            self._session_contexts[session_id] = context
+            context_file = session_dir / "context.json"
+            with open(context_file, 'w', encoding='utf-8') as f:
+                json.dump(context, f, ensure_ascii=False, indent=2)
+        
+        self._current_session_id = session_id
+        logging.info(f"Created new session: {session_id}")
+        return session_id
+
+    def set_current_session(self, session_id: str) -> bool:
+        """현재 활성 세션 설정"""
+        session_dir = AI_DS_TEAM_DATA_DIR / session_id
+        if session_dir.exists():
+            self._current_session_id = session_id
+            
+            # 세션 컨텍스트 로드
+            context_file = session_dir / "context.json"
+            if context_file.exists():
+                try:
+                    with open(context_file, 'r', encoding='utf-8') as f:
+                        self._session_contexts[session_id] = json.load(f)
+                except Exception as e:
+                    logging.warning(f"Failed to load session context: {e}")
+            
+            logging.info(f"Set current session to: {session_id}")
+            return True
+        else:
+            logging.warning(f"Session not found: {session_id}")
+            return False
+
+    def get_current_session_id(self) -> Optional[str]:
+        """현재 활성 세션 ID 반환"""
+        return self._current_session_id
+
+    def get_session_context(self, session_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """세션 컨텍스트 반환"""
+        if session_id is None:
+            session_id = self._current_session_id
+        
+        if session_id:
+            return self._session_contexts.get(session_id)
+        return None
+
+    def add_data_to_session(self, data_id: str, data: pd.DataFrame, session_id: Optional[str] = None, 
+                           source: str = "Unknown", context: Optional[Dict[str, Any]] = None) -> str:
+        """세션별 데이터 추가"""
+        if session_id is None:
+            session_id = self._current_session_id
+            
+        if session_id is None:
+            # 세션이 없으면 새로 생성
+            session_id = self.create_session(context=context)
+        
+        # 일반 DataManager에 추가
+        self.add_dataframe(data_id, data, source)
+        
+        # AI DS Team 세션 폴더에 파일 저장
+        session_dir = AI_DS_TEAM_DATA_DIR / session_id
+        session_dir.mkdir(exist_ok=True)
+        
+        # 파일 확장자 결정
+        if data_id.endswith('.xlsx') or data_id.endswith('.xls'):
+            file_path = session_dir / data_id
+            data.to_excel(file_path, index=False)
+        elif data_id.endswith('.csv'):
+            file_path = session_dir / data_id
+            data.to_csv(file_path, index=False)
+        else:
+            # 기본적으로 CSV로 저장
+            file_path = session_dir / f"{data_id}.csv"
+            data.to_csv(file_path, index=False)
+        
+        # 컨텍스트 업데이트
+        if context:
+            self._session_contexts[session_id] = context
+            context_file = session_dir / "context.json"
+            with open(context_file, 'w', encoding='utf-8') as f:
+                json.dump(context, f, ensure_ascii=False, indent=2)
+        
+        logging.info(f"Added data to session {session_id}: {data_id} -> {file_path}")
+        return session_id
+
+    def get_session_data_directory(self, session_id: Optional[str] = None) -> Path:
+        """세션 데이터 디렉토리 경로 반환"""
+        if session_id is None:
+            session_id = self._current_session_id
+            
+        if session_id:
+            return AI_DS_TEAM_DATA_DIR / session_id
+        else:
+            # 세션이 없으면 default 폴더 반환
+            return AI_DS_TEAM_DATA_DIR / "default"
+
+    def list_sessions(self) -> List[str]:
+        """모든 세션 목록 반환"""
+        sessions = []
+        for item in AI_DS_TEAM_DATA_DIR.iterdir():
+            if item.is_dir() and item.name != "default":
+                sessions.append(item.name)
+        return sessions
+
+    def cleanup_session(self, session_id: str) -> bool:
+        """세션 정리 (폴더 삭제)"""
+        session_dir = AI_DS_TEAM_DATA_DIR / session_id
+        if session_dir.exists() and session_dir.name != "default":
+            try:
+                shutil.rmtree(session_dir)
+                if session_id in self._session_contexts:
+                    del self._session_contexts[session_id]
+                if self._current_session_id == session_id:
+                    self._current_session_id = None
+                logging.info(f"Cleaned up session: {session_id}")
+                return True
+            except Exception as e:
+                logging.error(f"Failed to cleanup session {session_id}: {e}")
+        return False
+
 
 # --- 기존 하위 호환성 함수들 ---
 def get_current_df() -> Optional[pd.DataFrame]:

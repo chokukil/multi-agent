@@ -25,10 +25,10 @@ def test_server_imports():
         return False
     
     try:
-        from a2a_ds_servers.orchestrator_server import OrchestratorAgent
-        print("✅ Orchestrator: Import OK")
+        from a2a_ds_servers.a2a_orchestrator import A2AOrchestratorExecutor
+        print("✅ A2A Orchestrator: Import OK")
     except Exception as e:
-        print(f"❌ Orchestrator: {e}")
+        print(f"❌ A2A Orchestrator: {e}")
         return False
     
     try:

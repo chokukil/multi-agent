@@ -18,7 +18,7 @@ echo Step 1: Starting A2A Data Science Servers...
 echo ================================================
 
 echo Starting Orchestrator Server (Port 8100)...
-start "Orchestrator Server" /B uv run python a2a_ds_servers/orchestrator_server.py
+start "Orchestrator Server" /B uv run python a2a_ds_servers/a2a_orchestrator.py
 
 echo Starting SQL Data Analyst Server (Port 8201)...
 start "SQL Data Analyst Server" /B uv run python a2a_ds_servers/sql_data_analyst_server.py
@@ -114,7 +114,7 @@ echo 🛑 Press Ctrl+C to stop the system
 echo ================================================
 
 REM Run streamlit in the foreground
-uv run streamlit run app.py
+uv run streamlit run ai.py
 
 echo.
 echo Streamlit app stopped. Cleaning up A2A servers...

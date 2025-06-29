@@ -65,7 +65,7 @@ AI_DS_SERVERS=(
 )
 
 CORE_SERVERS=(
-    "Universal_AI_Orchestrator:8100:a2a_ds_servers/orchestrator_server.py"
+    "A2A_Orchestrator:8100:a2a_ds_servers/a2a_orchestrator.py"
 )
 
 # 함수: 포트 사용 중인지 확인
@@ -184,7 +184,7 @@ echo -e "${YELLOW}💡 Use './ai_ds_team_system_stop.sh' to stop all services${N
 # 사용법 안내
 echo ""
 echo -e "${CYAN}📖 Quick Usage Guide:${NC}"
-echo "1. Open Streamlit: streamlit run app.py"
+echo "1. Open Streamlit: streamlit run ai.py"
 echo "2. Navigate to: 7_🧬_AI_DS_Team_Orchestrator"
 echo "3. Upload data and chat with AI_DS_Team agents"
 echo "4. Monitor agent status in the dashboard"

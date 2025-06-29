@@ -1,0 +1,10 @@
+{
+  "user_instructions": "TW 값의 분포 및 기본 통계량을 탐색하여 트렌드를 파악합니다.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-29T18:48:07.625852",
+  "file_path": "ai_ds_team/data/session_fb64f6d4/ion_implant_3lot_dataset.xlsx"
+}

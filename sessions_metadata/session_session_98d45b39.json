@@ -1,0 +1,19 @@
+{
+  "session_id": "session_98d45b39",
+  "created_at": "2025-06-29T18:41:14.019020",
+  "last_activity": "2025-06-29T18:41:14.019022",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-29T18:41:13.899923",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "공정 계측값과 레시피 셋팅 데이터의 기본 통계량 계산 및 트렌드 분석을 통해 이상 여부를 탐색",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-06-30T18:41:14.019020",
+  "status": "active"
+}

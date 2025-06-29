@@ -545,6 +545,7 @@ def make_data_cleaning_agent(
             {all_datasets_summary}
 
             Return Python code in ```python``` format with a single function definition, {function_name}(data_raw), that includes all imports inside the function.
+            **IMPORTANT: Do NOT include any `print()` statements in the generated code.**
 
             Return code to provide the data cleaning function:
 

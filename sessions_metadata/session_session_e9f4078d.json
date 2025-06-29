@@ -1,0 +1,19 @@
+{
+  "session_id": "session_e9f4078d",
+  "created_at": "2025-06-29T03:33:29.944257",
+  "last_activity": "2025-06-29T03:33:29.944262",
+  "uploaded_files": [
+    {
+      "data_id": "test_file.csv",
+      "uploaded_at": "2025-06-29T03:33:29.941116",
+      "file_size": 180,
+      "file_type": ".csv",
+      "user_context": "반도체 이온주입 공정 분석을 위한 테스트 데이터",
+      "domain": "semiconductor",
+      "original_name": "test_file.csv"
+    }
+  ],
+  "active_file": "test_file.csv",
+  "auto_cleanup_at": "2025-06-30T03:33:29.944257",
+  "status": "active"
+}

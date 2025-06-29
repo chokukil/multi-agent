@@ -15,8 +15,8 @@ if not exist ".venv" (
     exit /b 1
 )
 
-if not exist "app.py" (
-    echo ❌ app.py not found!
+if not exist "ai.py" (
+    echo ❌ ai.py not found!
     pause
     exit /b 1
 )
@@ -54,4 +54,4 @@ echo 🌐 Opening http://localhost:8501
 echo.
 
 REM Start Streamlit
-uv run streamlit run app.py 
+uv run streamlit run ai.py 

@@ -1,0 +1,10 @@
+{
+  "user_instructions": "파일 업로드를 통한 데이터 로드",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-29T04:17:40.265820",
+  "file_path": "ai_ds_team/data/session_55b0e2a0/ion_implant_3lot_dataset.xlsx"
+}

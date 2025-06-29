@@ -1,0 +1,19 @@
+{
+  "session_id": "session_aa96fb5c",
+  "created_at": "2025-06-29T12:07:45.214402",
+  "last_activity": "2025-06-29T12:07:45.214404",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-29T12:07:45.137468",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "데이터의 통계적 특성과 패턴을 분석합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-06-30T12:07:45.214402",
+  "status": "active"
+}
