@@ -372,9 +372,14 @@ class A2AStreamlitClient:
                 self._debug_log(f"📦 {len(artifacts)}개 아티팩트 발견")
                 
                 for artifact in artifacts:
-                    if artifact.get("name") == "execution_plan":
+                    artifact_name = artifact.get("name", "")
+                    # 실행 계획 아티팩트 확인 (확장자 포함/미포함 모두 지원)
+                    if artifact_name in ["execution_plan", "execution_plan.json"] or "execution_plan" in artifact_name:
                         metadata = artifact.get("metadata", {})
-                        if metadata.get("plan_type") == "ai_ds_team_orchestration":
+                        self._debug_log(f"📋 실행 계획 아티팩트 발견: {artifact_name}")
+                        
+                        # 메타데이터 확인 (선택적)
+                        if metadata.get("plan_type") == "ai_ds_team_orchestration" or metadata.get("content_type") == "application/json":
                             parts = artifact.get("parts", [])
                             for part in parts:
                                 # TextPart with JSON data
@@ -389,6 +394,15 @@ class A2AStreamlitClient:
                                     if isinstance(plan_data, dict):
                                         self._debug_log("📊 아티팩트에서 직접 JSON 데이터 발견")
                                         return self._process_artifact_plan_data(plan_data)
+                        else:
+                            # 메타데이터가 없어도 이름으로 판단하여 파싱 시도
+                            parts = artifact.get("parts", [])
+                            for part in parts:
+                                if part.get("kind") == "text":
+                                    plan_text = part.get("text", "")
+                                    if plan_text:
+                                        self._debug_log(f"📝 메타데이터 없이 아티팩트에서 계획 텍스트 발견: {len(plan_text)} chars")
+                                        return self._extract_plan_from_artifact_text(plan_text)
             
             # history에서 agent 메시지 찾기
             history = result.get("history", [])
@@ -433,35 +447,42 @@ class A2AStreamlitClient:
             return self._process_artifact_plan_data(plan_data)
                 
         except json.JSONDecodeError as e:
-            # 완료 메시지나 간단한 텍스트인 경우 조용히 처리
-            if text.strip().startswith("✅") or text.strip().startswith("❌") or len(text.strip()) < 30:
-                self._debug_log("⚠️ 완료 메시지 또는 간단한 상태 메시지 감지", "warning")
-                return []
-            else:
-                # 실제 계획 파싱 실패인 경우에만 에러 로그
-                self._debug_log(f"❌ JSON 파싱 실패: {e}", "error")
-                self._debug_log(f"🔍 파싱 시도한 텍스트: {text[:200]}...", "error")
-                return []
+            self._debug_log(f"❌ 아티팩트 JSON 파싱 실패: {e}", "error")
+            # 폴백: 기존 텍스트 추출 방법 사용
+            return self._extract_plan_from_text(text)
         except Exception as e:
             self._debug_log(f"❌ 아티팩트 계획 추출 실패: {e}", "error")
             return []
 
     def _process_artifact_plan_data(self, plan_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """아티팩트 계획 데이터 처리"""
-        self._debug_log(f"🔄 아티팩트 계획 데이터 처리 중... 타입: {plan_data.get('plan_type')}")
+        self._debug_log(f"🔄 아티팩트 계획 데이터 처리 중... 키들: {list(plan_data.keys())}")
         
         try:
-            if plan_data.get("plan_type") == "ai_ds_team_orchestration":
+            # plan_executed 형식 (오케스트레이터 v6 표준)
+            if "plan_executed" in plan_data:
+                steps = plan_data["plan_executed"]
+                self._debug_log(f"✅ 'plan_executed' 형식으로 {len(steps)}개 단계 발견")
+                return self._process_steps(steps)
+            
+            # steps 형식
+            elif "steps" in plan_data:
+                steps = plan_data["steps"]
+                self._debug_log(f"✅ 'steps' 형식으로 {len(steps)}개 단계 발견")
+                return self._process_steps(steps)
+            
+            # A2A 표준 오케스트레이션 계획
+            elif plan_data.get("plan_type") == "ai_ds_team_orchestration":
                 steps = plan_data.get("steps", [])
                 if steps:
                     self._debug_log(f"✅ A2A 표준 오케스트레이션 계획: {len(steps)}개 단계")
                     return self._process_steps(steps)
             
-            # 다른 형식도 지원
-            if "steps" in plan_data:
-                return self._process_steps(plan_data["steps"])
+            # 리스트 형식
             elif isinstance(plan_data, list):
+                self._debug_log(f"✅ 리스트 형식으로 {len(plan_data)}개 단계 발견")
                 return self._process_steps(plan_data)
+            
             else:
                 self._debug_log(f"❌ 알 수 없는 아티팩트 계획 형식: {list(plan_data.keys())}", "warning")
                 return []
@@ -532,7 +553,7 @@ class A2AStreamlitClient:
                             if part.get("kind") == "text":
                                 plan_text = part.get("text", "")
                                 if plan_text:
-                                    self._debug_log(f"📝 Status 메시지에서 계획 텍스트 발견: {len(plan_text)} chars")
+                                    self._debug_log(f"�� Status 메시지에서 계획 텍스트 발견: {len(plan_text)} chars")
                                     return self._extract_plan_from_text(plan_text)
             
             # 리스트 형식
@@ -588,15 +609,9 @@ class A2AStreamlitClient:
                 return []
                 
         except json.JSONDecodeError as e:
-            # 완료 메시지나 간단한 텍스트인 경우 조용히 처리
-            if text.strip().startswith("✅") or text.strip().startswith("❌") or len(text.strip()) < 30:
-                self._debug_log("⚠️ 완료 메시지 또는 간단한 상태 메시지 감지", "warning")
-                return []
-            else:
-                # 실제 계획 파싱 실패인 경우에만 에러 로그
-                self._debug_log(f"❌ JSON 파싱 실패: {e}", "error")
-                self._debug_log(f"🔍 파싱 시도한 텍스트: {text[:200]}...", "error")
-                return []
+            self._debug_log(f"❌ JSON 파싱 실패: {e}", "error")
+            self._debug_log(f"🔍 파싱 시도한 텍스트: {text[:200]}...", "error")
+            return []
         except Exception as e:
             self._debug_log(f"❌ 텍스트 계획 추출 실패: {e}", "error")
             return []

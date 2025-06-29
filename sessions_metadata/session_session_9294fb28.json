@@ -1,0 +1,19 @@
+{
+  "session_id": "session_9294fb28",
+  "created_at": "2025-06-29T22:29:54.607268",
+  "last_activity": "2025-06-29T22:29:54.607269",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-29T22:29:54.524075",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "기초 통계 분석 및 트렌드 분석을 통해 TW 값의 이상 여부 및 트렌드 파악",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-06-30T22:29:54.607268",
+  "status": "active"
+}

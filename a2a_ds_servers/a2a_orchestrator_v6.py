@@ -127,6 +127,9 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
             await task_updater.stream_update("🧠 사용자 요청을 심층 분석하고 있습니다...")
             request_understanding = await self._understand_request(user_input)
             
+            # 도메인 자동 적응
+            domain_adaptation = await self._auto_adapt_to_domain(user_input)
+            
             # 2. 동적 실행 계획 생성
             await task_updater.stream_update("📋 동적 실행 계획을 생성하고 있습니다...")
             execution_plan = await self._create_dynamic_plan(
@@ -139,16 +142,38 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
             
             await task_updater.stream_update(f"✅ {len(execution_plan.get('steps', []))}단계 실행 계획 완료")
             
+            # 📋 예쁜 계획 표시를 위한 스트리밍 메시지
+            plan_display = self._create_beautiful_plan_display(execution_plan, request_understanding)
+            await task_updater.stream_update(plan_display)
+            
+            # 계획을 아티팩트로 전송 (클라이언트 파싱용)
+            plan_artifact = {
+                "plan_executed": [
+                    {
+                        "step": i + 1,
+                        "agent": step.get('agent', step.get('agent_name', 'unknown')),
+                        "task_description": step.get('enriched_task', step.get('purpose', '')),
+                        "reasoning": step.get('purpose', ''),
+                        "expected_output": step.get('expected_output', '')
+                    }
+                    for i, step in enumerate(execution_plan.get('steps', []))
+                ]
+            }
+            
             # 📋 실행 계획을 Artifact로 먼저 전송
             await task_updater.add_artifact(
-                parts=[TextPart(text=json.dumps(execution_plan, ensure_ascii=False, indent=2))],
+                parts=[TextPart(text=json.dumps(plan_artifact, ensure_ascii=False, indent=2))],
                 name="execution_plan.json",
                 metadata={
                     "content_type": "application/json",
-                    "plan_type": "llm_powered_dynamic_orchestration",
+                    "plan_type": "ai_ds_team_orchestration",
                     "description": "LLM 기반 동적 실행 계획"
                 }
             )
+            
+            # 계획 확인 시간 제공
+            await asyncio.sleep(2)
+            await task_updater.stream_update("🚀 실행 계획에 따라 분석을 시작합니다...")
             
             # 3. 각 에이전트 실행 (컨텍스트 전달)
             agent_results = {}
@@ -156,7 +181,14 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 step_num = i + 1
                 agent_name = step.get('agent', step.get('agent_name', 'unknown'))
                 
-                await task_updater.stream_update(f"🔄 단계 {step_num}: {agent_name} 에이전트 실행 중...")
+                # 단계별 상세 정보 표시
+                step_info = f"""
+🔄 **단계 {step_num}/{len(execution_plan.get('steps', []))}: {agent_name} 실행**
+
+📝 **작업**: {step.get('enriched_task', step.get('purpose', ''))[:100]}...
+🎯 **목적**: {step.get('purpose', '')}
+"""
+                await task_updater.stream_update(step_info)
                 
                 try:
                     result = await self._execute_agent_with_context(
@@ -169,7 +201,8 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                     
                     # 실시간 피드백
                     summary = result.get('summary', 'Processing completed')
-                    await task_updater.stream_update(f"✅ {agent_name}: {summary}")
+                    success_msg = f"✅ **{agent_name} 완료**: {summary}"
+                    await task_updater.stream_update(success_msg)
                     
                 except Exception as agent_error:
                     logger.warning(f"Agent {agent_name} execution failed: {agent_error}")
@@ -178,7 +211,8 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                         'error': str(agent_error),
                         'summary': f"에이전트 실행 중 오류 발생: {str(agent_error)}"
                     }
-                    await task_updater.stream_update(f"⚠️ {agent_name}: 오류 발생하였으나 계속 진행합니다")
+                    error_msg = f"⚠️ **{agent_name} 오류**: {str(agent_error)[:100]}... (계속 진행)"
+                    await task_updater.stream_update(error_msg)
             
             # 4. LLM이 모든 결과를 종합하여 최종 답변 생성
             await task_updater.stream_update("🎯 모든 분석 결과를 종합하여 최종 답변을 생성하고 있습니다...")
@@ -190,7 +224,16 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 task_updater=task_updater
             )
             
-            # 📊 최종 답변을 Artifact로 전송
+            # 📊 최종 답변을 먼저 스트리밍으로 표시
+            final_display = self._create_beautiful_final_display(
+                final_response, 
+                execution_plan, 
+                agent_results, 
+                request_understanding
+            )
+            await task_updater.stream_update(final_display)
+            
+            # 📊 최종 답변을 Artifact로도 전송
             await task_updater.add_artifact(
                 parts=[TextPart(text=final_response)],
                 name="final_analysis_report.md",
@@ -201,21 +244,26 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 }
             )
             
-            # 5. 완료 메시지 (JSON 파싱 오류 방지)
+            # 5. 완료 메시지 (더 상세하고 예쁘게)
             completion_summary = f"""## 🎉 LLM 기반 동적 오케스트레이션 완료
 
 ### 📊 실행 결과 요약
-- **에이전트 발견**: {len(self.available_agents)}개
-- **실행 계획**: {len(execution_plan.get('steps', []))}단계
-- **성공한 에이전트**: {len([r for r in agent_results.values() if r.get('status') == 'success'])}개
-- **도메인**: {request_understanding.get('domain', '데이터 분석')}
-- **분석 깊이**: {request_understanding.get('analysis_depth', 'intermediate')}
+- **🤖 에이전트 발견**: {len(self.available_agents)}개
+- **📋 실행 계획**: {len(execution_plan.get('steps', []))}단계
+- **✅ 성공한 에이전트**: {len([r for r in agent_results.values() if r.get('status') == 'success'])}개
+- **❌ 실패한 에이전트**: {len([r for r in agent_results.values() if r.get('status') == 'failed'])}개
+- **🏢 도메인**: {request_understanding.get('domain', '데이터 분석')}
+- **📈 분석 깊이**: {request_understanding.get('analysis_depth', 'intermediate')}
 
 ### 📋 생성된 아티팩트
-1. **execution_plan.json**: 동적 실행 계획
-2. **final_analysis_report.md**: 종합 분석 보고서
+1. **execution_plan.json**: 동적 실행 계획 (JSON 형식)
+2. **final_analysis_report.md**: 종합 분석 보고서 (Markdown 형식)
 
-모든 분석이 완료되었습니다. 아티팩트에서 상세한 결과를 확인하세요."""
+### 🎯 분석 완료
+모든 분석이 완료되었습니다. 위의 상세한 결과와 아티팩트에서 전체 분석 내용을 확인하세요.
+
+---
+*🤖 Powered by LLM Dynamic Context-Aware Orchestrator v6*"""
             
             await task_updater.update_status(
                 TaskState.completed,
@@ -239,7 +287,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
         """A2A 표준 에이전트 발견"""
         available_agents = {}
         
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:  # 타임아웃 증가
             for agent_name, port in AGENT_PORTS.items():
                 try:
                     response = await client.get(f"http://localhost:{port}/.well-known/agent.json")
@@ -297,7 +345,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
                 temperature=0.3,
-                timeout=30.0  # 30초 타임아웃 추가
+                timeout=60.0  # 타임아웃 증가
             )
             
             return json.loads(response.choices[0].message.content)
@@ -314,6 +362,48 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 "analysis_depth": "intermediate",
                 "tone": "technical"
             }
+
+    async def _auto_adapt_to_domain(self, user_input: str) -> Dict:
+        """어떤 도메인이든 자동으로 적응"""
+        
+        if not self.openai_client:
+            return {"adaptation": "기본 데이터 분석 접근법"}
+        
+        adaptation_prompt = f"""
+다음 요청을 분석하여 자동으로 도메인과 필요한 분석 방법을 파악하세요:
+
+{user_input}
+
+이 요청이 어떤 도메인인지, 어떤 종류의 분석이 필요한지, 
+어떤 전문 지식이 필요한지 파악하여 최적의 접근 방법을 제시하세요.
+
+특히 사용자가 특정 역할이나 전문성을 언급했다면, 
+그에 맞는 분석 깊이와 용어를 사용해야 합니다.
+
+JSON 형식으로 응답하세요:
+{{
+    "detected_domain": "감지된 도메인",
+    "required_expertise": "필요한 전문성",
+    "analysis_approach": "권장 분석 접근법",
+    "terminology_level": "용어 수준 (basic/intermediate/expert)",
+    "special_considerations": ["특별 고려사항들"]
+}}
+"""
+
+        try:
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": adaptation_prompt}],
+                response_format={"type": "json_object"},
+                temperature=0.3,
+                timeout=60.0  # 타임아웃 증가
+            )
+            
+            return json.loads(response.choices[0].message.content)
+            
+        except Exception as e:
+            logger.warning(f"Domain adaptation failed: {e}")
+            return {"adaptation": "기본 데이터 분석 접근법"}
 
     async def _create_dynamic_plan(self, understanding: Dict, 
                                   available_agents: Dict) -> Dict:
@@ -357,7 +447,8 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 model="gpt-4o",
                 messages=[{"role": "user", "content": planning_prompt}],
                 response_format={"type": "json_object"},
-                temperature=0.3
+                temperature=0.3,
+                timeout=60.0  # 타임아웃 증가
             )
             
             return json.loads(response.choices[0].message.content)
@@ -402,7 +493,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
         }
         
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:  # 2분으로 증가
+            async with httpx.AsyncClient(timeout=180.0) as client:  # 3분으로 대폭 증가
                 response = await client.post(
                     agent_url,
                     json=payload,
@@ -459,7 +550,8 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 model="gpt-4o-mini",  # 빠른 응답을 위해
                 messages=[{"role": "user", "content": enrichment_prompt}],
                 temperature=0.2,
-                max_tokens=1000
+                max_tokens=1000,
+                timeout=60.0  # 타임아웃 증가
             )
             
             return response.choices[0].message.content
@@ -509,7 +601,8 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                     {"role": "user", "content": synthesis_prompt}
                 ],
                 temperature=0.3,
-                max_tokens=4000
+                max_tokens=4000,
+                timeout=120.0  # 타임아웃 대폭 증가
             )
             
             return response.choices[0].message.content
@@ -568,7 +661,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
             }
 
     def _create_fallback_plan(self, available_agents: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
-        """A2A 표준 폴백 계획 생성"""
+        """LLM이 사용 불가능할 때의 폴백 계획"""
         steps = []
         step_number = 1
         
@@ -624,6 +717,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 synthesis += f"- **{agent_name}**: {result.get('error', '알 수 없는 오류')}\n"
         
         synthesis += f"""
+
 ### 🎉 결론
 총 {len(successful_agents)}개의 분석 단계가 성공적으로 완료되었습니다. 
 각 에이전트가 생성한 결과물과 아티팩트를 확인하시기 바랍니다.
@@ -632,6 +726,91 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
 """
         
         return synthesis
+
+    def _create_beautiful_plan_display(self, execution_plan: Dict, understanding: Dict) -> str:
+        """예쁜 실행 계획 표시 생성"""
+        
+        plan_display = f"""
+## 📋 LLM 기반 동적 실행 계획
+
+### 🎯 분석 개요
+- **도메인**: {understanding.get('domain', '데이터 분석')}
+- **목표**: {', '.join(understanding.get('key_objectives', ['데이터 분석 수행']))}
+- **분석 깊이**: {understanding.get('analysis_depth', 'intermediate')}
+- **총 단계**: {len(execution_plan.get('steps', []))}개
+
+### 🚀 실행 단계별 계획
+
+"""
+        
+        for i, step in enumerate(execution_plan.get('steps', [])):
+            step_num = i + 1
+            agent_name = step.get('agent', step.get('agent_name', 'unknown'))
+            purpose = step.get('purpose', '')
+            task = step.get('enriched_task', step.get('task_description', ''))
+            expected = step.get('expected_output', '')
+            
+            plan_display += f"""**{step_num}. {agent_name} 에이전트**
+   - 🎯 **목적**: {purpose}
+   - 📝 **작업**: {task[:150]}{'...' if len(task) > 150 else ''}
+   - 📊 **예상 결과**: {expected}
+
+"""
+        
+        plan_display += f"""
+### 🧠 계획 근거
+{execution_plan.get('reasoning', '사용자 요청에 최적화된 분석 워크플로우')}
+
+---
+"""
+        
+        return plan_display
+
+    def _create_beautiful_final_display(self, final_response: str, execution_plan: Dict, 
+                                      agent_results: Dict, understanding: Dict) -> str:
+        """예쁜 최종 결과 표시 생성"""
+        
+        successful_agents = [name for name, result in agent_results.items() 
+                           if result.get('status') == 'success']
+        failed_agents = [name for name, result in agent_results.items() 
+                        if result.get('status') == 'failed']
+        
+        final_display = f"""
+## 🎉 LLM 기반 종합 분석 결과
+
+### 📈 실행 성과
+- ✅ **성공한 단계**: {len(successful_agents)}개
+- ❌ **실패한 단계**: {len(failed_agents)}개
+- 📊 **전체 성공률**: {(len(successful_agents) / len(agent_results) * 100):.1f}%
+
+### 🔍 단계별 실행 결과
+"""
+        
+        for i, step in enumerate(execution_plan.get('steps', [])):
+            step_num = i + 1
+            agent_name = step.get('agent', step.get('agent_name', 'unknown'))
+            result = agent_results.get(agent_name, {})
+            status = result.get('status', 'unknown')
+            summary = result.get('summary', '결과 없음')
+            
+            status_icon = "✅" if status == 'success' else "❌" if status == 'failed' else "⚠️"
+            
+            final_display += f"""
+**{step_num}. {agent_name}** {status_icon}
+   - 📝 **결과**: {summary}
+"""
+        
+        final_display += f"""
+
+### 🎯 최종 종합 분석
+
+{final_response}
+
+---
+*🤖 AI DS Team LLM Powered Dynamic Orchestrator v6*
+"""
+        
+        return final_display
 
 
 def create_llm_powered_orchestrator_server():
@@ -666,12 +845,10 @@ def create_llm_powered_orchestrator_server():
         task_store=task_store
     )
     
-    app = A2AStarletteApplication(
+    return A2AStarletteApplication(
         agent_card=agent_card,
         http_handler=request_handler
     )
-    
-    return app
 
 
 def main():
@@ -682,7 +859,7 @@ def main():
     
     uvicorn.run(
         app.build(),
-        host="localhost",
+        host="0.0.0.0",
         port=8100,
         log_level="info"
     )

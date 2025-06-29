@@ -1,0 +1,19 @@
+{
+  "session_id": "session_f73b9da7",
+  "created_at": "2025-06-30T01:48:56.746301",
+  "last_activity": "2025-06-30T01:48:56.746303",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-30T01:48:56.146197",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "생성된 특징 데이터를 분석하여 공정 이상 여부를 판단하고, 이상 원인을 해석합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-01T01:48:56.746301",
+  "status": "active"
+}

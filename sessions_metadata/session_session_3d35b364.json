@@ -1,0 +1,19 @@
+{
+  "session_id": "session_3d35b364",
+  "created_at": "2025-06-30T01:20:36.509397",
+  "last_activity": "2025-06-30T01:20:36.509398",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-30T01:20:36.415854",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "데이터의 기본 통계량을 확인하고, 이상치 및 트렌드를 탐색하여 공정 이상 여부를 판단합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-01T01:20:36.509397",
+  "status": "active"
+}

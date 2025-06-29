@@ -1,0 +1,19 @@
+{
+  "session_id": "session_50731dfb",
+  "created_at": "2025-06-29T21:49:23.023132",
+  "last_activity": "2025-06-29T21:49:23.023134",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-29T21:49:22.979507",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "데이터의 기본 통계와 트렌드를 분석하여 TW의 이상 여부를 판단합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-06-30T21:49:23.023132",
+  "status": "active"
+}

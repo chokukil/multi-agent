@@ -1,0 +1,10 @@
+{
+  "user_instructions": "데이터의 기본 통계량을 확인하고, 이상치 및 트렌드를 탐색하여 공정 이상 여부를 판단합니다.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-30T01:20:36.509419",
+  "file_path": "ai_ds_team/data/session_3d35b364/ion_implant_3lot_dataset.xlsx"
+}

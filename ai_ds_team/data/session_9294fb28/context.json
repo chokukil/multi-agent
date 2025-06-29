@@ -1,0 +1,10 @@
+{
+  "user_instructions": "기초 통계 분석 및 트렌드 분석을 통해 TW 값의 이상 여부 및 트렌드 파악",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-29T22:29:54.607290",
+  "file_path": "ai_ds_team/data/session_9294fb28/ion_implant_3lot_dataset.xlsx"
+}
