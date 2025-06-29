@@ -139,32 +139,16 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
             
             await task_updater.stream_update(f"✅ {len(execution_plan.get('steps', []))}단계 실행 계획 완료")
             
-            # 계획을 아티팩트로 전송 (클라이언트 파싱용)
-            plan_artifact = {
-                "plan_executed": [
-                    {
-                        "step": i + 1,
-                        "agent": step.get('agent', step.get('agent_name', 'unknown')),
-                        "task_description": step.get('enriched_task', step.get('purpose', '')),
-                        "reasoning": step.get('purpose', ''),
-                        "expected_output": step.get('expected_output', '')
-                    }
-                    for i, step in enumerate(execution_plan.get('steps', []))
-                ]
-            }
-            
-            # 아티팩트로 계획 전송
-            try:
-                await task_updater.add_artifact(
-                    parts=[TextPart(text=json.dumps(plan_artifact, ensure_ascii=False))],
-                    name="execution_plan",
-                    metadata={
-                        "content_type": "application/json",
-                        "plan_type": "ai_ds_team_orchestration"
-                    }
-                )
-            except Exception as artifact_error:
-                logger.warning(f"Failed to send plan artifact: {artifact_error}")
+            # 📋 실행 계획을 Artifact로 먼저 전송
+            await task_updater.add_artifact(
+                parts=[TextPart(text=json.dumps(execution_plan, ensure_ascii=False, indent=2))],
+                name="execution_plan.json",
+                metadata={
+                    "content_type": "application/json",
+                    "plan_type": "llm_powered_dynamic_orchestration",
+                    "description": "LLM 기반 동적 실행 계획"
+                }
+            )
             
             # 3. 각 에이전트 실행 (컨텍스트 전달)
             agent_results = {}
@@ -206,8 +190,37 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 task_updater=task_updater
             )
             
-            # 5. 스트리밍으로 최종 답변 전달
-            await task_updater.stream_final_response(final_response)
+            # 📊 최종 답변을 Artifact로 전송
+            await task_updater.add_artifact(
+                parts=[TextPart(text=final_response)],
+                name="final_analysis_report.md",
+                metadata={
+                    "content_type": "text/markdown",
+                    "report_type": "comprehensive_analysis",
+                    "description": "LLM 기반 종합 분석 보고서"
+                }
+            )
+            
+            # 5. 완료 메시지 (JSON 파싱 오류 방지)
+            completion_summary = f"""## 🎉 LLM 기반 동적 오케스트레이션 완료
+
+### 📊 실행 결과 요약
+- **에이전트 발견**: {len(self.available_agents)}개
+- **실행 계획**: {len(execution_plan.get('steps', []))}단계
+- **성공한 에이전트**: {len([r for r in agent_results.values() if r.get('status') == 'success'])}개
+- **도메인**: {request_understanding.get('domain', '데이터 분석')}
+- **분석 깊이**: {request_understanding.get('analysis_depth', 'intermediate')}
+
+### 📋 생성된 아티팩트
+1. **execution_plan.json**: 동적 실행 계획
+2. **final_analysis_report.md**: 종합 분석 보고서
+
+모든 분석이 완료되었습니다. 아티팩트에서 상세한 결과를 확인하세요."""
+            
+            await task_updater.update_status(
+                TaskState.completed,
+                message=task_updater.new_agent_message(parts=[TextPart(text=completion_summary)])
+            )
             
         except Exception as e:
             logger.error(f"Error in LLM Powered Orchestrator: {e}", exc_info=True)
@@ -283,7 +296,8 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 model="gpt-4o",
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
-                temperature=0.3
+                temperature=0.3,
+                timeout=30.0  # 30초 타임아웃 추가
             )
             
             return json.loads(response.choices[0].message.content)
@@ -388,7 +402,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
         }
         
         try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:  # 2분으로 증가
                 response = await client.post(
                     agent_url,
                     json=payload,
