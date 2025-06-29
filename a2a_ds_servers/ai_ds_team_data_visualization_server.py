@@ -100,6 +100,10 @@ class DataVisualizationAgentExecutor(AgentExecutor):
                 data_manager = DataManager()
                 available_data = data_manager.list_dataframes()
                 
+                # df 변수 초기화
+                df = None
+                data_file = None
+                
                 if not available_data:
                     result = """## ❌ 데이터 없음
 
@@ -112,9 +116,16 @@ class DataVisualizationAgentExecutor(AgentExecutor):
 
 **현재 상태**: 사용 가능한 데이터가 없습니다.
 """
+                    
+                    # 최종 응답 메시지 전송
+                    await task_updater.update_status(
+                        TaskState.completed,
+                        message=new_agent_text_message(result)
+                    )
+                    return
+                    
                 else:
-                    # 요청된 파일 찾기 (폴백 제거)
-                    data_file = None
+                    # 요청된 파일 찾기 또는 첫 번째 사용 가능한 데이터 사용
                     for part in context.message.parts:
                         if part.root.kind == "data" and hasattr(part.root, 'data'):
                             data_ref = part.root.data.get('data_reference', {})
@@ -123,21 +134,17 @@ class DataVisualizationAgentExecutor(AgentExecutor):
                                 data_file = requested_id
                                 break
                     
-                    if data_file is None:
-                        result = f"""## ❌ 요청된 데이터를 찾을 수 없음
-
-**사용 가능한 데이터**: {', '.join(available_data)}
-
-**해결 방법**:
-1. 사용 가능한 데이터 중 하나를 선택하여 요청하세요
-2. 원하는 파일을 먼저 업로드해주세요
-
-**요청**: {user_instructions}
-"""
-                    else:
+                    # 데이터 참조가 없으면 첫 번째 사용 가능한 데이터 사용
+                    if data_file is None and available_data:
+                        data_file = available_data[0]  # available_data는 List[str]
+                        logger.info(f"데이터 참조가 없어서 첫 번째 사용 가능한 데이터 사용: {data_file}")
+                    
+                    if data_file:
                         # 데이터 로드 및 처리
                         df = data_manager.get_dataframe(data_file)
                         if df is not None:
+                            logger.info(f"데이터 로드 성공: {data_file}, 형태: {df.shape}")
+                            
                             # AI_DS_Team DataVisualizationAgent 실행
                             result = self.agent.invoke_agent(
                                 user_instructions=user_instructions,
@@ -146,13 +153,27 @@ class DataVisualizationAgentExecutor(AgentExecutor):
                             
                             # 🔥 핵심 개선: Plotly 차트 아티팩트 생성 및 전송
                             try:
-                                # Plotly 그래프 가져오기
-                                plotly_graph = self.agent.get_plotly_graph()
+                                # 디버깅: agent response 확인
+                                logger.info(f"🔍 DEBUG: Agent response keys: {list(self.agent.response.keys()) if self.agent.response else 'None'}")
+                                if self.agent.response:
+                                    logger.info(f"🔍 DEBUG: plotly_graph in response: {'plotly_graph' in self.agent.response}")
+                                    if 'plotly_graph' in self.agent.response:
+                                        logger.info(f"🔍 DEBUG: plotly_graph value: {type(self.agent.response['plotly_graph'])}")
                                 
-                                if plotly_graph:
-                                    # Plotly 차트를 JSON으로 변환
-                                    import json
-                                    chart_json = json.dumps(plotly_graph)
+                                # Plotly 그래프 가져오기 - response에서 직접 가져오기
+                                plotly_graph_raw = self.agent.response.get('plotly_graph') if self.agent.response else None
+                                logger.info(f"🔍 DEBUG: plotly_graph_raw type: {type(plotly_graph_raw)} - {plotly_graph_raw is not None}")
+                                
+                                if plotly_graph_raw:
+                                    # plotly_graph가 이미 dict인 경우 그대로 사용, Figure인 경우 변환
+                                    if isinstance(plotly_graph_raw, dict):
+                                        chart_json = json.dumps(plotly_graph_raw)
+                                    else:
+                                        # Figure 객체인 경우 JSON으로 변환
+                                        import plotly.io as pio
+                                        chart_json = pio.to_json(plotly_graph_raw)
+                                    
+                                    logger.info(f"🔍 DEBUG: Chart JSON length: {len(chart_json)}")
                                     
                                     # A2A 아티팩트로 전송
                                     await task_updater.add_artifact(
@@ -170,26 +191,18 @@ class DataVisualizationAgentExecutor(AgentExecutor):
                                     logger.warning("⚠️ Plotly 그래프를 가져올 수 없음")
                                     
                             except Exception as chart_error:
-                                logger.error(f"❌ 차트 아티팩트 생성 실패: {chart_error}")
+                                logger.error(f"❌ 차트 아티팩트 생성 실패: {chart_error}", exc_info=True)
                             
                             # 워크플로우 요약 및 기본 응답 메시지
                             try:
                                 # 결과 처리 (안전한 방식으로 workflow summary 가져오기)
-
                                 try:
-
                                     workflow_summary = self.agent.get_workflow_summary(markdown=True)
-
                                 except AttributeError:
-
                                     # get_workflow_summary 메서드가 없는 경우 기본 요약 생성
-
                                     workflow_summary = f"✅ 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
-
                                 except Exception as e:
-
                                     logger.warning(f"Error getting workflow summary: {e}")
-
                                     workflow_summary = f"✅ 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
                                 
                                 # 🔥 핵심 수정: Markdown 객체를 문자열로 변환
@@ -212,8 +225,57 @@ class DataVisualizationAgentExecutor(AgentExecutor):
                                 logger.warning(f"Error getting workflow summary: {e}")
                                 workflow_summary = "✅ 📊 Data Visualization 작업 완료"
                             
+                            # 생성된 차트 정보 수집
+                            charts_info = ""
+                            artifacts_path = "a2a_ds_servers/artifacts/plots/"
+                            os.makedirs(artifacts_path, exist_ok=True)
+                            
+                            # 차트 파일 저장 확인
+                            saved_files = []
+                            try:
+                                if os.path.exists(artifacts_path):
+                                    for file in os.listdir(artifacts_path):
+                                        if file.endswith(('.png', '.jpg', '.html', '.json')):
+                                            saved_files.append(file)
+                            except:
+                                pass
+                            
+                            if saved_files:
+                                charts_info += f"""
+
+### 💾 저장된 차트 파일들
+{chr(10).join([f"- {file}" for file in saved_files[-5:]])}
+"""
+                            
+                            # 데이터 요약 생성 (df가 None이 아닌 경우에만)
+                            data_summary_text = ""
+                            if df is not None:
+                                try:
+                                    data_summary = get_dataframe_summary(df, n_sample=10)
+                                    data_summary_text = data_summary[0] if data_summary else '데이터 요약을 생성할 수 없습니다.'
+                                except Exception as e:
+                                    logger.warning(f"데이터 요약 생성 실패: {e}")
+                                    data_summary_text = f"데이터 형태: {df.shape}, 컬럼: {list(df.columns)}"
+                            
+                            result = f"""## 📊 데이터 시각화 완료
+
+{workflow_summary}
+
+{charts_info}
+
+### 📋 사용된 데이터 요약
+{data_summary_text}
+
+### 🎨 Data Visualization Agent 기능
+- **Plotly 차트**: 인터랙티브 차트 생성
+- **Matplotlib 차트**: 고품질 정적 차트
+- **통계 시각화**: 분포, 상관관계, 트렌드 분석
+- **대시보드**: 복합 시각화 대시보드
+- **커스텀 차트**: 요구사항에 맞는 맞춤형 시각화
+"""
+                            
                             # 최종 응답 메시지 전송 (문자열 보장)
-                            final_message = str(workflow_summary) if workflow_summary else "✅ 📊 Data Visualization 작업 완료"
+                            final_message = str(result) if result else "✅ 📊 Data Visualization 작업 완료"
                             await task_updater.update_status(
                                 TaskState.completed,
                                 message=new_agent_text_message(final_message)
@@ -224,47 +286,11 @@ class DataVisualizationAgentExecutor(AgentExecutor):
                                 TaskState.failed,
                                 message=new_agent_text_message(f"❌ 데이터 로드 실패: {data_file}")
                             )
-                
-                # 생성된 차트 정보 수집
-                charts_info = ""
-                artifacts_path = "a2a_ds_servers/artifacts/plots/"
-                os.makedirs(artifacts_path, exist_ok=True)
-                
-                # 차트 파일 저장 확인
-                saved_files = []
-                try:
-                    if os.path.exists(artifacts_path):
-                        for file in os.listdir(artifacts_path):
-                            if file.endswith(('.png', '.jpg', '.html', '.json')):
-                                saved_files.append(file)
-                except:
-                    pass
-                
-                if saved_files:
-                    charts_info += f"""
-### 💾 저장된 차트 파일들
-{chr(10).join([f"- {file}" for file in saved_files[-5:]])}
-"""
-                
-                # 데이터 요약 생성
-                data_summary = get_dataframe_summary(df, n_sample=10)
-                
-                result = f"""## 📊 데이터 시각화 완료
-
-{workflow_summary}
-
-{charts_info}
-
-### 📋 사용된 데이터 요약
-{data_summary[0] if data_summary else '데이터 요약을 생성할 수 없습니다.'}
-
-### 🎨 Data Visualization Agent 기능
-- **Plotly 차트**: 인터랙티브 차트 생성
-- **Matplotlib 차트**: 고품질 정적 차트
-- **통계 시각화**: 분포, 상관관계, 트렌드 분석
-- **대시보드**: 복합 시각화 대시보드
-- **커스텀 차트**: 요구사항에 맞는 맞춤형 시각화
-"""
+                    else:
+                        await task_updater.update_status(
+                            TaskState.failed,
+                            message=new_agent_text_message("❌ 사용 가능한 데이터를 찾을 수 없습니다.")
+                        )
                 
             else:
                 # 메시지가 없는 경우

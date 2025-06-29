@@ -81,7 +81,7 @@ class SQLDatabaseAgentExecutor(AgentExecutor):
     
     async def execute(self, context: RequestContext, event_queue) -> None:
         """A2A 프로토콜에 따른 실행"""
-        # event_queue passed as parameter
+        # event_queue logger.error(f"Error reading data directory {data_path}: {e}")ed as parameter
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
@@ -100,19 +100,43 @@ class SQLDatabaseAgentExecutor(AgentExecutor):
                 logger.info(f"Processing SQL database request: {user_instructions}")
                 
                 # 데이터 로드 시도
-                data_path = "a2a_ds_servers/artifacts/data/shared_dataframes/"
+                import os
+                project_root = os.getcwd()
+                data_path = os.path.join(project_root, "a2a_ds_servers", "artifacts", "data", "shared_dataframes")
+                logger.info(f"Looking for data in: {data_path}")
+                logger.info(f"Directory exists: {os.path.exists(data_path)}")
                 available_data = []
                 
                 try:
                     for file in os.listdir(data_path):
                         if file.endswith(('.csv', '.pkl')):
                             available_data.append(file)
-                except:
-                    pass
+                    logger.info(f"Found data file: {file}")
+                except Exception as e:
+                    logger.error(f"Error reading data directory {data_path}: {e}")
                 
                 if available_data:
                     # 가장 최근 데이터 사용하여 SQLite에 로드
-                    # FALLBACK REMOVED - data_file = available_data[0]
+                    # 우선순위: 1) ion_implant 데이터, 2) 가장 최근 수정된 파일
+                    data_file = None
+                    
+                    # ion_implant 데이터 우선 선택
+                    for file in available_data:
+                        if "ion_implant" in file.lower():
+                            data_file = file
+                            break
+                    
+                    # ion_implant 데이터가 없으면 가장 최근 파일 선택
+                    if not data_file:
+                        import os
+                        file_times = []
+                        for file in available_data:
+                            file_path = os.path.join(data_path, file)
+                            mtime = os.path.getmtime(file_path)
+                            file_times.append((file, mtime))
+                        # 가장 최근 파일 선택
+                        file_times.sort(key=lambda x: x[1], reverse=True)
+                        data_file = file_times[0][0]
                     if data_file.endswith('.csv'):
                         df = pd.read_csv(os.path.join(data_path, data_file))
                     else:
@@ -168,7 +192,7 @@ class SQLDatabaseAgentExecutor(AgentExecutor):
 ### 📊 쿼리 결과
 결과 행 수: {len(sql_data) if isinstance(sql_data, list) else 'N/A'}
 """
-                        except:
+                        except Exception as e:
                             sql_info = "\n### ℹ️ SQL 분석이 완료되었습니다."
                         
                         # 데이터 요약 생성
