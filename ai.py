@@ -620,19 +620,53 @@ async def process_query_streaming(prompt: str):
                 st.markdown("## 🎯 최종 분석 보고서")
                 
                 for artifact in orchestrator_artifacts:
-                    if 'parts' in artifact and artifact['parts']:
-                        for part in artifact['parts']:
-                            if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                                content = part.root.text
-                            elif isinstance(part, dict) and 'text' in part:
-                                content = part['text']
-                            elif isinstance(part, dict) and 'root' in part:
-                                content = part['root'].get('text', str(part))
+                    debug_log(f"🔍 오케스트레이터 아티팩트 구조: {type(artifact)}")
+                    debug_log(f"🔍 아티팩트 키: {list(artifact.keys()) if isinstance(artifact, dict) else 'Not a dict'}")
+                    
+                    # render_artifact 함수 사용 (표준화된 렌더링)
+                    try:
+                        render_artifact(artifact)
+                        debug_log("✅ render_artifact로 오케스트레이터 보고서 렌더링 성공")
+                    except Exception as render_error:
+                        debug_log(f"❌ render_artifact 실패: {render_error}", "error")
+                        
+                        # 폴백: 수동 파싱 시도
+                        try:
+                            if 'parts' in artifact and artifact['parts']:
+                                debug_log(f"🔍 Parts 구조: {len(artifact['parts'])}개 파트")
+                                for i, part in enumerate(artifact['parts']):
+                                    debug_log(f"🔍 Part {i} 타입: {type(part)}")
+                                    debug_log(f"🔍 Part {i} 속성: {dir(part) if hasattr(part, '__dict__') else 'No attributes'}")
+                                    
+                                    content = None
+                                    if hasattr(part, 'root') and hasattr(part.root, 'text'):
+                                        content = part.root.text
+                                        debug_log(f"✅ Part {i} root.text 접근 성공")
+                                    elif isinstance(part, dict) and 'text' in part:
+                                        content = part['text']
+                                        debug_log(f"✅ Part {i} dict['text'] 접근 성공")
+                                    elif isinstance(part, dict) and 'root' in part:
+                                        content = part['root'].get('text', str(part))
+                                        debug_log(f"✅ Part {i} dict['root']['text'] 접근 성공")
+                                    else:
+                                        content = str(part)
+                                        debug_log(f"⚠️ Part {i} 문자열 변환 사용")
+                                    
+                                    if content and content.strip():
+                                        st.markdown(content)
+                                        debug_log("✅ 마크다운 렌더링 완료")
+                                    else:
+                                        debug_log("❌ 빈 컨텐츠")
                             else:
-                                content = str(part)
+                                debug_log("❌ 아티팩트에 parts가 없음")
+                                st.error("최종 분석 보고서를 표시할 수 없습니다.")
+                        except Exception as manual_error:
+                            debug_log(f"❌ 수동 파싱도 실패: {manual_error}", "error")
+                            st.error(f"최종 보고서 렌더링 실패: {manual_error}")
                             
-                            # 단순한 마크다운 렌더링
-                            st.markdown(content)
+                            # 최후의 디버깅: 원시 데이터 표시
+                            with st.expander("🔍 원시 아티팩트 데이터 (디버깅용)", expanded=False):
+                                st.json(artifact)
             
             # 세션 상태 업데이트
             response_summary = f"AI_DS_Team이 {len(plan_steps)}단계 분석을 완료했습니다."
