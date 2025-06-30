@@ -8,7 +8,7 @@ echo "================================================"
 
 # Server configurations (name:script:port)
 SERVERS=(
-    "Orchestrator:a2a_orchestrator_v6.py:8100"
+    "Orchestrator:a2a_orchestrator.py:8100"
     "Pandas_Analyst:pandas_data_analyst_server.py:8200"
     "SQL_Analyst:sql_data_analyst_server.py:8201"
     "Data_Viz:data_visualization_server.py:8202"

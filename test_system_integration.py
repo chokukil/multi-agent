@@ -25,7 +25,7 @@ def test_server_imports():
         return False
     
     try:
-        from a2a_ds_servers.a2a_orchestrator_v6 import A2AOrchestratorExecutor
+        from a2a_ds_servers.a2a_orchestrator import A2AOrchestratorExecutor
         print("✅ A2A Orchestrator: Import OK")
     except Exception as e:
         print(f"❌ A2A Orchestrator: {e}")

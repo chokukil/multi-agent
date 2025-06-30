@@ -66,10 +66,21 @@ class StreamingTaskUpdater(TaskUpdater):
     
     async def stream_final_response(self, response: str):
         """최종 응답을 청크로 나누어 스트리밍"""
-        # 전체 응답을 한 번에 완료 상태로 전달
+        # Markdown 섹션별로 스트리밍
+        sections = response.split('\n\n')
+        
+        for i, section in enumerate(sections):
+            if section.strip():
+                await self.update_status(
+                    TaskState.working,
+                    message=self.new_agent_message(parts=[TextPart(text=section)])
+                )
+                await asyncio.sleep(0.1)  # 부드러운 스트리밍
+        
+        # 완료 상태 업데이트
         await self.update_status(
             TaskState.completed,
-            message=self.new_agent_message(parts=[TextPart(text=response)])
+            message=self.new_agent_message(parts=[TextPart(text="✅ 분석이 완료되었습니다.")])
         )
 
 
@@ -294,15 +305,6 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 }
             )
             
-            # 🎯 CRITICAL FIX: 최종 응답 전달 - 이 부분이 누락되어 있었음!
-            logger.info(f"🎉 Final response ready: {len(final_response)} characters")
-            
-            # 최종 응답을 완료 상태로 전달
-            await task_updater.update_status(
-                TaskState.completed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=final_response)])
-            )
-            
         except Exception as e:
             error_msg = f"Universal System 실행 중 오류 발생: {str(e)}"
             logger.error(error_msg)
@@ -325,9 +327,6 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
         
         # 종합적 지시사항 사용
         comprehensive_instructions = step.get('comprehensive_instructions', f'{agent_name}에 대한 분석을 수행하세요.')
-        
-        # 🐛 DEBUG: 에이전트로 전송되는 메시지 로깅
-        logger.info(f"🔍 Sending to {agent_name}: {comprehensive_instructions[:200]}...")
         
         # 에이전트 실행
         agent_url = self.available_agents[agent_name]['url']
@@ -358,10 +357,8 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 
                 if response.status_code == 200:
                     result = response.json()
-                    logger.info(f"✅ {agent_name} response received: {str(result)[:200]}...")
                     return self._parse_agent_response(result, agent_name)
                 else:
-                    logger.warning(f"❌ {agent_name} HTTP error: {response.status_code}")
                     return {
                         'status': 'failed',
                         'error': f'HTTP {response.status_code}',
@@ -858,7 +855,7 @@ JSON 형식으로 응답하세요:
                         "purpose": step.get('purpose', f'{agent_name} 분석 수행'),
                         "enriched_task": step.get('enriched_task', step.get('purpose', f'{agent_name} 작업 수행')),
                         "expected_output": step.get('expected_output', f'{agent_name} 분석 결과'),
-                        "pass_to_next": step.get('context_for_next', step.get('pass_to_next', ['분석 결과', '데이터 정보']))
+                        "pass_to_next": step.get('context_for_next', step.get('pass_to_next', ['분석 결과']))
                     }
                     valid_steps.append(enhanced_step)
                 else:

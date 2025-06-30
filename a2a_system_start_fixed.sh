@@ -15,7 +15,7 @@ mkdir -p "$PID_DIR"
 
 # Server configurations (name:script:port)
 SERVERS=(
-    "orchestrator:a2a_ds_servers/a2a_orchestrator_v6.py:8100"
+    "orchestrator:a2a_ds_servers/a2a_orchestrator.py:8100"
     "pandas_analyst:a2a_ds_servers/pandas_data_analyst_server.py:8200"
     "sql_analyst:a2a_ds_servers/sql_data_analyst_server.py:8201"
     "data_viz:a2a_ds_servers/data_visualization_server.py:8202"

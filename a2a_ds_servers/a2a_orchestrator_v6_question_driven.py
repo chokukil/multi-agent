@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
 A2A Orchestrator v7.0 - Universal LLM Powered Dynamic System
-완전 범용 LLM 기반 동적 시스템
-- Universal Request Analyzer
-- Adaptive Context Builder  
-- Smart Question Expander
-- Flexible Response Generator
-- Rich Information Extraction Planning
-- Dynamic Content Assessment
+완전 범용 LLM 기반 동적 시스템 (Enhanced Question-Driven Base)
+- Universal Request Analyzer: 요청 깊이 자동 분석
+- Rich Content Assessment: 콘텐츠 풍부도 평가
+- Smart Default Enrichment: 자동 응답 강화
+- Question-Driven Dynamic Structure: 질문 기반 동적 구조
 """
 
 import asyncio
@@ -66,10 +64,21 @@ class StreamingTaskUpdater(TaskUpdater):
     
     async def stream_final_response(self, response: str):
         """최종 응답을 청크로 나누어 스트리밍"""
-        # 전체 응답을 한 번에 완료 상태로 전달
+        # Markdown 섹션별로 스트리밍
+        sections = response.split('\n\n')
+        
+        for i, section in enumerate(sections):
+            if section.strip():
+                await self.update_status(
+                    TaskState.working,
+                    message=self.new_agent_message(parts=[TextPart(text=section)])
+                )
+                await asyncio.sleep(0.1)  # 부드러운 스트리밍
+        
+        # 완료 상태 업데이트
         await self.update_status(
             TaskState.completed,
-            message=self.new_agent_message(parts=[TextPart(text=response)])
+            message=self.new_agent_message(parts=[TextPart(text="✅ 분석이 완료되었습니다.")])
         )
 
 
@@ -93,7 +102,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
         self.available_agents = {}
     
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """🎯 Universal LLM Powered Dynamic System - 완전 범용 실행"""
+        """LLM이 전체 프로세스를 이해하고 조정하는 실행"""
         task_updater = StreamingTaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
@@ -101,22 +110,10 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
             await task_updater.start_work()
             
             user_input = context.get_user_input()
-            logger.info(f"🎯 Universal System Processing: {user_input}")
+            logger.info(f"📥 Processing orchestration query: {user_input}")
             
             if not user_input:
                 user_input = "Please provide an analysis request."
-            
-            # 🎯 Step 1: Universal Request Analyzer
-            await task_updater.stream_update("🧠 Universal Request Analyzer 실행 중...")
-            request_analysis = await self._analyze_request_depth(user_input)
-            
-            # 🎯 Step 2: Adaptive Context Builder
-            await task_updater.stream_update("🎭 Adaptive Context Builder 실행 중...")
-            adaptive_context = await self._build_adaptive_context(user_input, request_analysis)
-            
-            # 🎯 Step 3: Smart Question Expander
-            await task_updater.stream_update("📈 Smart Question Expander 실행 중...")
-            expanded_request = await self._expand_simple_requests(user_input, request_analysis)
             
             # 에이전트 발견
             await task_updater.stream_update("🔍 AI DS Team 에이전트들을 발견하고 있습니다...")
@@ -131,250 +128,166 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
             
             await task_updater.stream_update(f"✅ {len(self.available_agents)}개 에이전트 발견 완료")
             
-            # 🎯 Step 4: Rich Information Extraction Planning
-            await task_updater.stream_update("📋 Rich Information Extraction Planning 실행 중...")
+            # 1. 사용자 입력을 LLM이 완전히 이해
+            await task_updater.stream_update("🧠 사용자 요청을 심층 분석하고 있습니다...")
+            request_understanding = await self._understand_request(user_input)
             
-            # 기본 요청 이해
-            request_understanding = await self._understand_request(expanded_request)
+            # 🎯 NEW: 질문에서 답변 구조 추출
+            await task_updater.stream_update("🎯 질문에서 필요한 답변 구조를 추출하고 있습니다...")
+            answer_structure = await self._extract_answer_structure_from_question(user_input)
             
-            # 종합적 실행 계획 생성
-            execution_plan = await self._create_comprehensive_execution_plan(
-                expanded_request,
-                request_understanding,
+            # 도메인 자동 적응
+            domain_adaptation = await self._auto_adapt_to_domain(user_input)
+            
+            # 2. 🎯 NEW: 구조를 고려한 동적 실행 계획 생성
+            await task_updater.stream_update("📋 답변 구조에 맞춘 실행 계획을 생성하고 있습니다...")
+            execution_plan = await self._create_structure_aware_plan(
+                request_understanding, 
+                answer_structure,
                 self.available_agents
             )
             
             if not execution_plan or not execution_plan.get('steps'):
                 execution_plan = self._create_fallback_plan(self.available_agents)
             
-            await task_updater.stream_update(f"✅ 종합적 실행 계획 완료: {len(execution_plan.get('steps', []))}단계")
+            await task_updater.stream_update(f"✅ {len(execution_plan.get('steps', []))}단계 실행 계획 완료")
             
-            # 📋 계획 표시
+            # 📋 예쁜 계획 표시를 위한 스트리밍 메시지
             plan_display = self._create_beautiful_plan_display(execution_plan, request_understanding)
             await task_updater.stream_update(plan_display)
             
-            # 계획을 아티팩트로 전송
+            # 계획을 아티팩트로 전송 (클라이언트 파싱용)
             plan_artifact = {
-                "execution_strategy": execution_plan.get('execution_strategy', 'comprehensive_value_extraction'),
                 "plan_executed": [
                     {
                         "step": i + 1,
-                        "agent": step.get('agent', 'unknown'),
-                        "comprehensive_instructions": step.get('comprehensive_instructions', ''),
-                        "expected_deliverables": step.get('expected_deliverables', {})
+                        "agent": step.get('agent', step.get('agent_name', 'unknown')),
+                        "task_description": step.get('enriched_task', step.get('purpose', '')),
+                        "reasoning": step.get('purpose', ''),
+                        "expected_output": step.get('expected_output', '')
                     }
                     for i, step in enumerate(execution_plan.get('steps', []))
                 ]
             }
             
+            # 📋 실행 계획을 Artifact로 먼저 전송
             await task_updater.add_artifact(
                 parts=[TextPart(text=json.dumps(plan_artifact, ensure_ascii=False, indent=2))],
-                name="comprehensive_execution_plan.json",
+                name="execution_plan.json",
                 metadata={
                     "content_type": "application/json",
-                    "plan_type": "universal_llm_orchestration",
-                    "description": "Universal LLM 기반 종합적 실행 계획"
+                    "plan_type": "ai_ds_team_orchestration",
+                    "description": "LLM 기반 동적 실행 계획"
                 }
             )
             
+            # 계획 확인 시간 제공
             await asyncio.sleep(2)
-            await task_updater.stream_update("🚀 Universal System 실행 시작...")
+            await task_updater.stream_update("🚀 실행 계획에 따라 분석을 시작합니다...")
             
-            # 🎯 Step 5: Execute Agents with Rich Context
+            # 3. 각 에이전트 실행 (컨텍스트 전달)
             agent_results = {}
             for i, step in enumerate(execution_plan.get('steps', [])):
                 step_num = i + 1
-                agent_name = step.get('agent', 'unknown')
+                agent_name = step.get('agent', step.get('agent_name', 'unknown'))
                 
+                # 단계별 상세 정보 표시
                 step_info = f"""
 🔄 **단계 {step_num}/{len(execution_plan.get('steps', []))}: {agent_name} 실행**
 
-📝 **종합적 지시사항**: {step.get('comprehensive_instructions', '')[:200]}...
-
-🎯 **기대 성과**:
-- 최소: {step.get('expected_deliverables', {}).get('minimum', '기본 분석')}
-- 표준: {step.get('expected_deliverables', {}).get('standard', '품질 분석')}
-- 탁월: {step.get('expected_deliverables', {}).get('exceptional', '인사이트 도출')}
+📝 **작업**: {step.get('enriched_task', step.get('purpose', ''))[:100]}...
+🎯 **목적**: {step.get('purpose', '')}
 """
                 await task_updater.stream_update(step_info)
                 
-                # 에이전트 실행 (종합적 지시사항 사용)
-                agent_result = await self._execute_agent_with_comprehensive_instructions(
-                    agent_name, 
-                    step,
-                    adaptive_context,
-                    agent_results
-                )
-                
-                agent_results[agent_name] = agent_result
-                
-                if agent_result.get('status') == 'success':
-                    await task_updater.stream_update(f"✅ {agent_name} 실행 완료")
-                else:
-                    await task_updater.stream_update(f"⚠️ {agent_name} 실행 이슈: {agent_result.get('error', 'Unknown error')}")
-                
-                await asyncio.sleep(1)
+                try:
+                    # 🎯 NEW: 구조 컨텍스트와 함께 에이전트 실행
+                    result = await self._execute_agent_with_structure_context(
+                        agent_name=agent_name,
+                        step=step,
+                        answer_structure=answer_structure,
+                        full_context=request_understanding,
+                        previous_results=agent_results
+                    )
+                    agent_results[agent_name] = result
+                    
+                    # 실시간 피드백
+                    summary = result.get('summary', 'Processing completed')
+                    success_msg = f"✅ **{agent_name} 완료**: {summary}"
+                    await task_updater.stream_update(success_msg)
+                    
+                except Exception as agent_error:
+                    logger.warning(f"Agent {agent_name} execution failed: {agent_error}")
+                    agent_results[agent_name] = {
+                        'status': 'failed',
+                        'error': str(agent_error),
+                        'summary': f"에이전트 실행 중 오류 발생: {str(agent_error)}"
+                    }
+                    error_msg = f"⚠️ **{agent_name} 오류**: {str(agent_error)[:100]}... (계속 진행)"
+                    await task_updater.stream_update(error_msg)
             
-            # 🎯 Step 6: Dynamic Content Assessment
-            await task_updater.stream_update("🎨 Dynamic Content Assessment 실행 중...")
-            content_assessment = await self._assess_content_richness(agent_results)
+            # 4. LLM이 모든 결과를 종합하여 최종 답변 생성
+            await task_updater.stream_update("🎯 모든 분석 결과를 종합하여 최종 답변을 생성하고 있습니다...")
             
-            # 🎯 Step 7: Flexible Response Generation
-            await task_updater.stream_update("🎯 Flexible Response Generation 실행 중...")
-            
-            # 시각화 추출
-            visualizations = self._extract_visualizations(agent_results)
-            
-            # 유연한 응답 생성
-            base_response = await self._generate_flexible_response(
-                user_input,  # 원본 요청 사용
-                request_analysis,
-                adaptive_context,
-                agent_results
+            final_response = await self._synthesize_with_llm(
+                original_request=user_input,
+                understanding=request_understanding,
+                all_results=agent_results,
+                task_updater=task_updater
             )
             
-            # 🎨 Rich Details Injection
-            enriched_response = await self._inject_rich_details(
-                base_response,
-                content_assessment,
-                agent_results,
-                request_analysis
+            # 📊 최종 답변을 먼저 스트리밍으로 표시
+            final_display = self._create_beautiful_final_display(
+                final_response, 
+                execution_plan, 
+                agent_results, 
+                request_understanding
             )
+            await task_updater.stream_update(final_display)
             
-            # 🎨 Visualization Integration
-            if visualizations and content_assessment.get('has_visualizations'):
-                enriched_response = await self._integrate_visualizations(
-                    enriched_response,
-                    visualizations
-                )
-            
-            # 🎨 Smart Default Enrichment
-            final_response = await self._enrich_unless_explicitly_simple(
-                user_input,
-                enriched_response,
-                {
-                    'visualizations': visualizations,
-                    'metrics': content_assessment.get('key_metrics', {}),
-                    'findings': content_assessment.get('critical_findings', [])
-                }
-            )
-            
-            # 🎯 Final Delivery
-            await task_updater.stream_update("🎉 Universal System 분석 완료!")
-            
-            # 최종 응답 전달
-            if request_analysis.get('detail_level', 5) < 3:
-                # 간단한 응답은 한 번에
-                await task_updater.update_status(
-                    TaskState.completed,
-                    message=task_updater.new_agent_message(parts=[TextPart(text=final_response)])
-                )
-            else:
-                # 상세한 응답은 스트리밍
-                await task_updater.stream_final_response(final_response)
-            
-            # 실행 결과 요약 아티팩트
-            execution_summary = {
-                "request_analysis": request_analysis,
-                "adaptive_context": adaptive_context,
-                "content_assessment": content_assessment,
-                "visualizations_found": len(visualizations),
-                "agents_executed": len(agent_results),
-                "response_length": len(final_response),
-                "execution_strategy": "universal_llm_powered_dynamic_system"
-            }
-            
+            # 📊 최종 답변을 Artifact로도 전송
             await task_updater.add_artifact(
-                parts=[TextPart(text=json.dumps(execution_summary, ensure_ascii=False, indent=2))],
-                name="execution_summary.json",
+                parts=[TextPart(text=final_response)],
+                name="final_analysis_report.md",
                 metadata={
-                    "content_type": "application/json",
-                    "summary_type": "universal_system_execution",
-                    "description": "Universal System 실행 요약"
+                    "content_type": "text/markdown",
+                    "report_type": "comprehensive_analysis",
+                    "description": "LLM 기반 종합 분석 보고서"
                 }
             )
             
-            # 🎯 CRITICAL FIX: 최종 응답 전달 - 이 부분이 누락되어 있었음!
-            logger.info(f"🎉 Final response ready: {len(final_response)} characters")
+            # 5. 완료 메시지 (더 상세하고 예쁘게)
+            completion_summary = f"""## 🎉 LLM 기반 동적 오케스트레이션 완료
+
+### 📊 실행 결과 요약
+- **🤖 에이전트 발견**: {len(self.available_agents)}개
+- **📋 실행 계획**: {len(execution_plan.get('steps', []))}단계
+- **✅ 성공한 에이전트**: {len([r for r in agent_results.values() if r.get('status') == 'success'])}개
+- **❌ 실패한 에이전트**: {len([r for r in agent_results.values() if r.get('status') == 'failed'])}개
+- **🏢 도메인**: {request_understanding.get('domain', '데이터 분석')}
+- **📈 분석 깊이**: {request_understanding.get('analysis_depth', 'intermediate')}
+
+### 📋 생성된 아티팩트
+1. **execution_plan.json**: 동적 실행 계획 (JSON 형식)
+2. **final_analysis_report.md**: 종합 분석 보고서 (Markdown 형식)
+
+### 🎯 분석 완료
+모든 분석이 완료되었습니다. 위의 상세한 결과와 아티팩트에서 전체 분석 내용을 확인하세요.
+
+---
+*🤖 Powered by LLM Dynamic Context-Aware Orchestrator v6*"""
             
-            # 최종 응답을 완료 상태로 전달
             await task_updater.update_status(
                 TaskState.completed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=final_response)])
+                message=task_updater.new_agent_message(parts=[TextPart(text=completion_summary)])
             )
             
         except Exception as e:
-            error_msg = f"Universal System 실행 중 오류 발생: {str(e)}"
-            logger.error(error_msg)
+            logger.error(f"Error in LLM Powered Orchestrator: {e}", exc_info=True)
             await task_updater.update_status(
                 TaskState.failed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=error_msg)])
+                message=task_updater.new_agent_message(parts=[TextPart(text=f"오류 발생: {str(e)}")])
             )
-    
-    async def _execute_agent_with_comprehensive_instructions(self, agent_name: str, step: Dict, 
-                                                           adaptive_context: Dict,
-                                                           previous_results: Dict) -> Dict:
-        """🎯 NEW: 종합적 지시사항으로 에이전트 실행"""
-        
-        if agent_name not in self.available_agents:
-            return {
-                'status': 'failed',
-                'error': f'Agent {agent_name} not available',
-                'summary': f'에이전트 {agent_name}를 찾을 수 없습니다'
-            }
-        
-        # 종합적 지시사항 사용
-        comprehensive_instructions = step.get('comprehensive_instructions', f'{agent_name}에 대한 분석을 수행하세요.')
-        
-        # 🐛 DEBUG: 에이전트로 전송되는 메시지 로깅
-        logger.info(f"🔍 Sending to {agent_name}: {comprehensive_instructions[:200]}...")
-        
-        # 에이전트 실행
-        agent_url = self.available_agents[agent_name]['url']
-        
-        payload = {
-            "jsonrpc": "2.0",
-            "method": "message/send",
-            "params": {
-                "message": {
-                    "messageId": f"universal_req_{agent_name}_{int(time.time())}",
-                    "role": "user",
-                    "parts": [{
-                        "kind": "text",
-                        "text": comprehensive_instructions
-                    }]
-                }
-            },
-            "id": f"universal_req_{agent_name}_{int(time.time())}"
-        }
-        
-        try:
-            async with httpx.AsyncClient(timeout=180.0) as client:
-                response = await client.post(
-                    agent_url,
-                    json=payload,
-                    headers={"Content-Type": "application/json"}
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    logger.info(f"✅ {agent_name} response received: {str(result)[:200]}...")
-                    return self._parse_agent_response(result, agent_name)
-                else:
-                    logger.warning(f"❌ {agent_name} HTTP error: {response.status_code}")
-                    return {
-                        'status': 'failed',
-                        'error': f'HTTP {response.status_code}',
-                        'summary': f'에이전트 호출 실패 (HTTP {response.status_code})'
-                    }
-                    
-        except Exception as e:
-            logger.error(f"Agent {agent_name} execution error: {e}")
-            return {
-                'status': 'failed',
-                'error': str(e),
-                'summary': f'에이전트 실행 중 오류: {str(e)}'
-            }
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         """Cancel the operation"""
@@ -752,9 +665,9 @@ JSON 형식으로 응답하세요:
             logger.warning(f"Domain adaptation failed: {e}")
             return {"adaptation": "기본 데이터 분석 접근법"}
 
-    async def _create_comprehensive_execution_plan(self, expanded_request: str, 
-                                                  request_understanding: Dict,
-                                                  available_agents: Dict) -> Dict:
+    async def _create_structure_aware_plan(self, understanding: Dict, 
+                                          answer_structure: Dict,
+                                          available_agents: Dict) -> Dict:
         """완전 LLM 기반 동적 계획 생성 - 하드코딩 제거, 범용적 접근"""
         
         if not self.openai_client:
@@ -773,7 +686,7 @@ JSON 형식으로 응답하세요:
 사용자의 요청을 분석하고, 가장 효과적인 에이전트 실행 계획을 수립해야 합니다.
 
 ## 📋 사용자 요청 분석 결과
-{json.dumps(request_understanding, ensure_ascii=False, indent=2)}
+{json.dumps(understanding, ensure_ascii=False, indent=2)}
 
 ## 🤖 사용 가능한 에이전트들
 {json.dumps(agents_details, ensure_ascii=False, indent=2)}
@@ -782,8 +695,8 @@ JSON 형식으로 응답하세요:
 1. **요청 중심 접근**: 사용자가 원하는 결과에 집중하여 필요한 에이전트만 선택
 2. **논리적 순서**: 데이터 흐름과 의존성을 고려한 순서 결정
 3. **효율성 최적화**: 불필요한 단계 제거, 핵심 분석에 집중
-4. **도메인 적응**: {request_understanding.get('domain', '일반')} 도메인 특성 반영
-5. **사용자 수준 고려**: {request_understanding.get('expertise_claimed', '일반 사용자')} 수준에 맞는 분석 깊이
+4. **도메인 적응**: {understanding.get('domain', '일반')} 도메인 특성 반영
+5. **사용자 수준 고려**: {understanding.get('expertise_claimed', '일반 사용자')} 수준에 맞는 분석 깊이
 
 ## 🚀 동적 에이전트 선택 기준
 - 사용자 질문의 핵심 의도가 무엇인가?
@@ -831,7 +744,7 @@ JSON 형식으로 응답하세요:
             plan = json.loads(response.choices[0].message.content)
             
             # 계획 검증 및 보정
-            validated_plan = self._validate_and_enhance_plan(plan, available_agents, request_understanding)
+            validated_plan = self._validate_and_enhance_plan(plan, available_agents, understanding)
             
             return validated_plan
             
@@ -858,7 +771,7 @@ JSON 형식으로 응답하세요:
                         "purpose": step.get('purpose', f'{agent_name} 분석 수행'),
                         "enriched_task": step.get('enriched_task', step.get('purpose', f'{agent_name} 작업 수행')),
                         "expected_output": step.get('expected_output', f'{agent_name} 분석 결과'),
-                        "pass_to_next": step.get('context_for_next', step.get('pass_to_next', ['분석 결과', '데이터 정보']))
+                        "pass_to_next": step.get('context_for_next', step.get('pass_to_next', ['분석 결과']))
                     }
                     valid_steps.append(enhanced_step)
                 else:
@@ -947,349 +860,6 @@ JSON 형식으로 응답하세요:
                 'summary': f'에이전트 실행 중 오류: {str(e)}'
             }
 
-    async def _assess_content_richness(self, agent_results: Dict) -> Dict:
-        """🎨 NEW: 생성된 콘텐츠의 풍부함을 평가하고 활용 방안 결정"""
-        
-        if not self.openai_client:
-            return {
-                "has_visualizations": False,
-                "visualization_details": [],
-                "key_metrics": {},
-                "critical_findings": ["기본 분석 결과"],
-                "data_quality_score": 5,
-                "recommended_inclusion": ["분석 요약"]
-            }
-        
-        assessment_prompt = f"""
-        다음 분석 결과들을 평가하세요:
-        {json.dumps(agent_results, ensure_ascii=False, indent=2)}
-        
-        평가할 항목:
-        1. 시각화 자료 (차트, 그래프)의 존재와 중요도
-        2. 구체적인 수치나 통계 데이터
-        3. 발견된 패턴이나 이상치
-        4. 실무적 인사이트의 가치
-        5. 사용자가 놓치면 아까울 중요 정보
-        
-        {{
-            "has_visualizations": true/false,
-            "visualization_details": ["어떤 시각화가 있는지"],
-            "key_metrics": {{"메트릭명": "값"}},
-            "critical_findings": ["놓치면 안 되는 발견사항"],
-            "data_quality_score": 1-10,
-            "recommended_inclusion": ["반드시 포함해야 할 요소들"]
-        }}
-        """
-        
-        try:
-            response = await self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": assessment_prompt}],
-                response_format={"type": "json_object"},
-                temperature=0.3,
-                timeout=60.0
-            )
-            
-            assessment = json.loads(response.choices[0].message.content)
-            logger.info(f"🎨 Content richness assessed: score {assessment.get('data_quality_score', 5)}/10")
-            return assessment
-            
-        except Exception as e:
-            logger.warning(f"Content richness assessment failed: {e}")
-            return {
-                "has_visualizations": False,
-                "visualization_details": [],
-                "key_metrics": {},
-                "critical_findings": ["기본 분석 결과"],
-                "data_quality_score": 5,
-                "recommended_inclusion": ["분석 요약"]
-            }
-
-    async def _inject_rich_details(self, 
-                              base_response: str,
-                              content_assessment: Dict,
-                              agent_results: Dict,
-                              user_request_analysis: Dict) -> str:
-        """🎨 NEW: 기본 응답에 풍부한 디테일을 적응적으로 주입"""
-        
-        if not self.openai_client:
-            return base_response
-        
-        injection_prompt = f"""
-        기본 응답: {base_response}
-        
-        사용 가능한 풍부한 콘텐츠:
-        - 시각화: {content_assessment['visualization_details']}
-        - 핵심 수치: {content_assessment['key_metrics']}
-        - 중요 발견사항: {content_assessment['critical_findings']}
-        
-        사용자 요청 특성:
-        - 상세도: {user_request_analysis['detail_level']}/10
-        - 명시적 간단 요청 여부: {user_request_analysis.get('explicitly_wants_brief', False)}
-        
-        지침:
-        1. 사용자가 명시적으로 "간단히"를 요청하지 않았다면, 중요한 디테일 포함
-        2. 시각화가 있다면 반드시 언급하고 주요 인사이트 설명
-        3. 구체적 수치를 텍스트로 포함 (예: "TW 평균값이 3,622로 상한선 4,080의 88.8%")
-        4. 데이터가 풍부할 때는 섹션을 나누어 체계적으로 제시
-        5. 중요한 발견은 강조 (볼드, 불릿 포인트 등)
-        
-        향상된 응답을 작성하세요. 원본의 톤은 유지하되, 가치 있는 정보는 빠뜨리지 마세요.
-        """
-        
-        try:
-            response = await self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": injection_prompt}],
-                temperature=0.3,
-                timeout=90.0
-            )
-            
-            enhanced_response = response.choices[0].message.content
-            logger.info(f"💎 Rich details injected: {len(enhanced_response)} chars")
-            return enhanced_response
-            
-        except Exception as e:
-            logger.warning(f"Rich detail injection failed: {e}")
-            return base_response
-
-    async def _integrate_visualizations(self, 
-                                  text_response: str,
-                                  visualizations: List[Dict]) -> str:
-        """🎨 NEW: 시각화를 텍스트 응답에 자연스럽게 통합"""
-        
-        if not visualizations or not self.openai_client:
-            return text_response
-        
-        integration_prompt = f"""
-        텍스트 응답: {text_response}
-        
-        사용 가능한 시각화:
-        {json.dumps(visualizations, ensure_ascii=False)}
-        
-        각 시각화에 대해:
-        1. 적절한 위치에 참조 추가
-        2. 시각화가 보여주는 핵심 인사이트 설명
-        3. 중요한 데이터 포인트 텍스트로도 명시
-        
-        예시:
-        "아래 시계열 차트에서 볼 수 있듯이, HAE4026 장비의 TW 값이 
-        1월 5일 3,706에서 1월 7일 7,010으로 89% 증가했습니다.
-        특히 IS CARBON IMP 공정에서 급격한 상승이 관찰됩니다."
-        
-        시각화와 텍스트가 상호보완적이 되도록 통합하세요.
-        """
-        
-        try:
-            response = await self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": integration_prompt}],
-                temperature=0.2,
-                timeout=90.0
-            )
-            
-            integrated_response = response.choices[0].message.content
-            logger.info(f"📊 Visualizations integrated successfully")
-            return integrated_response
-            
-        except Exception as e:
-            logger.warning(f"Visualization integration failed: {e}")
-            return text_response
-
-    async def _enrich_unless_explicitly_simple(self,
-                                         user_input: str,
-                                         initial_response: str,
-                                         available_content: Dict) -> str:
-        """🎨 NEW: 명시적 간단 요청이 아니면 자동으로 풍부하게"""
-        
-        # 간단함을 명시적으로 요청했는지 확인
-        simplicity_indicators = ["간단히", "요약만", "briefly", "summary only", "한 줄로"]
-        explicitly_simple = any(indicator in user_input.lower() for indicator in simplicity_indicators)
-        
-        if explicitly_simple:
-            return initial_response
-        
-        if not self.openai_client:
-            return initial_response
-        
-        # 풍부한 콘텐츠 자동 추가
-        enrichment_prompt = f"""
-        사용자가 특별히 간단함을 요구하지 않았으므로, 
-        분석의 가치를 최대한 전달하세요.
-        
-        현재 응답: {initial_response}
-        
-        추가 가능한 콘텐츠:
-        {json.dumps(available_content, ensure_ascii=False)}
-        
-        다음을 포함하여 응답을 풍부하게 만드세요:
-        1. 📊 시각화 결과와 그 의미
-        2. 🔢 구체적인 수치와 비율
-        3. 📈 트렌드와 패턴
-        4. ⚠️ 주의가 필요한 발견사항
-        5. 💡 실무적 인사이트
-        
-        보고서처럼 섹션을 나누어도 좋습니다:
-        - 핵심 요약
-        - 상세 분석 결과
-        - 시각화 인사이트
-        - 권장 조치사항
-        
-        사용자가 "어렵게 분석한" 결과를 충분히 활용할 수 있게 하세요.
-        """
-        
-        try:
-            response = await self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": enrichment_prompt}],
-                temperature=0.4,
-                timeout=120.0
-            )
-            
-            enriched_response = response.choices[0].message.content
-            logger.info(f"🌟 Response enriched: {len(enriched_response)} chars")
-            return enriched_response
-            
-        except Exception as e:
-            logger.warning(f"Response enrichment failed: {e}")
-            return initial_response
-
-    def _extract_visualizations(self, agent_results: Dict) -> List[Dict]:
-        """분석 결과에서 시각화 정보 추출"""
-        visualizations = []
-        
-        for agent_name, result in agent_results.items():
-            if isinstance(result, dict):
-                # 아티팩트에서 시각화 찾기
-                artifacts = result.get('artifacts', [])
-                for artifact in artifacts:
-                    if isinstance(artifact, dict):
-                        name = artifact.get('name', '')
-                        if any(ext in name.lower() for ext in ['.png', '.jpg', '.svg', '.html', 'chart', 'plot', 'graph']):
-                            visualizations.append({
-                                'agent': agent_name,
-                                'name': name,
-                                'type': self._infer_chart_type(name),
-                                'description': artifact.get('description', ''),
-                                'data_points': self._extract_data_points(artifact)
-                            })
-        
-        return visualizations
-
-    def _infer_chart_type(self, filename: str) -> str:
-        """파일명에서 차트 타입 추론"""
-        filename_lower = filename.lower()
-        if 'histogram' in filename_lower or 'hist' in filename_lower:
-            return '히스토그램'
-        elif 'scatter' in filename_lower:
-            return '산점도'
-        elif 'line' in filename_lower or 'time' in filename_lower:
-            return '시계열 차트'
-        elif 'box' in filename_lower:
-            return '박스플롯'
-        elif 'bar' in filename_lower:
-            return '막대 차트'
-        else:
-            return '차트'
-
-    def _extract_data_points(self, artifact: Dict) -> Dict:
-        """아티팩트에서 핵심 데이터 포인트 추출"""
-        # 메타데이터나 설명에서 수치 정보 추출 시도
-        description = artifact.get('description', '')
-        metadata = artifact.get('metadata', {})
-        
-        data_points = {}
-        
-        # 간단한 패턴 매칭으로 수치 추출
-        import re
-        numbers = re.findall(r'(\w+):\s*([0-9,]+\.?[0-9]*)', description)
-        for key, value in numbers:
-            try:
-                data_points[key] = float(value.replace(',', ''))
-            except:
-                data_points[key] = value
-        
-        return data_points
-
-    async def _generate_flexible_response(self,
-                                    user_input: str,
-                                    request_analysis: Dict,
-                                    context: Dict,
-                                    agent_results: Dict) -> str:
-        """🎯 NEW: 요청 특성에 맞는 유연한 응답 생성"""
-        
-        if not self.openai_client:
-            return self._create_fallback_synthesis(user_input, agent_results)
-        
-        # 기본 프롬프트 구성
-        base_prompt = f"""
-        사용자 요청: "{user_input}"
-        
-        분석된 데이터:
-        {self._structure_agent_results(agent_results)}
-        """
-        
-        # 역할이 있는 경우 추가
-        if request_analysis['has_role_description']:
-            role_prompt = f"""
-            당신은 {request_analysis['role_description']}의 관점에서 응답하세요.
-            해당 분야의 전문 용어와 관심사를 반영하세요.
-            """
-        else:
-            role_prompt = """
-            전문적이지만 이해하기 쉬운 방식으로 응답하세요.
-            기술적 정확성과 실용성의 균형을 맞추세요.
-            """
-        
-        # 상세도에 따른 지시
-        if request_analysis['detail_level'] < 3:
-            depth_prompt = """
-            핵심만 간단명료하게 답변하세요.
-            불필요한 세부사항은 제외하고 중요한 결과만 전달하세요.
-            """
-        elif request_analysis['detail_level'] < 7:
-            depth_prompt = """
-            적절한 수준의 상세함으로 답변하세요.
-            주요 발견사항과 그 의미를 설명하되, 과도하게 기술적이지 않게 하세요.
-            """
-        else:
-            depth_prompt = """
-            포괄적이고 상세한 분석을 제공하세요.
-            모든 관련 데이터, 패턴, 인사이트를 포함하세요.
-            필요하다면 기술적 세부사항도 설명하세요.
-            """
-        
-        # 최종 프롬프트 조합
-        final_prompt = f"""
-        {base_prompt}
-        
-        {role_prompt}
-        
-        {depth_prompt}
-        
-        답변 지침:
-        - 사용자가 명시적으로 요청한 것: {request_analysis['explicit_requirements']}
-        - 추가로 도움될 수 있는 정보: {request_analysis['implicit_needs']}
-        
-        형식에 얽매이지 말고, 상황에 맞는 가장 자연스러운 방식으로 응답하세요.
-        """
-        
-        try:
-            response = await self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": final_prompt}],
-                temperature=0.4,
-                timeout=120.0
-            )
-            
-            flexible_response = response.choices[0].message.content
-            logger.info(f"🎯 Flexible response generated: {len(flexible_response)} chars")
-            return flexible_response
-            
-        except Exception as e:
-            logger.warning(f"Flexible response generation failed: {e}")
-            return self._create_fallback_synthesis(user_input, agent_results)
-
     async def _enrich_agent_task(self, agent_name: str, base_task: str, 
                                 context: Dict, previous_results: Dict) -> str:
         """LLM이 각 에이전트의 작업을 컨텍스트에 맞게 보강"""
@@ -1335,107 +905,198 @@ JSON 형식으로 응답하세요:
     async def _synthesize_with_llm(self, original_request: str, 
                                   understanding: Dict, all_results: Dict,
                                   task_updater: StreamingTaskUpdater) -> str:
-        """🎯 NEW: Question-Driven Dynamic Structure 방식으로 답변 생성"""
-        
-        logger.info("🎯 Question-Driven 합성 시작")
+        """🎯 ENHANCED: Universal LLM 기반 동적 종합 - Rich Content Assessment 통합"""
         
         if not self.openai_client:
-            logger.warning("❌ OpenAI 클라이언트 없음, fallback 사용")
             return self._create_fallback_synthesis(original_request, all_results)
         
         try:
-            # 1단계: 질문에서 답변 구조 추출
-            logger.info("📋 1단계: 질문에서 답변 구조 추출")
-            answer_structure = await self._extract_answer_structure_from_question(original_request)
-            logger.info(f"✅ 답변 구조 추출 완료: {len(answer_structure.get('required_sections', []))} 섹션")
+            # 🎯 Step 1: Universal Request Analysis
+            await task_updater.stream_update("🧠 Universal Request Analysis 실행 중...")
+            request_analysis = await self._analyze_request_depth(original_request)
             
-            # 2단계: 실제 데이터 컨텍스트 추출 (할루시네이션 방지)
-            logger.info("📊 2단계: 데이터 컨텍스트 추출")
-            data_context = await self._extract_data_context(all_results)
-            logger.info(f"✅ 데이터 컨텍스트 추출 완료: {data_context.get('data_quality', 'unknown')} 품질")
+            # 🎯 Step 2: Adaptive Context Building
+            await task_updater.stream_update("🎭 Adaptive Context Building 실행 중...")
+            adaptive_context = await self._build_adaptive_context(original_request, request_analysis)
             
-            # 3단계: 에이전트 결과 구조화
-            logger.info("🔍 3단계: 에이전트 결과 구조화")
-            structured_results = self._structure_agent_results(all_results)
-            logger.info(f"✅ 결과 구조화 완료: {len(structured_results)} 문자")
+            # 🎯 Step 3: Content Richness Assessment
+            await task_updater.stream_update("🎨 Content Richness Assessment 실행 중...")
+            content_assessment = await self._assess_content_richness(all_results)
             
-            # 4단계: 🎯 NEW - 동적 구조 기반 프롬프트 생성
-            logger.info("🎨 4단계: 동적 구조 기반 프롬프트 생성")
-            synthesis_prompt = f"""당신은 {understanding.get('domain', '데이터 분석')} 분야의 전문가입니다.
-
-## 🎯 사용자의 원본 질문
-"{original_request}"
-
-## 📋 사용자가 원하는 답변 구조 (질문에서 추출)
-전체 답변 흐름: {answer_structure.get('overall_structure', '직접 답변')}
-
-필요한 섹션들:
-{json.dumps(answer_structure.get('required_sections', []), ensure_ascii=False, indent=2)}
-
-답해야 할 핵심 질문들:
-{json.dumps(answer_structure.get('key_questions_to_answer', []), ensure_ascii=False, indent=2)}
-
-## 📊 실제 분석된 데이터 정보 (할루시네이션 방지)
-- 사용 가능한 데이터: {len(data_context.get('available_data', []))}개 소스
-- 데이터 품질: {data_context.get('data_quality', 'unknown')}
-- 통계적 증거: {', '.join(data_context.get('statistical_evidence', [])[:10])}
-- 데이터 제한사항: {', '.join(data_context.get('limitations', []))}
-
-## 🔍 각 에이전트 분석 결과
-{structured_results}
-
-## ✅ 필수 준수사항 (Question-Driven 방식)
-1. **질문 구조 완전 준수**: 위에서 추출한 답변 구조를 정확히 따르세요
-2. **섹션별 맞춤 작성**: 각 required_section의 purpose와 expected_format에 맞게 작성
-3. **실제 데이터만 사용**: 위 분석 결과만 사용하고, 추측하지 마세요
-4. **핵심 질문 완전 답변**: key_questions_to_answer의 모든 질문에 답하세요
-5. **구체적 근거 제시**: 모든 주장에 대해 분석 결과 기반 근거 제시
-
-## ❌ 절대 금지
-- 미리 정의된 템플릿 사용 (사용자 질문 구조와 다른 경우)
-- 분석되지 않은 내용 추측
-- 질문에서 요구하지 않은 섹션 추가
-- 막연한 표현 ("일반적으로", "보통", "대체로" 등)
-
-🎯 중요: 사용자가 질문에서 요구한 구조 그대로 답변하세요. 
-예를 들어 "이상 여부를 판단하고 원인을 설명하며 조치를 제안"이라고 했다면, 
-정확히 그 3가지 섹션으로 구성하세요."""
-
-            logger.info(f"✅ 프롬프트 생성 완료: {len(synthesis_prompt)} 문자")
+            # 🎯 Step 4: Visualization Extraction
+            visualizations = self._extract_visualizations(all_results)
+            logger.info(f"📊 Found {len(visualizations)} visualizations")
             
-            # 5단계: LLM 호출
-            logger.info("🤖 5단계: LLM 호출")
-            response = await self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": synthesis_prompt}],
-                max_tokens=4000,
-                temperature=0.3,
-                timeout=180
+            # 🎯 Step 5: Flexible Response Generation
+            await task_updater.stream_update("🎯 Flexible Response Generation 실행 중...")
+            
+            # 기본 응답 생성
+            base_response = await self._generate_flexible_response(
+                original_request,
+                request_analysis,
+                adaptive_context,
+                all_results
             )
             
-            llm_response = response.choices[0].message.content
-            logger.info(f"✅ LLM 응답 수신: {len(llm_response)} 문자")
+            # 🎨 Step 6: Rich Details Injection
+            await task_updater.stream_update("💎 Rich Details Injection 실행 중...")
+            enriched_response = await self._inject_rich_details(
+                base_response,
+                content_assessment,
+                all_results,
+                request_analysis
+            )
             
-            # 6단계: 품질 검증 (할루시네이션 체크)
-            logger.info("🔍 6단계: 품질 검증")
-            quality_ok = await self._validate_response_quality(llm_response, data_context, original_request)
+            # 🎨 Step 7: Visualization Integration
+            if visualizations and content_assessment.get('has_visualizations'):
+                await task_updater.stream_update("📊 Visualization Integration 실행 중...")
+                enriched_response = await self._integrate_visualizations(
+                    enriched_response,
+                    visualizations
+                )
             
-            if quality_ok:
-                logger.info("✅ 품질 검증 통과, 최종 응답 반환")
-                return llm_response
-            else:
-                logger.warning("⚠️ 품질 검증 실패, 강화 프롬프트로 재시도")
-                # 품질이 부족하면 더 강한 프롬프트로 재시도
-                retry_result = await self._retry_with_stronger_prompt(
+            # 🎨 Step 8: Smart Default Enrichment
+            await task_updater.stream_update("🌟 Smart Default Enrichment 실행 중...")
+            final_response = await self._enrich_unless_explicitly_simple(
+                original_request,
+                enriched_response,
+                {
+                    'visualizations': visualizations,
+                    'metrics': content_assessment.get('key_metrics', {}),
+                    'findings': content_assessment.get('critical_findings', [])
+                }
+            )
+            
+            # 🎯 Step 9: Quality Validation
+            await task_updater.stream_update("✅ Quality Validation 실행 중...")
+            data_context = await self._extract_data_context(all_results)
+            
+            is_quality_ok = await self._validate_response_quality(
+                final_response, data_context, original_request
+            )
+            
+            if not is_quality_ok:
+                logger.info("🔄 Quality validation failed, retrying with stronger prompt...")
+                answer_structure = await self._extract_answer_structure_from_question(original_request)
+                structured_results = self._structure_agent_results(all_results)
+                
+                final_response = await self._retry_with_stronger_prompt(
                     original_request, understanding, structured_results, data_context, answer_structure
                 )
-                logger.info("✅ 재시도 완료")
-                return retry_result
-                                                           
+            
+            logger.info(f"✅ Universal LLM synthesis completed: {len(final_response)} characters")
+            return final_response
+            
         except Exception as e:
-            logger.error(f"❌ Question-Driven 합성 실패: {e}", exc_info=True)
-            logger.warning("🔄 fallback_synthesis로 전환")
+            logger.error(f"Universal LLM synthesis failed: {e}")
             return self._create_fallback_synthesis(original_request, all_results)
+
+    async def _generate_flexible_response(self,
+                                    user_input: str,
+                                    request_analysis: Dict,
+                                    context: Dict,
+                                    agent_results: Dict) -> str:
+        """🎯 NEW: 요청 특성에 맞는 유연한 응답 생성"""
+        
+        if not self.openai_client:
+            return self._create_fallback_synthesis(user_input, agent_results)
+        
+        # 기본 프롬프트 구성
+        base_prompt = f"""사용자 요청: "{user_input}"
+
+분석된 데이터:
+{self._structure_agent_results(agent_results)}"""
+        
+        # 역할이 있는 경우 추가
+        if request_analysis.get('has_role_description', False):
+            role_prompt = f"""당신은 {request_analysis['role_description']}의 관점에서 응답하세요.
+해당 분야의 전문 용어와 관심사를 반영하세요."""
+        else:
+            role_prompt = """전문적이지만 이해하기 쉬운 방식으로 응답하세요.
+기술적 정확성과 실용성의 균형을 맞추세요."""
+        
+        # 상세도에 따른 지시
+        detail_level = request_analysis.get('detail_level', 5)
+        if detail_level < 3:
+            depth_prompt = """핵심만 간단명료하게 답변하세요.
+불필요한 세부사항은 제외하고 중요한 결과만 전달하세요."""
+        elif detail_level < 7:
+            depth_prompt = """적절한 수준의 상세함으로 답변하세요.
+주요 발견사항과 그 의미를 설명하되, 과도하게 기술적이지 않게 하세요."""
+        else:
+            depth_prompt = """포괄적이고 상세한 분석을 제공하세요.
+모든 관련 데이터, 패턴, 인사이트를 포함하세요.
+필요하다면 기술적 세부사항도 설명하세요."""
+        
+        # 최종 프롬프트 조합
+        final_prompt = f"""{base_prompt}
+
+{role_prompt}
+
+{depth_prompt}
+
+답변 지침:
+- 사용자가 명시적으로 요청한 것: {request_analysis.get('explicit_requirements', [])}
+- 추가로 도움될 수 있는 정보: {request_analysis.get('implicit_needs', [])}
+
+형식에 얽매이지 말고, 상황에 맞는 가장 자연스러운 방식으로 응답하세요."""
+        
+        try:
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": final_prompt}],
+                temperature=0.4,
+                timeout=120.0
+            )
+            
+            flexible_response = response.choices[0].message.content
+            logger.info(f"🎯 Flexible response generated: {len(flexible_response)} chars")
+            return flexible_response
+            
+        except Exception as e:
+            logger.warning(f"Flexible response generation failed: {e}")
+            return self._create_fallback_synthesis(user_input, agent_results)
+
+    async def _integrate_visualizations(self, 
+                                  text_response: str,
+                                  visualizations: List[Dict]) -> str:
+        """🎨 NEW: 시각화를 텍스트 응답에 자연스럽게 통합"""
+        
+        if not visualizations or not self.openai_client:
+            return text_response
+        
+        integration_prompt = f"""텍스트 응답: {text_response}
+
+사용 가능한 시각화:
+{json.dumps(visualizations, ensure_ascii=False)}
+
+각 시각화에 대해:
+1. 적절한 위치에 참조 추가
+2. 시각화가 보여주는 핵심 인사이트 설명
+3. 중요한 데이터 포인트 텍스트로도 명시
+
+예시:
+"아래 시계열 차트에서 볼 수 있듯이, HAE4026 장비의 TW 값이 
+1월 5일 3,706에서 1월 7일 7,010으로 89% 증가했습니다.
+특히 IS CARBON IMP 공정에서 급격한 상승이 관찰됩니다."
+
+시각화와 텍스트가 상호보완적이 되도록 통합하세요."""
+        
+        try:
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": integration_prompt}],
+                temperature=0.2,
+                timeout=90.0
+            )
+            
+            integrated_response = response.choices[0].message.content
+            logger.info(f"📊 Visualizations integrated successfully")
+            return integrated_response
+            
+        except Exception as e:
+            logger.warning(f"Visualization integration failed: {e}")
+            return text_response
 
     async def _validate_response_quality(self, response: str, data_context: Dict, 
                                        original_request: str) -> bool:
@@ -1909,6 +1570,218 @@ JSON 형식으로 응답하세요:
 """
         
         return final_display
+
+    async def _assess_content_richness(self, agent_results: Dict) -> Dict:
+        """🎨 NEW: 생성된 콘텐츠의 풍부함을 평가하고 활용 방안 결정"""
+        
+        if not self.openai_client:
+            return {
+                "has_visualizations": False,
+                "visualization_details": [],
+                "key_metrics": {},
+                "critical_findings": ["기본 분석 결과"],
+                "data_quality_score": 5,
+                "recommended_inclusion": ["분석 요약"]
+            }
+        
+        assessment_prompt = f"""다음 분석 결과들을 평가하세요:
+{json.dumps(agent_results, ensure_ascii=False, indent=2)}
+
+평가할 항목:
+1. 시각화 자료 (차트, 그래프)의 존재와 중요도
+2. 구체적인 수치나 통계 데이터  
+3. 발견된 패턴이나 이상치
+4. 실무적 인사이트의 가치
+5. 사용자가 놓치면 아까울 중요 정보
+
+JSON 응답:
+{{
+    "has_visualizations": true/false,
+    "visualization_details": ["어떤 시각화가 있는지"],
+    "key_metrics": {{"메트릭명": "값"}},
+    "critical_findings": ["놓치면 안 되는 발견사항"],
+    "data_quality_score": 1-10,
+    "recommended_inclusion": ["반드시 포함해야 할 요소들"]
+}}"""
+        
+        try:
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": assessment_prompt}],
+                response_format={"type": "json_object"},
+                temperature=0.3,
+                timeout=60.0
+            )
+            
+            assessment = json.loads(response.choices[0].message.content)
+            logger.info(f"🎨 Content richness assessed: score {assessment.get('data_quality_score', 5)}/10")
+            return assessment
+            
+        except Exception as e:
+            logger.warning(f"Content richness assessment failed: {e}")
+            return {
+                "has_visualizations": False,
+                "visualization_details": [],
+                "key_metrics": {},
+                "critical_findings": ["기본 분석 결과"],
+                "data_quality_score": 5,
+                "recommended_inclusion": ["분석 요약"]
+            }
+
+    async def _inject_rich_details(self, 
+                              base_response: str,
+                              content_assessment: Dict,
+                              agent_results: Dict,
+                              user_request_analysis: Dict) -> str:
+        """🎨 NEW: 기본 응답에 풍부한 디테일을 적응적으로 주입"""
+        
+        if not self.openai_client:
+            return base_response
+        
+        injection_prompt = f"""기본 응답: {base_response}
+
+사용 가능한 풍부한 콘텐츠:
+- 시각화: {content_assessment['visualization_details']}
+- 핵심 수치: {content_assessment['key_metrics']}
+- 중요 발견사항: {content_assessment['critical_findings']}
+
+사용자 요청 특성:
+- 상세도: {user_request_analysis.get('detail_level', 5)}/10
+- 명시적 간단 요청 여부: {user_request_analysis.get('explicitly_wants_brief', False)}
+
+지침:
+1. 사용자가 명시적으로 "간단히"를 요청하지 않았다면, 중요한 디테일 포함
+2. 시각화가 있다면 반드시 언급하고 주요 인사이트 설명
+3. 구체적 수치를 텍스트로 포함 (예: "TW 평균값이 3,622로 상한선 4,080의 88.8%")
+4. 데이터가 풍부할 때는 섹션을 나누어 체계적으로 제시
+5. 중요한 발견은 강조 (볼드, 불릿 포인트 등)
+
+향상된 응답을 작성하세요. 원본의 톤은 유지하되, 가치 있는 정보는 빠뜨리지 마세요."""
+        
+        try:
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": injection_prompt}],
+                temperature=0.3,
+                timeout=90.0
+            )
+            
+            enhanced_response = response.choices[0].message.content
+            logger.info(f"💎 Rich details injected: {len(enhanced_response)} chars")
+            return enhanced_response
+            
+        except Exception as e:
+            logger.warning(f"Rich detail injection failed: {e}")
+            return base_response
+
+    async def _enrich_unless_explicitly_simple(self,
+                                         user_input: str,
+                                         initial_response: str,
+                                         available_content: Dict) -> str:
+        """🎨 NEW: 명시적 간단 요청이 아니면 자동으로 풍부하게"""
+        
+        # 간단함을 명시적으로 요청했는지 확인
+        simplicity_indicators = ["간단히", "요약만", "briefly", "summary only", "한 줄로"]
+        explicitly_simple = any(indicator in user_input.lower() for indicator in simplicity_indicators)
+        
+        if explicitly_simple:
+            return initial_response
+        
+        if not self.openai_client:
+            return initial_response
+        
+        # 풍부한 콘텐츠 자동 추가
+        enrichment_prompt = f"""사용자가 특별히 간단함을 요구하지 않았으므로, 
+분석의 가치를 최대한 전달하세요.
+
+현재 응답: {initial_response}
+
+추가 가능한 콘텐츠:
+{json.dumps(available_content, ensure_ascii=False)}
+
+다음을 포함하여 응답을 풍부하게 만드세요:
+1. 📊 시각화 결과와 그 의미
+2. 🔢 구체적인 수치와 비율
+3. 📈 트렌드와 패턴
+4. ⚠️ 주의가 필요한 발견사항  
+5. 💡 실무적 인사이트
+
+보고서처럼 섹션을 나누어도 좋습니다:
+- 핵심 요약
+- 상세 분석 결과
+- 시각화 인사이트
+- 권장 조치사항
+
+사용자가 "어렵게 분석한" 결과를 충분히 활용할 수 있게 하세요."""
+        
+        try:
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": enrichment_prompt}],
+                temperature=0.4,
+                timeout=120.0
+            )
+            
+            enriched_response = response.choices[0].message.content
+            logger.info(f"🌟 Response enriched: {len(enriched_response)} chars")
+            return enriched_response
+            
+        except Exception as e:
+            logger.warning(f"Response enrichment failed: {e}")
+            return initial_response
+
+    def _extract_visualizations(self, agent_results: Dict) -> List[Dict]:
+        """분석 결과에서 시각화 정보 추출"""
+        visualizations = []
+        
+        for agent_name, result in agent_results.items():
+            if isinstance(result, dict):
+                # 아티팩트에서 시각화 찾기
+                artifacts = result.get('artifacts', [])
+                for artifact in artifacts:
+                    if isinstance(artifact, dict):
+                        name = artifact.get('name', '')
+                        if any(ext in name.lower() for ext in ['.png', '.jpg', '.svg', '.html', 'chart', 'plot', 'graph']):
+                            visualizations.append({
+                                'agent': agent_name,
+                                'name': name,
+                                'type': self._infer_chart_type(name),
+                                'description': artifact.get('description', ''),
+                                'data_points': self._extract_data_points(artifact)
+                            })
+        
+        return visualizations
+
+    def _infer_chart_type(self, filename: str) -> str:
+        """파일명에서 차트 타입 추론"""
+        filename_lower = filename.lower()
+        if 'histogram' in filename_lower or 'hist' in filename_lower:
+            return '히스토그램'
+        elif 'scatter' in filename_lower:
+            return '산점도'
+        elif 'line' in filename_lower or 'time' in filename_lower:
+            return '시계열 차트'
+        elif 'box' in filename_lower:
+            return '박스플롯'
+        elif 'bar' in filename_lower:
+            return '막대 차트'
+        else:
+            return '차트'
+
+    def _extract_data_points(self, artifact: Dict) -> Dict:
+        """아티팩트에서 핵심 데이터 포인트 추출"""
+        description = artifact.get('description', '')
+        data_points = {}
+        
+        # 간단한 패턴 매칭으로 수치 추출
+        numbers = re.findall(r'(\w+):\s*([0-9,]+\.?[0-9]*)', description)
+        for key, value in numbers:
+            try:
+                data_points[key] = float(value.replace(',', ''))
+            except:
+                data_points[key] = value
+        
+        return data_points
 
 
 def create_llm_powered_orchestrator_server():
