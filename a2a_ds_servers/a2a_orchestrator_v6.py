@@ -8,6 +8,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import time
 from typing import Any, Dict, List, Optional
 
@@ -308,7 +309,7 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
         return available_agents
 
     async def _understand_request(self, user_input: str) -> Dict[str, Any]:
-        """LLM이 요청을 깊이 이해하고 구조화"""
+        """강화된 LLM 기반 요청 이해 - 사용자 의도를 완전히 파악"""
         
         if not self.openai_client:
             # Fallback: 기본 구조 반환
@@ -320,38 +321,77 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 "domain_context": "일반적인 데이터 분석",
                 "data_mentioned": "업로드된 데이터",
                 "analysis_depth": "intermediate",
-                "tone": "technical"
+                "tone": "technical",
+                "intent_category": "exploratory_analysis",
+                "specific_questions": ["데이터 탐색"],
+                "business_context": "일반적인 데이터 분석 요구"
             }
-        
-        prompt = f"""다음 사용자 요청을 분석하여 구조화하세요:
 
+        understanding_prompt = f"""당신은 사용자 의도 분석 전문가입니다. 다음 요청을 깊이 분석하여 사용자가 진정으로 원하는 것을 파악하세요.
+
+사용자 요청:
 {user_input}
+
+다음 관점에서 종합적으로 분석하세요:
+
+1. **핵심 의도 파악**: 사용자가 정말로 알고 싶어하는 것은 무엇인가?
+2. **도메인 컨텍스트**: 어떤 산업/분야의 문제인가?
+3. **전문성 수준**: 사용자의 배경 지식은 어느 정도인가?
+4. **비즈니스 맥락**: 이 분석이 어떤 의사결정에 사용될 것인가?
+5. **구체적 질문**: 명시적/암시적으로 포함된 구체적 질문들은?
+6. **결과물 기대**: 어떤 형태의 답변을 원하는가?
 
 다음 JSON 형식으로 응답하세요:
 {{
-    "domain": "식별된 도메인 (예: 반도체, 금융, 의료, 제조업 등)",
-    "expertise_claimed": "사용자가 언급한 전문성이나 역할",
-    "key_objectives": ["목표1", "목표2"],
-    "required_outputs": ["필요한 산출물1", "산출물2"],
-    "domain_context": "도메인 특화 지식이나 규칙 요약",
-    "data_mentioned": "언급된 데이터나 파일",
-    "analysis_depth": "요구되는 분석 깊이 (basic/intermediate/expert)",
-    "tone": "응답 톤 (technical/business/educational)"
-}}"""
+    "intent_category": "의도 카테고리 (exploratory_analysis/hypothesis_testing/predictive_modeling/comparative_analysis/trend_analysis/anomaly_detection/performance_optimization/decision_support 등)",
+    "domain": "구체적 도메인 (반도체/금융/의료/제조/마케팅/HR/품질관리 등)",
+    "expertise_claimed": "사용자가 언급한 역할이나 전문성",
+    "analysis_depth": "요구되는 분석 깊이 (basic/intermediate/expert/research_level)",
+    "key_objectives": ["구체적 목표1", "목표2", "목표3"],
+    "specific_questions": ["사용자가 답을 원하는 구체적 질문들"],
+    "required_outputs": ["필요한 산출물/결과물"],
+    "business_context": "비즈니스 맥락이나 의사결정 상황",
+    "domain_context": "도메인 특화 지식이나 규칙, 전문 용어",
+    "data_mentioned": "언급된 데이터, 파일, 변수들",
+    "constraints_mentioned": "언급된 제약사항이나 조건들",
+    "success_criteria": "사용자가 만족할 성공 기준",
+    "tone": "응답 톤 (technical/business/educational/executive_summary)",
+    "urgency_level": "긴급도 (low/medium/high)",
+    "stakeholders": "결과를 보게 될 이해관계자들"
+}}
+
+중요: 사용자가 명시하지 않은 것도 맥락에서 추론하되, 추론임을 명시하세요."""
 
         try:
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}],
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "당신은 사용자의 진정한 의도와 요구사항을 파악하는 전문가입니다. 명시된 내용뿐만 아니라 맥락에서 읽을 수 있는 암시적 요구사항도 파악합니다. 사용자가 진정으로 원하는 것이 무엇인지 깊이 있게 분석합니다."
+                    },
+                    {"role": "user", "content": understanding_prompt}
+                ],
                 response_format={"type": "json_object"},
                 temperature=0.3,
-                timeout=60.0  # 타임아웃 증가
+                max_tokens=2000,
+                timeout=90.0
             )
             
-            return json.loads(response.choices[0].message.content)
+            understanding = json.loads(response.choices[0].message.content)
+            
+            # 기본값 보완
+            understanding.setdefault("domain", "데이터 분석")
+            understanding.setdefault("expertise_claimed", "일반 사용자")
+            understanding.setdefault("key_objectives", ["데이터 분석 수행"])
+            understanding.setdefault("required_outputs", ["분석 결과"])
+            understanding.setdefault("analysis_depth", "intermediate")
+            understanding.setdefault("tone", "technical")
+            
+            return understanding
             
         except Exception as e:
-            logger.warning(f"Request understanding failed: {e}")
+            logger.warning(f"Enhanced request understanding failed: {e}")
             return {
                 "domain": "데이터 분석",
                 "expertise_claimed": "일반 사용자",
@@ -360,7 +400,10 @@ class LLMPoweredOrchestratorExecutor(AgentExecutor):
                 "domain_context": user_input,
                 "data_mentioned": "업로드된 데이터",
                 "analysis_depth": "intermediate",
-                "tone": "technical"
+                "tone": "technical",
+                "intent_category": "exploratory_analysis",
+                "specific_questions": [user_input],
+                "business_context": "일반적인 데이터 분석 요구"
             }
 
     async def _auto_adapt_to_domain(self, user_input: str) -> Dict:
@@ -407,54 +450,132 @@ JSON 형식으로 응답하세요:
 
     async def _create_dynamic_plan(self, understanding: Dict, 
                                   available_agents: Dict) -> Dict:
-        """요청에 따라 동적으로 최적의 실행 계획 생성"""
+        """완전 LLM 기반 동적 계획 생성 - 하드코딩 제거, 범용적 접근"""
         
         if not self.openai_client:
             return self._create_fallback_plan(available_agents)
         
-        agents_info = json.dumps(
-            {name: info['description'] for name, info in available_agents.items()},
-            ensure_ascii=False
-        )
+        # 에이전트들의 상세 정보 구조화
+        agents_details = {}
+        for name, info in available_agents.items():
+            agents_details[name] = {
+                "description": info.get('description', ''),
+                "capabilities": info.get('capabilities', []),
+                "typical_use_cases": info.get('use_cases', [])
+            }
         
-        planning_prompt = f"""
-사용자 요청 분석:
+        planning_prompt = f"""당신은 데이터 분석 워크플로우 설계 전문가입니다.
+사용자의 요청을 분석하고, 가장 효과적인 에이전트 실행 계획을 수립해야 합니다.
+
+## 📋 사용자 요청 분석 결과
 {json.dumps(understanding, ensure_ascii=False, indent=2)}
 
-사용 가능한 에이전트:
-{agents_info}
+## 🤖 사용 가능한 에이전트들
+{json.dumps(agents_details, ensure_ascii=False, indent=2)}
 
-이 요청을 처리하기 위한 최적의 에이전트 실행 순서를 계획하세요.
-각 단계에서 어떤 정보를 다음 단계로 전달해야 하는지도 명시하세요.
+## 🎯 계획 수립 지침
+1. **요청 중심 접근**: 사용자가 원하는 결과에 집중하여 필요한 에이전트만 선택
+2. **논리적 순서**: 데이터 흐름과 의존성을 고려한 순서 결정
+3. **효율성 최적화**: 불필요한 단계 제거, 핵심 분석에 집중
+4. **도메인 적응**: {understanding.get('domain', '일반')} 도메인 특성 반영
+5. **사용자 수준 고려**: {understanding.get('expertise_claimed', '일반 사용자')} 수준에 맞는 분석 깊이
+
+## 🚀 동적 에이전트 선택 기준
+- 사용자 질문의 핵심 의도가 무엇인가?
+- 어떤 종류의 분석이 실제로 필요한가?
+- 각 에이전트가 제공할 수 있는 가치는 무엇인가?
+- 최소한의 단계로 최대한의 인사이트를 얻으려면?
 
 다음 JSON 형식으로 응답하세요:
 {{
-    "reasoning": "이 계획을 선택한 이유",
+    "analysis_strategy": "이 요청에 대한 전체적 분석 전략",
+    "agent_selection_reasoning": "선택된 에이전트들과 그 이유",
     "steps": [
         {{
-            "agent": "에이전트명",
-            "purpose": "이 단계의 목적",
-            "enriched_task": "구체적인 작업 지시 (도메인 컨텍스트 포함)",
-            "expected_output": "예상 산출물",
-            "pass_to_next": ["다음 단계로 전달할 정보들"]
+            "step_number": 1,
+            "agent": "선택된_에이전트명",
+            "purpose": "이 단계의 구체적 목적",
+            "enriched_task": "에이전트에게 전달할 상세한 작업 지시 (도메인 컨텍스트 포함)",
+            "expected_output": "이 단계에서 기대하는 구체적 결과",
+            "success_criteria": "성공 판단 기준",
+            "context_for_next": "다음 단계로 전달할 핵심 정보"
         }}
     ],
-    "final_synthesis_guide": "최종 종합 시 중점사항"
-}}"""
+    "final_synthesis_strategy": "모든 결과를 어떻게 종합할 것인가",
+    "potential_insights": "이 계획으로 얻을 수 있는 예상 인사이트들"
+}}
+
+중요: 템플릿이나 고정된 패턴을 사용하지 말고, 이 특정 요청에 최적화된 계획을 수립하세요."""
 
         try:
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4o",
-                messages=[{"role": "user", "content": planning_prompt}],
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "당신은 데이터 분석 워크플로우 최적화 전문가입니다. 각 요청의 고유한 특성을 파악하고, 가장 효율적이고 효과적인 분석 경로를 설계합니다. 하드코딩된 템플릿이 아닌, 요청별 맞춤형 접근을 사용합니다."
+                    },
+                    {"role": "user", "content": planning_prompt}
+                ],
                 response_format={"type": "json_object"},
-                temperature=0.3,
-                timeout=60.0  # 타임아웃 증가
+                temperature=0.4,  # 창의적 계획 수립을 위해 약간 높임
+                max_tokens=3000,
+                timeout=90.0
             )
             
-            return json.loads(response.choices[0].message.content)
+            plan = json.loads(response.choices[0].message.content)
+            
+            # 계획 검증 및 보정
+            validated_plan = self._validate_and_enhance_plan(plan, available_agents, understanding)
+            
+            return validated_plan
             
         except Exception as e:
             logger.warning(f"Dynamic planning failed: {e}")
+            return self._create_fallback_plan(available_agents)
+
+    def _validate_and_enhance_plan(self, plan: Dict, available_agents: Dict, understanding: Dict) -> Dict:
+        """생성된 계획을 검증하고 보강"""
+        try:
+            # 기본 구조 검증
+            if not plan.get('steps'):
+                logger.warning("Plan has no steps, using fallback")
+                return self._create_fallback_plan(available_agents)
+            
+            # 에이전트 존재 여부 확인 및 보정
+            valid_steps = []
+            for step in plan.get('steps', []):
+                agent_name = step.get('agent', '')
+                if agent_name in available_agents:
+                    # 필수 필드 보완
+                    enhanced_step = {
+                        "agent": agent_name,
+                        "purpose": step.get('purpose', f'{agent_name} 분석 수행'),
+                        "enriched_task": step.get('enriched_task', step.get('purpose', f'{agent_name} 작업 수행')),
+                        "expected_output": step.get('expected_output', f'{agent_name} 분석 결과'),
+                        "pass_to_next": step.get('context_for_next', step.get('pass_to_next', ['분석 결과']))
+                    }
+                    valid_steps.append(enhanced_step)
+                else:
+                    logger.warning(f"Agent {agent_name} not available, skipping step")
+            
+            if not valid_steps:
+                logger.warning("No valid steps after validation, using fallback")
+                return self._create_fallback_plan(available_agents)
+            
+            # 향상된 계획 반환
+            enhanced_plan = {
+                "reasoning": plan.get('analysis_strategy', plan.get('reasoning', '사용자 요청에 최적화된 분석 워크플로우')),
+                "steps": valid_steps,
+                "final_synthesis_guide": plan.get('final_synthesis_strategy', plan.get('final_synthesis_guide', '모든 결과를 종합하여 사용자에게 유용한 인사이트 제공')),
+                "potential_insights": plan.get('potential_insights', ['데이터 기반 인사이트 도출']),
+                "agent_selection_reasoning": plan.get('agent_selection_reasoning', '요청에 최적화된 에이전트 선택')
+            }
+            
+            return enhanced_plan
+            
+        except Exception as e:
+            logger.error(f"Plan validation failed: {e}")
             return self._create_fallback_plan(available_agents)
 
     async def _execute_agent_with_context(self, agent_name: str, task: str, 
@@ -563,53 +684,375 @@ JSON 형식으로 응답하세요:
     async def _synthesize_with_llm(self, original_request: str, 
                                   understanding: Dict, all_results: Dict,
                                   task_updater: StreamingTaskUpdater) -> str:
-        """LLM이 모든 정보를 종합하여 최종 답변 생성"""
+        """🎯 하이브리드 방식: 사용자 의도 기반 동적 구조 + 데이터 기반 할루시네이션 방지"""
+        
+        logger.info("🎯 하이브리드 합성 시작")
         
         if not self.openai_client:
+            logger.warning("❌ OpenAI 클라이언트 없음, fallback 사용")
             return self._create_fallback_synthesis(original_request, all_results)
         
-        # 각 에이전트 결과를 요약
-        results_summary = json.dumps(all_results, ensure_ascii=False, indent=2)
+        try:
+            # 1단계: 사용자 의도 기반 답변 구조 결정
+            logger.info("📋 1단계: 사용자 의도 분석 시작")
+            structure_info = await self._analyze_user_intent_and_structure(original_request, understanding)
+            logger.info(f"✅ 구조 분석 완료: {structure_info.get('structure_type', 'unknown')}")
+            
+            # 2단계: 실제 데이터 컨텍스트 추출 (할루시네이션 방지)
+            logger.info("📊 2단계: 데이터 컨텍스트 추출 시작")
+            data_context = await self._extract_data_context(all_results)
+            logger.info(f"✅ 데이터 컨텍스트 추출 완료: {data_context.get('data_quality', 'unknown')} 품질")
+            
+            # 3단계: 에이전트 결과 구조화
+            logger.info("🔍 3단계: 에이전트 결과 구조화 시작")
+            structured_results = self._structure_agent_results(all_results)
+            logger.info(f"✅ 결과 구조화 완료: {len(structured_results)} 문자")
+            
+            # 4단계: 동적 프롬프트 생성
+            logger.info("🎨 4단계: 동적 프롬프트 생성 시작")
+            synthesis_prompt = f"""당신은 {understanding.get('domain', '데이터 분석')} 분야의 전문가입니다.
+
+## 🎯 사용자의 원본 질문
+"{original_request}"
+
+## 📋 답변 구조 지침
+- 답변 형태: {structure_info.get('structure_type', '직접 답변형')}
+- 선택 이유: {structure_info.get('reasoning', '')}
+- 답변 톤: {structure_info.get('tone', 'professional')}
+- 핵심 요소: {', '.join(structure_info.get('key_elements', []))}
+- 집중 영역: {', '.join(structure_info.get('focus_areas', []))}
+- 피해야 할 것: {', '.join(structure_info.get('avoid', []))}
+
+## 📊 실제 분석된 데이터 정보 (할루시네이션 방지)
+- 사용 가능한 데이터: {len(data_context['available_data'])}개 소스
+- 데이터 품질: {data_context['data_quality']}
+- 통계적 증거: {', '.join(data_context['statistical_evidence'][:10])}
+- 데이터 제한사항: {', '.join(data_context['limitations'])}
+
+## 🔍 각 에이전트 분석 결과
+{structured_results}
+
+## ✅ 필수 준수사항
+1. **사용자 질문에 직접 답변**: 원본 질문의 핵심을 놓치지 말고 정확히 답하세요
+2. **실제 데이터만 언급**: 위에 제공된 분석 결과만 사용하고, 추측하지 마세요
+3. **구체적 근거 제시**: 모든 주장에 대해 분석 결과 기반 근거를 제시하세요
+4. **사용자 의도 존중**: 정해진 형식보다 사용자가 원하는 답변 방식을 우선하세요
+5. **한계 명시**: 분석의 제한사항이 있다면 솔직히 언급하세요
+
+## ❌ 절대 금지
+- 분석되지 않은 내용 추측
+- 데이터에 없는 수치나 결과 언급
+- 고정된 형식 강요 (사용자 의도와 맞지 않는 경우)
+- 막연한 표현 ("일반적으로", "보통", "대체로" 등)
+
+위 지침에 따라 사용자의 질문에 정확하고 유용한 답변을 제공하세요."""
+
+            logger.info(f"✅ 프롬프트 생성 완료: {len(synthesis_prompt)} 문자")
+            
+            # 5단계: LLM 호출
+            logger.info("🤖 5단계: LLM 호출 시작")
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": synthesis_prompt}],
+                max_tokens=4000,
+                temperature=0.3,
+                timeout=180
+            )
+            
+            llm_response = response.choices[0].message.content
+            logger.info(f"✅ LLM 응답 수신: {len(llm_response)} 문자")
+            
+            # 6단계: 품질 검증 (할루시네이션 체크)
+            logger.info("🔍 6단계: 품질 검증 시작")
+            quality_ok = await self._validate_response_quality(llm_response, data_context, original_request)
+            
+            if quality_ok:
+                logger.info("✅ 품질 검증 통과, 최종 응답 반환")
+                return llm_response
+            else:
+                logger.warning("⚠️ 품질 검증 실패, 강화 프롬프트로 재시도")
+                # 품질이 부족하면 더 강한 프롬프트로 재시도
+                retry_result = await self._retry_with_stronger_prompt(original_request, understanding, 
+                                                           structured_results, data_context)
+                logger.info("✅ 재시도 완료")
+                return retry_result
+                                                           
+        except Exception as e:
+            logger.error(f"❌ LLM 합성 실패: {e}", exc_info=True)
+            logger.warning("🔄 fallback_synthesis로 전환")
+            return self._create_fallback_synthesis(original_request, all_results)
+
+    async def _validate_response_quality(self, response: str, data_context: Dict, 
+                                       original_request: str) -> bool:
+        """🔍 응답 품질 검증 - 할루시네이션 및 피상적 답변 감지"""
         
-        synthesis_prompt = f"""당신은 전문 데이터 분석 팀의 수석 분석가입니다.
+        # 기본 품질 체크
+        if len(response) < 300:
+            return False
+            
+        # 할루시네이션 감지 패턴
+        hallucination_patterns = [
+            r'일반적으로 알려진', r'보통 \w+는', r'대체로', r'통상적으로',
+            r'경험상', r'일반적인 경우', r'보편적으로'
+        ]
         
-사용자의 원래 요청:
-{original_request}
+        import re
+        for pattern in hallucination_patterns:
+            if re.search(pattern, response):
+                logger.warning(f"할루시네이션 패턴 감지: {pattern}")
+                return False
+        
+        # 피상적 답변 감지
+        superficial_patterns = [
+            r'분석을 통해 확인', r'결과를 바탕으로', r'데이터를 통해',
+            r'추가 분석이 필요', r'향후 연구가 필요'
+        ]
+        
+        superficial_count = sum(1 for pattern in superficial_patterns 
+                               if re.search(pattern, response))
+        
+        if superficial_count > 2:
+            logger.warning(f"피상적 표현 과다 감지: {superficial_count}개")
+            return False
+        
+        # 사용자 질문 관련성 체크
+        key_terms = original_request.split()[:5]  # 첫 5개 단어
+        relevance_score = sum(1 for term in key_terms if term in response)
+        
+        if relevance_score < 2:
+            logger.warning(f"질문 관련성 부족: {relevance_score}")
+            return False
+            
+        return True
 
-요청 분석:
-- 도메인: {understanding['domain']}
-- 목표: {', '.join(understanding['key_objectives'])}
-- 필요 산출물: {', '.join(understanding['required_outputs'])}
+    async def _retry_with_stronger_prompt(self, original_request: str, understanding: Dict,
+                                        structured_results: str, data_context: Dict) -> str:
+        """🔥 품질 부족 시 더 강한 프롬프트로 재시도"""
+        
+        stronger_prompt = f"""🚨 중요: 이전 답변이 품질 기준을 충족하지 못했습니다. 다시 작성해주세요.
 
-각 에이전트의 분석 결과:
-{results_summary}
+사용자 질문: "{original_request}"
 
-위 정보를 종합하여:
-1. 사용자가 요청한 모든 사항에 대해 답변하세요
-2. 도메인 지식을 활용하여 전문적인 해석을 제공하세요
-3. 구체적인 인사이트와 실행 가능한 권고사항을 포함하세요
-4. {understanding['tone']} 톤으로 작성하세요
+## 🎯 반드시 준수해야 할 요구사항
+1. 사용자 질문의 핵심 키워드를 반드시 포함하여 직접 답변
+2. 아래 실제 분석 결과만 사용 (추측 금지)
+3. 구체적인 수치나 발견사항이 있다면 명시
+4. "일반적으로", "보통", "대체로" 같은 막연한 표현 사용 금지
+5. 최소 500단어 이상의 상세한 답변
 
-중요: 사용자가 특정 역할이나 전문성을 언급했다면 ({understanding.get('expertise_claimed', 'N/A')}), 
-그 관점에서 분석하고 답변하세요."""
+## 📊 실제 분석 데이터
+{structured_results}
+
+## 🔍 데이터 컨텍스트
+- 통계적 증거: {', '.join(data_context.get('statistical_evidence', []))}
+- 데이터 제한사항: {', '.join(data_context.get('limitations', []))}
+
+사용자가 정확히 무엇을 원하는지 파악하고, 분석된 실제 데이터를 바탕으로 구체적이고 실용적인 답변을 제공하세요."""
 
         try:
             response = await self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "당신은 다양한 도메인의 전문 지식을 종합하여 인사이트를 도출하는 전문가입니다."},
-                    {"role": "user", "content": synthesis_prompt}
-                ],
-                temperature=0.3,
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": stronger_prompt}],
                 max_tokens=4000,
-                timeout=120.0  # 타임아웃 대폭 증가
+                temperature=0.2,
+                timeout=180
             )
-            
             return response.choices[0].message.content
             
         except Exception as e:
-            logger.error(f"LLM synthesis failed: {e}")
-            return self._create_fallback_synthesis(original_request, all_results)
+            logger.error(f"재시도 실패: {e}")
+            return self._create_fallback_synthesis(original_request, {})
+
+    async def _analyze_user_intent_and_structure(self, user_input: str, understanding: Dict) -> Dict:
+        """🎯 사용자 의도를 분석하여 최적의 답변 구조를 동적 생성"""
+        
+        if not self.openai_client:
+            return {"structure_type": "direct_answer", "guidelines": []}
+        
+        try:
+            structure_prompt = f"""사용자의 질문을 분석하여 가장 적합한 답변 구조를 결정하세요.
+
+사용자 질문: "{user_input}"
+질문 의도: {understanding}
+
+다음 중에서 사용자가 원하는 답변 형태를 선택하고 구조를 제안하세요:
+
+1. **직접 답변형**: 질문에 바로 답하는 형태 (예: "어떤 파라미터가 중요한가?")
+2. **분석 보고서형**: 체계적인 분석 결과 (예: "데이터를 분석해줘")
+3. **실행 가이드형**: 구체적 행동 방안 (예: "개선 방안을 제시해줘")
+4. **비교 분석형**: 여러 옵션 비교 (예: "어떤 방법이 더 좋은가?")
+5. **문제 해결형**: 문제 진단 및 해결책 (예: "불량률을 줄이고 싶어")
+6. **탐색적 분석형**: 패턴 발견 및 인사이트 (예: "숨겨진 패턴을 찾아줘")
+
+JSON 형식으로 응답하세요:
+{{
+    "structure_type": "선택된 답변 형태",
+    "reasoning": "선택 이유",
+    "key_elements": ["답변에 반드시 포함해야 할 핵심 요소들"],
+    "tone": "답변 톤 (professional/technical/conversational/urgent)",
+    "focus_areas": ["집중해야 할 영역들"],
+    "avoid": ["피해야 할 내용들"]
+}}"""
+
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": structure_prompt}],
+                max_tokens=800,
+                temperature=0.3
+            )
+            
+            # JSON 파싱을 안전하게 처리
+            response_content = response.choices[0].message.content.strip()
+            logger.info(f"🔍 구조 분석 응답: {response_content[:200]}...")
+            
+            # JSON 블록 추출 (```json...``` 형태일 수 있음)
+            if "```json" in response_content:
+                json_start = response_content.find("```json") + 7
+                json_end = response_content.find("```", json_start)
+                if json_end != -1:
+                    response_content = response_content[json_start:json_end].strip()
+            elif "```" in response_content:
+                json_start = response_content.find("```") + 3
+                json_end = response_content.find("```", json_start)
+                if json_end != -1:
+                    response_content = response_content[json_start:json_end].strip()
+            
+            try:
+                structure_info = json.loads(response_content)
+                logger.info(f"✅ 구조 분석 성공: {structure_info.get('structure_type', 'unknown')}")
+                return structure_info
+            except json.JSONDecodeError as json_error:
+                logger.warning(f"JSON 파싱 실패: {json_error}, 원본 응답: {response_content[:200]}")
+                # JSON 파싱 실패 시 기본값 반환
+                return {
+                    "structure_type": "direct_answer",
+                    "reasoning": "JSON 파싱 실패로 기본 구조 사용",
+                    "key_elements": ["구체적 답변", "데이터 기반 근거"],
+                    "tone": "professional",
+                    "focus_areas": ["사용자 질문 직접 답변"],
+                    "avoid": ["불필요한 형식적 구조"]
+                }
+            
+        except Exception as e:
+            logger.warning(f"구조 분석 실패, 기본 구조 사용: {e}")
+            return {
+                "structure_type": "direct_answer",
+                "reasoning": "기본 구조 사용",
+                "key_elements": ["구체적 답변", "데이터 기반 근거"],
+                "tone": "professional",
+                "focus_areas": ["사용자 질문 직접 답변"],
+                "avoid": ["불필요한 형식적 구조"]
+            }
+
+    async def _extract_data_context(self, all_results: Dict) -> Dict:
+        """📊 분석 결과에서 실제 데이터 컨텍스트 추출 - 할루시네이션 방지"""
+        
+        data_context = {
+            "available_data": [],
+            "key_findings": [],
+            "statistical_evidence": [],
+            "limitations": [],
+            "data_quality": "unknown"
+        }
+        
+        try:
+            for agent_name, result in all_results.items():
+                if isinstance(result, dict):
+                    # 실제 데이터 정보 추출
+                    if 'artifacts' in result:
+                        for artifact in result['artifacts']:
+                            if isinstance(artifact, dict):
+                                data_context["available_data"].append({
+                                    "source": agent_name,
+                                    "type": artifact.get('contentType', 'unknown'),
+                                    "description": artifact.get('name', 'unnamed')
+                                })
+                    
+                    # 핵심 발견사항 추출
+                    if 'response' in result:
+                        response_text = str(result['response'])
+                        # 통계적 증거나 구체적 수치 추출
+                        numbers = re.findall(r'\d+\.?\d*%|\d+\.?\d*', response_text)
+                        if numbers:
+                            data_context["statistical_evidence"].extend(numbers[:5])  # 최대 5개
+                        
+                        # 핵심 발견사항 키워드 추출
+                        keywords = re.findall(r'(중요|핵심|주요|발견|결과|분석|상관관계|패턴)', response_text)
+                        if keywords:
+                            data_context["key_findings"].append(f"{agent_name}에서 {len(keywords)}개 핵심 발견")
+            
+            # 데이터 품질 평가
+            if len(data_context["available_data"]) > 3:
+                data_context["data_quality"] = "good"
+            elif len(data_context["available_data"]) > 1:
+                data_context["data_quality"] = "moderate"
+            else:
+                data_context["data_quality"] = "limited"
+                data_context["limitations"].append("제한된 데이터 소스")
+                
+        except Exception as e:
+            logger.warning(f"데이터 컨텍스트 추출 실패: {e}")
+            data_context["limitations"].append("데이터 컨텍스트 추출 제한")
+        
+        return data_context
+
+    def _structure_agent_results(self, all_results: Dict) -> str:
+        """에이전트 결과를 LLM이 이해하기 쉽게 구조화"""
+        structured = "### 에이전트별 상세 분석 결과\n\n"
+        
+        for agent_name, result in all_results.items():
+            status = result.get('status', 'unknown')
+            structured += f"#### 🤖 {agent_name} 에이전트\n"
+            structured += f"- **실행 상태**: {status}\n"
+            
+            if status == 'success':
+                # 성공한 경우 결과 상세 정보 추출
+                agent_result = result.get('result', {})
+                structured += f"- **요약**: {result.get('summary', '작업 완료')}\n"
+                
+                # 결과에서 핵심 정보 추출
+                if isinstance(agent_result, dict):
+                    if 'artifacts' in agent_result:
+                        artifacts = agent_result['artifacts']
+                        structured += f"- **생성된 아티팩트**: {len(artifacts)}개\n"
+                        for artifact in artifacts[:3]:  # 최대 3개까지만 표시
+                            artifact_name = artifact.get('name', '이름 없음')
+                            artifact_type = artifact.get('metadata', {}).get('content_type', '타입 미지정')
+                            structured += f"  - {artifact_name} ({artifact_type})\n"
+                    
+                    if 'message' in agent_result:
+                        message = agent_result['message']
+                        if isinstance(message, dict) and 'parts' in message:
+                            parts = message['parts']
+                            if parts and len(parts) > 0:
+                                first_part = parts[0]
+                                if hasattr(first_part, 'text'):
+                                    text_preview = first_part.text[:200] + "..." if len(first_part.text) > 200 else first_part.text
+                                    structured += f"- **결과 미리보기**: {text_preview}\n"
+                
+                # 원시 결과 데이터도 포함 (JSON 형태)
+                structured += f"- **상세 결과**: {json.dumps(agent_result, ensure_ascii=False, indent=2)[:500]}...\n"
+                
+            else:
+                # 실패한 경우 오류 정보
+                error_msg = result.get('error', '알 수 없는 오류')
+                structured += f"- **오류 내용**: {error_msg}\n"
+                structured += f"- **영향**: 이 에이전트의 결과는 최종 분석에서 제외됩니다\n"
+            
+            structured += "\n"
+        
+        # 전체 요약 정보
+        total_agents = len(all_results)
+        successful_agents = len([r for r in all_results.values() if r.get('status') == 'success'])
+        failed_agents = total_agents - successful_agents
+        
+        structured += f"### 📊 전체 실행 요약\n"
+        structured += f"- **총 에이전트 수**: {total_agents}개\n"
+        structured += f"- **성공**: {successful_agents}개\n"
+        structured += f"- **실패**: {failed_agents}개\n"
+        structured += f"- **성공률**: {(successful_agents/total_agents*100):.1f}%\n\n"
+        
+        return structured
 
     def _extract_key_insights(self, previous_results: Dict) -> Dict:
         """이전 결과에서 핵심 인사이트 추출"""
