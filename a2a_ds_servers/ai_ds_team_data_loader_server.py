@@ -263,7 +263,7 @@ def main():
         version="1.0.0",
         defaultInputModes=["text"],
         defaultOutputModes=["text"],
-        capabilities=AgentCapabilities(streaming=False),
+        capabilities=AgentCapabilities(streaming=True),
         skills=[skill],
         supportsAuthenticatedExtendedCard=False
     )

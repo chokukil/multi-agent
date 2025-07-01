@@ -311,15 +311,26 @@ class StandardA2ACommunicator:
                     params=params
                 )
                 
-                # 스트리밍 콜백이 있으면 스트리밍 모드
-                if stream_callback:
-                    result = await self._handle_streaming_response(
-                        a2a_client, request, stream_callback
-                    )
-                else:
-                    # 일반 전송
-                    response = await a2a_client.send_message(request)
-                    result = self._parse_a2a_response(response)
+                # 스트리밍 대신 일반 전송 사용 (임시 수정)
+                # TODO: A2A SDK 스트리밍 이슈 해결 후 다시 활성화
+                response = await a2a_client.send_message(request)
+                result = self._parse_a2a_response(response)
+                
+                # 스트리밍 콜백이 있으면 전체 응답을 한 번에 전달
+                if stream_callback and result.get('status') == 'success':
+                    content = ""
+                    if hasattr(result.get('result'), 'history'):
+                        # A2A 응답에서 마지막 에이전트 메시지 추출
+                        for msg in result['result'].history:
+                            if msg.role == 'agent' and msg.parts:
+                                for part in msg.parts:
+                                    if hasattr(part, 'root') and hasattr(part.root, 'text'):
+                                        content += part.root.text
+                                    elif hasattr(part, 'text'):
+                                        content += part.text
+                    
+                    if content:
+                        await stream_callback(content)
                 
                 return result
             
@@ -1278,40 +1289,129 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
                                            purpose: str,
                                            user_intent: Dict,
                                            current_data_file: Optional[str]) -> str:
-        """데이터 파일 정보를 포함한 지시사항 생성"""
+        """데이터 인식 지시 생성 - 명시적 데이터 파일 지정"""
         
-        base_instruction = f"""
-작업 목적: {purpose}
-사용자 의도: {user_intent.get('main_goal', '데이터 분석')}
-요청 유형: {user_intent.get('action_type', 'analysis')}
-"""
+        base_instruction = f"{purpose} 작업을 수행하세요."
         
-        # 데이터 파일 정보 추가
-        if current_data_file:
-            base_instruction += f"""
-사용할 데이터 파일: {current_data_file}
-데이터 위치: a2a_ds_servers/artifacts/data/shared_dataframes/{current_data_file}
+        # 1. 사용자 요청에서 특정 데이터 파일 추출
+        user_input = user_intent.get('original_request', '')
+        specified_file = None
+        
+        # 사용자가 명시한 파일명 확인
+        import re
+        file_patterns = [
+            r'([a-zA-Z0-9_]+\.csv)',
+            r'([a-zA-Z0-9_]+\.xlsx)',
+            r'([a-zA-Z0-9_]+\.pkl)',
+            r'ion_implant[^\\s]*',
+            r'dataset[^\\s]*'
+        ]
+        
+        for pattern in file_patterns:
+            match = re.search(pattern, user_input, re.IGNORECASE)
+            if match:
+                specified_file = match.group(1) if match.group(1).endswith(('.csv', '.xlsx', '.pkl')) else match.group(0)
+                break
+        
+        # 2. 데이터 파일 지시 추가
+        if specified_file:
+            data_instruction = f"""
 
-중요: 반드시 위에 명시된 데이터 파일을 사용하세요. 다른 데이터 파일을 임의로 선택하지 마세요.
+🔬 **사용할 데이터 파일**: {specified_file}
+📁 **데이터 파일 우선순위**: 
+   1. {specified_file} (사용자 지정)
+   2. ion_implant 관련 파일 (반도체 분석용)
+   3. 가장 최근 파일
+
+⚠️ **중요**: 반드시 위 우선순위에 따라 데이터 파일을 선택하고, 선택된 파일명을 응답에 명시해주세요.
+"""
+        elif current_data_file:
+            data_instruction = f"""
+
+🔬 **사용할 데이터 파일**: {current_data_file}
+📁 **데이터 연속성**: 이전 단계에서 사용된 파일과 동일한 파일을 사용하세요.
+
+⚠️ **중요**: 반드시 {current_data_file} 파일을 사용하고, 응답에 파일명을 명시해주세요.
 """
         else:
-            # Data Loader인 경우 기본 데이터 지정
-            if "data loader" in agent_name.lower() or "dataloader" in agent_name.lower():
-                base_instruction += """
-우선 사용할 데이터: ion_implant_3lot_dataset (반도체 이온 주입 데이터)
-데이터 위치: ai_ds_team/data/ion_implant_3lot_dataset.xlsx 또는 a2a_ds_servers/artifacts/data/shared_dataframes/ion_implant_3lot_dataset.csv
+            data_instruction = f"""
 
-작업 후 로드된 데이터 파일명을 명확히 응답에 포함해주세요.
-"""
-            else:
-                base_instruction += """
-데이터 파일: 사용 가능한 데이터 중 ion_implant_3lot_dataset를 우선 사용하세요.
-위치: a2a_ds_servers/artifacts/data/shared_dataframes/
+🔬 **데이터 파일 선택 기준**:
+   1. ion_implant 관련 파일 우선 (반도체 분석 특화)
+   2. 가장 최근 수정된 파일
+   3. 사용 가능한 첫 번째 파일
 
-중요: 임의의 데이터 파일을 선택하지 말고, ion_implant 관련 데이터를 우선 사용하세요.
+⚠️ **중요**: 선택된 데이터 파일명을 응답에 반드시 명시해주세요.
 """
         
-        return base_instruction
+        # 3. 에이전트별 맞춤 지시
+        agent_specific_instructions = {
+            "AI_DS_Team DataLoaderToolsAgent": f"""
+{base_instruction}
+
+{data_instruction}
+
+📋 **작업 세부사항**:
+- 데이터 파일을 로드하고 기본 정보를 확인
+- 데이터 크기, 컬럼 정보, 데이터 타입 확인
+- 사용된 파일명을 명확히 표시
+""",
+            "AI_DS_Team DataCleaningAgent": f"""
+{base_instruction}
+
+{data_instruction}
+
+📋 **작업 세부사항**:
+- 데이터 품질 검사 및 정리
+- 결측값, 중복값, 이상값 확인
+- 사용된 파일명을 명확히 표시
+""",
+            "SessionEDAToolsAgent": f"""
+{base_instruction}
+
+{data_instruction}
+
+📋 **작업 세부사항**:
+- 탐색적 데이터 분석 수행
+- 기술통계, 분포 분석, 상관관계 분석
+- 사용된 파일명을 명확히 표시
+""",
+            "AI_DS_Team DataVisualizationAgent": f"""
+{base_instruction}
+
+{data_instruction}
+
+📋 **작업 세부사항**:
+- 데이터 시각화 차트 생성
+- 분포도, 트렌드 차트, 상관관계 히트맵
+- 사용된 파일명을 명확히 표시
+""",
+            "AI_DS_Team DataWranglingAgent": f"""
+{base_instruction}
+
+{data_instruction}
+
+📋 **작업 세부사항**:
+- 데이터 변환 및 가공
+- 파생 변수 생성, 데이터 형태 변환
+- 사용된 파일명을 명확히 표시
+""",
+            "AI_DS_Team SQLDatabaseAgent": f"""
+{base_instruction}
+
+{data_instruction}
+
+📋 **작업 세부사항**:
+- SQL 쿼리를 통한 데이터 분석
+- 집계, 필터링, 조인 등의 데이터 처리
+- 사용된 파일명을 명확히 표시
+"""
+        }
+        
+        # 4. 최종 지시 반환
+        final_instruction = agent_specific_instructions.get(agent_name, f"{base_instruction}{data_instruction}")
+        
+        return final_instruction
 
     def _extract_data_file_from_result(self, result: Dict) -> Optional[str]:
         """에이전트 결과에서 데이터 파일명 추출"""
@@ -1354,20 +1454,19 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
         if not self.openai_client:
             return self._create_basic_summary(execution_result)
         
-        # 성공한 결과만 추출
-        successful_results = {
-            agent: result
-            for agent, result in execution_result['results'].items()
-            if result.get('status') == 'success'
-        }
+        # execution_result 구조 수정: steps에서 성공한 결과만 추출
+        successful_results = {}
+        failed_agents = []
+        
+        if 'steps' in execution_result:
+            for step in execution_result['steps']:
+                agent_name = step.get('agent', 'Unknown')
+                if step.get('status') == 'success':
+                    successful_results[agent_name] = step
+                elif step.get('status') == 'failed':
+                    failed_agents.append(f"- {agent_name}: {step.get('error', 'Unknown error')}")
         
         if not successful_results:
-            # 실패한 에이전트들의 오류 분석
-            failed_agents = []
-            for agent, result in execution_result['results'].items():
-                if result.get('status') == 'failed':
-                    failed_agents.append(f"- {agent}: {result.get('error', 'Unknown error')}")
-            
             # LLM을 사용하여 대안 응답 생성
             if self.openai_client:
                 try:
@@ -1633,17 +1732,20 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
     
     def _create_basic_summary(self, execution_result: Dict) -> str:
         """기본 요약"""
-        total = execution_result['total_steps']
-        success = execution_result['successful_steps']
+        total = execution_result.get('total_count', 0)
+        success = execution_result.get('success_count', 0)
         
         summary = f"## 분석 완료\n\n"
         summary += f"- 총 {total}단계 중 {success}단계 성공\n"
         
-        for agent, result in execution_result['results'].items():
-            if result.get('status') == 'success':
-                summary += f"- ✅ {agent}: 완료\n"
-            else:
-                summary += f"- ❌ {agent}: 실패\n"
+        # steps 구조에서 정보 추출
+        if 'steps' in execution_result:
+            for step in execution_result['steps']:
+                agent_name = step.get('agent', 'Unknown')
+                if step.get('status') == 'success':
+                    summary += f"- ✅ {agent_name}: 완료\n"
+                else:
+                    summary += f"- ❌ {agent_name}: 실패\n"
         
         return summary
 
