@@ -75,12 +75,18 @@ class RealTimeStreamingTaskUpdater(TaskUpdater):
     async def _flush_buffer(self):
         """버퍼 플러시"""
         if self._buffer:
-            await self.update_status(
-                TaskState.working,
-                message=self.new_agent_message(parts=[TextPart(text=self._buffer)])
-            )
-            self._buffer = ""
-            self._last_update_time = time.time()
+            try:
+                await self.update_status(
+                    TaskState.working,
+                    message=new_agent_text_message(self._buffer)
+                )
+                self._buffer = ""
+                self._last_update_time = time.time()
+            except Exception as e:
+                logger.error(f"Buffer flush error: {e}")
+                # 버퍼 초기화는 계속 진행
+                self._buffer = ""
+                self._last_update_time = time.time()
     
     async def stream_markdown_section(self, section_type: str, content: str):
         """Markdown 섹션별 스트리밍"""

@@ -71,6 +71,224 @@ class DataLoaderToolsAgentExecutor(AgentExecutor):
         self.agent = DataLoaderToolsAgent(model=self.llm)
         logger.info("DataLoaderToolsAgent initialized")
     
+    async def stream(self, context: RequestContext, event_queue) -> None:
+        """A2A 스트리밍 실행 - 청크 단위로 응답 전송"""
+        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        
+        try:
+            # 작업 시작
+            await task_updater.submit()
+            await task_updater.start_work()
+            
+            # 사용자 메시지 추출
+            user_instructions = ""
+            data_reference = None
+            
+            if context.message and context.message.parts:
+                for part in context.message.parts:
+                    if part.root.kind == "text":
+                        user_instructions += part.root.text + " "
+                    elif part.root.kind == "data" and hasattr(part.root, 'data'):
+                        data_reference = part.root.data.get('data_reference', {})
+                
+                user_instructions = user_instructions.strip()
+                logger.info(f"Processing data loading request: {user_instructions}")
+                
+                # 스트리밍 시작 - 청크 1
+                await task_updater.update_status(
+                    TaskState.working,
+                    message=new_agent_text_message("📁 데이터 로딩을 시작합니다...")
+                )
+                
+                # DataManager를 통한 데이터 관리
+                data_manager = DataManager()
+                available_data_ids = data_manager.list_dataframes()
+                
+                # 스트리밍 청크 2 - 데이터 확인 중
+                await task_updater.update_status(
+                    TaskState.working,
+                    message=new_agent_text_message("🔍 사용 가능한 데이터를 확인하고 있습니다...")
+                )
+                
+                response_parts = []
+                
+                # 요청된 데이터 확인
+                if data_reference and 'data_id' in data_reference:
+                    requested_data_id = data_reference['data_id']
+                    logger.info(f"Requested data: {requested_data_id}")
+                    
+                    # 스트리밍 청크 3 - 특정 데이터 처리 중
+                    await task_updater.update_status(
+                        TaskState.working,
+                        message=new_agent_text_message(f"📊 요청된 데이터 '{requested_data_id}'를 처리하고 있습니다...")
+                    )
+                    
+                    if requested_data_id in available_data_ids:
+                        # 요청된 데이터가 이미 로드되어 있음
+                        df = data_manager.get_dataframe(requested_data_id)
+                        if df is not None:
+                            # 스트리밍 청크 4 - 데이터 분석 중
+                            await task_updater.update_status(
+                                TaskState.working,
+                                message=new_agent_text_message("📈 데이터 구조를 분석하고 있습니다...")
+                            )
+                            
+                            response_parts.extend([
+                                f"## 📁 데이터 로딩 완료",
+                                f"✅ 요청하신 데이터가 이미 로드되어 있습니다.",
+                                f"",
+                                f"**요청**: {user_instructions}",
+                                f"",
+                                f"### 📊 로드된 데이터 정보",
+                                f"- **데이터 ID**: `{requested_data_id}`",
+                                f"- **데이터 크기**: {df.shape[0]:,} 행 × {df.shape[1]:,} 열",
+                                f"- **메모리 사용량**: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB"
+                            ])
+                            
+                            # 스트리밍 청크 5 - 데이터 미리보기 생성 중
+                            await task_updater.update_status(
+                                TaskState.working,
+                                message=new_agent_text_message("👀 데이터 미리보기를 생성하고 있습니다...")
+                            )
+                            
+                            response_parts.extend([
+                                f"",
+                                f"### 📋 데이터 미리보기",
+                                f"```",
+                                f"{df.head().to_string()}",
+                                f"```",
+                                f"",
+                                f"### 🔍 데이터 정보",
+                                f"```",
+                                f"{df.info()}",
+                                f"```"
+                            ])
+                        else:
+                            response_parts.extend([
+                                f"## ❌ 데이터 로드 실패",
+                                f"",
+                                f"요청하신 데이터 '{requested_data_id}'를 DataManager에서 로드할 수 없습니다.",
+                                f"",
+                                f"**해결 방법**: ",
+                                f"1. UI에서 파일을 다시 업로드해주세요",
+                                f"2. 다른 사용 가능한 데이터를 선택해주세요"
+                            ])
+                    else:
+                        # 요청된 데이터가 없는 경우
+                        if available_data_ids:
+                            response_parts.extend([
+                                f"## ❌ 요청된 데이터를 찾을 수 없음",
+                                f"",
+                                f"요청하신 데이터 파일 '{requested_data_id}'을 찾을 수 없습니다.",
+                                f"",
+                                f"### 📁 사용 가능한 데이터",
+                                *[f"- {data_id}" for data_id in available_data_ids],
+                                f"",
+                                f"**해결 방법**:",
+                                f"1. 위의 사용 가능한 데이터 중 하나를 선택하여 요청하세요",
+                                f"2. 원하는 파일을 먼저 업로드해주세요",
+                                f"",
+                                f"**요청**: {user_instructions}"
+                            ])
+                        else:
+                            response_parts.extend([
+                                f"## ❌ 데이터 없음",
+                                f"",
+                                f"데이터 로딩을 수행하려면 먼저 데이터를 업로드해야 합니다.",
+                                f"",
+                                f"**요청**: {user_instructions}",
+                                f"",
+                                f"### 📤 데이터 업로드 방법",
+                                f"1. **UI에서 파일 업로드**: 메인 페이지에서 CSV, Excel 파일을 업로드하세요",
+                                f"2. **파일명 명시**: 자연어로 \"{requested_data_id} 파일로 분석해줘\"와 같이 요청하세요",
+                                f"3. **지원 형식**: CSV, Excel (.xlsx, .xls), JSON, Pickle",
+                                f"",
+                                f"**현재 상태**: 사용 가능한 데이터가 없습니다."
+                            ])
+                else:
+                    # 데이터 참조가 없는 경우 - 일반적인 데이터 로딩 가이드
+                    if available_data_ids:
+                        response_parts.extend([
+                            f"## 📁 데이터 로딩 가이드",
+                            f"",
+                            f"**요청**: {user_instructions}",
+                            f"",
+                            f"### 📁 사용 가능한 데이터",
+                            *[f"- {data_id}" for data_id in available_data_ids],
+                            f"",
+                            f"### 💡 데이터 로딩 방법",
+                            f"구체적인 파일명을 명시하여 요청해주세요:",
+                            f"",
+                            f"**예시**:",
+                            f"- \"sales_data.csv 파일을 로드해주세요\"",
+                            f"- \"employee_data.csv로 분석을 시작해주세요\"",
+                            f"",
+                            f"### 🛠️ Data Loader Tools 기능",
+                            f"- **파일 로딩**: CSV, Excel, JSON, Parquet 등 다양한 형식 지원",
+                            f"- **데이터 검증**: 로드된 데이터의 품질 및 형식 검증",
+                            f"- **자동 타입 추론**: 컬럼 타입 자동 감지 및 변환"
+                        ])
+                    else:
+                        response_parts.extend([
+                            f"## 📁 데이터 로딩 가이드",
+                            f"",
+                            f"**요청**: {user_instructions}",
+                            f"",
+                            f"### ❌ 사용 가능한 데이터가 없습니다",
+                            f"",
+                            f"### 📤 데이터 업로드 방법",
+                            f"1. **UI에서 파일 업로드**: 메인 페이지에서 CSV, Excel 파일을 업로드하세요",
+                            f"2. **파일명 명시**: 자연어로 \"data.xlsx 파일을 로드해줘\"와 같이 요청하세요",
+                            f"3. **지원 형식**: CSV, Excel (.xlsx, .xls), JSON, Pickle",
+                            f"",
+                            f"### 🛠️ Data Loader Tools 기능",
+                            f"- **파일 로딩**: CSV, Excel, JSON, Parquet 등 다양한 형식 지원",
+                            f"- **데이터베이스 연결**: SQL 데이터베이스 연결 및 쿼리",
+                            f"- **API 통합**: REST API를 통한 데이터 수집",
+                            f"- **데이터 검증**: 로드된 데이터의 품질 및 형식 검증",
+                            f"- **자동 타입 추론**: 컬럼 타입 자동 감지 및 변환"
+                        ])
+                
+                # 스트리밍으로 응답 전송 - 청크별로 분할
+                chunk_size = 5  # 5줄씩 전송
+                for i in range(0, len(response_parts), chunk_size):
+                    chunk_lines = response_parts[i:i+chunk_size]
+                    chunk_text = "\n".join(chunk_lines)
+                    
+                    # 마지막 청크인지 확인
+                    is_final = (i + chunk_size >= len(response_parts))
+                    
+                    if is_final:
+                        # 최종 청크 - 완료 상태로 전송
+                        await task_updater.update_status(
+                            TaskState.completed,
+                            message=new_agent_text_message(chunk_text)
+                        )
+                    else:
+                        # 중간 청크 - 작업 중 상태로 전송
+                        await task_updater.update_status(
+                            TaskState.working,
+                            message=new_agent_text_message(chunk_text)
+                        )
+                        
+                        # 약간의 지연으로 스트리밍 효과 연출
+                        import asyncio
+                        await asyncio.sleep(0.1)
+                
+            else:
+                # 메시지가 없는 경우
+                await task_updater.update_status(
+                    TaskState.completed,
+                    message=new_agent_text_message("데이터 로딩 요청이 비어있습니다. 로드할 데이터 파일이나 소스를 지정해주세요.")
+                )
+                
+        except Exception as e:
+            logger.error(f"Error in DataLoaderToolsAgent streaming execution: {e}")
+            await task_updater.update_status(
+                TaskState.failed,
+                message=new_agent_text_message(f"데이터 로딩 중 오류 발생: {str(e)}")
+            )
+    
     async def execute(self, context: RequestContext, event_queue) -> None:
         """A2A 프로토콜에 따른 실행"""
         # event_queue passed as parameter
