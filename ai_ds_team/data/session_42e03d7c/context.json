@@ -1,0 +1,10 @@
+{
+  "user_instructions": "정제된 데이터셋을 사용하여 주요 파라미터 간의 상관관계 분석, 분포 분석 등을 수행하여 불량률에 영향을 미치는 주요 파라미터를 식별. 반도체 공정의 도메인 지식을 활용하여 분석 결과 해석.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-30T10:05:49.968084",
+  "file_path": "ai_ds_team/data/session_42e03d7c/ion_implant_3lot_dataset.xlsx"
+}

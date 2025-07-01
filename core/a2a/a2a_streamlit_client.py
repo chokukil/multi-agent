@@ -129,10 +129,44 @@ class A2AStreamlitClient:
         """전문 에이전트에게 작업을 요청하고 스트리밍 응답을 반환합니다."""
         self._debug_log(f"🎯 stream_task 시작 - 에이전트: {agent_name}")
         
-        agent_info = self._agents_info.get(agent_name)
+        # CherryAI v8 오케스트레이터 에이전트 매핑 처리
+        mapped_agent_name = agent_name
+        if agent_name == "🧠 CherryAI v8 Universal Orchestrator":
+            mapped_agent_name = "Orchestrator"
+            self._debug_log(f"🔄 v8 오케스트레이터 매핑: {agent_name} → {mapped_agent_name}")
+        
+        agent_info = self._agents_info.get(mapped_agent_name)
         if not agent_info:
-            self._debug_log(f"❌ '{agent_name}' 에이전트 정보를 찾을 수 없음", "error")
-            raise ValueError(f"'{agent_name}' 에이전트 정보를 찾을 수 없습니다.")
+            self._debug_log(f"❌ '{mapped_agent_name}' 에이전트 정보를 찾을 수 없음", "error")
+            
+            # v8 오케스트레이터의 경우 이미 완료된 분석 결과 반환
+            if agent_name == "🧠 CherryAI v8 Universal Orchestrator":
+                self._debug_log("🧠 v8 오케스트레이터 분석 이미 완료됨 - 결과 반환", "success")
+                yield {
+                    "type": "message",
+                    "content": {"text": "🧠 CherryAI v8 Universal Intelligence 분석이 이미 완료되었습니다."},
+                    "final": False
+                }
+                yield {
+                    "type": "message", 
+                    "content": {"text": "✅ 종합 분석 보고서가 생성되었습니다."},
+                    "final": True
+                }
+                return
+            
+            # 다른 에이전트 매핑 시도
+            agent_mapping = self._get_agent_mapping()
+            for key, value in agent_mapping.items():
+                if value == agent_name:
+                    fallback_agent = key
+                    if fallback_agent in self._agents_info:
+                        mapped_agent_name = fallback_agent
+                        agent_info = self._agents_info[fallback_agent]
+                        self._debug_log(f"🔄 대체 에이전트 매핑: {agent_name} → {fallback_agent}")
+                        break
+            
+            if not agent_info:
+                raise ValueError(f"'{agent_name}' 에이전트 정보를 찾을 수 없습니다.")
 
         url = f"http://localhost:{agent_info['port']}"
         task_id = f"stream-task-{datetime.now().timestamp()}"
@@ -188,10 +222,10 @@ class A2AStreamlitClient:
         }
 
         try:
-            self._debug_log(f"🚀 '{agent_name}' 에이전트에게 작업 요청 전송 중...")
+            self._debug_log(f"🚀 '{mapped_agent_name}' 에이전트에게 작업 요청 전송 중...")
             
             response = await self._client.post(url, json=payload)
-            self._debug_log(f"📥 '{agent_name}' 응답 수신 - HTTP Status: {response.status_code}")
+            self._debug_log(f"📥 '{mapped_agent_name}' 응답 수신 - HTTP Status: {response.status_code}")
             
             response.raise_for_status()
             response_data = response.json()
@@ -288,13 +322,13 @@ class A2AStreamlitClient:
                 # 최종 완료 신호
                 yield {
                     "type": "message",
-                    "content": {"text": f"✅ {agent_name} 작업 완료"},
+                    "content": {"text": f"✅ {mapped_agent_name} 작업 완료"},
                     "final": True
                 }
                                 
             elif "error" in response_data:
                 error_msg = response_data['error']['message']
-                self._debug_log(f"❌ '{agent_name}' 오류: {error_msg}", "error")
+                self._debug_log(f"❌ '{mapped_agent_name}' 오류: {error_msg}", "error")
                 yield {
                     "type": "message", 
                     "content": {"text": f"❌ 오류: {error_msg}"},
@@ -304,12 +338,12 @@ class A2AStreamlitClient:
                 # 응답이 없는 경우
                 yield {
                     "type": "message",
-                    "content": {"text": f"⚠️ {agent_name}에서 응답이 없습니다."},
+                    "content": {"text": f"⚠️ {mapped_agent_name}에서 응답이 없습니다."},
                     "final": True
                 }
                 
         except Exception as e:
-            self._debug_log(f"❌ '{agent_name}' 오류: {type(e).__name__}: {e}", "error")
+            self._debug_log(f"❌ '{mapped_agent_name}' 오류: {type(e).__name__}: {e}", "error")
             yield {
                 "type": "message",
                 "content": {"text": f"❌ 연결 오류: {e}"},
@@ -366,14 +400,63 @@ class A2AStreamlitClient:
         self._debug_log("🎯 A2A 표준 응답 구조 파싱 중...")
         
         try:
-            # artifacts 처리 (A2A SDK 0.2.9 표준)
+            # 🎯 우선순위 1: CherryAI v8 comprehensive_analysis 아티팩트 처리
             if "artifacts" in result:
                 artifacts = result["artifacts"]
                 self._debug_log(f"📦 {len(artifacts)}개 아티팩트 발견")
                 
                 for artifact in artifacts:
                     artifact_name = artifact.get("name", "")
-                    # 실행 계획 아티팩트 확인 (확장자 포함/미포함 모두 지원)
+                    
+                    # CherryAI v8 오케스트레이터: comprehensive_analysis 아티팩트 처리 (최우선)
+                    if artifact_name == "comprehensive_analysis":
+                        self._debug_log(f"🧠 CherryAI v8 종합 분석 아티팩트 발견: {artifact_name}")
+                        parts = artifact.get("parts", [])
+                        self._debug_log(f"🔍 v8 아티팩트 parts 개수: {len(parts)}")
+                        
+                        for i, part in enumerate(parts):
+                            part_kind = part.get("kind", "unknown")
+                            self._debug_log(f"🔍 Part {i+1}: kind={part_kind}")
+                            
+                            if part_kind == "text":
+                                analysis_text = part.get("text", "")
+                                self._debug_log(f"📝 v8 텍스트 길이: {len(analysis_text)}")
+                                
+                                if analysis_text:
+                                    self._debug_log(f"📝 v8 종합 분석 결과 발견: {len(analysis_text)} chars")
+                                    # v8 오케스트레이터는 최종 분석 결과를 제공하므로 단일 단계로 처리
+                                    v8_step = {
+                                        "step_number": 1,
+                                        "agent_name": "🧠 CherryAI v8 Universal Orchestrator",
+                                        "task_description": "종합 분석 및 최종 보고서 생성",
+                                        "reasoning": "CherryAI v8 Universal Intelligent Orchestrator의 종합 분석 결과",
+                                        "expected_result": "완료된 종합 분석 보고서",
+                                        "final_analysis": analysis_text,  # 실제 분석 결과 포함
+                                        "parameters": {
+                                            "user_instructions": "CherryAI v8 Universal Intelligence 종합 분석",
+                                            "priority": "high",
+                                            "analysis_complete": True  # 분석 완료 플래그
+                                        }
+                                    }
+                                    self._debug_log(f"✅ v8 단계 생성 완료: {v8_step['agent_name']}")
+                                    return [v8_step]
+                                else:
+                                    self._debug_log("❌ v8 분석 텍스트가 비어있음", "warning")
+                            else:
+                                self._debug_log(f"⚠️ v8 Part {i+1}이 텍스트가 아님: {part_kind}", "warning")
+                        
+                        self._debug_log("❌ v8 아티팩트에서 유효한 텍스트를 찾을 수 없음", "error")
+                        # v8 아티팩트가 있지만 텍스트가 없는 경우에도 즉시 반환하여 history 처리 방지
+                        return []
+            
+            # 🎯 우선순위 2: 기존 execution_plan 아티팩트 처리
+            if "artifacts" in result:
+                artifacts = result["artifacts"]
+                
+                for artifact in artifacts:
+                    artifact_name = artifact.get("name", "")
+                    
+                    # 실행 계획 아티팩트 확인 (기존 로직 유지)
                     if artifact_name in ["execution_plan", "execution_plan.json"] or "execution_plan" in artifact_name:
                         metadata = artifact.get("metadata", {})
                         self._debug_log(f"📋 실행 계획 아티팩트 발견: {artifact_name}")
@@ -404,8 +487,10 @@ class A2AStreamlitClient:
                                         self._debug_log(f"📝 메타데이터 없이 아티팩트에서 계획 텍스트 발견: {len(plan_text)} chars")
                                         return self._extract_plan_from_artifact_text(plan_text)
             
-            # history에서 agent 메시지 찾기
+            # 🎯 우선순위 3: history에서 agent 메시지 찾기 (아티팩트가 없을 때만)
             history = result.get("history", [])
+            
+            # 기존 history 파싱 로직 (폴백)
             for entry in history:
                 if entry.get("role") == "agent" and "message" in entry:
                     message = entry["message"]
@@ -417,7 +502,7 @@ class A2AStreamlitClient:
                                     self._debug_log(f"📝 History에서 계획 텍스트 발견: {len(plan_text)} chars")
                                     return self._extract_plan_from_text(plan_text)
             
-            # status.message에서 확인
+            # 🎯 우선순위 4: status.message에서 확인 (최후 수단)
             status = result.get("status", {})
             if "message" in status:
                 message = status["message"]
@@ -553,7 +638,7 @@ class A2AStreamlitClient:
                             if part.get("kind") == "text":
                                 plan_text = part.get("text", "")
                                 if plan_text:
-                                    self._debug_log(f"�� Status 메시지에서 계획 텍스트 발견: {len(plan_text)} chars")
+                                    self._debug_log(f"📝 Status 메시지에서 계획 텍스트 발견: {len(plan_text)} chars")
                                     return self._extract_plan_from_text(plan_text)
             
             # 리스트 형식

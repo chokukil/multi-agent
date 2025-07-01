@@ -428,15 +428,74 @@ async def process_query_streaming(prompt: str):
                 st.error(f"계획 파싱 실패: {parse_error}")
                 return
             
-            # 5. 계획이 비어있는지 확인
+            # 5. 계획이 비어있는지 확인 및 v8 오케스트레이터 처리
             if not plan_steps:
                 debug_log("❌ 유효한 계획 단계가 없습니다", "error")
+                
+                # CherryAI v8 오케스트레이터의 comprehensive_analysis 아티팩트 확인
+                if isinstance(plan_response, dict) and "result" in plan_response:
+                    result = plan_response["result"]
+                    if "artifacts" in result:
+                        for artifact in result["artifacts"]:
+                            if artifact.get("name") == "comprehensive_analysis":
+                                debug_log("🧠 CherryAI v8 종합 분석 결과 발견!", "success")
+                                
+                                # v8 분석 결과 직접 표시
+                                st.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
+                                
+                                parts = artifact.get("parts", [])
+                                for part in parts:
+                                    if part.get("kind") == "text":
+                                        analysis_text = part.get("text", "")
+                                        if analysis_text:
+                                            st.markdown(analysis_text)
+                                            debug_log("✅ v8 분석 결과 표시 완료", "success")
+                                            return
+                
                 st.error("오케스트레이터가 유효한 계획을 생성하지 못했습니다.")
                 
                 # 오케스트레이터 응답을 자세히 표시
                 with st.expander("🔍 오케스트레이터 응답 디버깅", expanded=True):
                     st.json(plan_response)
                 return
+            
+            # 5.5. CherryAI v8 오케스트레이터 단일 단계 감지 및 처리
+            if len(plan_steps) == 1 and plan_steps[0].get('agent_name') == "🧠 CherryAI v8 Universal Orchestrator":
+                debug_log("🧠 CherryAI v8 단일 단계 감지 - 종합 분석 결과 직접 표시", "success")
+                
+                # 원본 응답에서 comprehensive_analysis 아티팩트 추출
+                if isinstance(plan_response, dict) and "result" in plan_response:
+                    result = plan_response["result"]
+                    if "artifacts" in result:
+                        for artifact in result["artifacts"]:
+                            if artifact.get("name") == "comprehensive_analysis":
+                                debug_log("📝 v8 comprehensive_analysis 아티팩트 표시 중...", "success")
+                                
+                                # v8 분석 결과 직접 표시
+                                st.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
+                                
+                                parts = artifact.get("parts", [])
+                                for part in parts:
+                                    if part.get("kind") == "text":
+                                        analysis_text = part.get("text", "")
+                                        if analysis_text:
+                                            st.markdown(analysis_text)
+                                            debug_log("✅ v8 분석 결과 표시 완료", "success")
+                                            return
+                
+                # 아티팩트가 없으면 단계의 final_analysis 필드 확인
+                step = plan_steps[0]
+                debug_log(f"🔍 v8 단계 필드 확인: {list(step.keys())}")
+                if "final_analysis" in step:
+                    debug_log("📝 단계에서 final_analysis 발견 - 표시 중...", "success")
+                    st.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
+                    st.markdown(step["final_analysis"])
+                    debug_log("✅ v8 분석 결과 (단계 내) 표시 완료", "success")
+                    return
+                else:
+                    debug_log("❌ 단계에 final_analysis 필드가 없음", "warning")
+            else:
+                debug_log(f"🔍 v8 단계 감지 실패 - 단계 수: {len(plan_steps)}, 첫 번째 에이전트: {plan_steps[0].get('agent_name') if plan_steps else 'None'}")
             
             # 6. 계획 실행
             debug_log(f"🚀 {len(plan_steps)}개 단계 실행 시작...")
@@ -623,50 +682,86 @@ async def process_query_streaming(prompt: str):
                     debug_log(f"🔍 오케스트레이터 아티팩트 구조: {type(artifact)}")
                     debug_log(f"🔍 아티팩트 키: {list(artifact.keys()) if isinstance(artifact, dict) else 'Not a dict'}")
                     
-                    # render_artifact 함수 사용 (표준화된 렌더링)
+                    # A2A SDK 0.2.9 아티팩트 구조에 맞게 데이터 추출
                     try:
-                        render_artifact(artifact)
-                        debug_log("✅ render_artifact로 오케스트레이터 보고서 렌더링 성공")
-                    except Exception as render_error:
-                        debug_log(f"❌ render_artifact 실패: {render_error}", "error")
+                        content_to_render = None
+                        content_type = "text/markdown"  # 기본값
                         
-                        # 폴백: 수동 파싱 시도
-                        try:
-                            if 'parts' in artifact and artifact['parts']:
-                                debug_log(f"🔍 Parts 구조: {len(artifact['parts'])}개 파트")
-                                for i, part in enumerate(artifact['parts']):
-                                    debug_log(f"🔍 Part {i} 타입: {type(part)}")
-                                    debug_log(f"🔍 Part {i} 속성: {dir(part) if hasattr(part, '__dict__') else 'No attributes'}")
-                                    
-                                    content = None
-                                    if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                                        content = part.root.text
-                                        debug_log(f"✅ Part {i} root.text 접근 성공")
-                                    elif isinstance(part, dict) and 'text' in part:
-                                        content = part['text']
-                                        debug_log(f"✅ Part {i} dict['text'] 접근 성공")
-                                    elif isinstance(part, dict) and 'root' in part:
-                                        content = part['root'].get('text', str(part))
-                                        debug_log(f"✅ Part {i} dict['root']['text'] 접근 성공")
-                                    else:
-                                        content = str(part)
-                                        debug_log(f"⚠️ Part {i} 문자열 변환 사용")
-                                    
-                                    if content and content.strip():
-                                        st.markdown(content)
-                                        debug_log("✅ 마크다운 렌더링 완료")
-                                    else:
-                                        debug_log("❌ 빈 컨텐츠")
-                            else:
-                                debug_log("❌ 아티팩트에 parts가 없음")
-                                st.error("최종 분석 보고서를 표시할 수 없습니다.")
-                        except Exception as manual_error:
-                            debug_log(f"❌ 수동 파싱도 실패: {manual_error}", "error")
-                            st.error(f"최종 보고서 렌더링 실패: {manual_error}")
+                        # 1. A2A 표준 아티팩트 구조 처리
+                        if 'parts' in artifact and artifact['parts']:
+                            debug_log(f"🔍 Parts 구조: {len(artifact['parts'])}개 파트")
                             
-                            # 최후의 디버깅: 원시 데이터 표시
+                            # 첫 번째 파트에서 컨텐츠 추출
+                            first_part = artifact['parts'][0]
+                            debug_log(f"🔍 첫 번째 파트 타입: {type(first_part)}")
+                            
+                            if hasattr(first_part, 'root') and hasattr(first_part.root, 'text'):
+                                content_to_render = first_part.root.text
+                                debug_log("✅ Part.root.text에서 컨텐츠 추출 성공")
+                            elif isinstance(first_part, dict) and 'root' in first_part:
+                                if isinstance(first_part['root'], dict) and 'text' in first_part['root']:
+                                    content_to_render = first_part['root']['text']
+                                    debug_log("✅ dict['root']['text']에서 컨텐츠 추출 성공")
+                                else:
+                                    content_to_render = str(first_part['root'])
+                                    debug_log("⚠️ dict['root']를 문자열로 변환")
+                            elif isinstance(first_part, dict) and 'text' in first_part:
+                                content_to_render = first_part['text']
+                                debug_log("✅ dict['text']에서 컨텐츠 추출 성공")
+                            else:
+                                content_to_render = str(first_part)
+                                debug_log("⚠️ 파트를 문자열로 변환")
+                        
+                        # 2. 메타데이터에서 content_type 확인
+                        if 'metadata' in artifact:
+                            metadata = artifact['metadata']
+                            content_type = metadata.get('content_type', content_type)
+                            debug_log(f"📋 메타데이터에서 content_type: {content_type}")
+                        
+                        # 3. 컨텐츠가 있으면 렌더링
+                        if content_to_render and content_to_render.strip():
+                            debug_log(f"🎨 컨텐츠 렌더링 시작 (길이: {len(content_to_render)}, 타입: {content_type})")
+                            
+                            # render_artifact 함수에 맞는 형식으로 변환
+                            artifact_data = {
+                                'data': content_to_render,
+                                'contentType': content_type,
+                                'metadata': artifact.get('metadata', {})
+                            }
+                            
+                            render_artifact(artifact_data)
+                            debug_log("✅ render_artifact로 오케스트레이터 보고서 렌더링 성공")
+                        else:
+                            debug_log("❌ 렌더링할 컨텐츠가 없음")
+                            st.warning("최종 분석 보고서 내용이 비어있습니다.")
+                            
+                            # 디버깅을 위한 원시 데이터 표시
                             with st.expander("🔍 원시 아티팩트 데이터 (디버깅용)", expanded=False):
                                 st.json(artifact)
+                        
+                    except Exception as render_error:
+                        debug_log(f"❌ 오케스트레이터 아티팩트 렌더링 실패: {render_error}", "error")
+                        debug_log(f"🔍 렌더링 오류 스택 트레이스: {traceback.format_exc()}", "error")
+                        
+                        # 폴백: 간단한 텍스트 표시
+                        st.error(f"최종 보고서 렌더링 중 오류가 발생했습니다: {render_error}")
+                        
+                        # 원시 데이터 표시
+                        with st.expander("🔍 원시 아티팩트 데이터 (디버깅용)", expanded=True):
+                            st.json(artifact)
+                            
+                        # 기본 메시지 표시
+                        st.info("분석이 완료되었지만 최종 보고서를 표시하는 데 문제가 발생했습니다. 개별 단계 결과를 참고해주세요.")
+            else:
+                # 오케스트레이터 아티팩트가 없는 경우 기본 완료 메시지
+                st.markdown("---")
+                st.markdown("## ✅ 분석 완료")
+                st.success(f"AI_DS_Team이 {len(plan_steps)}단계 분석을 성공적으로 완료했습니다!")
+                
+                if total_artifacts > 0:
+                    st.info(f"총 {total_artifacts}개의 아티팩트가 생성되었습니다. 위의 단계별 결과를 확인해주세요.")
+                else:
+                    st.warning("생성된 아티팩트가 없습니다. 분석 과정을 다시 확인해주세요.")
             
             # 세션 상태 업데이트
             response_summary = f"AI_DS_Team이 {len(plan_steps)}단계 분석을 완료했습니다."

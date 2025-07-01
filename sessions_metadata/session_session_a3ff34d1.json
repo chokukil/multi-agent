@@ -1,0 +1,19 @@
+{
+  "session_id": "session_a3ff34d1",
+  "created_at": "2025-06-30T09:33:10.488009",
+  "last_activity": "2025-06-30T09:33:10.488011",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-30T09:33:10.373954",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "시각화 결과를 바탕으로 공정 이상 여부를 판단하고, 이상 원인을 해석합니다. TW 이상 원인 해석 및 이상 원인 카테고리를 도출합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-01T09:33:10.488009",
+  "status": "active"
+}

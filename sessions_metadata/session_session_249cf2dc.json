@@ -1,0 +1,19 @@
+{
+  "session_id": "session_249cf2dc",
+  "created_at": "2025-06-30T09:42:31.919765",
+  "last_activity": "2025-06-30T09:42:31.919767",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-30T09:42:31.831661",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "공정 변수의 히스토그램, 상관 관계 차트, 시간에 따른 트렌드 차트를 생성",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-01T09:42:31.919765",
+  "status": "active"
+}

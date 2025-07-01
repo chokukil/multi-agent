@@ -1,0 +1,10 @@
+{
+  "user_instructions": "시각화 결과를 바탕으로 공정 이상 여부를 판단하고, 이상 원인을 해석합니다. TW 이상 원인 해석 및 이상 원인 카테고리를 도출합니다.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-30T09:33:10.488044",
+  "file_path": "ai_ds_team/data/session_a3ff34d1/ion_implant_3lot_dataset.xlsx"
+}

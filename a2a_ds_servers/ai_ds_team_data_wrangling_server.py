@@ -106,8 +106,52 @@ class DataWranglingAgentExecutor(AgentExecutor):
                     pass
                 
                 if available_data:
-                    # 가장 최근 데이터 사용
-                    # FALLBACK REMOVED - data_file = available_data[0]
+                    # 데이터 파일 선택 로직 개선
+                    data_file = None
+                    
+                    # 1. 사용자 요청에서 특정 데이터 파일 언급 확인
+                    user_lower = user_instructions.lower()
+                    for file in available_data:
+                        file_name_lower = file.lower()
+                        file_base = file_name_lower.replace('.csv', '').replace('.pkl', '')
+                        
+                        # 파일명이 사용자 요청에 포함되어 있는지 확인
+                        if (file_base in user_lower or 
+                            any(keyword in file_name_lower for keyword in user_lower.split() if len(keyword) > 3)):
+                            data_file = file
+                            logger.info(f"🎯 사용자 요청에서 언급된 데이터 파일 선택: {data_file}")
+                            break
+                    
+                    # 2. ion_implant 데이터 우선 선택 (반도체 분석 특화)
+                    if not data_file:
+                        for file in available_data:
+                            if "ion_implant" in file.lower():
+                                data_file = file
+                                logger.info(f"🔬 반도체 분석용 ion_implant 데이터 선택: {data_file}")
+                                break
+                    
+                    # 3. 가장 최근 수정된 파일 선택 (fallback)
+                    if not data_file:
+                        try:
+                            file_times = []
+                            for file in available_data:
+                                file_path = os.path.join(data_path, file)
+                                if os.path.exists(file_path):
+                                    mtime = os.path.getmtime(file_path)
+                                    file_times.append((file, mtime))
+                            
+                            if file_times:
+                                file_times.sort(key=lambda x: x[1], reverse=True)
+                                data_file = file_times[0][0]
+                                logger.info(f"📅 가장 최근 파일 선택: {data_file}")
+                            else:
+                                data_file = available_data[0]
+                                logger.info(f"📁 첫 번째 사용 가능한 파일 선택: {data_file}")
+                        except Exception as e:
+                            logger.warning(f"파일 시간 정렬 실패: {e}")
+                            data_file = available_data[0]
+                            logger.info(f"📁 기본 파일 선택: {data_file}")
+                    
                     if data_file.endswith('.csv'):
                         df = pd.read_csv(os.path.join(data_path, data_file))
                     else:

@@ -1,0 +1,19 @@
+{
+  "session_id": "session_d82e3010",
+  "created_at": "2025-06-30T15:30:49.700850",
+  "last_activity": "2025-06-30T15:30:49.700851",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-06-30T15:30:49.594149",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "데이터의 평균, 중간값, 표준편차 등의 기술 통계를 계산하고, 데이터 분포를 이해하기 위한 히스토그램을 생성합니다.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-01T15:30:49.700850",
+  "status": "active"
+}

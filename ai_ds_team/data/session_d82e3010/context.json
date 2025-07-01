@@ -1,0 +1,10 @@
+{
+  "user_instructions": "데이터의 평균, 중간값, 표준편차 등의 기술 통계를 계산하고, 데이터 분포를 이해하기 위한 히스토그램을 생성합니다.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-06-30T15:30:49.700871",
+  "file_path": "ai_ds_team/data/session_d82e3010/ion_implant_3lot_dataset.xlsx"
+}
