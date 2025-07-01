@@ -364,7 +364,7 @@ def render_artifact(artifact_data: Dict[str, Any]):
             st.write("**Data Preview:**", str(data)[:1000] + "..." if len(str(data)) > 1000 else str(data))
 
 async def process_query_streaming(prompt: str):
-    """A2A 프로토콜을 사용한 스트리밍 쿼리 처리"""
+    """A2A 프로토콜을 사용한 실시간 스트리밍 쿼리 처리"""
     debug_log(f"🚀 A2A 스트리밍 쿼리 처리 시작: {prompt[:100]}...")
     
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -395,21 +395,9 @@ async def process_query_streaming(prompt: str):
             try:
                 plan_response = await a2a_client.get_plan(prompt)
                 debug_log(f"📋 계획 응답 수신: {type(plan_response)}")
-                debug_log(f"📋 계획 응답 키: {list(plan_response.keys()) if isinstance(plan_response, dict) else 'Not a dict'}")
-                
-                # 응답 내용을 자세히 로깅
-                if isinstance(plan_response, dict):
-                    for key, value in plan_response.items():
-                        if isinstance(value, (str, int, float, bool)):
-                            debug_log(f"  📝 {key}: {value}")
-                        elif isinstance(value, (list, dict)):
-                            debug_log(f"  📝 {key}: {type(value)} (길이: {len(value) if hasattr(value, '__len__') else 'N/A'})")
-                        else:
-                            debug_log(f"  📝 {key}: {type(value)}")
                 
             except Exception as plan_error:
                 debug_log(f"❌ 계획 요청 실패: {plan_error}", "error")
-                debug_log(f"🔍 계획 요청 스택 트레이스: {traceback.format_exc()}", "error")
                 st.error(f"계획 생성 실패: {plan_error}")
                 return
             
@@ -419,16 +407,12 @@ async def process_query_streaming(prompt: str):
                 plan_steps = a2a_client.parse_orchestration_plan(plan_response)
                 debug_log(f"📊 파싱된 계획 단계 수: {len(plan_steps)}")
                 
-                for i, step in enumerate(plan_steps):
-                    debug_log(f"  📋 단계 {i+1}: {step.get('agent_name', 'unknown')} - {step.get('task_description', '')[:50]}...")
-                
             except Exception as parse_error:
                 debug_log(f"❌ 계획 파싱 실패: {parse_error}", "error")
-                debug_log(f"🔍 파싱 스택 트레이스: {traceback.format_exc()}", "error")
                 st.error(f"계획 파싱 실패: {parse_error}")
                 return
             
-            # 5. 계획이 비어있는지 확인 및 v8 오케스트레이터 처리
+            # 5. CherryAI v8 오케스트레이터 단일 응답 처리
             if not plan_steps:
                 debug_log("❌ 유효한 계획 단계가 없습니다", "error")
                 
@@ -440,79 +424,65 @@ async def process_query_streaming(prompt: str):
                             if artifact.get("name") == "comprehensive_analysis":
                                 debug_log("🧠 CherryAI v8 종합 분석 결과 발견!", "success")
                                 
-                                # v8 분석 결과 직접 표시
-                                st.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
+                                # 실시간 스트리밍 컨테이너 생성
+                                streaming_container = st.empty()
                                 
+                                # v8 분석 결과를 스트리밍으로 표시
                                 parts = artifact.get("parts", [])
                                 for part in parts:
                                     if part.get("kind") == "text":
                                         analysis_text = part.get("text", "")
                                         if analysis_text:
-                                            st.markdown(analysis_text)
-                                            debug_log("✅ v8 분석 결과 표시 완료", "success")
+                                            # 텍스트를 문장 단위로 분할하여 스트리밍
+                                            sentences = analysis_text.split('. ')
+                                            displayed_text = ""
+                                            
+                                            streaming_container.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
+                                            text_container = st.empty()
+                                            
+                                            for i, sentence in enumerate(sentences):
+                                                if sentence.strip():
+                                                    displayed_text += sentence
+                                                    if i < len(sentences) - 1:
+                                                        displayed_text += ". "
+                                                    
+                                                    # 실시간 업데이트
+                                                    text_container.markdown(displayed_text)
+                                                    
+                                                    # 스트리밍 효과
+                                                    import asyncio
+                                                    await asyncio.sleep(0.3)
+                                            
+                                            debug_log("✅ v8 분석 결과 스트리밍 완료", "success")
                                             return
                 
                 st.error("오케스트레이터가 유효한 계획을 생성하지 못했습니다.")
-                
-                # 오케스트레이터 응답을 자세히 표시
-                with st.expander("🔍 오케스트레이터 응답 디버깅", expanded=True):
-                    st.json(plan_response)
                 return
             
-            # 5.5. CherryAI v8 오케스트레이터 단일 단계 감지 및 처리
-            if len(plan_steps) == 1 and plan_steps[0].get('agent_name') == "🧠 CherryAI v8 Universal Orchestrator":
-                debug_log("🧠 CherryAI v8 단일 단계 감지 - 종합 분석 결과 직접 표시", "success")
-                
-                # 원본 응답에서 comprehensive_analysis 아티팩트 추출
-                if isinstance(plan_response, dict) and "result" in plan_response:
-                    result = plan_response["result"]
-                    if "artifacts" in result:
-                        for artifact in result["artifacts"]:
-                            if artifact.get("name") == "comprehensive_analysis":
-                                debug_log("📝 v8 comprehensive_analysis 아티팩트 표시 중...", "success")
-                                
-                                # v8 분석 결과 직접 표시
-                                st.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
-                                
-                                parts = artifact.get("parts", [])
-                                for part in parts:
-                                    if part.get("kind") == "text":
-                                        analysis_text = part.get("text", "")
-                                        if analysis_text:
-                                            st.markdown(analysis_text)
-                                            debug_log("✅ v8 분석 결과 표시 완료", "success")
-                                            return
-                
-                # 아티팩트가 없으면 단계의 final_analysis 필드 확인
-                step = plan_steps[0]
-                debug_log(f"🔍 v8 단계 필드 확인: {list(step.keys())}")
-                if "final_analysis" in step:
-                    debug_log("📝 단계에서 final_analysis 발견 - 표시 중...", "success")
-                    st.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
-                    st.markdown(step["final_analysis"])
-                    debug_log("✅ v8 분석 결과 (단계 내) 표시 완료", "success")
-                    return
-                else:
-                    debug_log("❌ 단계에 final_analysis 필드가 없음", "warning")
-            else:
-                debug_log(f"🔍 v8 단계 감지 실패 - 단계 수: {len(plan_steps)}, 첫 번째 에이전트: {plan_steps[0].get('agent_name') if plan_steps else 'None'}")
-            
-            # 6. 계획 실행
+            # 6. 다단계 계획 실행 - 실시간 스트리밍
             debug_log(f"🚀 {len(plan_steps)}개 단계 실행 시작...")
             
-            # 결과 컨테이너
+            # 실시간 스트리밍 컨테이너들
+            plan_container = st.container()
+            streaming_container = st.empty()
             results_container = st.container()
             
-            # ThinkingStream과 PlanVisualization 초기화
-            thinking_stream = ThinkingStream()
-            plan_viz = PlanVisualization()
-            
-            thinking_stream.start_thinking("AI_DS_Team이 최적의 분석 계획을 수립하고 있습니다...")
-            
             # 계획 시각화
-            plan_viz.display_plan(plan_steps, "🧬 AI_DS_Team 실행 계획")
+            with plan_container:
+                st.markdown("### 🧬 AI_DS_Team 실행 계획")
+                plan_cols = st.columns(len(plan_steps))
+                
+                for i, step in enumerate(plan_steps):
+                    with plan_cols[i]:
+                        st.markdown(f"""
+                        <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                            <h4>단계 {i+1}</h4>
+                            <p><strong>{step.get('agent_name', 'Unknown')}</strong></p>
+                            <p style="font-size: 0.8em;">{step.get('task_description', '')[:50]}...</p>
+                        </div>
+                        """, unsafe_allow_html=True)
             
-            # 각 단계 실행
+            # 각 단계 실시간 실행
             all_results = []
             
             for step_idx, step in enumerate(plan_steps):
@@ -522,36 +492,74 @@ async def process_query_streaming(prompt: str):
                 
                 debug_log(f"🎯 단계 {step_num}/{len(plan_steps)} 실행: {agent_name}")
                 
-                thinking_stream.add_thought(f"단계 {step_num}: {agent_name}에게 작업을 요청하고 있습니다...", "working")
+                # 실시간 진행 상황 표시
+                with streaming_container:
+                    st.markdown(f"### 🔄 단계 {step_num}/{len(plan_steps)} 진행 중...")
+                    st.markdown(f"**에이전트**: {agent_name}")
+                    st.markdown(f"**작업**: {task_description}")
+                    
+                    # 실시간 스트리밍 텍스트 컨테이너
+                    live_text_container = st.empty()
+                    live_artifacts_container = st.empty()
                 
                 try:
                     # A2A 스트리밍 실행
                     step_results = []
+                    displayed_text = ""
+                    step_artifacts = []
+                    
                     async for chunk in a2a_client.stream_task(agent_name, task_description, active_file):
                         debug_log(f"📦 청크 수신: {chunk.get('type', 'unknown')}")
                         step_results.append(chunk)
                         
-                        # 실시간 업데이트 표시
-                        if chunk.get('type') == 'progress':
-                            thinking_stream.add_thought(chunk.get('content', ''), "working")
-                        elif chunk.get('type') == 'result':
-                            thinking_stream.add_thought(f"{agent_name} 작업 완료!", "success")
+                        chunk_type = chunk.get('type', 'unknown')
+                        chunk_content = chunk.get('content', {})
+                        is_final = chunk.get('final', False)
+                        
+                        # 실시간 메시지 스트리밍 표시
+                        if chunk_type == 'message':
+                            text = chunk_content.get('text', '')
+                            if text and not text.startswith('✅'):  # 완료 메시지 제외
+                                displayed_text += text + " "
+                                
+                                # 실시간 업데이트
+                                with live_text_container:
+                                    st.markdown(f"**{agent_name} 응답:**")
+                                    st.markdown(displayed_text)
+                        
+                        # 아티팩트 실시간 표시
+                        elif chunk_type == 'artifact':
+                            step_artifacts.append(chunk_content)
+                            
+                            with live_artifacts_container:
+                                st.markdown("**생성된 아티팩트:**")
+                                for i, artifact in enumerate(step_artifacts):
+                                    with st.expander(f"📄 {artifact.get('name', f'Artifact {i+1}')}", expanded=True):
+                                        render_artifact(artifact)
+                        
+                        # final 플래그 확인
+                        if is_final:
+                            debug_log(f"✅ 단계 {step_num} 최종 청크 수신", "success")
+                            break
                     
                     # 단계 결과 저장
                     all_results.append({
                         'step': step_num,
                         'agent': agent_name,
                         'task': task_description,
-                        'results': step_results
+                        'results': step_results,
+                        'displayed_text': displayed_text,
+                        'artifacts': step_artifacts
                     })
                     
                     debug_log(f"✅ 단계 {step_num} 완료: {len(step_results)}개 청크 수신", "success")
                     
                 except Exception as step_error:
                     debug_log(f"❌ 단계 {step_num} 실행 실패: {step_error}", "error")
-                    thinking_stream.add_thought(f"단계 {step_num} 실행 중 오류 발생: {step_error}", "error")
                     
-                    # 오류가 있어도 다음 단계 계속 진행
+                    with live_text_container:
+                        st.error(f"단계 {step_num} 실행 중 오류 발생: {step_error}")
+                    
                     all_results.append({
                         'step': step_num,
                         'agent': agent_name,
@@ -559,77 +567,31 @@ async def process_query_streaming(prompt: str):
                         'error': str(step_error)
                     })
             
-            thinking_stream.finish_thinking("AI_DS_Team 분석이 완료되었습니다!")
+            # 7. 최종 결과 정리 표시
+            debug_log("📊 최종 결과 정리 중...")
             
-            # 7. 최종 결과 표시
-            debug_log("📊 최종 결과 표시 중...")
+            with streaming_container:
+                st.markdown("### ✅ 모든 단계 완료!")
+                st.success("AI_DS_Team 분석이 성공적으로 완료되었습니다.")
             
-            # 🔍 오케스트레이터 아티팩트 디버깅
-            orchestrator_artifacts = []
-            total_artifacts = 0
-            
-            for result in all_results:
-                step_results = result.get('results', [])
-                agent_name = result['agent']
-                
-                for chunk in step_results:
-                    if chunk.get('type') == 'artifact':
-                        total_artifacts += 1
-                        artifact = chunk.get('content', {})
-                        artifact_name = artifact.get('name', 'Unknown')
-                        
-                        debug_log(f"🔍 아티팩트 발견: {artifact_name} (from {agent_name})")
-                        
-                        # 오케스트레이터의 최종 분석 보고서 확인
-                        if 'final_analysis_report' in artifact_name.lower():
-                            orchestrator_artifacts.append(artifact)
-                            debug_log(f"🎯 오케스트레이터 최종 보고서 발견: {artifact_name}")
-            
-            debug_log(f"📊 총 아티팩트 수: {total_artifacts}, 오케스트레이터 보고서: {len(orchestrator_artifacts)}")
-            
-            # 🎯 오케스트레이터로부터 최종 종합 분석 보고서 요청
-            if not orchestrator_artifacts:
-                debug_log("🔍 오케스트레이터 최종 보고서가 없어서 직접 요청합니다...")
-                try:
-                    # 모든 단계 결과를 요약하여 오케스트레이터에게 최종 분석 요청
-                    summary_prompt = f"""
-다음은 AI_DS_Team이 수행한 {len(plan_steps)}단계 분석의 결과입니다:
-
-{chr(10).join([f"단계 {r['step']}: {r['agent']} - {'성공' if 'error' not in r else '실패'}" for r in all_results])}
-
-총 {total_artifacts}개의 아티팩트가 생성되었습니다.
-
-이 모든 분석 결과를 종합하여 사용자에게 제공할 최종 분석 보고서를 작성해주세요.
-보고서는 마크다운 형식으로 작성하고, 다음을 포함해야 합니다:
-1. 분석 개요 및 목적
-2. 주요 발견사항
-3. 각 단계별 핵심 결과 요약
-4. 전체적인 인사이트와 결론
-5. 추가 분석 권장사항
-
-사용자 원본 요청: {prompt}
-"""
-                    
-                    # 오케스트레이터에게 최종 보고서 요청
-                    final_report_chunks = []
-                    async for chunk in a2a_client.stream_task("Orchestrator", summary_prompt):
-                        final_report_chunks.append(chunk)
-                        debug_log(f"📝 최종 보고서 청크 수신: {chunk.get('type', 'unknown')}")
-                    
-                    # 최종 보고서 아티팩트 추출
-                    for chunk in final_report_chunks:
-                        if chunk.get('type') == 'artifact':
-                            artifact = chunk.get('content', {})
-                            if 'final' in artifact.get('name', '').lower() or 'report' in artifact.get('name', '').lower():
-                                orchestrator_artifacts.append(artifact)
-                                debug_log(f"✅ 오케스트레이터 최종 보고서 수신: {artifact.get('name', 'Unknown')}")
-                
-                except Exception as final_report_error:
-                    debug_log(f"⚠️ 최종 보고서 요청 실패: {final_report_error}", "warning")
-            
+            # 8. 종합 결과 표시
             with results_container:
-                st.markdown("### 🎯 AI_DS_Team 분석 결과")
+                st.markdown("---")
+                st.markdown("### 🎯 AI_DS_Team 분석 종합 결과")
                 
+                # 성공한 단계들의 결과 요약
+                successful_steps = [r for r in all_results if 'error' not in r]
+                total_artifacts = sum(len(r.get('artifacts', [])) for r in successful_steps)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("완료된 단계", f"{len(successful_steps)}/{len(plan_steps)}")
+                with col2:
+                    st.metric("생성된 아티팩트", total_artifacts)
+                with col3:
+                    st.metric("처리 시간", f"{len(plan_steps) * 5}초 (예상)")
+                
+                # 각 단계별 상세 결과
                 for result in all_results:
                     step_num = result['step']
                     agent_name = result['agent']
@@ -638,149 +600,26 @@ async def process_query_streaming(prompt: str):
                         if 'error' in result:
                             st.error(f"오류: {result['error']}")
                         else:
-                            step_results = result.get('results', [])
-                            
-                            if not step_results:
-                                st.info(f"{agent_name}에서 결과를 받지 못했습니다.")
-                                continue
-                            
-                            # 메시지와 아티팩트 분리 처리
-                            messages = []
-                            artifacts = []
-                            
-                            for chunk in step_results:
-                                chunk_type = chunk.get('type', 'unknown')
-                                chunk_content = chunk.get('content', {})
-                                
-                                if chunk_type == 'message' and chunk_content.get('text'):
-                                    text = chunk_content['text']
-                                    if text and not text.startswith('✅') and len(text.strip()) > 5:
-                                        messages.append(text)
-                                elif chunk_type == 'artifact':
-                                    artifacts.append(chunk_content)
-                            
-                            # 메시지 표시
-                            if messages:
+                            # 최종 텍스트 응답 표시
+                            if result.get('displayed_text'):
                                 st.markdown("#### 💬 에이전트 응답")
-                                for msg in messages:
-                                    st.markdown(msg)
+                                st.markdown(result['displayed_text'])
                             
-                            # 아티팩트 렌더링
-                            if artifacts:
+                            # 아티팩트 표시
+                            if result.get('artifacts'):
                                 st.markdown("#### 📦 생성된 아티팩트")
-                                for i, artifact in enumerate(artifacts):
-                                    artifact_name = artifact.get('name', f'Artifact {i+1}')
+                                for artifact in result['artifacts']:
+                                    artifact_name = artifact.get('name', 'Unknown')
                                     with st.expander(f"📄 {artifact_name}", expanded=True):
                                         render_artifact(artifact)
             
-            # 🎯 오케스트레이터 최종 보고서 표시 (단순한 마크다운 렌더링)
-            if orchestrator_artifacts:
-                st.markdown("---")
-                st.markdown("## 🎯 최종 분석 보고서")
-                
-                for artifact in orchestrator_artifacts:
-                    debug_log(f"🔍 오케스트레이터 아티팩트 구조: {type(artifact)}")
-                    debug_log(f"🔍 아티팩트 키: {list(artifact.keys()) if isinstance(artifact, dict) else 'Not a dict'}")
-                    
-                    # A2A SDK 0.2.9 아티팩트 구조에 맞게 데이터 추출
-                    try:
-                        content_to_render = None
-                        content_type = "text/markdown"  # 기본값
-                        
-                        # 1. A2A 표준 아티팩트 구조 처리
-                        if 'parts' in artifact and artifact['parts']:
-                            debug_log(f"🔍 Parts 구조: {len(artifact['parts'])}개 파트")
-                            
-                            # 첫 번째 파트에서 컨텐츠 추출
-                            first_part = artifact['parts'][0]
-                            debug_log(f"🔍 첫 번째 파트 타입: {type(first_part)}")
-                            
-                            if hasattr(first_part, 'root') and hasattr(first_part.root, 'text'):
-                                content_to_render = first_part.root.text
-                                debug_log("✅ Part.root.text에서 컨텐츠 추출 성공")
-                            elif isinstance(first_part, dict) and 'root' in first_part:
-                                if isinstance(first_part['root'], dict) and 'text' in first_part['root']:
-                                    content_to_render = first_part['root']['text']
-                                    debug_log("✅ dict['root']['text']에서 컨텐츠 추출 성공")
-                                else:
-                                    content_to_render = str(first_part['root'])
-                                    debug_log("⚠️ dict['root']를 문자열로 변환")
-                            elif isinstance(first_part, dict) and 'text' in first_part:
-                                content_to_render = first_part['text']
-                                debug_log("✅ dict['text']에서 컨텐츠 추출 성공")
-                            else:
-                                content_to_render = str(first_part)
-                                debug_log("⚠️ 파트를 문자열로 변환")
-                        
-                        # 2. 메타데이터에서 content_type 확인
-                        if 'metadata' in artifact:
-                            metadata = artifact['metadata']
-                            content_type = metadata.get('content_type', content_type)
-                            debug_log(f"📋 메타데이터에서 content_type: {content_type}")
-                        
-                        # 3. 컨텐츠가 있으면 렌더링
-                        if content_to_render and content_to_render.strip():
-                            debug_log(f"🎨 컨텐츠 렌더링 시작 (길이: {len(content_to_render)}, 타입: {content_type})")
-                            
-                            # render_artifact 함수에 맞는 형식으로 변환
-                            artifact_data = {
-                                'data': content_to_render,
-                                'contentType': content_type,
-                                'metadata': artifact.get('metadata', {})
-                            }
-                            
-                            render_artifact(artifact_data)
-                            debug_log("✅ render_artifact로 오케스트레이터 보고서 렌더링 성공")
-                        else:
-                            debug_log("❌ 렌더링할 컨텐츠가 없음")
-                            st.warning("최종 분석 보고서 내용이 비어있습니다.")
-                            
-                            # 디버깅을 위한 원시 데이터 표시
-                            with st.expander("🔍 원시 아티팩트 데이터 (디버깅용)", expanded=False):
-                                st.json(artifact)
-                        
-                    except Exception as render_error:
-                        debug_log(f"❌ 오케스트레이터 아티팩트 렌더링 실패: {render_error}", "error")
-                        debug_log(f"🔍 렌더링 오류 스택 트레이스: {traceback.format_exc()}", "error")
-                        
-                        # 폴백: 간단한 텍스트 표시
-                        st.error(f"최종 보고서 렌더링 중 오류가 발생했습니다: {render_error}")
-                        
-                        # 원시 데이터 표시
-                        with st.expander("🔍 원시 아티팩트 데이터 (디버깅용)", expanded=True):
-                            st.json(artifact)
-                            
-                        # 기본 메시지 표시
-                        st.info("분석이 완료되었지만 최종 보고서를 표시하는 데 문제가 발생했습니다. 개별 단계 결과를 참고해주세요.")
-            else:
-                # 오케스트레이터 아티팩트가 없는 경우 기본 완료 메시지
-                st.markdown("---")
-                st.markdown("## ✅ 분석 완료")
-                st.success(f"AI_DS_Team이 {len(plan_steps)}단계 분석을 성공적으로 완료했습니다!")
-                
-                if total_artifacts > 0:
-                    st.info(f"총 {total_artifacts}개의 아티팩트가 생성되었습니다. 위의 단계별 결과를 확인해주세요.")
-                else:
-                    st.warning("생성된 아티팩트가 없습니다. 분석 과정을 다시 확인해주세요.")
-            
-            # 세션 상태 업데이트
-            response_summary = f"AI_DS_Team이 {len(plan_steps)}단계 분석을 완료했습니다."
-            st.session_state.messages.append({"role": "assistant", "content": response_summary})
-            
-            debug_log("🎉 A2A 스트리밍 처리 완료!", "success")
+            debug_log("🎉 전체 스트리밍 프로세스 완료!", "success")
             
         except Exception as e:
-            debug_log(f"💥 A2A 스트리밍 처리 중 치명적 오류: {e}", "error")
-            debug_log(f"🔍 전체 스택 트레이스: {traceback.format_exc()}", "error")
+            debug_log(f"💥 전체 프로세스 오류: {e}", "error")
             st.error(f"처리 중 오류가 발생했습니다: {e}")
-            
-        finally:
-            # 클라이언트 정리
-            try:
-                await a2a_client.close()
-                debug_log("🧹 A2A 클라이언트 정리 완료")
-            except Exception as cleanup_error:
-                debug_log(f"⚠️ 클라이언트 정리 중 오류: {cleanup_error}", "warning")
+            import traceback
+            debug_log(f"🔍 스택 트레이스: {traceback.format_exc()}", "error")
 
 def get_file_size_info(file_id: str) -> str:
     """파일 크기 정보를 반환하는 헬퍼 함수"""

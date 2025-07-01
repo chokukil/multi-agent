@@ -10,6 +10,8 @@ import logging
 import os
 import re
 import time
+import uuid
+import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, AsyncGenerator, Set
 
@@ -42,72 +44,115 @@ from a2a.client import A2ACardResolver, A2AClient
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 헬퍼 함수 추가
+def new_agent_text_message(text: str):
+    import uuid
+    """에이전트 텍스트 메시지 생성"""
+    return Message(
+        messageId=str(uuid.uuid4()),
+        role="agent",
+        parts=[TextPart(text=text)]
+    )
+
 
 class RealTimeStreamingTaskUpdater(TaskUpdater):
-    """실시간 문자 단위 스트리밍을 지원하는 향상된 TaskUpdater"""
+    """A2A SDK 0.2.9 표준 실시간 스트리밍 Task Updater"""
     
     def __init__(self, event_queue: EventQueue, task_id: str, context_id: str):
         super().__init__(event_queue, task_id, context_id)
-        self._buffer = ""
-        self._last_update_time = 0
-        self._min_update_interval = 0.05  # 50ms 최소 간격
+        self.buffer = ""
+        self.buffer_size = 50  # 50자마다 플러시
+        self.last_update_time = time.time()
+        self.min_update_interval = 0.05  # 50ms 최소 간격
+    
+    async def stream_chunk(self, chunk: str, final: bool = False):
+        """A2A 표준 청크 스트리밍 - final 플래그 포함"""
+        try:
+            import uuid
+            await self.update_status(
+                TaskState.working if not final else TaskState.completed,
+                message=Message(
+                    messageId=str(uuid.uuid4()),
+                    role="agent", 
+                    parts=[TextPart(text=chunk)]
+                )
+            )
+            
+            # 실시간 효과를 위한 짧은 지연
+            if not final:
+                await asyncio.sleep(0.05)
+                
+        except Exception as e:
+            logger.error(f"❌ 청크 스트리밍 오류: {e}")
+    
+    async def stream_line(self, line: str, final: bool = False):
+        """라인 단위 스트리밍"""
+        await self.stream_chunk(line + "\n", final)
     
     async def stream_character(self, char: str):
-        """단일 문자 스트리밍 (버퍼링 포함)"""
-        self._buffer += char
+        """문자 단위 버퍼링 후 청크 전송"""
+        self.buffer += char
         current_time = time.time()
         
-        # 최소 간격이 지났거나 특정 문자인 경우 즉시 전송
-        if (current_time - self._last_update_time >= self._min_update_interval or
-            char in ['\n', '.', '!', '?', ':', ';']):
+        # 버퍼 크기나 시간 간격 조건으로 플러시
+        should_flush = (
+            len(self.buffer) >= self.buffer_size or 
+            char in ['\n', '.', '!', '?', ':'] or
+            (current_time - self.last_update_time) > self.min_update_interval
+        )
+        
+        if should_flush and self.buffer.strip():
             await self._flush_buffer()
-    
-    async def stream_chunk(self, chunk: str):
-        """청크 단위 스트리밍"""
-        for char in chunk:
-            await self.stream_character(char)
-    
-    async def stream_line(self, line: str):
-        """라인 단위 스트리밍 (즉시 플러시)"""
-        self._buffer += line + '\n'
-        await self._flush_buffer()
     
     async def _flush_buffer(self):
         """버퍼 플러시"""
-        if self._buffer:
-            try:
-                await self.update_status(
-                    TaskState.working,
-                    message=new_agent_text_message(self._buffer)
-                )
-                self._buffer = ""
-                self._last_update_time = time.time()
-            except Exception as e:
-                logger.error(f"Buffer flush error: {e}")
-                # 버퍼 초기화는 계속 진행
-                self._buffer = ""
-                self._last_update_time = time.time()
+        if self.buffer.strip():
+            await self.stream_chunk(self.buffer, final=False)
+            self.buffer = ""
+            self.last_update_time = time.time()
     
     async def stream_markdown_section(self, section_type: str, content: str):
-        """Markdown 섹션별 스트리밍"""
+        """마크다운 섹션 스트리밍"""
         if section_type == "header":
-            await self.stream_line(f"\n{content}\n")
+            await self.stream_line(f"## {content}")
         elif section_type == "bullet":
             await self.stream_line(f"- {content}")
-        elif section_type == "code":
-            await self.stream_line(f"```\n{content}\n```")
-        elif section_type == "quote":
-            await self.stream_line(f"> {content}")
         else:
             await self.stream_chunk(content)
     
     async def stream_final_response(self, response: str):
-        """최종 응답 완료 (버퍼 플러시 후)"""
+        """최종 응답 완료"""
+        # 남은 버퍼 플러시
         await self._flush_buffer()
-        await self.update_status(
-            TaskState.completed,
-            message=self.new_agent_message(parts=[TextPart(text=response)])
-        )
+        
+        # 최종 응답을 청크로 분할하여 전송
+        lines = response.split('\n')
+        for i, line in enumerate(lines):
+            if line.strip():
+                is_final = (i == len(lines) - 1)
+                await self.stream_chunk(line + '\n', final=is_final)
+    
+    # A2A SDK 0.2.9 표준: add_artifact 메서드 추가
+    async def add_artifact(self, parts: List[Part], artifact_id: str = None, 
+                          name: str = None, metadata: Dict = None) -> None:
+        """A2A SDK 0.2.9 표준 add_artifact 메서드 구현"""
+        try:
+            # 부모 클래스의 add_artifact 메서드 호출
+            await super().add_artifact(parts, artifact_id, name, metadata)
+            logger.info(f"✅ Artifact '{name}' 전송 완료 (parts: {len(parts)})")
+            
+            # 아티팩트 전송 확인 메시지도 스트리밍
+            await self.stream_chunk(f"📦 '{name}' 아티팩트가 생성되었습니다.", final=False)
+            
+        except Exception as e:
+            logger.error(f"❌ Artifact 전송 실패: {e}")
+            # 폴백: 스트리밍으로 내용 전송
+            if parts and len(parts) > 0:
+                for part in parts:
+                    if hasattr(part, 'root') and hasattr(part.root, 'text'):
+                        await self.stream_chunk(f"📋 Artifact '{name}': {part.root.text[:200]}...")
+                    elif hasattr(part, 'text'):
+                        await self.stream_chunk(f"📋 Artifact '{name}': {part.text[:200]}...")
     
     async def stream_from_llm(self, stream: AsyncGenerator):
         """LLM 스트림 직접 연동"""
@@ -119,24 +164,6 @@ class RealTimeStreamingTaskUpdater(TaskUpdater):
         except Exception as e:
             logger.error(f"LLM streaming error: {e}")
             await self._flush_buffer()
-    
-    # A2A SDK 0.2.9 표준: add_artifact 메서드 추가
-    async def add_artifact(self, parts: List[Part], artifact_id: str = None, 
-                          name: str = None, metadata: Dict = None) -> None:
-        """A2A SDK 0.2.9 표준 add_artifact 메서드 구현"""
-        try:
-            # 부모 클래스의 add_artifact 메서드 호출
-            await super().add_artifact(parts, artifact_id, name, metadata)
-            logger.info(f"✅ Artifact '{name}' 전송 완료 (parts: {len(parts)})")
-        except Exception as e:
-            logger.error(f"❌ Artifact 전송 실패: {e}")
-            # 폴백: 스트리밍으로 내용 전송
-            if parts and len(parts) > 0:
-                for part in parts:
-                    if hasattr(part, 'root') and hasattr(part.root, 'text'):
-                        await self.stream_line(f"📋 Artifact '{name}': {part.root.text[:200]}...")
-                    elif hasattr(part, 'text'):
-                        await self.stream_line(f"📋 Artifact '{name}': {part.text[:200]}...")
 
 
 class DynamicAgentDiscovery:

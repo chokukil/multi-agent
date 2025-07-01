@@ -230,35 +230,76 @@ class A2AStreamlitClient:
             response.raise_for_status()
             response_data = response.json()
             
-            # A2A 프로토콜 응답 처리
+            # A2A 프로토콜 응답 처리 - 실제 구조에 맞게 수정
             if "result" in response_data:
                 result = response_data["result"]
                 
-                # 기본 메시지 스트리밍
+                # 스트리밍 메시지 처리 개선
+                message_chunks = []
+                
+                # 1. 기본 메시지 처리 (status.message)
                 if "status" in result and "message" in result["status"]:
                     status_msg = result["status"]["message"]
                     if "parts" in status_msg:
                         for part in status_msg["parts"]:
                             if part.get("kind") == "text":
-                                yield {
-                                    "type": "message", 
-                                    "content": {"text": part.get("text", "")},
-                                    "final": False
-                                }
+                                text = part.get("text", "")
+                                if text.strip():
+                                    message_chunks.append(text)
                 
-                # 히스토리 메시지들 스트리밍
+                # 2. 히스토리 메시지들 처리
                 if "history" in result:
                     for msg in result["history"]:
                         if msg.get("role") == "agent" and "parts" in msg:
                             for part in msg["parts"]:
                                 if part.get("kind") == "text":
-                                    yield {
-                                        "type": "message",
-                                        "content": {"text": part.get("text", "")},
-                                        "final": False
-                                    }
+                                    text = part.get("text", "")
+                                    if text.strip():
+                                        message_chunks.append(text)
                 
-                # 아티팩트 스트리밍
+                # 3. 직접 메시지 구조 처리
+                if "message" in result and "parts" in result["message"]:
+                    for part in result["message"]["parts"]:
+                        if part.get("kind") == "text":
+                            text = part.get("text", "")
+                            if text.strip():
+                                message_chunks.append(text)
+                
+                # 4. 메시지 청크들을 스트리밍으로 전송
+                for i, chunk_text in enumerate(message_chunks):
+                    is_final = (i == len(message_chunks) - 1) and "artifacts" not in result
+                    
+                    # 청크를 더 작은 단위로 분할하여 스트리밍 효과 연출
+                    words = chunk_text.split()
+                    word_chunks = []
+                    current_chunk = ""
+                    
+                    for word in words:
+                        if len(current_chunk) + len(word) + 1 > 50:  # 50자 단위로 분할
+                            if current_chunk:
+                                word_chunks.append(current_chunk.strip())
+                            current_chunk = word
+                        else:
+                            current_chunk += " " + word if current_chunk else word
+                    
+                    if current_chunk:
+                        word_chunks.append(current_chunk.strip())
+                    
+                    # 단어 청크들을 스트리밍
+                    for j, word_chunk in enumerate(word_chunks):
+                        is_chunk_final = is_final and (j == len(word_chunks) - 1)
+                        
+                        yield {
+                            "type": "message",
+                            "content": {"text": word_chunk},
+                            "final": is_chunk_final
+                        }
+                        
+                        # 스트리밍 효과를 위한 지연
+                        import asyncio
+                        await asyncio.sleep(0.1)
+                
+                # 5. 아티팩트 스트리밍 (즉시 전송)
                 if "artifacts" in result:
                     for artifact in result["artifacts"]:
                         if "parts" in artifact:
@@ -266,7 +307,6 @@ class A2AStreamlitClient:
                             artifact_metadata = artifact.get("metadata", {})
                             
                             self._debug_log(f"📦 아티팩트 처리: {artifact_name}")
-                            self._debug_log(f"📋 메타데이터: {artifact_metadata}")
                             
                             for part in artifact["parts"]:
                                 artifact_data = part.get("text", "")
@@ -276,7 +316,6 @@ class A2AStreamlitClient:
                                     self._debug_log("📊 Plotly 차트 아티팩트 감지")
                                     
                                     try:
-                                        # JSON 파싱 시도
                                         import json
                                         chart_data = json.loads(artifact_data) if isinstance(artifact_data, str) else artifact_data
                                         
@@ -291,11 +330,8 @@ class A2AStreamlitClient:
                                             "final": False
                                         }
                                         
-                                        self._debug_log("✅ Plotly 차트 아티팩트 스트리밍 완료")
-                                        
                                     except json.JSONDecodeError as e:
                                         self._debug_log(f"❌ Plotly 차트 JSON 파싱 실패: {e}", "error")
-                                        # 실패 시 텍스트로 처리
                                         yield {
                                             "type": "artifact",
                                             "content": {
@@ -319,7 +355,7 @@ class A2AStreamlitClient:
                                         "final": False
                                     }
                 
-                # 최종 완료 신호
+                # 6. 최종 완료 신호
                 yield {
                     "type": "message",
                     "content": {"text": f"✅ {mapped_agent_name} 작업 완료"},
