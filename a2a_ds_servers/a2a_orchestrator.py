@@ -595,7 +595,7 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
                 standard_workflow = [
                     ("AI_DS_Team DataLoaderToolsAgent", "데이터 로딩 및 전처리"),
                     ("AI_DS_Team DataCleaningAgent", "데이터 정리 및 품질 개선"),
-                    ("SessionEDAToolsAgent", "데이터 탐색적 분석"),
+                    ("AI_DS_Team EDAToolsAgent", "데이터 탐색적 분석"),
                     ("AI_DS_Team DataVisualizationAgent", "데이터 시각화"),
                     ("AI_DS_Team SQLDatabaseAgent", "장비 간 분포 비교 및 이상 탐지"),
                     ("AI_DS_Team DataWranglingAgent", "이상 원인 해석 및 조치 방향 제안")
@@ -1399,7 +1399,7 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
 - 결측값, 중복값, 이상값 확인
 - 사용된 파일명을 명확히 표시
 """,
-            "SessionEDAToolsAgent": f"""
+            "AI_DS_Team EDAToolsAgent": f"""
 {base_instruction}
 
 {data_instruction}
@@ -1438,7 +1438,17 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
 - SQL 쿼리를 통한 데이터 분석
 - 집계, 필터링, 조인 등의 데이터 처리
 - 사용된 파일명을 명확히 표시
-"""
+""",
+            "AI_DS_Team EDAToolsAgent": f"""
+{base_instruction}
+
+{data_instruction}
+
+📋 **작업 세부사항**:
+- 탐색적 데이터 분석 수행
+- 기술통계, 분포 분석, 상관관계 분석
+- 사용된 파일명을 명확히 표시
+""",
         }
         
         # 4. 최종 지시 반환
@@ -1516,6 +1526,7 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
                     2. 일반적인 접근 방법과 고려사항 제시
                     3. 실무에서 활용할 수 있는 구체적인 조언 포함
                     4. 추가 정보가 필요한 부분 명시
+                    5. 마크다운 형식으로 구조화된 답변 제공
                     """
                     
                     response = await self.openai_client.chat.completions.create(
@@ -1533,39 +1544,116 @@ class UniversalIntelligentOrchestratorV8(AgentExecutor):
             
             # 최후 수단: 기본 응답
             return f"""
-## 분석 요청 처리 결과
+## 📊 분석 요청 처리 결과
 
 ⚠️ **AI 에이전트 시스템과의 통신에 문제가 발생했습니다.**
 
-### 요청 내용
+### 📝 요청 내용
 {user_input[:200]}{"..." if len(user_input) > 200 else ""}
 
-### 발생한 문제
+### ❌ 발생한 문제
 {chr(10).join(failed_agents) if failed_agents else "- 모든 AI 에이전트와의 통신이 실패했습니다."}
 
-### 권장 조치
-1. 잠시 후 다시 시도해 주세요
-2. 요청을 더 구체적으로 작성해 보세요
-3. 단계별로 나누어 요청해 보세요
+### 🔧 권장 조치
+1. **재시도**: 잠시 후 다시 시도해 주세요
+2. **구체화**: 요청을 더 구체적으로 작성해 보세요
+3. **단계별 접근**: 복잡한 요청은 단계별로 나누어 요청해 보세요
+4. **데이터 확인**: 데이터가 올바르게 업로드되었는지 확인해 주세요
+
+### 💡 일반적인 해결 방법
+- 시스템 상태 확인 후 재시도
+- 에이전트 서버 재시작 필요할 수 있음
+- 네트워크 연결 상태 확인
 
 죄송합니다. 현재 시스템 상태로는 완전한 분석을 제공할 수 없습니다.
             """
         
-        synthesis_prompt = f"""
-        사용자 요청: {user_input}
-        사용자 의도: {json.dumps(user_intent, ensure_ascii=False)}
+        # 사용자 요청이 이온주입 공정 분석인지 확인
+        is_ion_implant_analysis = any(keyword in user_input.lower() for keyword in 
+                                    ['이온주입', 'ion implant', '공정', 'process', '반도체', 'semiconductor', 
+                                     'tw', 'tilt', 'energy', 'dose', '장비', 'equipment'])
         
-        분석 결과:
-        {json.dumps(successful_results, ensure_ascii=False, indent=2)[:3000]}
-        
-        위 결과를 바탕으로 사용자 요청에 대한 종합적인 답변을 작성하세요.
-        
-        지침:
-        1. 사용자의 {user_intent['action_type']} 요청에 직접 답변
-        2. 구체적인 데이터와 근거 제시
-        3. 핵심 발견사항 강조
-        4. 실용적인 인사이트 제공
-        """
+        if is_ion_implant_analysis:
+            # 이온주입 공정 전문 분석 프롬프트
+            synthesis_prompt = f"""
+            당신은 20년 경력의 반도체 이온주입 공정(Process) 엔지니어입니다.
+            
+            사용자 요청: {user_input}
+            
+            분석된 데이터와 결과:
+            {json.dumps(successful_results, ensure_ascii=False, indent=2)[:3000]}
+            
+            위 분석 결과를 바탕으로 이온주입 공정 전문가로서 종합적인 진단 보고서를 작성하세요.
+            
+            ## 📊 이온주입 공정 분석 보고서
+            
+            ### 🎯 공정 상태 진단
+            - **전체 평가**: 정상/주의/이상 중 하나로 판정
+            - **핵심 지표 상태**: TW, Energy, Dose, Tilt 등 주요 파라미터 평가
+            - **장비별 성능**: 각 장비의 상태 및 트렌드 분석
+            
+            ### 📋 주요 발견사항
+            - **이상 징후**: 발견된 이상 패턴과 그 원인 분석
+            - **트렌드 분석**: 시간에 따른 변화 패턴
+            - **장비간 편차**: 동일 공정에서 장비간 차이점
+            
+            ### 💡 기술적 해석
+            - **물리적 원인**: 이상 현상의 물리적/화학적 원인 설명
+            - **공정 메커니즘**: 관련된 이온주입 메커니즘 해석
+            - **상관관계**: 파라미터간 상호 영향 분석
+            
+            ### ⚠️ 위험도 평가
+            - **긴급도**: 즉시/단기/중장기 조치 필요성
+            - **영향 범위**: 제품 품질에 미치는 영향 정도
+            - **예상 손실**: 방치 시 예상되는 문제점
+            
+            ### 🔧 기술적 조치 방안
+            - **즉시 조치**: 당장 실행해야 할 조치사항
+            - **단기 개선**: 1-2주 내 실행할 개선사항
+            - **중장기 대책**: 근본적 해결을 위한 장기 계획
+            - **예방 조치**: 재발 방지를 위한 예방책
+            
+            ### 📈 모니터링 계획
+            - **핵심 KPI**: 지속 관찰해야 할 핵심 지표
+            - **점검 주기**: 각 항목별 점검 빈도
+            - **알람 기준**: 이상 감지를 위한 임계값 설정
+            
+            ### 🔍 추가 분석 제안
+            - **심화 분석**: 더 정밀한 분석이 필요한 영역
+            - **데이터 보완**: 추가로 수집해야 할 데이터
+            - **실험 계획**: 원인 규명을 위한 실험 제안
+            
+            **중요**: 모든 판단과 권장사항은 반드시 데이터 근거를 제시하고, 
+            실무 엔지니어가 즉시 활용할 수 있도록 구체적이고 실행 가능한 내용으로 작성하세요.
+            """
+        else:
+            # 일반 데이터 분석 프롬프트
+            synthesis_prompt = f"""
+            사용자 요청: {user_input}
+            사용자 의도: {json.dumps(user_intent, ensure_ascii=False)}
+            
+            분석 결과:
+            {json.dumps(successful_results, ensure_ascii=False, indent=2)[:3000]}
+            
+            위 결과를 바탕으로 사용자 요청에 대한 종합적인 답변을 작성하세요.
+            
+            지침:
+            1. 사용자의 {user_intent.get('action_type', 'analyze')} 요청에 직접 답변
+            2. 구체적인 데이터와 근거 제시
+            3. 핵심 발견사항 강조
+            4. 실용적인 인사이트 제공
+            5. 마크다운 형식으로 구조화된 답변 작성
+            6. 각 에이전트의 결과를 명확히 구분하여 제시
+            7. 최종 결론과 권장사항 포함
+            
+            응답 구조:
+            ## 📊 종합 분석 결과
+            ### 🎯 분석 개요
+            ### 📋 주요 발견사항
+            ### 💡 핵심 인사이트
+            ### 📈 권장 조치사항
+            ### 🔍 추가 분석 제안
+            """
         
         try:
             response = await self.openai_client.chat.completions.create(

@@ -132,6 +132,70 @@ class SmartDisplayManager:
     
     def _render_markdown(self, content: str) -> None:
         """마크다운을 예쁘게 렌더링"""
+        # 커스텀 CSS 스타일 적용
+        st.markdown("""
+        <style>
+        .smart-markdown {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+        .smart-markdown h1, .smart-markdown h2, .smart-markdown h3 {
+            color: #3498db;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+            margin-top: 20px;
+        }
+        .smart-markdown code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #e74c3c;
+            font-family: 'Courier New', monospace;
+        }
+        .smart-markdown pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .smart-markdown blockquote {
+            border-left: 4px solid #3498db;
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #7f8c8d;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        .smart-markdown ul, .smart-markdown ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        .smart-markdown li {
+            margin: 5px 0;
+        }
+        .smart-markdown table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .smart-markdown th, .smart-markdown td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .smart-markdown th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # 마크다운 내용을 스타일과 함께 렌더링
         st.markdown(content, unsafe_allow_html=True)
     
     def _render_dataframe(self, content: Any) -> None:
@@ -235,14 +299,17 @@ class AccumulativeStreamContainer:
             # 아티팩트인 경우 특별 처리
             if content_type == "artifact" and isinstance(chunk, dict):
                 # 아티팩트를 Smart Display로 직접 렌더링
-                self.accumulated_content.append(f"\n### 📦 {chunk.get('name', 'Artifact')}\n")
+                artifact_name = chunk.get('name', 'Artifact')
+                self.accumulated_content.append(f"\n\n### 📦 {artifact_name}\n")
                 
                 with self.container.container():
+                    # 기존 누적 내용 표시
                     full_content = "".join(self.accumulated_content)
-                    st.markdown(full_content)
+                    smart_display.smart_display_content(full_content)
                     
-                    # 아티팩트를 별도로 렌더링
-                    smart_display.smart_display_content(chunk)
+                    # 아티팩트를 별도 컨테이너에서 렌더링 (중복 방지)
+                    with st.expander(f"📄 {artifact_name}", expanded=True):
+                        smart_display.smart_display_content(chunk)
             else:
                 # 일반 텍스트 처리
                 if isinstance(chunk, str):

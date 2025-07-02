@@ -127,3 +127,23 @@ def create_orchestration_dashboard() -> A2AOrchestrationDashboard:
 # 전역 대시보드 인스턴스
 if 'orchestration_dashboard' not in st.session_state:
     st.session_state.orchestration_dashboard = create_orchestration_dashboard()
+
+# 에이전트 이름 매핑 (계획에서 사용하는 이름 -> 실제 에이전트 이름)
+AGENT_NAME_MAPPING = {
+    "data_loader": "📁 Data Loader",
+    "data_cleaning": "🧹 Data Cleaning", 
+    "data_wrangling": "🔧 Data Wrangling",
+    "eda_tools": "🔍 EDA Tools",
+    "data_visualization": "📊 Data Visualization",
+    "feature_engineering": "⚙️ Feature Engineering",
+    "sql_database": "🗄️ SQL Database",
+    "h2o_ml": "🤖 H2O ML",
+    "mlflow_tools": "📈 MLflow Tools",
+    # 오케스트레이터 계획에서 사용하는 이름들 추가
+    "AI_DS_Team EDAToolsAgent": "🔍 EDA Tools",
+    "AI_DS_Team DataLoaderToolsAgent": "📁 Data Loader",
+    "AI_DS_Team DataCleaningAgent": "🧹 Data Cleaning",
+    "AI_DS_Team DataVisualizationAgent": "📊 Data Visualization",
+    "AI_DS_Team SQLDatabaseAgent": "🗄️ SQL Database",
+    "AI_DS_Team DataWranglingAgent": "�� Data Wrangling"
+}

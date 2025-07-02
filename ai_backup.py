@@ -28,9 +28,6 @@ import plotly.io as pio
 from typing import Dict, Any, Tuple
 import traceback
 from pathlib import Path
-import uuid
-import numpy as np
-import base64
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가 (ai.py는 프로젝트 루트에 위치)
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -104,12 +101,11 @@ def debug_log(message: str, level: str = "info"):
 try:
     from core.ui.smart_display import SmartDisplayManager, AccumulativeStreamContainer
     from core.ui.a2a_orchestration_ui import A2AOrchestrationDashboard
-    from core.ui.agent_preloader import AgentPreloader, get_agent_preloader, ProgressiveLoadingUI, AgentStatus
     SMART_UI_AVAILABLE = True
-    print("✅ Smart UI 컴포넌트 로드 성공")
+    debug_log("✅ Smart UI 컴포넌트 로드 성공")
 except ImportError as e:
     SMART_UI_AVAILABLE = False
-    print(f"⚠️ Smart UI 컴포넌트 로드 실패: {e}")
+    debug_log(f"⚠️ Smart UI 컴포넌트 로드 실패: {e}", "warning")
 
 # AI_DS_Team 유틸리티 임포트
 try:
@@ -192,18 +188,7 @@ AGENT_NAME_MAPPING = {
     "feature_engineering": "⚙️ Feature Engineering",
     "sql_database": "🗄️ SQL Database",
     "h2o_ml": "🤖 H2O ML",
-    "mlflow_tools": "📈 MLflow Tools",
-    # 오케스트레이터 계획에서 사용하는 이름들 추가 (정확한 Agent Card name 사용)
-    "AI_DS_Team EDAToolsAgent": "🔍 EDA Tools",
-    "AI_DS_Team DataLoaderToolsAgent": "📁 Data Loader",
-    "AI_DS_Team DataCleaningAgent": "🧹 Data Cleaning",
-    "AI_DS_Team DataVisualizationAgent": "📊 Data Visualization",
-    "AI_DS_Team SQLDatabaseAgent": "🗄️ SQL Database",
-    "AI_DS_Team DataWranglingAgent": "🔧 Data Wrangling",
-    # 호환성을 위해 기존 이름도 유지
-    "SessionEDAToolsAgent": "🔍 EDA Tools",
-    # 호환성을 위해 기존 이름도 유지
-    "SessionEDAToolsAgent": "🔍 EDA Tools"
+    "mlflow_tools": "📈 MLflow Tools"
 }
 
 def map_agent_name(plan_agent_name: str) -> str:
@@ -221,84 +206,6 @@ def initialize_session_state():
     if "active_agent" not in st.session_state: st.session_state.active_agent = None
     if "data_manager" not in st.session_state: st.session_state.data_manager = DataManager()  # DataManager 추가
     if "session_data_manager" not in st.session_state: st.session_state.session_data_manager = SessionDataManager()  # 세션 기반 데이터 관리자 추가
-    # 프리로더 초기화 상태 추가
-    if "preloader_initialized" not in st.session_state: st.session_state.preloader_initialized = False
-    if "agents_preloaded" not in st.session_state: st.session_state.agents_preloaded = False
-
-@st.cache_resource
-def initialize_agent_preloader():
-    """에이전트 프리로더 초기화 (캐시됨)"""
-    return get_agent_preloader(AI_DS_TEAM_AGENTS)
-
-async def preload_agents_with_ui():
-    """UI와 함께 에이전트 프리로딩"""
-    if st.session_state.agents_preloaded:
-        debug_log("✅ 에이전트가 이미 프리로드됨", "success")
-        return st.session_state.agent_status
-    
-    # 프리로더 인스턴스 가져오기
-    preloader = initialize_agent_preloader()
-    
-    # 로딩 UI 설정
-    loading_container = st.container()
-    loading_ui = ProgressiveLoadingUI(loading_container)
-    loading_ui.setup_ui()
-    
-    # 진행 상황 콜백 함수
-    def progress_callback(completed, total, current_task):
-        loading_ui.update_progress(completed, total, current_task)
-        debug_log(f"📋 {current_task} ({completed}/{total})")
-    
-    try:
-        # 에이전트 프리로딩 실행
-        debug_log("🚀 에이전트 프리로딩 시작...", "success")
-        agents_info = await preloader.preload_agents(progress_callback)
-        
-        # 기존 형식으로 변환 (호환성 유지)
-        agent_status = {}
-        for name, agent_info in agents_info.items():
-            status_icon = "✅" if agent_info.status == AgentStatus.READY else "❌"
-            agent_status[name] = {
-                "status": status_icon,
-                "description": agent_info.description,
-                "port": agent_info.port,
-                "capabilities": agent_info.capabilities,
-                "color": agent_info.color,
-                "initialization_time": agent_info.initialization_time,
-                "error_message": agent_info.error_message
-            }
-        
-        # 세션 상태 업데이트
-        st.session_state.agent_status = agent_status
-        st.session_state.agents_preloaded = True
-        
-        # 완료 상태 표시
-        summary = preloader.get_initialization_summary()
-        loading_ui.show_completion(summary)
-        
-        debug_log(f"✅ 에이전트 프리로딩 완료: {summary['ready_agents']}/{summary['total_agents']} 준비됨", "success")
-        
-        # 로딩 UI 정리 (잠시 후)
-        time.sleep(2)
-        loading_container.empty()
-        
-        return agent_status
-        
-    except Exception as e:
-        debug_log(f"❌ 에이전트 프리로딩 실패: {e}", "error")
-        loading_container.error(f"에이전트 초기화 중 오류 발생: {e}")
-        
-        # 폴백: 기존 방식으로 상태 확인
-        debug_log("🔄 기존 방식으로 폴백...", "warning")
-        try:
-            fallback_status = await check_agents_status_async()
-            st.session_state.agent_status = fallback_status
-            debug_log("✅ 폴백 에이전트 상태 확인 완료", "success")
-            return fallback_status
-        except Exception as fallback_error:
-            debug_log(f"❌ 폴백도 실패: {fallback_error}", "error")
-            # 최후의 폴백: 빈 상태 반환
-            return {}
 
 async def check_agents_status_async():
     """AI_DS_Team 에이전트 상태 비동기 확인 (수정된 버전)"""
@@ -346,276 +253,157 @@ def display_agent_status():
             </div>""", unsafe_allow_html=True)
 
 def render_artifact(artifact_data: Dict[str, Any]):
-    """아티팩트 렌더링 - 완전히 재작성된 버전"""
+    """아티팩트를 Smart Display Manager로 렌더링"""
+    debug_log(f"🎨 Smart Display로 아티팩트 렌더링 시작")
+    
     try:
-        debug_log(f"🎨 아티팩트 렌더링 시작: {artifact_data.get('name', 'Unknown')}")
-        
-        name = artifact_data.get('name', 'Unknown')
-        parts = artifact_data.get('parts', [])
-        metadata = artifact_data.get('metadata', {})
-        content_type = artifact_data.get('contentType', metadata.get('content_type', 'text/plain'))
-        
-        if not parts:
-            st.warning("아티팩트에 표시할 콘텐츠가 없습니다.")
-            return
-        
-        # 아티팩트별 컨테이너 생성 (중복 방지)
-        with st.container():
-            # 헤더 표시
-            if name != 'Unknown':
-                st.markdown(f"### 📦 {name}")
+        # Smart Display Manager 사용 가능 여부 확인
+        if SMART_UI_AVAILABLE:
+            smart_display = SmartDisplayManager()
             
+            # 아티팩트 메타데이터 추출
+            name = artifact_data.get("name", "Unknown Artifact")
+            parts = artifact_data.get("parts", [])
+            metadata = artifact_data.get("metadata", {})
+            
+            # 아티팩트 헤더 표시
+            st.markdown(f"### 📄 {name}")
+            
+            # 각 part 처리
             for i, part in enumerate(parts):
-                try:
-                    # Part 구조 파싱
-                    if isinstance(part, dict):
-                        part_kind = part.get("kind", part.get("type", "unknown"))
-                        
-                        if part_kind == "text":
-                            text_content = part.get("text", "")
-                            if not text_content:
-                                continue
-                            
-                            # 컨텐츠 타입별 렌더링
-                            if content_type == "application/vnd.plotly.v1+json":
-                                # Plotly 차트 JSON 데이터 처리
-                                _render_plotly_chart(text_content, name, i)
-                                
-                            elif content_type == "text/x-python" or "```python" in text_content:
-                                # Python 코드 렌더링
-                                _render_python_code(text_content)
-                                
-                            elif content_type == "text/markdown" or text_content.startswith("#"):
-                                # 마크다운 렌더링
-                                _render_markdown_content(text_content)
-                                
-                            else:
-                                # 일반 텍스트 렌더링
-                                _render_general_text(text_content)
-                        
-                        elif part_kind == "data":
-                            # 데이터 Part 처리
-                            data_content = part.get("data", {})
-                            _render_data_content(data_content, content_type, name, i)
-                        
-                        else:
-                            # 알 수 없는 타입
-                            st.json(part)
+                part_type = part.get("kind", "unknown")
+                
+                if part_type == "text":
+                    # 텍스트 콘텐츠를 Smart Display로 처리
+                    text_content = part.get("text", "")
+                    smart_display.smart_display_content(text_content)
                     
-                    else:
-                        # 문자열이나 기타 타입
-                        st.text(str(part))
-                        
-                except Exception as part_error:
-                    debug_log(f"❌ Part {i} 렌더링 실패: {part_error}", "error")
-                    with st.expander(f"🔍 Part {i} 오류 정보"):
-                        st.error(f"렌더링 오류: {part_error}")
-                        st.json(part)
-        
-        debug_log("✅ 아티팩트 렌더링 완료")
-        
-    except Exception as e:
-        debug_log(f"💥 아티팩트 렌더링 전체 오류: {e}", "error")
-        st.error(f"아티팩트 렌더링 중 오류 발생: {e}")
-
-def _render_plotly_chart(json_text: str, name: str, index: int):
-    """Plotly 차트 전용 렌더링"""
-    try:
-        import plotly.io as pio
-        import plotly.graph_objects as go
-        import json
-        import numpy as np
-        import base64
-        from datetime import datetime
-        import uuid
-        
-        debug_log("🔍 Plotly 차트 데이터 파싱 시작...")
-        
-        # JSON 파싱
-        try:
-            chart_data = json.loads(json_text)
-        except json.JSONDecodeError as e:
-            debug_log(f"❌ JSON 파싱 실패: {e}", "error")
-            st.error("차트 데이터 JSON 파싱 실패")
-            with st.expander("🔍 원시 데이터"):
-                st.text(json_text[:500] + "..." if len(json_text) > 500 else json_text)
-            return
-        
-        # Binary data 디코딩 함수
-        def decode_plotly_binary_data(data_dict):
-            """Plotly binary data를 실제 값으로 변환"""
-            if isinstance(data_dict, dict):
-                for key, value in data_dict.items():
-                    if isinstance(value, dict) and 'dtype' in value and 'bdata' in value:
+                elif part_type == "data":
+                    # 데이터 콘텐츠 처리
+                    data_content = part.get("data", {})
+                    content_type = data_content.get("type", "application/json")
+                    actual_data = data_content.get("data", {})
+                    
+                    # Plotly 차트 특별 처리 (고유 키 사용)
+                    if content_type == "application/vnd.plotly.v1+json":
                         try:
-                            if value['dtype'] == 'f8':  # float64
-                                binary_data = base64.b64decode(value['bdata'])
-                                float_array = np.frombuffer(binary_data, dtype=np.float64)
-                                data_dict[key] = float_array.tolist()
-                                debug_log(f"✅ Binary float64 디코딩 성공: {key}")
-                            elif value['dtype'] == 'i8':  # int64
-                                binary_data = base64.b64decode(value['bdata'])
-                                int_array = np.frombuffer(binary_data, dtype=np.int64)
-                                data_dict[key] = int_array.tolist()
-                                debug_log(f"✅ Binary int64 디코딩 성공: {key}")
-                        except Exception as decode_error:
-                            debug_log(f"❌ Binary data 디코딩 실패 {key}: {decode_error}", "error")
-                    elif isinstance(value, (dict, list)):
-                        if isinstance(value, dict):
-                            decode_plotly_binary_data(value)
-                        elif isinstance(value, list):
-                            for item in value:
-                                if isinstance(item, dict):
-                                    decode_plotly_binary_data(item)
-            return data_dict
-        
-        # Binary data 디코딩 적용
-        chart_data = decode_plotly_binary_data(chart_data)
-        
-        # Plotly Figure 생성
-        try:
-            if isinstance(chart_data, dict):
-                # 데이터 구조 확인
-                if 'data' in chart_data and 'layout' in chart_data:
-                    # 표준 Plotly 구조
-                    plot_data = chart_data['data']
-                    layout = chart_data['layout']
-                elif 'data' in chart_data and isinstance(chart_data['data'], dict) and 'data' in chart_data['data']:
-                    # 중첩된 구조
-                    plot_data = chart_data['data']['data']
-                    layout = chart_data['data'].get('layout', {})
+                            import plotly.io as pio
+                            import json
+                            
+                            if isinstance(actual_data, str):
+                                chart_data = json.loads(actual_data)
+                            else:
+                                chart_data = actual_data
+                                
+                            fig = pio.from_json(json.dumps(chart_data))
+                            
+                            # 고유 키로 Plotly 차트 렌더링
+                            chart_id = f"artifact_{name}_{i}_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
+                            st.plotly_chart(fig, key=chart_id, use_container_width=True)
+                            debug_log("✅ Plotly 차트 Smart Display 렌더링 성공")
+                            
+                        except Exception as plotly_error:
+                            debug_log(f"❌ Plotly Smart Display 렌더링 실패: {plotly_error}", "error")
+                            st.error(f"Plotly 차트 렌더링 오류: {plotly_error}")
+                    else:
+                        # 기타 데이터 타입은 Smart Display로 처리
+                        smart_display.smart_display_content(actual_data)
+                
                 else:
-                    # 전체를 Figure로 시도
-                    plot_data = chart_data.get('data', [])
-                    layout = chart_data.get('layout', {})
-                
-                fig = go.Figure(data=plot_data, layout=layout)
+                    # 알 수 없는 타입은 Smart Display로 처리
+                    smart_display.smart_display_content(part)
+            
+            debug_log("✅ Smart Display 아티팩트 렌더링 완료")
+            
+        else:
+            # Smart Display를 사용할 수 없는 경우 기존 방식 사용
+            debug_log("⚠️ Smart Display 사용 불가, 기존 방식 사용", "warning")
+            _render_artifact_fallback(artifact_data)
+            
+    except Exception as e:
+        debug_log(f"💥 Smart Display 아티팩트 렌더링 오류: {e}", "error")
+        st.error(f"아티팩트 렌더링 중 오류가 발생했습니다: {e}")
+        
+        # 최후의 폴백: 원시 데이터 표시
+        with st.expander("🔍 원시 아티팩트 데이터", expanded=False):
+            st.json(artifact_data)
+
+def _render_artifact_fallback(artifact_data: Dict[str, Any]):
+    """Smart Display를 사용할 수 없을 때의 폴백 렌더링"""
+    content_type = artifact_data.get('contentType', artifact_data.get('metadata', {}).get('content_type', 'text/plain'))
+    data = artifact_data.get('data', '')
+    metadata = artifact_data.get('metadata', {})
+    
+    debug_log(f"🎨 폴백 아티팩트 렌더링: {content_type}")
+    
+    # Plotly 차트 렌더링
+    if content_type == "application/vnd.plotly.v1+json":
+        try:
+            import plotly.io as pio
+            import json
+            
+            if isinstance(data, str):
+                chart_data = json.loads(data)
             else:
-                # JSON 문자열로 직접 변환
-                fig = pio.from_json(json.dumps(chart_data))
+                chart_data = data
+                
+            fig = pio.from_json(json.dumps(chart_data))
             
-            # 차트 최적화
-            fig.update_layout(
-                showlegend=True,
-                margin=dict(l=20, r=20, t=40, b=20),
-                font=dict(size=12),
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)'
-            )
-            
-            # 고유 키 생성
-            chart_id = f"plotly_{name}_{index}_{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%H%M%S%f')}"
-            
-            # 차트 표시
-            st.markdown("#### 📊 인터랙티브 차트")
+            # 고유 키 생성하여 렌더링
+            chart_id = f"fallback_chart_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
             st.plotly_chart(fig, key=chart_id, use_container_width=True)
-            debug_log("✅ Plotly 차트 렌더링 성공!")
+            debug_log("✅ 폴백 Plotly 차트 렌더링 성공")
             
-        except Exception as fig_error:
-            debug_log(f"❌ Plotly Figure 생성 실패: {fig_error}", "error")
-            st.error(f"차트 생성 오류: {fig_error}")
-            
-            # 상세 오류 정보
-            with st.expander("🔍 차트 오류 상세 정보"):
-                st.text(f"오류 타입: {type(fig_error).__name__}")
-                st.text(f"오류 메시지: {str(fig_error)}")
-                st.markdown("**원시 차트 데이터 (처음 1000자):**")
-                st.json(json.loads(json_text[:1000]) if len(json_text) > 1000 else json.loads(json_text))
-                
-    except Exception as e:
-        debug_log(f"❌ Plotly 차트 렌더링 전체 실패: {e}", "error")
-        st.error(f"Plotly 차트 처리 오류: {e}")
-
-def _render_python_code(text_content: str):
-    """Python 코드 예쁘게 렌더링"""
-    try:
-        # 코드 블록 추출
-        if "```python" in text_content:
-            # 마크다운 코드 블록에서 코드만 추출
-            parts = text_content.split("```python")
-            for i, part in enumerate(parts[1:], 1):
-                if "```" in part:
-                    code = part.split("```")[0].strip()
-                    if code:
-                        st.markdown(f"#### 🐍 Python 코드 #{i}")
-                        st.code(code, language='python')
-        else:
-            # 전체가 코드인 경우
-            st.markdown("#### 🐍 Python 코드")
-            st.code(text_content, language='python')
-            
-        debug_log("✅ Python 코드 렌더링 완료")
-        
-    except Exception as e:
-        debug_log(f"❌ Python 코드 렌더링 실패: {e}", "error")
-        st.text(text_content)
-
-def _render_markdown_content(text_content: str):
-    """마크다운 예쁘게 렌더링"""
-    try:
-        # 커스텀 CSS 스타일 적용
-        styled_markdown = f"""
-        <div style="
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-            margin: 0.5rem 0;
-        ">
-        {text_content}
-        </div>
-        """
-        
-        st.markdown("#### 📝 마크다운 콘텐츠")
-        st.markdown(text_content, unsafe_allow_html=True)
-        debug_log("✅ 마크다운 렌더링 완료")
-        
-    except Exception as e:
-        debug_log(f"❌ 마크다운 렌더링 실패: {e}", "error")
-        st.text(text_content)
-
-def _render_general_text(text_content: str):
-    """일반 텍스트 렌더링"""
-    try:
-        # 긴 텍스트는 expander로
-        if len(text_content) > 500:
-            with st.expander("📄 텍스트 내용 보기", expanded=True):
-                st.markdown(text_content)
-        else:
-            st.markdown(text_content)
-            
-        debug_log("✅ 일반 텍스트 렌더링 완료")
-        
-    except Exception as e:
-        debug_log(f"❌ 일반 텍스트 렌더링 실패: {e}", "error")
-        st.text(text_content)
-
-def _render_data_content(data_content: Dict, content_type: str, name: str, index: int):
-    """데이터 콘텐츠 렌더링"""
-    try:
-        if content_type == "application/vnd.plotly.v1+json":
-            # Plotly 데이터
-            actual_data = data_content.get("data", {})
-            if isinstance(actual_data, str):
-                _render_plotly_chart(actual_data, name, index)
+        except Exception as plotly_error:
+            debug_log(f"❌ 폴백 Plotly 렌더링 실패: {plotly_error}", "error")
+            st.error(f"Plotly 차트 렌더링 오류: {plotly_error}")
+    
+    # 이미지 렌더링
+    elif content_type.startswith("image/"):
+        try:
+            if metadata.get('encoding') == 'base64':
+                import base64
+                image_data = base64.b64decode(data)
+                st.image(image_data, caption=metadata.get('description', 'Generated Chart'))
             else:
-                _render_plotly_chart(json.dumps(actual_data), name, index)
-                
-        elif content_type == "application/json":
-            # JSON 데이터
-            st.markdown("#### 📊 JSON 데이터")
-            st.json(data_content)
+                st.image(data, caption=metadata.get('description', 'Chart'))
+            debug_log("✅ 폴백 이미지 렌더링 성공")
             
+        except Exception as img_error:
+            debug_log(f"❌ 폴백 이미지 렌더링 실패: {img_error}", "error")
+            st.error(f"이미지 렌더링 오류: {img_error}")
+    
+    # 코드 렌더링
+    elif content_type == "text/x-python":
+        st.code(data, language='python')
+        debug_log("✅ 폴백 코드 렌더링 성공")
+    
+    # 마크다운 렌더링
+    elif content_type == "text/markdown":
+        st.markdown(data)
+        debug_log("✅ 폴백 마크다운 렌더링 성공")
+    
+    # JSON 렌더링
+    elif content_type == "application/json":
+        try:
+            if isinstance(data, str):
+                json_data = json.loads(data)
+            else:
+                json_data = data
+            st.json(json_data)
+            debug_log("✅ 폴백 JSON 렌더링 성공")
+            
+        except Exception as json_error:
+            debug_log(f"❌ 폴백 JSON 렌더링 실패: {json_error}", "error")
+            st.text(str(data))
+    
+    # 기본 텍스트 렌더링
+    else:
+        if isinstance(data, (dict, list)):
+            st.json(data)
         else:
-            # 기타 데이터
-            st.markdown("#### 📄 데이터")
-            st.json(data_content)
-            
-        debug_log("✅ 데이터 콘텐츠 렌더링 완료")
-        
-    except Exception as e:
-        debug_log(f"❌ 데이터 콘텐츠 렌더링 실패: {e}", "error")
-        st.json(data_content)
+            st.text(str(data))
+        debug_log("✅ 폴백 텍스트 렌더링 성공")
 
 async def process_query_streaming(prompt: str):
     """A2A 프로토콜을 사용한 실시간 스트리밍 쿼리 처리"""
@@ -691,8 +479,7 @@ async def process_query_streaming(prompt: str):
                                             sentences = analysis_text.split('. ')
                                             displayed_text = ""
                                             
-                                            # 일반 텍스트 크기로 헤더 표시
-                                            streaming_container.markdown("**🧠 CherryAI v8 Universal Intelligence 분석 결과**")
+                                            streaming_container.markdown("### 🧠 CherryAI v8 Universal Intelligence 분석 결과")
                                             text_container = st.empty()
                                             
                                             for i, sentence in enumerate(sentences):
@@ -701,7 +488,7 @@ async def process_query_streaming(prompt: str):
                                                     if i < len(sentences) - 1:
                                                         displayed_text += ". "
                                                     
-                                                    # 실시간 업데이트 (일반 텍스트로)
+                                                    # 실시간 업데이트
                                                     text_container.markdown(displayed_text)
                                                     
                                                     # 스트리밍 효과
@@ -740,10 +527,6 @@ async def process_query_streaming(prompt: str):
             # 각 단계 실시간 실행
             all_results = []
             
-            # 실시간 스트리밍을 위한 컨테이너 생성 (기존 방식 호환성)
-            live_text_container = st.empty()
-            live_artifacts_container = st.empty()
-            
             for step_idx, step in enumerate(plan_steps):
                 step_num = step_idx + 1
                 agent_name = step.get('agent_name', 'unknown')
@@ -751,50 +534,61 @@ async def process_query_streaming(prompt: str):
                 
                 debug_log(f"🎯 단계 {step_num}/{len(plan_steps)} 실행: {agent_name}")
                 
-                # 각 단계별 스트리밍 컨테이너 생성 (스코프 문제 해결)
-                step_stream_container = None
-                if SMART_UI_AVAILABLE:
-                    step_stream_container = AccumulativeStreamContainer(f"🤖 {agent_name} 실시간 응답")
+                # 실시간 진행 상황 표시
+                with streaming_container:
+                    st.markdown(f"### 🔄 단계 {step_num}/{len(plan_steps)} 진행 중...")
+                    st.markdown(f"**에이전트**: {agent_name}")
+                    st.markdown(f"**작업**: {task_description}")
+                    
+                    # 실시간 스트리밍 텍스트 컨테이너
+                    live_text_container = st.empty()
+                    live_artifacts_container = st.empty()
                 
-                # 각 단계별 변수 초기화
-                step_results = []
-                step_artifacts = []
-                displayed_text = ""
-                
-                # 실시간 스트리밍 처리
-                async for chunk_data in a2a_client.stream_task(agent_name, task_description):
-                    try:
-                        chunk_type = chunk_data.get('type', 'unknown')
-                        chunk_content = chunk_data.get('content', {})
-                        is_final = chunk_data.get('final', False)
+                try:
+                    # A2A 스트리밍 실행
+                    step_results = []
+                    displayed_text = ""
+                    step_artifacts = []
+                    
+                    async for chunk in a2a_client.stream_task(agent_name, task_description, active_file):
+                        debug_log(f"📦 청크 수신: {chunk.get('type', 'unknown')}")
+                        step_results.append(chunk)
                         
-                        step_results.append(chunk_data)
+                        chunk_type = chunk.get('type', 'unknown')
+                        chunk_content = chunk.get('content', {})
+                        is_final = chunk.get('final', False)
                         
                         # 실시간 메시지 스트리밍 표시
                         if chunk_type == 'message':
                             text = chunk_content.get('text', '')
                             if text and not text.startswith('✅'):  # 완료 메시지 제외
                                 # Smart UI 사용 가능 시 누적형 컨테이너 사용
-                                if SMART_UI_AVAILABLE and step_stream_container:
+                                if SMART_UI_AVAILABLE:
+                                    # 누적형 스트리밍 컨테이너가 없으면 생성
+                                    if 'current_stream_container' not in locals():
+                                        current_stream_container = AccumulativeStreamContainer(f"🤖 {agent_name} 실시간 응답")
+                                    
                                     # 청크를 누적하여 추가
-                                    step_stream_container.add_chunk(text, "message")
+                                    current_stream_container.add_chunk(text, "message")
                                     
                                 else:
-                                    # 기존 방식 - 하지만 중복 표시 방지
+                                    # 기존 방식 (청크가 사라지는 문제 있음)
                                     displayed_text += text + " "
                                     
-                                    # 단계별 진행 상황만 표시 (중복 방지)
-                                    with streaming_container:
-                                        st.markdown(f"**🔄 {agent_name} 처리 중...**")
-                                        # 상세 텍스트는 Smart Display나 최종 결과에서만 표시
+                                    with live_text_container:
+                                        st.markdown(f"**{agent_name} 응답:**")
+                                        st.markdown(displayed_text)
                         
                         # 아티팩트 실시간 표시
                         elif chunk_type == 'artifact':
                             step_artifacts.append(chunk_content)
                             
-                            if SMART_UI_AVAILABLE and step_stream_container:
+                            if SMART_UI_AVAILABLE:
                                 # Smart Display로 아티팩트 렌더링
-                                step_stream_container.add_chunk(chunk_content, "artifact")
+                                if 'current_stream_container' not in locals():
+                                    current_stream_container = AccumulativeStreamContainer(f"🤖 {agent_name} 실시간 응답")
+                                
+                                current_stream_container.add_chunk(chunk_content, "artifact")
                                 
                             else:
                                 # 기존 방식
@@ -809,18 +603,30 @@ async def process_query_streaming(prompt: str):
                             debug_log(f"✅ 단계 {step_num} 최종 청크 수신", "success")
                             break
                     
-                    except Exception as step_error:
-                        debug_log(f"❌ 단계 {step_num} 실행 실패: {step_error}", "error")
-                        
-                        with live_text_container:
-                            st.error(f"단계 {step_num} 실행 중 오류 발생: {step_error}")
-                        
-                        all_results.append({
-                            'step': step_num,
-                            'agent': agent_name,
-                            'task': task_description,
-                            'error': str(step_error)
-                        })
+                    # 단계 결과 저장
+                    all_results.append({
+                        'step': step_num,
+                        'agent': agent_name,
+                        'task': task_description,
+                        'results': step_results,
+                        'displayed_text': displayed_text,
+                        'artifacts': step_artifacts
+                    })
+                    
+                    debug_log(f"✅ 단계 {step_num} 완료: {len(step_results)}개 청크 수신", "success")
+                    
+                except Exception as step_error:
+                    debug_log(f"❌ 단계 {step_num} 실행 실패: {step_error}", "error")
+                    
+                    with live_text_container:
+                        st.error(f"단계 {step_num} 실행 중 오류 발생: {step_error}")
+                    
+                    all_results.append({
+                        'step': step_num,
+                        'agent': agent_name,
+                        'task': task_description,
+                        'error': str(step_error)
+                    })
             
             # 7. 최종 결과 정리 표시
             debug_log("📊 최종 결과 정리 중...")
@@ -867,71 +673,6 @@ async def process_query_streaming(prompt: str):
                                     artifact_name = artifact.get('name', 'Unknown')
                                     with st.expander(f"📄 {artifact_name}", expanded=True):
                                         render_artifact(artifact)
-            
-            # 9. 최종 종합 응답 요청 (핵심 추가!)
-            debug_log("📝 오케스트레이터에게 최종 종합 응답 요청 중...")
-            try:
-                # 모든 단계 결과를 종합하여 최종 보고서 요청
-                comprehensive_prompt = f"""
-                다음 단계들이 완료되었습니다:
-                {chr(10).join([f"- {step.get('agent_name', 'Unknown')}: {step.get('task_description', '')}" for step in plan_steps])}
-                
-                원본 사용자 요청: {prompt}
-                
-                위 모든 분석 결과를 종합하여 사용자 요청에 대한 완전한 최종 보고서를 작성해주세요.
-                반드시 다음을 포함해야 합니다:
-                1. 분석 개요 및 핵심 발견사항
-                2. 데이터 품질 및 특성 분석
-                3. 시각화 차트 해석
-                4. 실무적 권장사항
-                5. 추가 분석 제안
-                """
-                
-                # 오케스트레이터에게 종합 응답 요청
-                final_response = await a2a_client.get_plan(comprehensive_prompt)
-                
-                if final_response and isinstance(final_response, dict) and "result" in final_response:
-                    result = final_response["result"]
-                    
-                    # 종합 분석 아티팩트 확인
-                    if "artifacts" in result:
-                        for artifact in result["artifacts"]:
-                            if artifact.get("name") in ["execution_plan", "comprehensive_analysis"]:
-                                debug_log("🎯 최종 종합 응답 발견!", "success")
-                                
-                                # 최종 보고서 표시
-                                st.markdown("---")
-                                st.markdown("### 🎯 최종 종합 분석 보고서")
-                                
-                                parts = artifact.get("parts", [])
-                                for part in parts:
-                                    if part.get("kind") == "text":
-                                        final_text = part.get("text", "")
-                                        if final_text:
-                                            # 구조화된 마크다운으로 표시
-                                            st.markdown(final_text)
-                                            debug_log("✅ 최종 종합 보고서 표시 완료", "success")
-                                            break
-                    
-                    # 상태 메시지도 확인
-                    if "status" in result and result["status"] == "completed":
-                        if "message" in result and "parts" in result["message"]:
-                            for part in result["message"]["parts"]:
-                                if part.get("kind") == "text":
-                                    status_text = part.get("text", "")
-                                    if status_text and len(status_text) > 100:  # 실질적인 내용이 있는 경우
-                                        st.markdown("---")
-                                        st.markdown("### 🎯 최종 종합 분석 결과")
-                                        st.markdown(status_text)
-                                        debug_log("✅ 상태 메시지에서 최종 응답 표시 완료", "success")
-                                        break
-                
-            except Exception as final_error:
-                debug_log(f"❌ 최종 종합 응답 요청 실패: {final_error}", "error")
-                # 폴백: 기본 요약 제공
-                st.markdown("---")
-                st.markdown("### 🎯 분석 완료 요약")
-                st.info(f"총 {len(plan_steps)}개 단계가 실행되었습니다. 각 단계별 결과는 위에서 확인하실 수 있습니다.")
             
             debug_log("🎉 전체 스트리밍 프로세스 완료!", "success")
             
@@ -1237,7 +978,7 @@ def main():
             debug_log("⚠️ 에이전트 상태가 없음, 새로 초기화...", "warning")
             
             try:
-                agent_status = asyncio.run(preload_agents_with_ui())
+                agent_status = asyncio.run(check_agents_status_async())
                 st.session_state.agent_status = agent_status
                 
                 # 에이전트 상태 상세 로깅
@@ -1268,7 +1009,7 @@ def main():
         display_session_status()
 
         if st.button("🔄 에이전트 상태 새로고침") or not st.session_state.agent_status:
-            st.session_state.agent_status = asyncio.run(preload_agents_with_ui())
+            st.session_state.agent_status = asyncio.run(check_agents_status_async())
         display_agent_status()
 
         with st.container(border=True):

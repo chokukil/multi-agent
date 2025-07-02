@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """
-AI_DS_Team EDAToolsAgent A2A Server (Session-based)
+AI_DS_Team EDAToolsAgent A2A Server (Enhanced)
 Port: 8312
-
-SessionDataManager를 사용하여 세션 기반으로 AI DS Team과 통합
-탐색적 데이터 분석(EDA) 도구 전문
 """
 
 import asyncio
@@ -29,7 +26,6 @@ import uvicorn
 import logging
 
 # AI_DS_Team imports
-from ai_data_science_team.tools.dataframe import get_dataframe_summary
 from ai_data_science_team.ds_agents import EDAToolsAgent
 import pandas as pd
 import json
@@ -51,14 +47,13 @@ data_manager = DataManager()
 session_data_manager = SessionDataManager()
 
 class SessionEDAToolsAgentExecutor(AgentExecutor):
-    """세션 기반 EDA Tools Agent A2A Executor"""
+    """Enhanced EDA Tools Agent A2A Executor"""
     
     def __init__(self):
-        # LLM 설정
         from core.llm_factory import create_llm_instance
         self.llm = create_llm_instance()
         self.agent = EDAToolsAgent(model=self.llm)
-        logger.info("SessionEDAToolsAgent initialized")
+        logger.info("Enhanced SessionEDAToolsAgent initialized")
     
     def extract_data_reference_from_message(self, context: RequestContext) -> Dict[str, Any]:
         """A2A 메시지에서 데이터 참조 정보 추출"""
@@ -80,13 +75,13 @@ class SessionEDAToolsAgentExecutor(AgentExecutor):
         }
 
     async def execute(self, context: RequestContext, event_queue) -> None:
-        """세션 기반 EDA 분석 실행"""
+        """Enhanced EDA 분석 실행"""
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
             await task_updater.update_status(
                 TaskState.working,
-                message=new_agent_text_message("🔍 세션 기반 EDA 분석을 시작합니다...")
+                message=new_agent_text_message("🔍 Enhanced EDA 분석을 시작합니다...")
             )
             
             message_data = self.extract_data_reference_from_message(context)
@@ -96,50 +91,104 @@ class SessionEDAToolsAgentExecutor(AgentExecutor):
             if user_instructions:
                 df = None
                 current_session_id = None
+                data_source = "unknown"
                 
+                # 데이터 로드 시도
                 if data_reference:
                     data_id = data_reference.get('data_id')
                     if data_id:
                         df = data_manager.get_dataframe(data_id)
                         if df is not None:
-                            # 세션 생성 및 AI DS Team 환경 준비
-                            current_session_id = session_data_manager.create_session_with_data(
-                                data_id=data_id,
-                                data=df,
-                                user_instructions=user_instructions
-                            )
-                            env_info = session_data_manager.prepare_ai_ds_team_environment(current_session_id)
-                            logger.info(f"✅ Session {current_session_id} created and AI DS Team environment prepared")
+                            data_source = data_id
+                            logger.info(f"📊 데이터 로드 성공: {data_id}")
+                
+                # 기본 데이터 찾기
+                if df is None:
+                    available_data = data_manager.list_dataframes()
+                    logger.info(f"🔍 사용 가능한 데이터: {available_data}")
+                    
+                    if available_data:
+                        first_data_id = available_data[0]
+                        df = data_manager.get_dataframe(first_data_id)
+                        if df is not None:
+                            data_source = first_data_id
+                            logger.info(f"📊 기본 데이터 사용: {first_data_id}")
                 
                 if df is not None:
-                    # EDA 실행
-                    result = self.agent.invoke_agent(
-                        user_instructions=user_instructions,
-                        data_raw=df
+                    # 세션 생성
+                    current_session_id = session_data_manager.create_session_with_data(
+                        data_id=data_source,
+                        data=df,
+                        user_instructions=user_instructions
                     )
+                    env_info = session_data_manager.prepare_ai_ds_team_environment(current_session_id)
+                    logger.info(f"✅ Session {current_session_id} created")
                     
-                    response_text = f"""## 🔍 세션 기반 EDA 분석 완료
+                    # AI DS Team EDA 실행
+                    logger.info("🚀 AI DS Team EDA 에이전트 실행 중...")
+                    
+                    try:
+                        result = self.agent.invoke_agent(
+                            user_instructions=user_instructions,
+                            data_raw=df
+                        )
+                        
+                        # 결과 처리
+                        if isinstance(result, dict):
+                            result_text = json.dumps(result, ensure_ascii=False, indent=2)
+                        else:
+                            result_text = str(result)
+                        
+                        response_text = f"""## 🔍 Enhanced EDA 분석 완료
 
 ✅ **세션 ID**: {current_session_id}
-✅ **데이터**: {data_reference.get('data_id', 'unknown') if data_reference else 'unknown'}
-✅ **형태**: {df.shape[0]:,} 행 × {df.shape[1]:,} 열
-✅ **AI DS Team 환경**: 준비 완료
+✅ **데이터 소스**: {data_source}
+✅ **데이터 형태**: {df.shape[0]:,} 행 × {df.shape[1]:,} 열
 
 ### 📊 분석 결과
-EDA 분석이 성공적으로 완료되었습니다. AI DS Team 에이전트들이 올바른 데이터를 사용하여 분석을 수행했습니다.
 
-### 🎯 세션 기반 분석의 장점
-- 올바른 데이터 파일 사용 보장
-- 사용자 컨텍스트 유지
-- 세션별 결과 격리
+{result_text[:1500]}{'...' if len(result_text) > 1500 else ''}
+
+### 🎯 분석 완료
+AI DS Team EDA 에이전트가 성공적으로 데이터 분석을 완료했습니다.
 """
+                        
+                        await task_updater.update_status(
+                            TaskState.completed,
+                            message=new_agent_text_message(response_text)
+                        )
+                        
+                    except Exception as eda_error:
+                        logger.error(f"❌ EDA 실행 오류: {eda_error}")
+                        
+                        # 기본 분석 제공
+                        basic_analysis = f"""## ⚠️ 기본 데이터 분석
+
+### 📊 데이터 정보
+- **소스**: {data_source}
+- **형태**: {df.shape[0]:,} 행 × {df.shape[1]:,} 열
+- **컬럼**: {list(df.columns)[:5]}{'...' if len(df.columns) > 5 else ''}
+
+### 🔍 기본 통계
+{df.describe().to_string()[:500]}
+
+### ⚠️ 참고
+AI DS Team 에이전트 실행 중 오류가 발생했습니다: {str(eda_error)}
+"""
+                        
+                        await task_updater.update_status(
+                            TaskState.completed,
+                            message=new_agent_text_message(basic_analysis)
+                        )
                 else:
-                    response_text = "❌ 요청된 데이터를 찾을 수 없습니다. 먼저 데이터를 업로드해주세요."
-                
-                await task_updater.update_status(
-                    TaskState.completed,
-                    message=new_agent_text_message(response_text)
-                )
+                    response_text = """❌ **데이터를 찾을 수 없습니다**
+
+데이터를 먼저 업로드해주세요."""
+                    
+                    await task_updater.update_status(
+                        TaskState.completed,
+                        message=new_agent_text_message(response_text)
+                    )
             else:
                 await task_updater.update_status(
                     TaskState.completed,
@@ -147,30 +196,30 @@ EDA 분석이 성공적으로 완료되었습니다. AI DS Team 에이전트들�
                 )
                 
         except Exception as e:
-            logger.error(f"Error in SessionEDAToolsAgent: {e}")
+            logger.error(f"Error in Enhanced EDA Agent: {e}")
             await task_updater.update_status(
                 TaskState.failed,
-                message=new_agent_text_message(f"세션 기반 EDA 분석 중 오류: {str(e)}")
+                message=new_agent_text_message(f"EDA 분석 중 오류: {str(e)}")
             )
     
     async def cancel(self, context: RequestContext) -> None:
-        logger.info(f"SessionEDAToolsAgent cancelled: {context.task_id}")
+        logger.info(f"Enhanced EDA Agent cancelled: {context.task_id}")
 
 
 def main():
     skill = AgentSkill(
-        id="session_eda",
-        name="Session-based EDA",
-        description="세션 기반 탐색적 데이터 분석",
-        tags=["eda", "session-based"],
+        id="enhanced_eda",
+        name="Enhanced EDA",
+        description="Enhanced 탐색적 데이터 분석",
+        tags=["eda", "enhanced"],
         examples=["데이터 EDA를 진행해주세요"]
     )
     
     agent_card = AgentCard(
-        name="SessionEDAToolsAgent",
-        description="세션 기반 EDA 전문가",
+        name="AI_DS_Team EDAToolsAgent",
+        description="Enhanced EDA 전문가",
         url="http://localhost:8312/",
-        version="2.0.0",
+        version="3.0.0",
         defaultInputModes=["text"],
         defaultOutputModes=["text"],
         capabilities=AgentCapabilities(streaming=False),
@@ -187,7 +236,7 @@ def main():
         http_handler=request_handler,
     )
     
-    print("🔍 Starting SessionEDAToolsAgent Server on port 8312")
+    print("🔍 Starting Enhanced EDA Agent Server on port 8312")
     uvicorn.run(server.build(), host="0.0.0.0", port=8312, log_level="info")
 
 
