@@ -50,10 +50,11 @@ class SessionEDAToolsAgentExecutor(AgentExecutor):
     """Enhanced EDA Tools Agent A2A Executor"""
     
     def __init__(self):
+        # LLM 설정 (langfuse 콜백은 LLM 팩토리에서 자동 처리)
         from core.llm_factory import create_llm_instance
         self.llm = create_llm_instance()
         self.agent = EDAToolsAgent(model=self.llm)
-        logger.info("Enhanced SessionEDAToolsAgent initialized")
+        logger.info("Enhanced SessionEDAToolsAgent initialized with LLM factory (langfuse auto-enabled)")
     
     def extract_data_reference_from_message(self, context: RequestContext) -> Dict[str, Any]:
         """A2A 메시지에서 데이터 참조 정보 추출"""

@@ -1,0 +1,19 @@
+{
+  "session_id": "session_60a73692",
+  "created_at": "2025-07-06T21:47:35.263188",
+  "last_activity": "2025-07-06T21:47:35.263190",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-07-06T21:47:34.912424",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "기존 데이터로부터 세션 복구",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-07T21:47:35.263188",
+  "status": "active"
+}

@@ -68,11 +68,11 @@ class H2OMLAgentExecutor(AgentExecutor):
     """AI_DS_Team H2OMLAgent를 A2A 프로토콜로 래핑"""
     
     def __init__(self):
-        # LLM 설정
+        # LLM 설정 (langfuse 콜백은 LLM 팩토리에서 자동 처리)
         from core.llm_factory import create_llm_instance
         self.llm = create_llm_instance()
         self.agent = H2OMLAgent(model=self.llm)
-        logger.info("H2OMLAgent initialized")
+        logger.info("H2OMLAgent initialized with LLM factory (langfuse auto-enabled)")
     
     async def execute(self, context: RequestContext, event_queue) -> None:
         """A2A 프로토콜에 따른 실행"""

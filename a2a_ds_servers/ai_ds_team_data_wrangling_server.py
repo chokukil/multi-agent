@@ -68,11 +68,11 @@ class DataWranglingAgentExecutor(AgentExecutor):
     """AI_DS_Team DataWranglingAgent를 A2A 프로토콜로 래핑"""
     
     def __init__(self):
-        # LLM 설정
+        # LLM 설정 (langfuse 콜백은 LLM 팩토리에서 자동 처리)
         from core.llm_factory import create_llm_instance
         self.llm = create_llm_instance()
         self.agent = DataWranglingAgent(model=self.llm)
-        logger.info("DataWranglingAgent initialized")
+        logger.info("DataWranglingAgent initialized with LLM factory (langfuse auto-enabled)")
     
     async def execute(self, context: RequestContext, event_queue) -> None:
         """A2A 프로토콜에 따른 실행"""

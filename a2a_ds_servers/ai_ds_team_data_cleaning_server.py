@@ -96,7 +96,7 @@ class DataCleaningAgentExecutor(AgentExecutor):
     """AI_DS_Team DataCleaningAgent를 A2A 프로토콜로 래핑"""
     
     def __init__(self):
-        # LLM 설정
+        # LLM 설정 (langfuse 콜백은 LLM 팩토리에서 자동 처리)
         from core.llm_factory import create_llm_instance
         self.llm = create_llm_instance()
         self.agent = DataCleaningAgent(
@@ -104,7 +104,7 @@ class DataCleaningAgentExecutor(AgentExecutor):
             log=True,
             log_path="logs/generated_code/"
         )
-        logger.info("DataCleaningAgent initialized with logging enabled.")
+        logger.info("DataCleaningAgent initialized with LLM factory (langfuse auto-enabled)")
     
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """A2A 프로토콜에 따른 실행"""

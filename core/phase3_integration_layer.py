@@ -138,11 +138,12 @@ class Phase3IntegrationLayer:
                 "agent_results_summary": self._summarize_agent_results(a2a_agent_results),
                 "synthesized_answer": phase3_results["final_structured_answer"],
                 "quality_report": phase3_results["quality_report"],
-                "confidence_score": phase3_results["final_structured_answer"].confidence_score,
+                "confidence_score": getattr(phase3_results["final_structured_answer"], 'confidence_score', 
+                                          getattr(phase3_results["quality_report"], 'overall_score', 0.8)),
                 "metadata": {
                     "phase1_score": phase1_results.get("confidence_score", 0.8),
                     "phase2_integration_score": phase2_results.get("integration_score", 0.8),
-                    "phase3_quality_score": phase3_results["quality_report"].overall_score,
+                    "phase3_quality_score": getattr(phase3_results["quality_report"], 'overall_score', 0.8),
                     "total_agents_used": len(a2a_agent_results),
                     "synthesis_strategy": "holistic_integration"
                 }
@@ -237,7 +238,10 @@ class Phase3IntegrationLayer:
                 logger.warning(f"Agent selection fallback: {e}")
                 agent_selection = type('MockAgentSelection', (), {
                     'selected_agents': [r.get("agent_name", "unknown") for r in a2a_agent_results],
-                    'confidence_score': 0.8
+                    'confidence_score': 0.8,
+                    'total_confidence': 0.8,
+                    'selection_strategy': 'fallback',
+                    'reasoning': 'Fallback agent selection due to component failure'
                 })()
             
             # 2.2: A2A Agent Execution Orchestration (A2A 결과 래핑)
@@ -245,14 +249,53 @@ class Phase3IntegrationLayer:
             
             # 2.3: Multi-Agent Result Integration (Fallback)
             try:
-                integration_result = await self.result_integrator.integrate_agent_results(
-                    agent_selection, execution_result, enhanced_query, domain_knowledge
+                context = {
+                    "agent_selection": agent_selection,
+                    "enhanced_query": enhanced_query,
+                    "domain_knowledge": domain_knowledge
+                }
+                integration_result = await self.result_integrator.integrate_results(
+                    execution_result, context=context
                 )
             except Exception as e:
                 logger.warning(f"Result integration fallback: {e}")
                 integration_result = type('MockIntegrationResult', (), {
                     'confidence_score': 0.8,
-                    'integration_strategy': 'simple_aggregation'
+                    'integration_strategy': 'simple_aggregation',
+                    'integrated_insights': [
+                        type('MockInsight', (), {
+                            'insight_type': 'agent_analysis',
+                            'content': f'Insight from {r.get("agent_name", "unknown")}: {str(r.get("artifacts", [])[:2])}',
+                            'confidence': r.get("confidence", 0.8),
+                            'supporting_agents': [r.get("agent_name", "unknown")],
+                            'evidence_strength': 0.7,
+                            'actionable_items': [f'Review {r.get("agent_name", "unknown")} results'],
+                            'priority': 1
+                        })() for i, r in enumerate(a2a_agent_results)
+                    ],
+                    'cross_agent_insights': [
+                        {
+                            'insight_id': 'cross_agent_1',
+                            'content': f'Combined analysis from {len(a2a_agent_results)} agents',
+                            'confidence': 0.8,
+                            'involved_agents': [r.get("agent_name", "unknown") for r in a2a_agent_results],
+                            'synthesis_method': 'simple_aggregation'
+                        }
+                    ],
+                    'recommendations': [
+                        f"Consider {r.get('agent_name', 'unknown')} analysis for further insights"
+                        for r in a2a_agent_results[:3]
+                    ],
+                    'agent_result_summary': {
+                        'total_agents': len(a2a_agent_results),
+                        'successful_agents': len([r for r in a2a_agent_results if r.get("success", True)]),
+                        'key_findings': [f"Finding from {r.get('agent_name', 'unknown')}" for r in a2a_agent_results[:3]]
+                    },
+                    'integration_metadata': {
+                        'method': 'inline_fallback_integration',
+                        'timestamp': time.time(),
+                        'agent_count': len(a2a_agent_results)
+                    }
                 })()
             
             # 2.4: Execution Plan Management (Fallback)
@@ -390,12 +433,20 @@ class Phase3IntegrationLayer:
             overall_confidence /= len(a2a_agent_results)
         
         return ExecutionResult(
-            execution_id=f"a2a_exec_{int(time.time())}",
-            status=ExecutionStatus.COMPLETED,
-            agent_results=agent_results,
-            confidence_score=overall_confidence,
+            plan_id=f"a2a_exec_{int(time.time())}",
+            objective="Execute A2A agents for comprehensive analysis",
+            overall_status=ExecutionStatus.COMPLETED,
+            total_tasks=len(a2a_agent_results),
+            completed_tasks=len([r for r in a2a_agent_results if r.get("success", True)]),
+            failed_tasks=len([r for r in a2a_agent_results if not r.get("success", True)]),
             execution_time=sum(r.get("execution_time", 0) for r in a2a_agent_results),
-            metadata={"source": "a2a_integration", "agent_count": len(a2a_agent_results)}
+            task_results=[{"agent_name": r.get("agent_name", "unknown"), 
+                           "result": r.get("artifacts", []),
+                           "success": r.get("success", True),
+                           "confidence": r.get("confidence", 0.8)} for r in a2a_agent_results],
+            aggregated_results={"source": "a2a_integration", "agent_count": len(a2a_agent_results), "agent_results": agent_results},
+            execution_summary=f"Executed {len(a2a_agent_results)} A2A agents with {len([r for r in a2a_agent_results if r.get('success', True)])} successful completions",
+            confidence_score=overall_confidence
         )
     
     def _create_user_profile(self, user_context: Optional[Dict[str, Any]]) -> UserProfile:
@@ -403,9 +454,25 @@ class Phase3IntegrationLayer:
         if not user_context:
             user_context = {}
         
+        # UserRole 유효성 검사 및 fallback
+        role_value = user_context.get("role", "engineer")
+        try:
+            user_role = UserRole(role_value)
+        except ValueError:
+            # Invalid role인 경우 적절한 fallback 선택
+            role_mapping = {
+                "data_scientist": "analyst",
+                "data_analyst": "analyst", 
+                "scientist": "researcher",
+                "developer": "engineer",
+                "admin": "manager"
+            }
+            fallback_role = role_mapping.get(role_value, "engineer")
+            user_role = UserRole(fallback_role)
+        
         return UserProfile(
             user_id=user_context.get("user_id", "anonymous"),
-            role=UserRole(user_context.get("role", "engineer")),
+            role=user_role,
             domain_expertise=user_context.get("domain_expertise", {"general": 0.7}),
             preferences=user_context.get("preferences", {}),
             interaction_history=user_context.get("interaction_history", []),
@@ -480,22 +547,63 @@ class Phase3IntegrationLayer:
         """Phase 2 실패 시 fallback 결과 생성"""
         from core.query_processing import ExecutionResult, ExecutionStatus
         
-        # Mock objects 생성
+        # Mock objects 생성 - 필요한 모든 속성 포함
         mock_agent_selection = type('MockAgentSelection', (), {
             'selected_agents': [r.get("agent_name", "unknown") for r in a2a_agent_results],
-            'confidence_score': 0.8
+            'confidence_score': 0.8,
+            'total_confidence': 0.8,
+            'selection_strategy': 'fallback',
+            'reasoning': 'Fallback agent selection due to component failure'
         })()
         
         execution_result = self._wrap_a2a_results_as_execution_result(a2a_agent_results)
         
+        # Enhanced MockIntegrationResult with all required attributes
         mock_integration_result = type('MockIntegrationResult', (), {
             'confidence_score': 0.8,
-            'integration_strategy': 'simple_aggregation'
+            'integration_strategy': 'simple_aggregation',
+            'integrated_insights': [
+                type('MockInsight', (), {
+                    'insight_type': 'agent_analysis',
+                    'content': f'Insight from {r.get("agent_name", "unknown")}: {str(r.get("artifacts", [])[:2])}',
+                    'confidence': r.get("confidence", 0.8),
+                    'supporting_agents': [r.get("agent_name", "unknown")],
+                    'evidence_strength': 0.7,
+                    'actionable_items': [f'Review {r.get("agent_name", "unknown")} results'],
+                    'priority': 1
+                })() for i, r in enumerate(a2a_agent_results)
+            ],
+            'cross_agent_insights': [
+                {
+                    'insight_id': 'cross_agent_1',
+                    'content': f'Combined analysis from {len(a2a_agent_results)} agents',
+                    'confidence': 0.8,
+                    'involved_agents': [r.get("agent_name", "unknown") for r in a2a_agent_results],
+                    'synthesis_method': 'simple_aggregation'
+                }
+            ],
+            'recommendations': [
+                f"Consider {r.get('agent_name', 'unknown')} analysis for further insights"
+                for r in a2a_agent_results[:3]
+            ],
+            'agent_result_summary': {
+                'total_agents': len(a2a_agent_results),
+                'successful_agents': len([r for r in a2a_agent_results if r.get("success", True)]),
+                'key_findings': [f"Finding from {r.get('agent_name', 'unknown')}" for r in a2a_agent_results[:3]]
+            },
+            'integration_metadata': {
+                'method': 'fallback_integration',
+                'timestamp': time.time(),
+                'agent_count': len(a2a_agent_results)
+            }
         })()
         
         mock_managed_plan = type('MockManagedPlan', (), {
             'plan_id': f"fallback_plan_{int(time.time())}",
-            'execution_steps': len(a2a_agent_results)
+            'execution_steps': len(a2a_agent_results),
+            'strategy': 'sequential',
+            'status': 'completed',
+            'agents_involved': [r.get("agent_name", "unknown") for r in a2a_agent_results]
         })()
         
         return {

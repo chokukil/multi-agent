@@ -68,11 +68,11 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
     """AI_DS_Team FeatureEngineeringAgent를 A2A 프로토콜로 래핑"""
     
     def __init__(self):
-        # LLM 설정
+        # LLM 설정 (langfuse 콜백은 LLM 팩토리에서 자동 처리)
         from core.llm_factory import create_llm_instance
         self.llm = create_llm_instance()
         self.agent = FeatureEngineeringAgent(model=self.llm)
-        logger.info("FeatureEngineeringAgent initialized")
+        logger.info("FeatureEngineeringAgent initialized with LLM factory (langfuse auto-enabled)")
     
     async def execute(self, context: RequestContext, event_queue) -> None:
         """A2A 프로토콜에 따른 실행"""
@@ -218,7 +218,7 @@ class FeatureEngineeringAgentExecutor(AgentExecutor):
                         
                     except Exception as agent_error:
                         logger.warning(f"Agent execution failed, providing guidance: {agent_error}")
-                        response_text = f"""## �� 데이터 시각화 가이드
+                        response_text = f"""## 데이터 시각화 가이드
 
 요청을 처리하는 중 문제가 발생했습니다: {str(agent_error)}
 
