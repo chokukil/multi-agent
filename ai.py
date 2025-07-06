@@ -44,6 +44,16 @@ from core.data_manager import DataManager  # DataManager 추가
 from core.session_data_manager import SessionDataManager  # 세션 기반 데이터 관리자 추가
 from ui.thinking_stream import ThinkingStream, PlanVisualization, BeautifulResults # 기존 클래스 활용 가능
 
+# Phase 3 Integration Layer 및 Expert UI 임포트
+try:
+    from core.phase3_integration_layer import Phase3IntegrationLayer
+    from ui.expert_answer_renderer import ExpertAnswerRenderer
+    PHASE3_AVAILABLE = True
+    print("✅ Phase 3 Integration Layer 로드 성공")
+except ImportError as e:
+    PHASE3_AVAILABLE = False
+    print(f"⚠️ Phase 3 Integration Layer 로드 실패: {e}")
+
 # 디버깅 로거 설정
 debug_logger = logging.getLogger("ai_ds_debug")
 debug_logger.setLevel(logging.DEBUG)
@@ -618,7 +628,7 @@ def _render_data_content(data_content: Dict, content_type: str, name: str, index
         st.json(data_content)
 
 async def process_query_streaming(prompt: str):
-    """A2A 프로토콜을 사용한 실시간 스트리밍 쿼리 처리"""
+    """A2A 프로토콜을 사용한 실시간 스트리밍 쿼리 처리 + Phase 3 전문가급 답변 합성"""
     debug_log(f"🚀 A2A 스트리밍 쿼리 처리 시작: {prompt[:100]}...")
     
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -626,7 +636,7 @@ async def process_query_streaming(prompt: str):
     with st.chat_message("user"):
         st.markdown(prompt)
     
-    with st.chat_message("assistant", avatar="🧬"):
+    with st.chat_message("assistant", avatar="🧠"):
         try:
             # 1. A2A 클라이언트 초기화
             debug_log("🔧 A2A 클라이언트 초기화 중...")
@@ -933,6 +943,10 @@ async def process_query_streaming(prompt: str):
                 st.markdown("### 🎯 분석 완료 요약")
                 st.info(f"총 {len(plan_steps)}개 단계가 실행되었습니다. 각 단계별 결과는 위에서 확인하실 수 있습니다.")
             
+            # Phase 3: 전문가급 답변 합성
+            if PHASE3_AVAILABLE:
+                await _process_phase3_expert_synthesis(prompt, plan_steps, a2a_client)
+            
             debug_log("🎉 전체 스트리밍 프로세스 완료!", "success")
             
         except Exception as e:
@@ -940,6 +954,143 @@ async def process_query_streaming(prompt: str):
             st.error(f"처리 중 오류가 발생했습니다: {e}")
             import traceback
             debug_log(f"🔍 스택 트레이스: {traceback.format_exc()}", "error")
+
+async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], a2a_client):
+    """Phase 3 전문가급 답변 합성 처리"""
+    try:
+        debug_log("🧠 Phase 3 전문가급 답변 합성 시작...", "info")
+        
+        # 1. Phase 3 Integration Layer 초기화
+        phase3_layer = Phase3IntegrationLayer()
+        expert_renderer = ExpertAnswerRenderer()
+        
+        # 2. A2A 에이전트 결과 수집
+        a2a_agent_results = await _collect_a2a_agent_results(plan_steps, a2a_client)
+        
+        # 3. 사용자 및 세션 컨텍스트 준비
+        user_context = {
+            "user_id": st.session_state.get("user_id", "anonymous"),
+            "role": "data_scientist",
+            "domain_expertise": {"data_science": 0.9, "analytics": 0.8},
+            "preferences": {"visualization": True, "detailed_analysis": True},
+            "personalization_level": "advanced"
+        }
+        
+        session_context = {
+            "session_id": st.session_state.get("session_id", f"session_{int(time.time())}"),
+            "timestamp": time.time(),
+            "context_history": st.session_state.get("messages", [])
+        }
+        
+        # 4. 전문가급 답변 합성 실행
+        st.markdown("---")
+        st.markdown("## 🧠 전문가급 지능형 분석 시작")
+        
+        with st.spinner("전문가급 답변을 합성하는 중..."):
+            expert_answer = await phase3_layer.process_user_query_to_expert_answer(
+                user_query=prompt,
+                a2a_agent_results=a2a_agent_results,
+                user_context=user_context,
+                session_context=session_context
+            )
+        
+        # 5. 전문가급 답변 렌더링
+        if expert_answer.get("success"):
+            debug_log("✅ 전문가급 답변 합성 성공!", "success")
+            st.markdown("---")
+            expert_renderer.render_expert_answer(expert_answer)
+            
+            # 세션 상태에 저장
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": f"전문가급 답변이 완성되었습니다. (신뢰도: {expert_answer['confidence_score']:.1%})",
+                "expert_answer": expert_answer,
+                "timestamp": time.time()
+            })
+        else:
+            debug_log("❌ 전문가급 답변 합성 실패", "error")
+            st.error("전문가급 답변 합성에 실패했습니다.")
+            
+            # 오류 정보 표시
+            error_details = expert_answer.get("error", "알 수 없는 오류")
+            st.error(f"오류 세부사항: {error_details}")
+            
+            # 폴백 메시지 표시
+            if expert_answer.get("fallback_message"):
+                st.info(expert_answer["fallback_message"])
+        
+        debug_log("🎯 Phase 3 전문가급 답변 합성 완료", "success")
+        
+    except Exception as e:
+        debug_log(f"💥 Phase 3 처리 오류: {e}", "error")
+        st.error(f"전문가급 답변 합성 중 오류가 발생했습니다: {e}")
+        import traceback
+        debug_log(f"🔍 Phase 3 스택 트레이스: {traceback.format_exc()}", "error")
+
+async def _collect_a2a_agent_results(plan_steps: List[Dict], a2a_client) -> List[Dict[str, Any]]:
+    """A2A 에이전트 실행 결과 수집"""
+    try:
+        debug_log("📊 A2A 에이전트 결과 수집 시작...", "info")
+        
+        agent_results = []
+        
+        for i, step in enumerate(plan_steps):
+            step_name = step.get("name", f"Step {i+1}")
+            agent_name = step.get("agent", "Unknown")
+            
+            # 각 단계에서 에이전트 결과 수집
+            try:
+                # 실제 단계 실행 결과를 기반으로 데이터 구조화
+                # (이미 실행된 A2A 스트리밍 결과를 활용)
+                result_data = {
+                    "agent_name": agent_name,
+                    "step_name": step_name,
+                    "success": True,
+                    "confidence": 0.85,  # 기본 신뢰도
+                    "artifacts": [],
+                    "metadata": {
+                        "step_index": i,
+                        "processing_time": step.get("execution_time", 5.0),
+                        "description": step.get("description", "")
+                    }
+                }
+                
+                # 단계 실행 결과가 있다면 추가 정보 포함
+                if "result" in step:
+                    result_data["artifacts"] = step["result"]
+                    result_data["success"] = True
+                    result_data["confidence"] = 0.9
+                elif "error" in step:
+                    result_data["success"] = False
+                    result_data["confidence"] = 0.2
+                    result_data["metadata"]["error"] = step["error"]
+                
+                agent_results.append(result_data)
+                debug_log(f"✅ {agent_name} 결과 수집 완료", "success")
+                    
+            except Exception as step_error:
+                debug_log(f"❌ {agent_name} 결과 수집 중 오류: {step_error}", "error")
+                
+                # 오류 정보도 포함
+                result_data = {
+                    "agent_name": agent_name,
+                    "step_name": step_name,
+                    "success": False,
+                    "confidence": 0.1,
+                    "artifacts": [],
+                    "metadata": {
+                        "step_index": i,
+                        "error": str(step_error)
+                    }
+                }
+                agent_results.append(result_data)
+        
+        debug_log(f"📊 총 {len(agent_results)}개 에이전트 결과 수집 완료", "success")
+        return agent_results
+        
+    except Exception as e:
+        debug_log(f"💥 A2A 결과 수집 오류: {e}", "error")
+        return []
 
 def get_file_size_info(file_id: str) -> str:
     """파일 크기 정보를 반환하는 헬퍼 함수"""

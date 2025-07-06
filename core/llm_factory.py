@@ -43,7 +43,7 @@ except ImportError:
     LANGFUSE_AVAILABLE = False
     logging.warning("Langfuse not available. Install langfuse for advanced tracing.")
 
-from .utils.config import get_config
+from core.utils.config import Config
 
 # 🆕 Ollama 모델별 도구 호출 능력 매핑 - 2024년 12월 기준 최신 정보
 OLLAMA_TOOL_CALLING_MODELS = {
@@ -224,133 +224,72 @@ def get_model_recommendation(ram_gb: Optional[int] = None) -> Dict[str, Any]:
             "warning": "성능이 매우 제한적입니다"
         }
 
-def create_llm_instance(model_type: str = "auto") -> Any:
+def create_llm_instance(
+    provider: Optional[str] = None,
+    model: Optional[str] = None,
+    temperature: Optional[float] = None,
+    callbacks: Optional[List[Any]] = None
+) -> Any:
     """
-    LLM 인스턴스 생성 팩토리
+    LLM 인스턴스를 생성합니다.
     
     Args:
-        model_type: LLM 타입 ("auto", "openai", "ollama", "anthropic")
+        provider: LLM 제공자 ("OPENAI" 또는 "OLLAMA")
+        model: 모델명
+        temperature: 온도 설정
+        callbacks: 추가 콜백 리스트
         
     Returns:
         LLM 인스턴스
     """
+    config = Config()
     
-    if model_type == "auto":
-        # 환경변수 기반 자동 선택
-        if os.getenv("OPENAI_API_KEY"):
-            model_type = "openai"
-        elif os.getenv("ANTHROPIC_API_KEY"):
-            model_type = "anthropic"
-        else:
-            model_type = "ollama"  # 로컬 fallback
+    # 환경 변수 기반 설정
+    provider = provider or os.getenv("LLM_PROVIDER", "OPENAI")
+    temperature = temperature or float(os.getenv("LLM_TEMPERATURE", "0.7"))
     
-    try:
-        if model_type == "openai":
-            return _create_openai_llm()
-        elif model_type == "anthropic":
-            return _create_anthropic_llm()
-        elif model_type == "ollama":
-            return _create_ollama_llm()
-        else:
-            raise ValueError(f"Unsupported model type: {model_type}")
-            
-    except Exception as e:
-        logger.warning(f"Failed to create {model_type} LLM: {e}, falling back to mock")
-        return _create_mock_llm()
-
-def _create_openai_llm():
-    """OpenAI LLM 생성"""
-    try:
-        from langchain_openai import ChatOpenAI
+    # 콜백 설정 - langfuse 자동 포함
+    callback_list = callbacks or []
+    
+    # Langfuse 콜백 추가 (환경 변수로 활성화된 경우)
+    if LANGFUSE_AVAILABLE and os.getenv("LOGGING_PROVIDER") in ["langfuse", "both"]:
+        try:
+            langfuse_handler = CallbackHandler(
+                public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+                secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+                host=os.getenv("LANGFUSE_HOST"),
+            )
+            callback_list.append(langfuse_handler)
+            logging.info("✅ Langfuse callback automatically added to LLM")
+        except Exception as e:
+            logging.warning(f"⚠️ Failed to add Langfuse callback: {e}")
+    
+    if provider.upper() == "OPENAI":
+        model = model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         return ChatOpenAI(
-            model="gpt-4o-mini",
-            temperature=0.1,
-            max_tokens=2000
+            model=model,
+            temperature=temperature,
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_API_BASE"),
+            callbacks=callback_list if callback_list else None
         )
-    except ImportError:
-        logger.error("langchain_openai not available")
-        raise
-
-def _create_anthropic_llm():
-    """Anthropic LLM 생성"""
-    try:
-        from langchain_anthropic import ChatAnthropic
-        return ChatAnthropic(
-            model="claude-3-sonnet-20240229",
-            temperature=0.1,
-            max_tokens=2000
-        )
-    except ImportError:
-        logger.error("langchain_anthropic not available")
-        raise
-
-def _create_ollama_llm():
-    """Ollama LLM 생성"""
-    try:
-        from langchain_ollama import ChatOllama
+        
+    elif provider.upper() == "OLLAMA":
+        if not ChatOllama:
+            raise ImportError("Ollama not available. Install: uv add langchain-ollama")
+        
+        model = model or os.getenv("OLLAMA_MODEL", "llama3:8b")
+        base_url = os.getenv("OLLAMA_API_BASE", "http://localhost:11434")
+        
         return ChatOllama(
-            model="llama3.1:8b",
-            temperature=0.1
+            model=model,
+            temperature=temperature,
+            base_url=base_url,
+            callbacks=callback_list if callback_list else None
         )
-    except ImportError:
-        logger.error("langchain_ollama not available")
-        raise
-
-def _create_mock_llm():
-    """Mock LLM 생성 (테스트/fallback용)"""
     
-    class MockLLM:
-        """간단한 Mock LLM 클래스"""
-        
-        def invoke(self, prompt: str) -> Any:
-            return MockResponse(self._generate_mock_response(prompt))
-        
-        async def ainvoke(self, prompt: str) -> Any:
-            return MockResponse(self._generate_mock_response(prompt))
-        
-        def _generate_mock_response(self, prompt: str) -> str:
-            """간단한 Mock 응답 생성"""
-            prompt_lower = prompt.lower()
-            
-            if "json" in prompt_lower and "context_type" in prompt_lower:
-                # 프롬프트 분석 요청
-                return '''
-{
-    "context_type": "domain_expert",
-    "role_description": "데이터 분석 전문가",
-    "domain_knowledge": "데이터 사이언스 및 통계 분석",
-    "task_requirements": "데이터 탐색적 분석",
-    "data_context": "일반적인 데이터셋",
-    "key_constraints": "정확성과 신뢰성",
-    "output_format": "분석 리포트",
-    "confidence_score": 0.7
-}
-'''
-            elif "파일" in prompt_lower and "추천" in prompt_lower:
-                # 데이터 매칭 요청
-                return "NONE"
-            
-            else:
-                # 일반적인 프롬프트 향상
-                return f"""
-당신은 데이터 분석 전문가입니다.
-
-주어진 데이터에 대해 다음과 같은 분석을 수행해주세요:
-
-1. 데이터 기본 정보 확인
-2. 탐색적 데이터 분석
-3. 주요 인사이트 도출
-4. 전문적인 해석 제공
-
-분석 결과는 실무에서 활용 가능한 수준으로 제공해주세요.
-"""
-    
-    class MockResponse:
-        def __init__(self, content: str):
-            self.content = content
-    
-    logger.info("Using Mock LLM for development/testing")
-    return MockLLM()
+    else:
+        raise ValueError(f"Unsupported LLM provider: {provider}")
 
 def get_llm_capabilities(llm) -> Dict[str, Any]:
     """LLM의 능력 정보 반환"""

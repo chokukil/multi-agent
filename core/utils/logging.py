@@ -4,6 +4,24 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+def get_logger(name: str = None) -> logging.Logger:
+    """
+    Get a logger instance with the specified name.
+    
+    Args:
+        name: Logger name (usually __name__)
+        
+    Returns:
+        Logger instance
+    """
+    logger = logging.getLogger(name)
+    
+    # If no handlers are configured, set up basic logging
+    if not logger.handlers and not logging.getLogger().handlers:
+        setup_logging()
+    
+    return logger
+
 def setup_logging(level=logging.DEBUG):
     """
     Set up comprehensive logging with both console and file output.
