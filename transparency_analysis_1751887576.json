@@ -1,0 +1,149 @@
+{
+  "trace_id": "704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57",
+  "summary": {
+    "total_spans": 11,
+    "total_duration": 6.017749071121216,
+    "success_rate": 1.0,
+    "total_interactions": 3
+  },
+  "transparency_metrics": {
+    "component_synergy_score": {
+      "css": 1.0,
+      "cooperation_quality": 1.0,
+      "communication_efficiency": 1.0,
+      "task_distribution": 1.0
+    },
+    "tool_utilization_efficacy": {
+      "tue": 2.191951727915806,
+      "success_rate": 1.0,
+      "avg_response_time": 0.2010788917541504,
+      "resource_efficiency": 1.0
+    },
+    "issues_detected": 0,
+    "issue_types": []
+  },
+  "agent_performance": {
+    "domain_knowledge_agent": {
+      "spans": 1,
+      "errors": 0,
+      "duration": 0.5011539459228516
+    },
+    "data_analysis_agent": {
+      "spans": 1,
+      "errors": 0,
+      "duration": 1.4320149421691895
+    },
+    "process_expert_agent": {
+      "spans": 1,
+      "errors": 0,
+      "duration": 0.8710830211639404
+    },
+    "equipment_diagnostic_agent": {
+      "spans": 1,
+      "errors": 0,
+      "duration": 1.521080732345581
+    },
+    "quality_assessment_agent": {
+      "spans": 1,
+      "errors": 0,
+      "duration": 0.6910569667816162
+    }
+  },
+  "spans_hierarchy": {
+    "b21ba6cb-10b3-45c9-b1a3-1e727f6f7214": {
+      "span": "TraceSpan(span_id='b21ba6cb-10b3-45c9-b1a3-1e727f6f7214', parent_span_id=None, trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='\ubc18\ub3c4\uccb4_\uacf5\uc815_\ud22c\uba85\uc131_\ubd84\uc11d', level=<TraceLevel.SYSTEM: 'system'>, start_time=1751887570.53348, end_time=1751887576.551229, duration=6.017749071121216, input_data=None, output_data=None, metadata={'user_id': 'test_engineer', 'session_id': 'test_session', 'trace_name': '\ubc18\ub3c4\uccb4_\uacf5\uc815_\ud22c\uba85\uc131_\ubd84\uc11d'}, agent_id=None, tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+      "children": [
+        {
+          "span": "TraceSpan(span_id='5033f525-063b-4edb-a34e-3ed9f063e891', parent_span_id='b21ba6cb-10b3-45c9-b1a3-1e727f6f7214', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Phase1_Query_Analysis', level=<TraceLevel.SYSTEM: 'system'>, start_time=1751887570.5335581, end_time=1751887576.551195, duration=6.017636775970459, input_data={'query': '\ub2f9\uc2e0\uc740 20\ub144 \uacbd\ub825\uc758 \ubc18\ub3c4\uccb4 \uc774\uc628\uc8fc\uc785 \uacf5\uc815(Process) \uc5d4\uc9c0\ub2c8\uc5b4\uc785\ub2c8\ub2e4.\\n\ub2e4\uc74c \ub3c4\uba54\uc778 \uc9c0\uc2dd\ub4e4\uc744 \uc219\uc9c0\ud558\uace0, \uc785\ub825\ub41c LOT \ud788\uc2a4\ud1a0\ub9ac, \uacf5\uc815 \uacc4\uce21\uac12, \uc7a5\ube44 \uc815\ubcf4 \ubc0f \ub808\uc2dc\ud53c \uc14b\ud305 \ub370\uc774\ud130\ub97c \uae30\ubc18\uc73c\ub85c \uacf5\uc815 \uc774\uc0c1 \uc5ec\ubd80\ub97c \ud310\ub2e8\ud558\uace0, \uadf8 \uc6d0\uc778\uc744 \uc124\uba85\ud558\uba70, \uae30\uc220\uc801 \uc870\uce58 \ubc29\ud5a5\uc744 \uc81c\uc548\ud558\ub294 \uc5ed\ud560\uc744 \uc218\ud589\ud569\ub2c8\ub2e4.', 'complexity': {'technical_terms': 0.95, 'process_depth': 0.88, 'diagnostic_level': 0.92}}, output_data={'phase1_completed': True}, metadata={}, agent_id=None, tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+          "children": [
+            {
+              "span": "TraceSpan(span_id='cd2be797-e7f1-46d3-82f5-5ad98c4c01ad', parent_span_id='5033f525-063b-4edb-a34e-3ed9f063e891', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Domain_Knowledge_Extraction', level=<TraceLevel.AGENT: 'agent'>, start_time=1751887570.533586, end_time=1751887571.03474, duration=0.5011539459228516, input_data={'domain': 'semiconductor_ion_implantation'}, output_data={'extracted_concepts': ['\uc774\uc628\uc8fc\uc785', 'TW', 'Carbon \uacf5\uc815', 'beam hole'], 'domain_score': 0.95}, metadata={}, agent_id='domain_knowledge_agent', tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+              "children": [
+                {
+                  "span": "TraceSpan(span_id='c9d5ac03-8cc6-4ba4-9f83-c34f487ab54f', parent_span_id='cd2be797-e7f1-46d3-82f5-5ad98c4c01ad', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Phase2_Multi_Agent_Execution', level=<TraceLevel.SYSTEM: 'system'>, start_time=1751887571.0347672, end_time=1751887575.5500998, duration=4.5153326988220215, input_data={'num_agents': 4}, output_data={'agents_completed': 4}, metadata={}, agent_id=None, tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+                  "children": [
+                    {
+                      "span": "TraceSpan(span_id='e1513d92-ca37-439a-bf24-2e03bc411997', parent_span_id='c9d5ac03-8cc6-4ba4-9f83-c34f487ab54f', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Agent_data_analysis_agent', level=<TraceLevel.AGENT: 'agent'>, start_time=1751887571.034781, end_time=1751887572.466796, duration=1.4320149421691895, input_data={'analysis_type': 'process_diagnosis'}, output_data={'result': 'TW \uac12\uc774 HIGH LIMIT \ubd80\uadfc\uc5d0\uc11c \uc0c1\uc2b9 \ud2b8\ub80c\ub4dc \uac10\uc9c0', 'confidence': 0.85}, metadata={}, agent_id='data_analysis_agent', tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+                      "children": [
+                        {
+                          "span": "TraceSpan(span_id='3ecb9cf4-02f0-4e9e-b34c-a6881c8babb1', parent_span_id='e1513d92-ca37-439a-bf24-2e03bc411997', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Statistical_Analysis_Tool', level=<TraceLevel.TOOL: 'tool'>, start_time=1751887571.0347872, end_time=1751887571.235866, duration=0.2010788917541504, input_data={'data_type': 'TW_measurements'}, output_data={'analysis_result': 'TW trend analysis completed', 'statistical_significance': 0.95}, metadata={}, agent_id=None, tool_name='statistical_analyzer', llm_model=None, token_usage=None, error=None, issues=[])",
+                          "children": [
+                            {
+                              "span": "TraceSpan(span_id='36fa5bea-147c-4dc0-b447-73a3d46a9358', parent_span_id='3ecb9cf4-02f0-4e9e-b34c-a6881c8babb1', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Agent_process_expert_agent', level=<TraceLevel.AGENT: 'agent'>, start_time=1751887572.466826, end_time=1751887573.337909, duration=0.8710830211639404, input_data={'analysis_type': 'process_diagnosis'}, output_data={'result': 'Carbon \uacf5\uc815\uc5d0\uc11c beam hole \uc881\uc544\uc9d0\uc73c\ub85c \uc778\ud55c TW \uae09\ub4f1 \uac00\ub2a5\uc131', 'confidence': 0.92}, metadata={}, agent_id='process_expert_agent', tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+                              "children": [
+                                {
+                                  "span": "TraceSpan(span_id='78533b44-b56c-4709-bc1b-8c383b60f09d', parent_span_id='36fa5bea-147c-4dc0-b447-73a3d46a9358', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Agent_equipment_diagnostic_agent', level=<TraceLevel.AGENT: 'agent'>, start_time=1751887573.337933, end_time=1751887574.8590138, duration=1.521080732345581, input_data={'analysis_type': 'process_diagnosis'}, output_data={'result': 'Corrector magnet \ubbf8\uc138 \uc774\uc0c1\uc73c\ub85c \ube54 \uacbd\ub85c \ube44\uc815\uc0c1 \ud615\uc131', 'confidence': 0.78}, metadata={}, agent_id='equipment_diagnostic_agent', tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+                                  "children": [
+                                    {
+                                      "span": "TraceSpan(span_id='b9e076b1-388f-49a8-84e8-fb50629f6bef', parent_span_id='78533b44-b56c-4709-bc1b-8c383b60f09d', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Agent_quality_assessment_agent', level=<TraceLevel.AGENT: 'agent'>, start_time=1751887574.85904, end_time=1751887575.550097, duration=0.6910569667816162, input_data={'analysis_type': 'process_diagnosis'}, output_data={'result': '\uc5f0\uc18d 2\ub78f TW \uc0c1\uc2b9\uc73c\ub85c \uc774\uc0c1 \uc9d5\ud6c4 \ud310\ub2e8 \ud544\uc694', 'confidence': 0.88}, metadata={}, agent_id='quality_assessment_agent', tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+                                      "children": [
+                                        {
+                                          "span": "TraceSpan(span_id='7c1b40c7-23ba-4259-b6fb-bf4ee2f4ab26', parent_span_id='b9e076b1-388f-49a8-84e8-fb50629f6bef', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Phase3_Expert_Synthesis', level=<TraceLevel.SYSTEM: 'system'>, start_time=1751887575.5501199, end_time=1751887576.5511942, duration=1.0010743141174316, input_data={'synthesis_strategy': 'holistic_integration'}, output_data={'synthesis_completed': True}, metadata={}, agent_id=None, tool_name=None, llm_model=None, token_usage=None, error=None, issues=[])",
+                                          "children": [
+                                            {
+                                              "span": "TraceSpan(span_id='66a88b79-50a5-4ca1-90ee-76adc9327169', parent_span_id='7c1b40c7-23ba-4259-b6fb-bf4ee2f4ab26', trace_id='704ad0f8-ae17-4a41-b4d0-7bbc19b9ed57', name='Expert_Answer_Generation', level=<TraceLevel.LLM: 'llm'>, start_time=1751887575.5501282, end_time=1751887576.551191, duration=1.0010628700256348, input_data={'context_length': 2856}, output_data={'generated_answer': '\uc804\ubb38\uac00\uae09 \ubc18\ub3c4\uccb4 \uacf5\uc815 \ubd84\uc11d \uc644\ub8cc', 'token_usage': {'prompt_tokens': 2856, 'completion_tokens': 1247, 'total_tokens': 4103}}, metadata={}, agent_id=None, tool_name=None, llm_model='gpt-4o', token_usage=None, error=None, issues=[])",
+                                              "children": []
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "interaction_flow": [
+    {
+      "interaction_id": "6a767372-f9d6-4b6c-9a03-8906ca8a5229",
+      "source_agent": "process_expert_agent",
+      "target_agent": "data_analysis_agent",
+      "type": "collaboration",
+      "timestamp": 1751887572.466843,
+      "correlation_id": "4a7bad42-5098-415b-b774-a5af2e136335",
+      "data_summary": {
+        "input_size": 0,
+        "output_size": 0,
+        "has_error": false
+      }
+    },
+    {
+      "interaction_id": "14603641-0be3-4b97-ba90-ad10a2618dd7",
+      "source_agent": "equipment_diagnostic_agent",
+      "target_agent": "process_expert_agent",
+      "type": "collaboration",
+      "timestamp": 1751887573.337949,
+      "correlation_id": "f409f641-5ae2-4d72-894e-0cf8adb7c048",
+      "data_summary": {
+        "input_size": 0,
+        "output_size": 0,
+        "has_error": false
+      }
+    },
+    {
+      "interaction_id": "063b1f2f-aef6-4ab1-9609-86c4ee1c34d5",
+      "source_agent": "quality_assessment_agent",
+      "target_agent": "equipment_diagnostic_agent",
+      "type": "collaboration",
+      "timestamp": 1751887574.859052,
+      "correlation_id": "95099134-3611-41df-8b89-845d88012136",
+      "data_summary": {
+        "input_size": 0,
+        "output_size": 0,
+        "has_error": false
+      }
+    }
+  ]
+}

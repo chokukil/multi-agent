@@ -25,7 +25,7 @@ import time
 import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, List
 import traceback
 from pathlib import Path
 import uuid

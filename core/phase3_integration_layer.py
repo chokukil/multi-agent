@@ -17,6 +17,17 @@ from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import json
 
+# 향상된 트레이싱 시스템 import
+try:
+    from core.enhanced_tracing_system import (
+        enhanced_tracer, TraceContext, TraceLevel, 
+        ComponentSynergyScore, ToolUtilizationEfficacy
+    )
+    TRANSPARENCY_AVAILABLE = True
+except ImportError:
+    logger.warning("Enhanced tracing system not available")
+    TRANSPARENCY_AVAILABLE = False
+
 # Phase 1 imports
 from core.query_processing import (
     IntelligentQueryProcessor,
@@ -108,6 +119,33 @@ class Phase3IntegrationLayer:
         """
         start_time = time.time()
         logger.info(f"🚀 전문가급 답변 합성 시작: {user_query[:100]}...")
+        
+        # 투명성 트레이싱 시작
+        trace_context = None
+        if TRANSPARENCY_AVAILABLE:
+            try:
+                trace_context = TraceContext(
+                    "CherryAI_Expert_Synthesis",
+                    user_id=user_context.get("user_id") if user_context else None,
+                    session_id=session_context.get("session_id") if session_context else None
+                )
+                trace_id = trace_context.__enter__()
+                
+                # 시스템 레벨 스팬 시작
+                system_span_id = enhanced_tracer.start_span(
+                    "Expert_Answer_Synthesis",
+                    TraceLevel.SYSTEM,
+                    input_data={
+                        "user_query": user_query,
+                        "query_length": len(user_query),
+                        "num_a2a_results": len(a2a_agent_results),
+                        "has_user_context": user_context is not None,
+                        "has_session_context": session_context is not None
+                    }
+                )
+            except Exception as e:
+                logger.warning(f"Tracing initialization failed: {e}")
+                trace_context = None
         
         try:
             # 1. Phase 1: Enhanced Query Processing
