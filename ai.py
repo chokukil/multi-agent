@@ -31,6 +31,7 @@ from pathlib import Path
 import uuid
 import numpy as np
 import base64
+import contextlib
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가 (ai.py는 프로젝트 루트에 위치)
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -154,8 +155,32 @@ except Exception as e:
     def get_dataframe_summary(df): return [f"Shape: {df.shape}"]
     debug_log(f"⚠️ AI_DS_Team 유틸리티 예상치 못한 오류: {e}", "warning")
 
+# Langfuse Session Tracking 추가
+try:
+    from core.langfuse_session_tracer import init_session_tracer, get_session_tracer
+    LANGFUSE_SESSION_AVAILABLE = True
+    print("✅ Langfuse Session Tracer 로드 성공")
+except ImportError as e:
+    LANGFUSE_SESSION_AVAILABLE = False
+    print(f"⚠️ Langfuse Session Tracer 로드 실패: {e}")
+
 # --- 초기 설정 ---
 setup_logging()
+
+# Langfuse 초기화 (환경변수에서 설정 가져오기)
+if LANGFUSE_SESSION_AVAILABLE:
+    try:
+        langfuse_public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
+        langfuse_secret_key = os.getenv("LANGFUSE_SECRET_KEY")
+        langfuse_host = os.getenv("LANGFUSE_HOST", "http://localhost:3000")
+        
+        if langfuse_public_key and langfuse_secret_key:
+            init_session_tracer(langfuse_public_key, langfuse_secret_key, langfuse_host)
+            debug_log("🔍 Langfuse Session Tracer 초기화 성공", "success")
+        else:
+            debug_log("⚠️ Langfuse 환경변수 미설정 - 추적 비활성화", "warning")
+    except Exception as e:
+        debug_log(f"❌ Langfuse 초기화 실패: {e}", "error")
 
 def setup_environment():
     """환경 설정"""
@@ -631,6 +656,24 @@ async def process_query_streaming(prompt: str):
     """A2A 프로토콜을 사용한 실시간 스트리밍 쿼리 처리 + Phase 3 전문가급 답변 합성"""
     debug_log(f"🚀 A2A 스트리밍 쿼리 처리 시작: {prompt[:100]}...")
     
+    # Langfuse Session 시작
+    session_tracer = None
+    session_id = None
+    if LANGFUSE_SESSION_AVAILABLE:
+        try:
+            session_tracer = get_session_tracer()
+            user_id = st.session_state.get("user_id", "anonymous")
+            session_metadata = {
+                "streamlit_session_id": st.session_state.get("session_id", "unknown"),
+                "user_interface": "streamlit",
+                "query_timestamp": time.time(),
+                "query_length": len(prompt)
+            }
+            session_id = session_tracer.start_user_session(prompt, user_id, session_metadata)
+            debug_log(f"🔍 Langfuse Session 시작: {session_id}", "success")
+        except Exception as e:
+            debug_log(f"❌ Langfuse Session 시작 실패: {e}", "error")
+    
     st.session_state.messages.append({"role": "user", "content": prompt})
     
     with st.chat_message("user"):
@@ -761,6 +804,23 @@ async def process_query_streaming(prompt: str):
                 
                 debug_log(f"🎯 단계 {step_num}/{len(plan_steps)} 실행: {agent_name}")
                 
+                # Langfuse 에이전트 추적 시작
+                agent_context = None
+                if session_tracer:
+                    try:
+                        agent_context = session_tracer.trace_agent_execution(
+                            agent_name=agent_name,
+                            task_description=task_description,
+                            agent_metadata={
+                                "step_number": step_num,
+                                "total_steps": len(plan_steps),
+                                "step_index": step_idx
+                            }
+                        )
+                        debug_log(f"🔍 Langfuse 에이전트 추적 시작: {agent_name}", "success")
+                    except Exception as trace_error:
+                        debug_log(f"❌ Langfuse 에이전트 추적 시작 실패: {trace_error}", "error")
+                
                 # 각 단계별 스트리밍 컨테이너 생성 (스코프 문제 해결)
                 step_stream_container = None
                 if SMART_UI_AVAILABLE:
@@ -772,65 +832,93 @@ async def process_query_streaming(prompt: str):
                 displayed_text = ""
                 
                 # 실시간 스트리밍 처리
-                async for chunk_data in a2a_client.stream_task(agent_name, task_description):
-                    try:
-                        chunk_type = chunk_data.get('type', 'unknown')
-                        chunk_content = chunk_data.get('content', {})
-                        is_final = chunk_data.get('final', False)
-                        
-                        step_results.append(chunk_data)
-                        
-                        # 실시간 메시지 스트리밍 표시
-                        if chunk_type == 'message':
-                            text = chunk_content.get('text', '')
-                            if text and not text.startswith('✅'):  # 완료 메시지 제외
-                                # Smart UI 사용 가능 시 누적형 컨테이너 사용
+                with agent_context if agent_context else contextlib.nullcontext():
+                    async for chunk_data in a2a_client.stream_task(agent_name, task_description):
+                        try:
+                            chunk_type = chunk_data.get('type', 'unknown')
+                            chunk_content = chunk_data.get('content', {})
+                            is_final = chunk_data.get('final', False)
+                            
+                            step_results.append(chunk_data)
+                            
+                            # 실시간 메시지 스트리밍 표시
+                            if chunk_type == 'message':
+                                text = chunk_content.get('text', '')
+                                if text and not text.startswith('✅'):  # 완료 메시지 제외
+                                    # Smart UI 사용 가능 시 누적형 컨테이너 사용
+                                    if SMART_UI_AVAILABLE and step_stream_container:
+                                        # 청크를 누적하여 추가
+                                        step_stream_container.add_chunk(text, "message")
+                                        
+                                    else:
+                                        # 기존 방식 - 하지만 중복 표시 방지
+                                        displayed_text += text + " "
+                                        
+                                        # 단계별 진행 상황만 표시 (중복 방지)
+                                        with streaming_container:
+                                            st.markdown(f"**🔄 {agent_name} 처리 중...**")
+                                            # 상세 텍스트는 Smart Display나 최종 결과에서만 표시
+                            
+                            # 아티팩트 실시간 표시
+                            elif chunk_type == 'artifact':
+                                step_artifacts.append(chunk_content)
+                                
                                 if SMART_UI_AVAILABLE and step_stream_container:
-                                    # 청크를 누적하여 추가
-                                    step_stream_container.add_chunk(text, "message")
+                                    # Smart Display로 아티팩트 렌더링
+                                    step_stream_container.add_chunk(chunk_content, "artifact")
                                     
                                 else:
-                                    # 기존 방식 - 하지만 중복 표시 방지
-                                    displayed_text += text + " "
-                                    
-                                    # 단계별 진행 상황만 표시 (중복 방지)
-                                    with streaming_container:
-                                        st.markdown(f"**🔄 {agent_name} 처리 중...**")
-                                        # 상세 텍스트는 Smart Display나 최종 결과에서만 표시
-                        
-                        # 아티팩트 실시간 표시
-                        elif chunk_type == 'artifact':
-                            step_artifacts.append(chunk_content)
+                                    # 기존 방식
+                                    with live_artifacts_container:
+                                        st.markdown("**생성된 아티팩트:**")
+                                        for i, artifact in enumerate(step_artifacts):
+                                            with st.expander(f"📄 {artifact.get('name', f'Artifact {i+1}')}", expanded=True):
+                                                render_artifact(artifact)
                             
-                            if SMART_UI_AVAILABLE and step_stream_container:
-                                # Smart Display로 아티팩트 렌더링
-                                step_stream_container.add_chunk(chunk_content, "artifact")
-                                
-                            else:
-                                # 기존 방식
-                                with live_artifacts_container:
-                                    st.markdown("**생성된 아티팩트:**")
-                                    for i, artifact in enumerate(step_artifacts):
-                                        with st.expander(f"📄 {artifact.get('name', f'Artifact {i+1}')}", expanded=True):
-                                            render_artifact(artifact)
+                            # final 플래그 확인
+                            if is_final:
+                                debug_log(f"✅ 단계 {step_num} 최종 청크 수신", "success")
+                                break
                         
-                        # final 플래그 확인
-                        if is_final:
-                            debug_log(f"✅ 단계 {step_num} 최종 청크 수신", "success")
-                            break
-                    
-                    except Exception as step_error:
-                        debug_log(f"❌ 단계 {step_num} 실행 실패: {step_error}", "error")
-                        
-                        with live_text_container:
-                            st.error(f"단계 {step_num} 실행 중 오류 발생: {step_error}")
-                        
-                        all_results.append({
-                            'step': step_num,
-                            'agent': agent_name,
-                            'task': task_description,
-                            'error': str(step_error)
-                        })
+                        except Exception as step_error:
+                            debug_log(f"❌ 단계 {step_num} 실행 실패: {step_error}", "error")
+                            
+                            with live_text_container:
+                                st.error(f"단계 {step_num} 실행 중 오류 발생: {step_error}")
+                            
+                            all_results.append({
+                                'step': step_num,
+                                'agent': agent_name,
+                                'task': task_description,
+                                'error': str(step_error)
+                            })
+                
+                # Langfuse 에이전트 결과 기록
+                if session_tracer and agent_context:
+                    try:
+                        session_tracer.record_agent_result(
+                            agent_name=agent_name,
+                            result={
+                                "step_results": step_results,
+                                "artifacts_count": len(step_artifacts),
+                                "displayed_text_length": len(displayed_text)
+                            },
+                            confidence=0.9 if step_artifacts else 0.7,
+                            artifacts=[{"name": a.get("name", "unknown"), "type": "artifact"} for a in step_artifacts]
+                        )
+                        debug_log(f"🔍 Langfuse 에이전트 결과 기록: {agent_name}", "success")
+                    except Exception as record_error:
+                        debug_log(f"❌ Langfuse 에이전트 결과 기록 실패: {record_error}", "error")
+                
+                # 각 단계 결과를 all_results에 추가
+                all_results.append({
+                    'step': step_num,
+                    'agent': agent_name,
+                    'task': task_description,
+                    'results': step_results,
+                    'artifacts': step_artifacts,
+                    'displayed_text': displayed_text
+                })
             
             # 7. 최종 결과 정리 표시
             debug_log("📊 최종 결과 정리 중...")
@@ -949,11 +1037,48 @@ async def process_query_streaming(prompt: str):
             
             debug_log("🎉 전체 스트리밍 프로세스 완료!", "success")
             
+            # Langfuse Session 종료 (성공 케이스)
+            if session_tracer and session_id:
+                try:
+                    final_result = {
+                        "success": True,
+                        "total_steps": len(plan_steps),
+                        "total_artifacts": sum(len(r.get('artifacts', [])) for r in all_results),
+                        "processing_completed": True
+                    }
+                    session_summary = {
+                        "steps_executed": len(plan_steps),
+                        "agents_used": list(set(step.get('agent_name', 'unknown') for step in plan_steps)),
+                        "phase3_enabled": PHASE3_AVAILABLE
+                    }
+                    session_tracer.end_user_session(final_result, session_summary)
+                    debug_log(f"🔍 Langfuse Session 종료 (성공): {session_id}", "success")
+                except Exception as session_end_error:
+                    debug_log(f"❌ Langfuse Session 종료 실패: {session_end_error}", "error")
+            
         except Exception as e:
             debug_log(f"💥 전체 프로세스 오류: {e}", "error")
             st.error(f"처리 중 오류가 발생했습니다: {e}")
             import traceback
             debug_log(f"🔍 스택 트레이스: {traceback.format_exc()}", "error")
+            
+            # Langfuse Session 종료 (오류 케이스)
+            if session_tracer and session_id:
+                try:
+                    final_result = {
+                        "success": False,
+                        "error": str(e),
+                        "error_type": type(e).__name__,
+                        "processing_completed": False
+                    }
+                    session_summary = {
+                        "error_occurred": True,
+                        "error_step": "process_query_streaming"
+                    }
+                    session_tracer.end_user_session(final_result, session_summary)
+                    debug_log(f"🔍 Langfuse Session 종료 (오류): {session_id}", "success")
+                except Exception as session_end_error:
+                    debug_log(f"❌ Langfuse Session 종료 실패: {session_end_error}", "error")
 
 async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], a2a_client):
     """Phase 3 전문가급 답변 합성 처리"""

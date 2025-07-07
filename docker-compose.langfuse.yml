@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  langfuse-server:
+    image: langfuse/langfuse:2
+    depends_on:
+      - db
+    ports:
+      - "3001:3000"  # 3000번 포트는 이미 사용 중이므로 3001번 사용
+    environment:
+      - DATABASE_URL=postgresql://langfuse:langfuse@db:5432/langfuse
+      - NEXTAUTH_SECRET=mysecret
+      - SALT=mysalt
+      - NEXTAUTH_URL=http://localhost:3001
+      - TELEMETRY_ENABLED=true
+      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/public/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=langfuse
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  langfuse_db_data:
+    driver: local 
