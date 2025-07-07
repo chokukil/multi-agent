@@ -82,6 +82,11 @@ class SessionBasedTracer:
             self.client = None
             print("🔕 Langfuse 추적 비활성화됨")
     
+    @property
+    def trace_client(self):
+        """현재 세션 trace 객체 반환 (wrapper 호환성용)"""
+        return self.current_session_trace
+    
     def start_user_session(self, user_query: str, user_id: str = "anonymous", 
                           session_metadata: Dict[str, Any] = None) -> str:
         """

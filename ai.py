@@ -157,7 +157,7 @@ except Exception as e:
 
 # Langfuse Session Tracking 추가
 try:
-    from core.langfuse_session_tracer import init_session_tracer, get_session_tracer
+    from core.langfuse_session_tracer import init_session_tracer, get_session_tracer, LANGFUSE_AVAILABLE
     LANGFUSE_SESSION_AVAILABLE = True
     print("✅ Langfuse Session Tracer 로드 성공")
 except ImportError as e:
@@ -336,34 +336,55 @@ async def preload_agents_with_ui():
             return {}
 
 async def check_agents_status_async():
-    """AI_DS_Team 에이전트 상태 비동기 확인 (수정된 버전)"""
-    async with httpx.AsyncClient(timeout=2.0) as client:
-        # 각 에이전트에 대한 비동기 GET 요청 리스트 생성
-        tasks = [client.get(f"http://localhost:{info['port']}/.well-known/agent.json") for info in AI_DS_TEAM_AGENTS.values()]
-        
-        # 모든 요청을 병렬로 실행하고 결과 수집
-        responses = await asyncio.gather(*tasks, return_exceptions=True)
-        
+    """AI_DS_Team 에이전트 상태 비동기 확인 (개선된 버전)"""
+    debug_log("🔍 에이전트 상태 직접 확인 시작...")
+    
+    async with httpx.AsyncClient(timeout=5.0) as client:  # 타임아웃 증가
         results = {}
-        # 원래 에이전트 정보와 응답 결과를 순서대로 매칭
-        for (name, info), resp in zip(AI_DS_TEAM_AGENTS.items(), responses):
-            if isinstance(resp, httpx.Response) and resp.status_code == 200:
-                # 포트 정보를 포함하여 A2AStreamlitClient가 올바르게 작동하도록 수정
-                results[name] = {
-                    "status": "✅", 
-                    "description": info['description'],
-                    "port": info['port'],  # 🔥 핵심 수정: 포트 정보 추가
-                    "capabilities": info.get('capabilities', []),
-                    "color": info.get('color', '#ffffff')
-                }
-            else:
+        
+        # 각 에이전트를 순차적으로 확인 (안정성 향상)
+        for name, info in AI_DS_TEAM_AGENTS.items():
+            port = info['port']
+            try:
+                debug_log(f"🔍 {name} (포트 {port}) 확인 중...")
+                response = await client.get(f"http://localhost:{port}/.well-known/agent.json")
+                
+                if response.status_code == 200:
+                    agent_card = response.json()
+                    actual_name = agent_card.get('name', 'Unknown')
+                    debug_log(f"✅ {name} 응답: {actual_name}")
+                    
+                    results[name] = {
+                        "status": "✅", 
+                        "description": info['description'],
+                        "port": port,
+                        "capabilities": info.get('capabilities', []),
+                        "color": info.get('color', '#ffffff'),
+                        "actual_name": actual_name  # 실제 에이전트 이름 저장
+                    }
+                else:
+                    debug_log(f"❌ {name} 응답 실패: HTTP {response.status_code}")
+                    results[name] = {
+                        "status": "❌", 
+                        "description": info['description'],
+                        "port": port,
+                        "capabilities": info.get('capabilities', []),
+                        "color": info.get('color', '#ffffff'),
+                        "error": f"HTTP {response.status_code}"
+                    }
+                    
+            except Exception as e:
+                debug_log(f"❌ {name} 연결 실패: {e}")
                 results[name] = {
                     "status": "❌", 
                     "description": info['description'],
-                    "port": info['port'],  # 🔥 실패한 경우에도 포트 정보 유지
+                    "port": port,
                     "capabilities": info.get('capabilities', []),
-                    "color": info.get('color', '#ffffff')
+                    "color": info.get('color', '#ffffff'),
+                    "error": str(e)
                 }
+        
+        debug_log(f"✅ 에이전트 상태 확인 완료: {len(results)}개")
         return results
 
 def display_agent_status():
@@ -804,23 +825,6 @@ async def process_query_streaming(prompt: str):
                 
                 debug_log(f"🎯 단계 {step_num}/{len(plan_steps)} 실행: {agent_name}")
                 
-                # Langfuse 에이전트 추적 시작
-                agent_context = None
-                if session_tracer:
-                    try:
-                        agent_context = session_tracer.trace_agent_execution(
-                            agent_name=agent_name,
-                            task_description=task_description,
-                            agent_metadata={
-                                "step_number": step_num,
-                                "total_steps": len(plan_steps),
-                                "step_index": step_idx
-                            }
-                        )
-                        debug_log(f"🔍 Langfuse 에이전트 추적 시작: {agent_name}", "success")
-                    except Exception as trace_error:
-                        debug_log(f"❌ Langfuse 에이전트 추적 시작 실패: {trace_error}", "error")
-                
                 # 각 단계별 스트리밍 컨테이너 생성 (스코프 문제 해결)
                 step_stream_container = None
                 if SMART_UI_AVAILABLE:
@@ -831,8 +835,16 @@ async def process_query_streaming(prompt: str):
                 step_artifacts = []
                 displayed_text = ""
                 
-                # 실시간 스트리밍 처리
-                with agent_context if agent_context else contextlib.nullcontext():
+                # Langfuse 에이전트 추적과 실시간 스트리밍 처리
+                with session_tracer.trace_agent_execution(
+                    agent_name=agent_name,
+                    task_description=task_description,
+                    agent_metadata={
+                        "step_number": step_num,
+                        "total_steps": len(plan_steps),
+                        "step_index": step_idx
+                    }
+                ) if session_tracer else contextlib.nullcontext():
                     async for chunk_data in a2a_client.stream_task(agent_name, task_description):
                         try:
                             chunk_type = chunk_data.get('type', 'unknown')
@@ -894,7 +906,7 @@ async def process_query_streaming(prompt: str):
                             })
                 
                 # Langfuse 에이전트 결과 기록
-                if session_tracer and agent_context:
+                if session_tracer:
                     try:
                         session_tracer.record_agent_result(
                             agent_name=agent_name,
@@ -904,7 +916,7 @@ async def process_query_streaming(prompt: str):
                                 "displayed_text_length": len(displayed_text)
                             },
                             confidence=0.9 if step_artifacts else 0.7,
-                            artifacts=[{"name": a.get("name", "unknown"), "type": "artifact"} for a in step_artifacts]
+                            artifacts=[{"name": a.get("name", "unknown"), "type": "artifact", "size": 0} for a in step_artifacts]
                         )
                         debug_log(f"🔍 Langfuse 에이전트 결과 기록: {agent_name}", "success")
                     except Exception as record_error:
@@ -1033,18 +1045,19 @@ async def process_query_streaming(prompt: str):
             
             # Phase 3: 전문가급 답변 합성
             if PHASE3_AVAILABLE:
-                await _process_phase3_expert_synthesis(prompt, plan_steps, a2a_client)
+                await _process_phase3_expert_synthesis(prompt, plan_steps, a2a_client, session_tracer, session_id)
             
             debug_log("🎉 전체 스트리밍 프로세스 완료!", "success")
             
-            # Langfuse Session 종료 (성공 케이스)
+            # Langfuse Session 종료 (성공 케이스) - Phase 3 완료 후 종료
             if session_tracer and session_id:
                 try:
                     final_result = {
                         "success": True,
                         "total_steps": len(plan_steps),
                         "total_artifacts": sum(len(r.get('artifacts', [])) for r in all_results),
-                        "processing_completed": True
+                        "processing_completed": True,
+                        "phase3_executed": PHASE3_AVAILABLE
                     }
                     session_summary = {
                         "steps_executed": len(plan_steps),
@@ -1080,10 +1093,28 @@ async def process_query_streaming(prompt: str):
                 except Exception as session_end_error:
                     debug_log(f"❌ Langfuse Session 종료 실패: {session_end_error}", "error")
 
-async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], a2a_client):
-    """Phase 3 전문가급 답변 합성 처리"""
+async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], a2a_client, session_tracer=None, session_id=None):
+    """Phase 3 전문가급 답변 합성 처리 - Langfuse 세션 통합"""
     try:
         debug_log("🧠 Phase 3 전문가급 답변 합성 시작...", "info")
+        
+        # Phase 3 전용 span 생성 (기존 세션 내에서)
+        phase3_span = None
+        if session_tracer and LANGFUSE_AVAILABLE:
+            try:
+                phase3_span = session_tracer.create_agent_execution_span(
+                    "Phase 3 Expert Synthesis",
+                    {
+                        "operation": "expert_answer_synthesis",
+                        "user_query": prompt[:200] + "..." if len(prompt) > 200 else prompt,
+                        "previous_steps": len(plan_steps),
+                        "synthesis_type": "holistic_integration"
+                    }
+                )
+                debug_log("✅ Phase 3 Langfuse span 생성 완료", "success")
+            except Exception as span_error:
+                debug_log(f"❌ Phase 3 Langfuse span 생성 실패: {span_error}", "error")
+                phase3_span = None
         
         # 1. Phase 3 Integration Layer 초기화
         phase3_layer = Phase3IntegrationLayer()
@@ -1092,7 +1123,7 @@ async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], 
         # 2. A2A 에이전트 결과 수집
         a2a_agent_results = await _collect_a2a_agent_results(plan_steps, a2a_client)
         
-        # 3. 사용자 및 세션 컨텍스트 준비
+        # 3. 사용자 및 세션 컨텍스트 준비 (기존 세션 정보 활용)
         user_context = {
             "user_id": st.session_state.get("user_id", "anonymous"),
             "role": "data_scientist",
@@ -1102,14 +1133,18 @@ async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], 
         }
         
         session_context = {
-            "session_id": st.session_state.get("session_id", f"session_{int(time.time())}"),
+            "session_id": session_id or st.session_state.get("session_id", f"session_{int(time.time())}"),
             "timestamp": time.time(),
-            "context_history": st.session_state.get("messages", [])
+            "context_history": st.session_state.get("messages", []),
+            "phase3_continuation": True,  # Phase 3가 기존 세션의 연속임을 표시
+            "langfuse_session_active": session_tracer is not None
         }
         
         # 4. 전문가급 답변 합성 실행
         st.markdown("---")
         st.markdown("## 🧠 전문가급 지능형 분석 시작")
+        
+        synthesis_start_time = time.time()
         
         with st.spinner("전문가급 답변을 합성하는 중..."):
             expert_answer = await phase3_layer.process_user_query_to_expert_answer(
@@ -1119,7 +1154,35 @@ async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], 
                 session_context=session_context
             )
         
-        # 5. 전문가급 답변 렌더링
+        synthesis_time = time.time() - synthesis_start_time
+        
+        # 5. Phase 3 결과를 Langfuse에 기록
+        if phase3_span and session_tracer:
+            try:
+                phase3_result = {
+                    "success": expert_answer.get("success", False),
+                    "confidence_score": expert_answer.get("confidence_score", 0.0),
+                    "processing_time": synthesis_time,
+                    "quality_score": expert_answer.get("metadata", {}).get("phase3_quality_score", 0.0),
+                    "synthesis_strategy": expert_answer.get("metadata", {}).get("synthesis_strategy", "unknown"),
+                    "total_agents_integrated": expert_answer.get("metadata", {}).get("total_agents_used", 0)
+                }
+                
+                session_tracer.end_agent_execution_span(
+                    phase3_span,
+                    phase3_result,
+                    success=expert_answer.get("success", False),
+                    metadata={
+                        "phase3_metrics": expert_answer.get("metadata", {}),
+                        "synthesis_time": synthesis_time,
+                        "expert_answer_sections": len(expert_answer.get("synthesized_answer", {}).get("main_sections", [])) if expert_answer.get("synthesized_answer") else 0
+                    }
+                )
+                debug_log("✅ Phase 3 Langfuse span 완료", "success")
+            except Exception as span_end_error:
+                debug_log(f"❌ Phase 3 Langfuse span 완료 실패: {span_end_error}", "error")
+        
+        # 6. 전문가급 답변 렌더링
         if expert_answer.get("success"):
             debug_log("✅ 전문가급 답변 합성 성공!", "success")
             st.markdown("---")
@@ -1130,8 +1193,24 @@ async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], 
                 "role": "assistant",
                 "content": f"전문가급 답변이 완성되었습니다. (신뢰도: {expert_answer['confidence_score']:.1%})",
                 "expert_answer": expert_answer,
-                "timestamp": time.time()
+                "timestamp": time.time(),
+                "phase3_integrated": True,  # Phase 3 통합 완료 표시
+                "synthesis_time": synthesis_time
             })
+            
+            # Phase 3 성공 메트릭 기록
+            if session_tracer:
+                try:
+                    session_tracer.log_system_event(
+                        "phase3_completion",
+                        {
+                            "synthesis_time": synthesis_time,
+                            "confidence_score": expert_answer['confidence_score'],
+                            "integration_success": True
+                        }
+                    )
+                except Exception as metric_error:
+                    debug_log(f"❌ Phase 3 메트릭 기록 실패: {metric_error}", "error")
         else:
             debug_log("❌ 전문가급 답변 합성 실패", "error")
             st.error("전문가급 답변 합성에 실패했습니다.")
@@ -1143,14 +1222,40 @@ async def _process_phase3_expert_synthesis(prompt: str, plan_steps: List[Dict], 
             # 폴백 메시지 표시
             if expert_answer.get("fallback_message"):
                 st.info(expert_answer["fallback_message"])
+            
+            # Phase 3 실패 메트릭 기록
+            if session_tracer:
+                try:
+                    session_tracer.log_system_event(
+                        "phase3_failure",
+                        {
+                            "synthesis_time": synthesis_time,
+                            "error": error_details,
+                            "integration_success": False
+                        }
+                    )
+                except Exception as metric_error:
+                    debug_log(f"❌ Phase 3 실패 메트릭 기록 실패: {metric_error}", "error")
         
-        debug_log("🎯 Phase 3 전문가급 답변 합성 완료", "success")
+        debug_log(f"🎯 Phase 3 전문가급 답변 합성 완료 ({synthesis_time:.2f}초)", "success")
         
     except Exception as e:
         debug_log(f"💥 Phase 3 처리 오류: {e}", "error")
         st.error(f"전문가급 답변 합성 중 오류가 발생했습니다: {e}")
         import traceback
         debug_log(f"🔍 Phase 3 스택 트레이스: {traceback.format_exc()}", "error")
+        
+        # Phase 3 오류 span 기록
+        if phase3_span and session_tracer:
+            try:
+                session_tracer.end_agent_execution_span(
+                    phase3_span,
+                    {"error": str(e), "success": False},
+                    success=False,
+                    metadata={"error_traceback": traceback.format_exc()}
+                )
+            except Exception as span_error:
+                debug_log(f"❌ Phase 3 오류 span 기록 실패: {span_error}", "error")
 
 async def _collect_a2a_agent_results(plan_steps: List[Dict], a2a_client) -> List[Dict[str, Any]]:
     """A2A 에이전트 실행 결과 수집"""
@@ -1513,6 +1618,7 @@ def main():
             debug_log("⚠️ 에이전트 상태가 없음, 새로 초기화...", "warning")
             
             try:
+                # 프리로더 사용 (상단 숫자가 정확하므로)
                 agent_status = asyncio.run(preload_agents_with_ui())
                 st.session_state.agent_status = agent_status
                 
@@ -1544,7 +1650,10 @@ def main():
         display_session_status()
 
         if st.button("🔄 에이전트 상태 새로고침") or not st.session_state.agent_status:
+            debug_log("🔄 에이전트 상태 강제 새로고침 시작...")
+            st.session_state.agents_preloaded = False  # 프리로더 재시작 강제
             st.session_state.agent_status = asyncio.run(preload_agents_with_ui())
+            st.rerun()  # 페이지 새로고침으로 UI 업데이트
         display_agent_status()
 
         with st.container(border=True):

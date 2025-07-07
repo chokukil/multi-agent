@@ -15,11 +15,11 @@ mkdir -p "$PID_DIR"
 
 # Server definitions
 declare -A SERVERS=(
-    ["orchestrator"]="a2a_ds_servers/a2a_orchestrator.py:8100"
+    ["orchestrator"]="a2a_orchestrator.py:8100"
     ["data_loader"]="a2a_ds_servers/ai_ds_team_data_loader_server.py:8307"
     ["data_cleaning"]="a2a_ds_servers/ai_ds_team_data_cleaning_server.py:8306"
     ["data_wrangling"]="a2a_ds_servers/ai_ds_team_data_wrangling_server.py:8309"
-    ["eda_tools"]="a2a_ds_servers/ai_ds_team_eda_tools_server.py:8312"
+    ["eda_tools"]="a2a_ds_servers/ai_ds_team_eda_tools_server_enhanced_v2.py:8312"
     ["data_viz"]="a2a_ds_servers/ai_ds_team_data_visualization_server.py:8308"
     ["feature_eng"]="a2a_ds_servers/ai_ds_team_feature_engineering_server.py:8310"
     ["h2o_ml"]="a2a_ds_servers/ai_ds_team_h2o_ml_server.py:8313"
@@ -139,7 +139,7 @@ echo ""
 
 # Start agent servers
 agents=("data_loader" "data_cleaning" "data_wrangling" "eda_tools" "data_viz" "feature_eng" "h2o_ml" "mlflow_tools" "sql_database")
-agent_names=("Data Loader" "Data Cleaning" "Data Wrangling" "EDA Tools" "Data Visualization" "Feature Engineering" "H2O ML" "MLflow Tools" "SQL Database")
+agent_names=("Data Loader" "Data Cleaning" "Data Wrangling" "EDA Tools Enhanced v2" "Data Visualization" "Feature Engineering" "H2O ML" "MLflow Tools" "SQL Database")
 
 for i in "${!agents[@]}"; do
     name="${agents[$i]}"
@@ -170,7 +170,7 @@ echo "   📋 Orchestrator:        http://localhost:8100"
 echo "   📂 Data Loader:          http://localhost:8307"
 echo "   🧹 Data Cleaning:       http://localhost:8306"
 echo "   🛠️ Data Wrangling:      http://localhost:8309"
-echo "   🔬 EDA Tools:           http://localhost:8312"
+echo "   🔬 EDA Tools Enhanced v2: http://localhost:8312"
 echo "   🎨 Data Visualization:  http://localhost:8308"
 echo "   🔧 Feature Engineering: http://localhost:8310"
 echo "   🤖 H2O ML:              http://localhost:8313"

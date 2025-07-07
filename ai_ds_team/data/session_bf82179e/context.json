@@ -1,0 +1,10 @@
+{
+  "user_instructions": "ion_implant_3lot_dataset.xlsx 파일을 분석해주세요",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-07-07T23:32:41.265972",
+  "file_path": "ai_ds_team/data/session_bf82179e/ion_implant_3lot_dataset.xlsx"
+}

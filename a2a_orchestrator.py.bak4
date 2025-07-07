@@ -37,17 +37,17 @@ from a2a.utils import new_agent_text_message, new_task
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# AI DS Team 에이전트 포트 매핑 (실제 실행 중인 에이전트들에 맞춰 수정)
+# AI DS Team 에이전트 포트 매핑
 AGENT_PORTS = {
     "data_cleaning": 8306,
-    "data_loader": 8307,
+    "data_loader": 8307, 
     "data_visualization": 8308,
     "data_wrangling": 8309,
-    "feature_engineering": 8310,
-    "sql_database": 8311,
-    "eda_tools": 8312,
-    "h2o_ml": 8313,
-    "mlflow_tools": 8314
+    "eda_tools": 8310,
+    "feature_engineering": 8311,
+    "h2o_modeling": 8312,
+    "mlflow_tracking": 8313,
+    "sql_database": 8314
 }
 
 
@@ -298,9 +298,9 @@ class CherryAI_v8_UniversalIntelligentOrchestrator(AgentExecutor):
         """최적 에이전트 선택"""
         # 기본 에이전트 매핑
         agent_mapping = {
-            "EDA": {"name": "EDA Tools Agent", "port": 8312},
-            "시각화": {"name": "Data Visualization Agent", "port": 8308},
-            "데이터 로드": {"name": "Data Loader Agent", "port": 8307}
+            "EDA": {"name": "EDA Tools Agent", "port": 8201},
+            "시각화": {"name": "Data Visualization Agent", "port": 8202},
+            "데이터 로드": {"name": "Data Loader Agent", "port": 8203}
         }
         
         for keyword, agent_info in agent_mapping.items():
@@ -329,72 +329,30 @@ class CherryAI_v8_UniversalIntelligentOrchestrator(AgentExecutor):
     
     async def _discover_agent_capabilities(self) -> list:
         """에이전트 능력 동적 발견"""
-        available_agents = []
-        
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            for agent_name, port in AGENT_PORTS.items():
-                try:
-                    response = await client.get(f"http://localhost:{port}/.well-known/agent.json")
-                    if response.status_code == 200:
-                        agent_card = response.json()
-                        available_agents.append({
-                            "name": agent_card.get("name", agent_name),
-                            "port": port,
-                            "capabilities": ["data_analysis", "statistics"],
-                            "description": agent_card.get("description", "")
-                        })
-                        logger.info(f"✅ {agent_name} 에이전트 발견 (포트: {port})")
-                except Exception as e:
-                    logger.warning(f"⚠️ {agent_name} 에이전트 확인 실패 (포트: {port}): {e}")
-        
-        return available_agents
+        return [
+            {"name": "EDA Tools Agent", "capabilities": ["data_analysis", "statistics"]},
+            {"name": "Data Visualization Agent", "capabilities": ["plotting", "charts"]},
+            {"name": "Data Loader Agent", "capabilities": ["data_loading", "file_processing"]}
+        ]
     
     async def _create_execution_plan(self, intent_analysis: dict, available_agents: list) -> list:
         """실행 계획 생성"""
-        plan = []
-        
-        # 기본 계획: 데이터 로딩 -> EDA -> 시각화
-        if available_agents:
-            plan.append({"agent": "Data Loader Agent", "description": "데이터 로딩"})
-            plan.append({"agent": "EDA Tools Agent", "description": "탐색적 데이터 분석"})
-            plan.append({"agent": "Data Visualization Agent", "description": "데이터 시각화"})
-        
-        return plan
+        return [
+            {"agent": "Data Loader Agent", "description": "데이터 로딩"},
+            {"agent": "EDA Tools Agent", "description": "탐색적 데이터 분석"},
+            {"agent": "Data Visualization Agent", "description": "데이터 시각화"}
+        ]
     
     async def _execute_plan_step(self, step: dict, context_id: str) -> dict:
         """계획 단계 실행"""
-        try:
-            # 실제 에이전트 호출 로직 구현
-            agent_name = step.get("agent", "Unknown")
-            description = step.get("description", "처리 중...")
-            
-            # 시뮬레이션 결과 반환
-            return {
-                "status": "success",
-                "result": f"{agent_name} 실행 완료: {description}",
-                "agent": agent_name,
-                "execution_time": 2.5
-            }
-            
-        except Exception as e:
-            logger.error(f"계획 단계 실행 실패: {e}")
-            return {
-                "status": "failed",
-                "result": f"실행 실패: {str(e)}",
-                "agent": step.get("agent", "Unknown")
-            }
+        return {
+            "status": "success",
+            "result": f"{step['agent']} 실행 완료: {step['description']}"
+        }
     
     async def _validate_agent_response(self, result: dict, step: dict) -> dict:
         """에이전트 응답 검증"""
-        if result.get("status") == "success":
-            return result
-        else:
-            # 실패한 경우 기본 결과 반환
-            return {
-                "status": "completed_with_fallback",
-                "result": f"{step.get('agent', 'Unknown')} 처리 완료 (기본 결과)",
-                "agent": step.get("agent", "Unknown")
-            }
+        return result
     
     async def _create_evidence_based_response(self, user_input: str, intent_analysis: dict, results: list) -> str:
         """증거 기반 최종 응답 생성"""
@@ -483,7 +441,7 @@ class CherryAI_v8_UniversalIntelligentOrchestrator(AgentExecutor):
 def create_agent_card() -> AgentCard:
     """CherryAI v8 에이전트 카드 생성"""
     return AgentCard(
-        name="Universal Intelligent Orchestrator v8.0",
+        name="CherryAI v8 Universal Intelligent Orchestrator",
         description="A2A SDK v0.2.9 표준 준수 + 실시간 스트리밍 + 지능형 에이전트 발견을 통합한 범용 오케스트레이터",
         url="http://localhost:8100",
         version="8.0.0",
@@ -561,4 +519,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    asyncio.run(main())

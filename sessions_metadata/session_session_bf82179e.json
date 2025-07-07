@@ -1,0 +1,19 @@
+{
+  "session_id": "session_bf82179e",
+  "created_at": "2025-07-07T23:32:41.265927",
+  "last_activity": "2025-07-07T23:32:41.265929",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-07-07T23:32:41.245607",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "ion_implant_3lot_dataset.xlsx 파일을 분석해주세요",
+      "domain": "semiconductor",
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-08T23:32:41.265927",
+  "status": "active"
+}

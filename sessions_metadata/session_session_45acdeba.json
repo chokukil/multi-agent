@@ -1,0 +1,19 @@
+{
+  "session_id": "session_45acdeba",
+  "created_at": "2025-07-07T23:22:13.731548",
+  "last_activity": "2025-07-07T23:22:13.731549",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-07-07T23:22:13.599798",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "간단한 EDA 분석을 수행해주세요.",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-08T23:22:13.731548",
+  "status": "active"
+}

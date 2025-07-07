@@ -1,0 +1,19 @@
+{
+  "session_id": "session_12cfbfef",
+  "created_at": "2025-07-07T22:43:30.721948",
+  "last_activity": "2025-07-07T22:43:30.721950",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.xlsx",
+      "uploaded_at": "2025-07-07T22:43:30.695369",
+      "file_size": 32457,
+      "file_type": ".xlsx",
+      "user_context": "데이터 탐색적 분석",
+      "domain": null,
+      "original_name": "ion_implant_3lot_dataset.xlsx"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.xlsx",
+  "auto_cleanup_at": "2025-07-08T22:43:30.721948",
+  "status": "active"
+}

@@ -1,0 +1,10 @@
+{
+  "user_instructions": "간단한 EDA 분석을 수행해주세요.",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-07-07T23:14:35.656394",
+  "file_path": "ai_ds_team/data/session_5080d242/ion_implant_3lot_dataset.xlsx"
+}
