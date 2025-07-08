@@ -385,10 +385,34 @@ def render_artifact(artifact_data: Dict[str, Any]):
     try:
         debug_log(f"🎨 아티팩트 렌더링 시작: {artifact_data.get('name', 'Unknown')}")
         
+        # 디버깅을 위한 아티팩트 구조 로그
+        debug_log(f"🔍 아티팩트 구조: {list(artifact_data.keys())}")
+        debug_log(f"🔍 메타데이터: {artifact_data.get('metadata', {})}")
+        
         name = artifact_data.get('name', 'Unknown')
         parts = artifact_data.get('parts', [])
         metadata = artifact_data.get('metadata', {})
         content_type = artifact_data.get('contentType', metadata.get('content_type', 'text/plain'))
+        
+        debug_log(f"🔍 감지된 content_type: {content_type}")
+        debug_log(f"🔍 아티팩트 이름: {name}")
+        debug_log(f"🔍 Parts 개수: {len(parts)}")
+        
+        # A2A 클라이언트에서 받은 아티팩트가 data 필드에 직접 내용이 있는 경우 처리
+        if not parts and 'data' in artifact_data:
+            debug_log("🔄 data 필드 감지 - parts 구조로 변환 중...")
+            data_content = artifact_data['data']
+            
+            # data 내용을 parts 구조로 변환
+            if isinstance(data_content, str):
+                parts = [{"kind": "text", "text": data_content}]
+                debug_log(f"✅ data 필드를 text part로 변환 완료 (크기: {len(data_content)})")
+            elif isinstance(data_content, dict):
+                parts = [{"kind": "data", "data": data_content}]
+                debug_log(f"✅ data 필드를 data part로 변환 완료")
+            else:
+                parts = [{"kind": "text", "text": str(data_content)}]
+                debug_log(f"✅ data 필드를 문자열 part로 변환 완료")
         
         if not parts:
             st.warning("아티팩트에 표시할 콘텐츠가 없습니다.")
@@ -402,19 +426,33 @@ def render_artifact(artifact_data: Dict[str, Any]):
             
             for i, part in enumerate(parts):
                 try:
+                    debug_log(f"🔍 Part {i} 구조: {type(part)} - {list(part.keys()) if isinstance(part, dict) else 'Not dict'}")
+                    
                     # Part 구조 파싱
                     if isinstance(part, dict):
                         part_kind = part.get("kind", part.get("type", "unknown"))
+                        debug_log(f"🔍 Part {i} kind: {part_kind}")
                         
                         if part_kind == "text":
                             text_content = part.get("text", "")
                             if not text_content:
                                 continue
                             
+                            debug_log(f"🔍 Part {i} text content length: {len(text_content)}")
+                            debug_log(f"🔍 Part {i} text preview: {text_content[:100]}...")
+                            
                             # 컨텐츠 타입별 렌더링
                             if content_type == "application/vnd.plotly.v1+json":
                                 # Plotly 차트 JSON 데이터 처리
                                 _render_plotly_chart(text_content, name, i)
+                                
+                            elif (content_type == "text/html" or 
+                                  name.endswith('.html') or 
+                                  any(keyword in text_content.lower() for keyword in ["<!doctype html", "<html", "ydata-profiling", "sweetviz"]) or
+                                  any(keyword in metadata.get('report_type', '').lower() for keyword in ["profiling", "eda", "sweetviz"])):
+                                # HTML 컨텐츠 렌더링 (Profiling 리포트 등)
+                                debug_log(f"🌐 HTML 아티팩트 감지됨: {name}")
+                                _render_html_content(text_content, name, i)
                                 
                             elif content_type == "text/x-python" or "```python" in text_content:
                                 # Python 코드 렌더링
@@ -435,6 +473,7 @@ def render_artifact(artifact_data: Dict[str, Any]):
                         
                         else:
                             # 알 수 없는 타입
+                            debug_log(f"⚠️ 알 수 없는 part 타입: {part_kind}")
                             st.json(part)
                     
                     else:
@@ -452,6 +491,10 @@ def render_artifact(artifact_data: Dict[str, Any]):
     except Exception as e:
         debug_log(f"💥 아티팩트 렌더링 전체 오류: {e}", "error")
         st.error(f"아티팩트 렌더링 중 오류 발생: {e}")
+        
+        # 폴백: 원시 데이터 표시
+        with st.expander("🔍 원시 아티팩트 데이터 (폴백)"):
+            st.json(artifact_data)
 
 def _render_plotly_chart(json_text: str, name: str, index: int):
     """Plotly 차트 전용 렌더링"""
@@ -560,6 +603,91 @@ def _render_plotly_chart(json_text: str, name: str, index: int):
     except Exception as e:
         debug_log(f"❌ Plotly 차트 렌더링 전체 실패: {e}", "error")
         st.error(f"Plotly 차트 처리 오류: {e}")
+
+def _render_html_content(html_content: str, name: str, index: int):
+    """HTML 컨텐츠 렌더링 (Sweetviz 리포트 등)"""
+    try:
+        debug_log(f"🌐 HTML 컨텐츠 렌더링 시작: {name}")
+        
+        # HTML 길이 확인
+        html_size = len(html_content)
+        debug_log(f"📊 HTML 크기: {html_size:,} 문자")
+        
+        # HTML 미리보기 정보
+        st.markdown("#### 📋 HTML 보고서")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("보고서 크기", f"{html_size // 1024}KB")
+        with col2:
+            st.metric("컨텐츠 타입", "HTML")
+        with col3:
+            if any(keyword in html_content.lower() for keyword in ["sweetviz", "profiling", "ydata"]):
+                st.metric("보고서 유형", "EDA Profiling")
+            elif "pandas_profiling" in html_content.lower():
+                st.metric("보고서 유형", "Pandas Profiling")
+            else:
+                st.metric("보고서 유형", "HTML")
+        
+        # HTML 렌더링 옵션
+        render_option = st.radio(
+            "렌더링 방식 선택:",
+            ["임베디드 뷰어", "다운로드 링크", "HTML 소스 보기"],
+            key=f"html_render_{name}_{index}",
+            horizontal=True
+        )
+        
+        if render_option == "임베디드 뷰어":
+            # HTML 직접 렌더링
+            st.markdown("##### 📊 EDA 보고서")
+            st.components.v1.html(html_content, height=800, scrolling=True)
+            
+        elif render_option == "다운로드 링크":
+            # 다운로드 버튼 제공
+            st.markdown("##### 💾 보고서 다운로드")
+            
+            # 파일명 생성
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{name}_{timestamp}.html"
+            
+            st.download_button(
+                label="📥 HTML 보고서 다운로드",
+                data=html_content,
+                file_name=filename,
+                mime="text/html",
+                help="EDA 보고서를 HTML 파일로 다운로드합니다."
+            )
+            
+            # 미리보기
+            st.markdown("##### 👀 보고서 미리보기")
+            if any(keyword in html_content.lower() for keyword in ["sweetviz", "profiling", "ydata"]):
+                st.info("📊 EDA Profiling 보고서입니다. 다운로드 후 브라우저에서 열어보세요.")
+            else:
+                # HTML 일부 표시
+                if len(html_content) > 1000:
+                    st.text_area("HTML 미리보기", html_content[:1000] + "...", height=150, disabled=True)
+                else:
+                    st.text_area("HTML 미리보기", html_content, height=150, disabled=True)
+        
+        else:  # HTML 소스 보기
+            st.markdown("##### 📝 HTML 소스 코드")
+            if len(html_content) > 5000:
+                # 긴 HTML은 일부만 표시
+                st.code(html_content[:5000] + "\n\n... (내용이 길어 일부만 표시됩니다) ...", language="html")
+                st.info(f"전체 HTML 크기: {html_size:,} 문자 (5,000자까지만 표시)")
+            else:
+                st.code(html_content, language="html")
+        
+        debug_log("✅ HTML 컨텐츠 렌더링 완료")
+        
+    except Exception as e:
+        debug_log(f"❌ HTML 렌더링 실패: {e}", "error")
+        st.error(f"HTML 렌더링 오류: {e}")
+        
+        # 폴백: 텍스트로 표시
+        with st.expander("🔍 HTML 소스 (폴백)"):
+            st.text(html_content[:1000] + "..." if len(html_content) > 1000 else html_content)
 
 def _render_python_code(text_content: str):
     """Python 코드 예쁘게 렌더링"""
