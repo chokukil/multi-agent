@@ -298,7 +298,7 @@ class AccumulativeStreamContainer:
         if chunk:
             # 아티팩트인 경우 특별 처리
             if content_type == "artifact" and isinstance(chunk, dict):
-                # 아티팩트를 Smart Display로 직접 렌더링
+                # 아티팩트를 전용 render_artifact 함수로 렌더링
                 artifact_name = chunk.get('name', 'Artifact')
                 self.accumulated_content.append(f"\n\n### 📦 {artifact_name}\n")
                 
@@ -307,9 +307,27 @@ class AccumulativeStreamContainer:
                     full_content = "".join(self.accumulated_content)
                     smart_display.smart_display_content(full_content)
                     
-                    # 아티팩트를 별도 컨테이너에서 렌더링 (중복 방지)
-                    with st.expander(f"📄 {artifact_name}", expanded=True):
-                        smart_display.smart_display_content(chunk)
+                    # 아티팩트를 전용 렌더링 함수로 처리 (ai.py에서 import)
+                    try:
+                        # ai.py의 render_artifact 함수 import 및 사용
+                        import sys
+                        import os
+                        
+                        # ai.py 모듈 경로 추가
+                        if '/Users/gukil/CherryAI/CherryAI_0623' not in sys.path:
+                            sys.path.insert(0, '/Users/gukil/CherryAI/CherryAI_0623')
+                        
+                        # render_artifact 함수 import
+                        from ai import render_artifact
+                        
+                        # 전용 렌더링 함수로 아티팩트 처리
+                        with st.expander(f"📄 {artifact_name}", expanded=True):
+                            render_artifact(chunk)
+                            
+                    except Exception as import_error:
+                        # Import 실패 시 폴백: Smart Display 사용
+                        with st.expander(f"📄 {artifact_name}", expanded=True):
+                            smart_display.smart_display_content(chunk)
             else:
                 # 일반 텍스트 처리
                 if isinstance(chunk, str):

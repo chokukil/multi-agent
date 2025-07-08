@@ -991,17 +991,16 @@ async def process_query_streaming(prompt: str):
                             elif chunk_type == 'artifact':
                                 step_artifacts.append(chunk_content)
                                 
-                                if SMART_UI_AVAILABLE and step_stream_container:
-                                    # Smart Display로 아티팩트 렌더링
-                                    step_stream_container.add_chunk(chunk_content, "artifact")
-                                    
-                                else:
-                                    # 기존 방식
-                                    with live_artifacts_container:
-                                        st.markdown("**생성된 아티팩트:**")
-                                        for i, artifact in enumerate(step_artifacts):
-                                            with st.expander(f"📄 {artifact.get('name', f'Artifact {i+1}')}", expanded=True):
-                                                render_artifact(artifact)
+                                # 실시간 아티팩트 렌더링 (항상 render_artifact 사용)
+                                artifact_name = chunk_content.get('name', f'Artifact {len(step_artifacts)}')
+                                
+                                # 스트리밍 컨테이너에 아티팩트 표시
+                                with streaming_container:
+                                    st.markdown(f"### 📦 {artifact_name}")
+                                    with st.expander(f"📄 {artifact_name}", expanded=True):
+                                        render_artifact(chunk_content)
+                                
+                                debug_log(f"✅ 실시간 아티팩트 렌더링 완료: {artifact_name}", "success")
                             
                             # final 플래그 확인
                             if is_final:
