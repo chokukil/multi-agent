@@ -260,6 +260,7 @@ def initialize_session_state():
     if "preloader_initialized" not in st.session_state: st.session_state.preloader_initialized = False
     if "agents_preloaded" not in st.session_state: st.session_state.agents_preloaded = False
 
+
 @st.cache_resource
 def initialize_agent_preloader():
     """에이전트 프리로더 초기화 (캐시됨)"""
@@ -607,6 +608,9 @@ def _render_plotly_chart(json_text: str, name: str, index: int):
 def _render_html_content(html_content: str, name: str, index: int):
     """HTML 컨텐츠 렌더링 (Sweetviz 리포트 등)"""
     try:
+        import uuid
+        from datetime import datetime
+        
         debug_log(f"🌐 HTML 컨텐츠 렌더링 시작: {name}")
         
         # HTML 길이 확인
@@ -629,11 +633,12 @@ def _render_html_content(html_content: str, name: str, index: int):
             else:
                 st.metric("보고서 유형", "HTML")
         
-        # HTML 렌더링 옵션
+        # HTML 렌더링 옵션 - UUID와 timestamp로 고유한 키 생성
+        unique_key = f"html_render_{name}_{index}_{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%H%M%S%f')}"
         render_option = st.radio(
             "렌더링 방식 선택:",
             ["임베디드 뷰어", "다운로드 링크", "HTML 소스 보기"],
-            key=f"html_render_{name}_{index}",
+            key=unique_key,
             horizontal=True
         )
         
@@ -647,16 +652,17 @@ def _render_html_content(html_content: str, name: str, index: int):
             st.markdown("##### 💾 보고서 다운로드")
             
             # 파일명 생성
-            from datetime import datetime
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{name}_{timestamp}.html"
             
+            download_key = f"html_download_{name}_{index}_{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%H%M%S%f')}"
             st.download_button(
                 label="📥 HTML 보고서 다운로드",
                 data=html_content,
                 file_name=filename,
                 mime="text/html",
-                help="EDA 보고서를 HTML 파일로 다운로드합니다."
+                help="EDA 보고서를 HTML 파일로 다운로드합니다.",
+                key=download_key
             )
             
             # 미리보기
@@ -665,10 +671,11 @@ def _render_html_content(html_content: str, name: str, index: int):
                 st.info("📊 EDA Profiling 보고서입니다. 다운로드 후 브라우저에서 열어보세요.")
             else:
                 # HTML 일부 표시
+                textarea_key = f"html_preview_{name}_{index}_{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%H%M%S%f')}"
                 if len(html_content) > 1000:
-                    st.text_area("HTML 미리보기", html_content[:1000] + "...", height=150, disabled=True)
+                    st.text_area("HTML 미리보기", html_content[:1000] + "...", height=150, disabled=True, key=textarea_key)
                 else:
-                    st.text_area("HTML 미리보기", html_content, height=150, disabled=True)
+                    st.text_area("HTML 미리보기", html_content, height=150, disabled=True, key=textarea_key)
         
         else:  # HTML 소스 보기
             st.markdown("##### 📝 HTML 소스 코드")
@@ -1624,6 +1631,26 @@ def main():
             st.success("🐛 디버깅 모드 활성화")
         else:
             st.info("🔇 디버깅 메시지 숨김")
+        
+        st.markdown("---")
+        
+        # 시스템 관리 섹션
+        st.markdown("### 🔧 시스템 관리")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 페이지 새로고침", help="전체 페이지를 새로고침합니다."):
+                st.rerun()
+        
+        with col2:
+            if st.button("🗑️ 세션 초기화", help="현재 세션을 초기화하고 새로 시작합니다."):
+                # 주요 세션 상태만 초기화 (연결은 유지)
+                keys_to_clear = ['messages', 'uploaded_data', 'data_id', 'active_agent']
+                for key in keys_to_clear:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                st.success("✅ 세션이 초기화되었습니다!")
+                st.rerun()
     
     # 강화된 디버깅 로깅
     debug_log("🚀 Streamlit 애플리케이션 시작", "success")
