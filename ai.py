@@ -260,7 +260,6 @@ def initialize_session_state():
     if "preloader_initialized" not in st.session_state: st.session_state.preloader_initialized = False
     if "agents_preloaded" not in st.session_state: st.session_state.agents_preloaded = False
 
-
 @st.cache_resource
 def initialize_agent_preloader():
     """에이전트 프리로더 초기화 (캐시됨)"""
@@ -382,7 +381,7 @@ def display_agent_status():
             </div>""", unsafe_allow_html=True)
 
 def render_artifact(artifact_data: Dict[str, Any]):
-    """아티팩트 렌더링 - 완전히 재작성된 버전"""
+    """아티팩트 렌더링 - A2A SDK 0.2.9 호환성 개선"""
     try:
         debug_log(f"🎨 아티팩트 렌더링 시작: {artifact_data.get('name', 'Unknown')}")
         
@@ -429,57 +428,82 @@ def render_artifact(artifact_data: Dict[str, Any]):
                 try:
                     debug_log(f"🔍 Part {i} 구조: {type(part)} - {list(part.keys()) if isinstance(part, dict) else 'Not dict'}")
                     
-                    # Part 구조 파싱
-                    if isinstance(part, dict):
+                    # A2A SDK 0.2.9 Part 구조 파싱 - root 속성을 통한 접근
+                    part_kind = None
+                    text_content = None
+                    data_content = None
+                    
+                    if hasattr(part, 'root'):
+                        # A2A SDK 0.2.9 표준 방식: part.root.kind, part.root.text
+                        debug_log(f"🔍 Part {i}: A2A SDK Part 객체 감지")
+                        if hasattr(part.root, 'kind'):
+                            part_kind = part.root.kind
+                            debug_log(f"🔍 Part {i} root.kind: {part_kind}")
+                            
+                            if part_kind == "text" and hasattr(part.root, 'text'):
+                                text_content = part.root.text
+                                debug_log(f"🔍 Part {i} root.text length: {len(text_content) if text_content else 0}")
+                            elif part_kind == "data" and hasattr(part.root, 'data'):
+                                data_content = part.root.data
+                                debug_log(f"🔍 Part {i} root.data type: {type(data_content)}")
+                    elif isinstance(part, dict):
+                        # 폴백: 딕셔너리 형태의 Part 구조
+                        debug_log(f"🔍 Part {i}: Dictionary Part 구조 감지")
                         part_kind = part.get("kind", part.get("type", "unknown"))
-                        debug_log(f"🔍 Part {i} kind: {part_kind}")
+                        debug_log(f"🔍 Part {i} dict kind: {part_kind}")
                         
                         if part_kind == "text":
                             text_content = part.get("text", "")
-                            if not text_content:
-                                continue
-                            
-                            debug_log(f"🔍 Part {i} text content length: {len(text_content)}")
-                            debug_log(f"🔍 Part {i} text preview: {text_content[:100]}...")
-                            
-                            # 컨텐츠 타입별 렌더링
-                            if content_type == "application/vnd.plotly.v1+json":
-                                # Plotly 차트 JSON 데이터 처리
-                                _render_plotly_chart(text_content, name, i)
-                                
-                            elif (content_type == "text/html" or 
-                                  name.endswith('.html') or 
-                                  any(keyword in text_content.lower() for keyword in ["<!doctype html", "<html", "ydata-profiling", "sweetviz"]) or
-                                  any(keyword in metadata.get('report_type', '').lower() for keyword in ["profiling", "eda", "sweetviz"])):
-                                # HTML 컨텐츠 렌더링 (Profiling 리포트 등)
-                                debug_log(f"🌐 HTML 아티팩트 감지됨: {name}")
-                                _render_html_content(text_content, name, i)
-                                
-                            elif content_type == "text/x-python" or "```python" in text_content:
-                                # Python 코드 렌더링
-                                _render_python_code(text_content)
-                                
-                            elif content_type == "text/markdown" or text_content.startswith("#"):
-                                # 마크다운 렌더링
-                                _render_markdown_content(text_content)
-                                
-                            else:
-                                # 일반 텍스트 렌더링
-                                _render_general_text(text_content)
-                        
                         elif part_kind == "data":
-                            # 데이터 Part 처리
                             data_content = part.get("data", {})
-                            _render_data_content(data_content, content_type, name, i)
+                    else:
+                        # 최종 폴백: 단순 문자열이나 기타 타입
+                        debug_log(f"🔍 Part {i}: 기타 타입 감지 - {type(part)}")
+                        text_content = str(part)
+                        part_kind = "text"
+                    
+                    debug_log(f"🔍 Part {i} 최종 kind: {part_kind}")
+                    
+                    # 컨텐츠 타입별 렌더링
+                    if part_kind == "text" and text_content:
+                        debug_log(f"🔍 Part {i} text preview: {text_content[:100]}...")
                         
+                        if content_type == "application/vnd.plotly.v1+json":
+                            # Plotly 차트 JSON 데이터 처리
+                            _render_plotly_chart(text_content, name, i)
+                            
+                        elif (content_type == "text/html" or 
+                              name.endswith('.html') or 
+                              any(keyword in text_content.lower() for keyword in ["<!doctype html", "<html", "ydata-profiling", "sweetviz"]) or
+                              any(keyword in metadata.get('report_type', '').lower() for keyword in ["profiling", "eda", "sweetviz"])):
+                            # HTML 컨텐츠 렌더링 (Profiling 리포트 등)
+                            debug_log(f"🌐 HTML 아티팩트 감지됨: {name}")
+                            _render_html_content(text_content, name, i)
+                            
+                        elif content_type == "text/x-python" or "```python" in text_content:
+                            # Python 코드 렌더링
+                            _render_python_code(text_content)
+                            
+                        elif content_type == "text/markdown" or text_content.startswith("#"):
+                            # 마크다운 렌더링
+                            _render_markdown_content(text_content)
+                            
                         else:
-                            # 알 수 없는 타입
-                            debug_log(f"⚠️ 알 수 없는 part 타입: {part_kind}")
-                            st.json(part)
+                            # 일반 텍스트 렌더링
+                            _render_general_text(text_content)
+                    
+                    elif part_kind == "data" and data_content:
+                        # 데이터 Part 처리
+                        debug_log(f"🔍 Plotly 차트 데이터 파싱 시작...")
+                        _render_data_content(data_content, content_type, name, i)
                     
                     else:
-                        # 문자열이나 기타 타입
-                        st.text(str(part))
+                        # 알 수 없는 타입 또는 빈 내용
+                        if part_kind:
+                            debug_log(f"⚠️ 빈 내용이거나 처리할 수 없는 part 타입: {part_kind}")
+                        else:
+                            debug_log(f"⚠️ 알 수 없는 part 구조")
+                            st.json(part)
                         
                 except Exception as part_error:
                     debug_log(f"❌ Part {i} 렌더링 실패: {part_error}", "error")
@@ -606,20 +630,27 @@ def _render_plotly_chart(json_text: str, name: str, index: int):
         st.error(f"Plotly 차트 처리 오류: {e}")
 
 def _render_html_content(html_content: str, name: str, index: int):
-    """HTML 컨텐츠 렌더링 (Sweetviz 리포트 등)"""
+    """HTML 콘텐츠 전용 렌더링 - Key 중복 문제 해결 및 다운로드 버튼 제거"""
+    import uuid
+    import time
+    
     try:
-        import uuid
-        from datetime import datetime
+        # 고유한 식별자 생성 (UUID + 타임스탬프 + 세션 카운터)
+        unique_id = f"{uuid.uuid4().hex[:8]}_{int(time.time() * 1000)}"
         
-        debug_log(f"🌐 HTML 컨텐츠 렌더링 시작: {name}")
+        # 세션 상태에 HTML 렌더링 카운터 초기화
+        if "html_render_counter" not in st.session_state:
+            st.session_state.html_render_counter = 0
+        st.session_state.html_render_counter += 1
         
-        # HTML 길이 확인
+        # 완전히 고유한 key 생성
+        render_key = f"html_render_{unique_id}_{st.session_state.html_render_counter}"
+        
+        debug_log(f"🌐 HTML 콘텐츠 렌더링 시작: {name} (Key: {render_key})")
+        
         html_size = len(html_content)
-        debug_log(f"📊 HTML 크기: {html_size:,} 문자")
         
-        # HTML 미리보기 정보
-        st.markdown("#### 📋 HTML 보고서")
-        
+        # 메타정보 표시
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("보고서 크기", f"{html_size // 1024}KB")
@@ -633,12 +664,11 @@ def _render_html_content(html_content: str, name: str, index: int):
             else:
                 st.metric("보고서 유형", "HTML")
         
-        # HTML 렌더링 옵션 - UUID와 timestamp로 고유한 키 생성
-        unique_key = f"html_render_{name}_{index}_{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%H%M%S%f')}"
+        # HTML 렌더링 옵션 - 다운로드 링크 옵션 제거
         render_option = st.radio(
             "렌더링 방식 선택:",
-            ["임베디드 뷰어", "다운로드 링크", "HTML 소스 보기"],
-            key=unique_key,
+            ["임베디드 뷰어", "HTML 소스 보기"],
+            key=render_key,
             horizontal=True
         )
         
@@ -647,36 +677,6 @@ def _render_html_content(html_content: str, name: str, index: int):
             st.markdown("##### 📊 EDA 보고서")
             st.components.v1.html(html_content, height=800, scrolling=True)
             
-        elif render_option == "다운로드 링크":
-            # 다운로드 버튼 제공
-            st.markdown("##### 💾 보고서 다운로드")
-            
-            # 파일명 생성
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{name}_{timestamp}.html"
-            
-            download_key = f"html_download_{name}_{index}_{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%H%M%S%f')}"
-            st.download_button(
-                label="📥 HTML 보고서 다운로드",
-                data=html_content,
-                file_name=filename,
-                mime="text/html",
-                help="EDA 보고서를 HTML 파일로 다운로드합니다.",
-                key=download_key
-            )
-            
-            # 미리보기
-            st.markdown("##### 👀 보고서 미리보기")
-            if any(keyword in html_content.lower() for keyword in ["sweetviz", "profiling", "ydata"]):
-                st.info("📊 EDA Profiling 보고서입니다. 다운로드 후 브라우저에서 열어보세요.")
-            else:
-                # HTML 일부 표시
-                textarea_key = f"html_preview_{name}_{index}_{uuid.uuid4().hex[:8]}_{datetime.now().strftime('%H%M%S%f')}"
-                if len(html_content) > 1000:
-                    st.text_area("HTML 미리보기", html_content[:1000] + "...", height=150, disabled=True, key=textarea_key)
-                else:
-                    st.text_area("HTML 미리보기", html_content, height=150, disabled=True, key=textarea_key)
-        
         else:  # HTML 소스 보기
             st.markdown("##### 📝 HTML 소스 코드")
             if len(html_content) > 5000:
@@ -686,7 +686,7 @@ def _render_html_content(html_content: str, name: str, index: int):
             else:
                 st.code(html_content, language="html")
         
-        debug_log("✅ HTML 컨텐츠 렌더링 완료")
+        debug_log("✅ HTML 콘텐츠 렌더링 완료")
         
     except Exception as e:
         debug_log(f"❌ HTML 렌더링 실패: {e}", "error")
@@ -1631,26 +1631,6 @@ def main():
             st.success("🐛 디버깅 모드 활성화")
         else:
             st.info("🔇 디버깅 메시지 숨김")
-        
-        st.markdown("---")
-        
-        # 시스템 관리 섹션
-        st.markdown("### 🔧 시스템 관리")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🔄 페이지 새로고침", help="전체 페이지를 새로고침합니다."):
-                st.rerun()
-        
-        with col2:
-            if st.button("🗑️ 세션 초기화", help="현재 세션을 초기화하고 새로 시작합니다."):
-                # 주요 세션 상태만 초기화 (연결은 유지)
-                keys_to_clear = ['messages', 'uploaded_data', 'data_id', 'active_agent']
-                for key in keys_to_clear:
-                    if key in st.session_state:
-                        del st.session_state[key]
-                st.success("✅ 세션이 초기화되었습니다!")
-                st.rerun()
     
     # 강화된 디버깅 로깅
     debug_log("🚀 Streamlit 애플리케이션 시작", "success")
