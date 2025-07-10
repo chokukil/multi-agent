@@ -18,38 +18,21 @@ from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 from contextlib import contextmanager
 
-# Langfuse SDK v2/v3 호환 import
+# Langfuse SDK v3 호환 import
 try:
-    # v3 import 시도
-    from langfuse import Langfuse, get_client
-    try:
-        from langfuse.decorators import observe, langfuse_context
-        LANGFUSE_V3 = True
-    except ImportError:
-        # v3 decorators를 import할 수 없는 경우 v2로 폴백
-        LANGFUSE_V3 = False
-        observe = None
-        langfuse_context = None
+    from langfuse import get_client
     LANGFUSE_AVAILABLE = True
+    print("✅ Langfuse SDK v3 import 성공")
 except ImportError:
-    # v2 import 시도
-    try:
-        from langfuse import Langfuse
-        get_client = None
-        observe = None
-        langfuse_context = None
-        LANGFUSE_V3 = False
-        LANGFUSE_AVAILABLE = True
-    except ImportError:
-        LANGFUSE_AVAILABLE = False
-        print("⚠️ Langfuse SDK not available. Tracing will be disabled.")
+    LANGFUSE_AVAILABLE = False
+    print("⚠️ Langfuse SDK not available. Tracing will be disabled.")
 
 class SessionBasedTracer:
     """Session 기반 langfuse 추적 시스템"""
     
     def __init__(self, public_key: str = None, secret_key: str = None, host: str = None):
         """
-        Langfuse SDK v2/v3 호환 추적 시스템 초기화
+        Langfuse SDK v3 호환 추적 시스템 초기화
         
         Args:
             public_key: Langfuse public key
@@ -63,18 +46,25 @@ class SessionBasedTracer:
         
         if self.enabled:
             try:
-                # Langfuse 클라이언트 초기화
+                # Langfuse v3 클라이언트 초기화
                 if public_key and secret_key:
-                    self.client = Langfuse(
-                        public_key=public_key,
-                        secret_key=secret_key,
-                        host=host or "http://localhost:3000"
-                    )
-                else:
-                    # 환경변수에서 자동 초기화
-                    self.client = Langfuse()
+                    # 환경변수 설정
+                    import os
+                    os.environ["LANGFUSE_PUBLIC_KEY"] = public_key
+                    os.environ["LANGFUSE_SECRET_KEY"] = secret_key
+                    if host:
+                        os.environ["LANGFUSE_HOST"] = host
                 
-                print(f"✅ Langfuse SDK {'v3' if LANGFUSE_V3 else 'v2'} 클라이언트 초기화 성공")
+                # 전역 클라이언트 가져오기
+                self.client = get_client()
+                
+                # 연결 테스트
+                if self.client.auth_check():
+                    print("✅ Langfuse SDK v3 클라이언트 초기화 성공")
+                else:
+                    print("❌ Langfuse 인증 실패")
+                    self.enabled = False
+                    
             except Exception as e:
                 self.enabled = False
                 print(f"❌ Langfuse 초기화 실패: {e}")
@@ -103,21 +93,26 @@ class SessionBasedTracer:
             timestamp = int(time.time())
             self.current_session_id = f"user_query_{timestamp}_{user_id}"
             
-            # 세션 레벨 trace 시작
-            self.current_session_trace = self.client.trace(
-                name=f"User Query Session: {self.current_session_id}",
-                user_id=user_id,
-                session_id=self.current_session_id,
-                input={"user_query": user_query},
-                metadata={
-                    "session_id": self.current_session_id,
-                    "user_id": user_id,
-                    "start_time": datetime.now().isoformat(),
-                    "query_length": len(user_query),
-                    "query_complexity": self._assess_query_complexity(user_query),
-                    **(session_metadata or {})
-                }
+            # 세션 레벨 span 시작 (v3 API)
+            self.current_session_trace = self.client.start_as_current_span(
+                name=f"User Query Session: {self.current_session_id}"
             )
+            
+            # 추가 메타데이터 설정
+            if self.current_session_trace:
+                self.current_session_trace.update_trace(
+                    user_id=user_id,
+                    session_id=self.current_session_id,
+                    input={"user_query": user_query},
+                    metadata={
+                        "session_id": self.current_session_id,
+                        "user_id": user_id,
+                        "start_time": datetime.now().isoformat(),
+                        "query_length": len(user_query),
+                        "query_complexity": self._assess_query_complexity(user_query),
+                        **(session_metadata or {})
+                    }
+                )
             
             print(f"🎯 Session 시작: {self.current_session_id}")
             return self.current_session_id
@@ -141,46 +136,42 @@ class SessionBasedTracer:
             yield None
             return
         
-        agent_span = None
         start_time = time.time()
         
         try:
-            # 에이전트 레벨 span 생성
-            agent_span = self.current_session_trace.span(
-                name=f"Agent: {agent_name}",
-                input={"task": task_description},
-                metadata={
-                    "agent_name": agent_name,
-                    "task_description": task_description,
-                    "session_id": self.current_session_id,
-                    "start_time": datetime.now().isoformat(),
-                    **(agent_metadata or {})
-                }
-            )
-            
-            # 에이전트 span 저장
-            self.agent_spans[agent_name] = agent_span
-            
-            print(f"🤖 Agent 추적 시작: {agent_name}")
-            yield agent_span
-            
+            # 에이전트 레벨 span 생성 (v3 API)
+            with self.client.start_as_current_span(
+                name=f"Agent: {agent_name}"
+            ) as agent_span:
+                # 메타데이터 설정
+                agent_span.update(
+                    input={"task": task_description},
+                    metadata={
+                        "agent_name": agent_name,
+                        "task_description": task_description,
+                        "session_id": self.current_session_id,
+                        "start_time": datetime.now().isoformat(),
+                        **(agent_metadata or {})
+                    }
+                )
+                
+                # 에이전트 span 저장
+                self.agent_spans[agent_name] = agent_span
+                
+                print(f"🤖 Agent 추적 시작: {agent_name}")
+                yield agent_span
+                
         except Exception as e:
             print(f"❌ Agent 추적 오류 ({agent_name}): {e}")
             yield None
         finally:
             execution_time = time.time() - start_time
-            if agent_span:
-                agent_span.update(
-                    output={"execution_time": execution_time},
-                    metadata={"completed_at": datetime.now().isoformat()}
-                )
-                agent_span.end()
             print(f"✅ Agent 추적 완료: {agent_name} ({execution_time:.2f}s)")
     
     def trace_agent_internal_logic(self, agent_name: str, operation: str, 
                                   input_data: Any, operation_metadata: Dict[str, Any] = None):
         """
-        에이전트 내부 로직 추적 (v2/v3 호환)
+        에이전트 내부 로직 추적 (v3 호환)
         
         Args:
             agent_name: 에이전트 이름
@@ -195,13 +186,13 @@ class SessionBasedTracer:
             return {"enabled": False}
         
         try:
-            # 에이전트 span 가져오기
-            agent_span = self.agent_spans.get(agent_name)
+            # 내부 로직 span 생성 (v3 API)
+            operation_span = self.client.start_as_current_span(
+                name=f"{agent_name}.{operation}"
+            )
             
-            if agent_span:
-                # 내부 로직 span 생성
-                operation_span = agent_span.span(
-                    name=f"{operation}",
+            if operation_span:
+                operation_span.update(
                     input=self._process_input_data(input_data),
                     metadata={
                         "agent_name": agent_name,
@@ -256,7 +247,7 @@ class SessionBasedTracer:
                             "size": len(str(artifact.get("content", "")))
                         })
                 
-                # 결과 업데이트
+                # 결과 업데이트 (v3 API)
                 agent_span.update(
                     output={
                         "result": processed_result,
@@ -296,124 +287,106 @@ class SessionBasedTracer:
                 # 결과 데이터 처리
                 processed_result = self._process_output_data(result)
                 
+                # 결과 업데이트 (v3 API)
                 span.update(
                     output={
                         "result": processed_result,
-                        "success": success,
-                        "execution_time": execution_time
+                        "execution_time": execution_time,
+                        "success": success
                     },
                     metadata={
-                        "completed_at": datetime.now().isoformat(),
-                        "operation": operation_context.get("operation")
+                        "completed_at": datetime.now().isoformat()
                     }
                 )
+                
+                # span 종료
                 span.end()
                 
-                print(f"✅ 내부 작업 완료: {operation_context.get('operation')} ({execution_time:.3f}s)")
-                
         except Exception as e:
-            print(f"❌ 내부 작업 결과 기록 오류: {e}")
+            print(f"❌ Internal Operation 결과 기록 오류: {e}")
     
     def end_user_session(self, final_result: Dict[str, Any] = None, 
                         session_summary: Dict[str, Any] = None):
         """
-        사용자 질문 세션 종료
+        사용자 세션 종료
         
         Args:
             final_result: 최종 결과
-            session_summary: 세션 요약 정보
+            session_summary: 세션 요약
         """
         if not self.enabled or not self.current_session_trace:
             return
         
         try:
-            # 세션 요약 데이터 준비
-            summary_data = {
-                "session_id": self.current_session_id,
-                "end_time": datetime.now().isoformat(),
-                "agents_used": list(self.agent_spans.keys()),
-                "total_agents": len(self.agent_spans),
-                **(session_summary or {})
-            }
+            # 세션 종료 업데이트 (v3 API)
+            self.current_session_trace.update_trace(
+                output={
+                    "final_result": self._process_output_data(final_result) if final_result else None,
+                    "session_summary": session_summary or {},
+                    "session_id": self.current_session_id
+                },
+                metadata={
+                    "session_ended_at": datetime.now().isoformat(),
+                    "total_agents": len(self.agent_spans)
+                }
+            )
             
-            # 최종 결과 처리
-            if final_result:
-                processed_result = self._process_output_data(final_result)
-                self.current_session_trace.update(
-                    output=processed_result,
-                    metadata=summary_data
-                )
-            
-            print(f"🏁 Session 완료: {self.current_session_id}")
-            
-            # 리소스 정리
+            # 세션 정리
             self.current_session_trace = None
             self.current_session_id = None
-            self.agent_spans.clear()
+            self.agent_spans = {}
             
-            # 이벤트 플러시 (단기 실행 스크립트의 경우)
-            if hasattr(self.client, 'flush'):
-                self.client.flush()
-                
+            print(f"🏁 Session 종료: {self.current_session_id}")
+            
         except Exception as e:
             print(f"❌ Session 종료 오류: {e}")
     
     def _assess_query_complexity(self, query: str) -> str:
         """쿼리 복잡도 평가"""
-        if len(query) < 100:
+        if len(query) < 20:
             return "simple"
-        elif len(query) < 500:
+        elif len(query) < 100:
             return "medium"
-        elif len(query) < 1500:
-            return "complex"
         else:
-            return "very_complex"
+            return "complex"
     
     def _process_input_data(self, data: Any) -> Dict[str, Any]:
-        """입력 데이터 처리 (크기 제한 및 안전성)"""
-        try:
-            if isinstance(data, str):
-                return {"text": data[:1000] + "..." if len(data) > 1000 else data}
-            elif isinstance(data, dict):
-                return {k: str(v)[:500] for k, v in list(data.items())[:10]}
-            elif isinstance(data, (list, tuple)):
-                return {"items": [str(x)[:200] for x in data[:5]], "total_count": len(data)}
-            else:
-                return {"type": type(data).__name__, "value": str(data)[:500]}
-        except Exception:
-            return {"error": "Failed to process input data"}
-    
-    def _process_output_data(self, data: Any) -> Dict[str, Any]:
-        """출력 데이터 처리 (크기 제한 및 안전성)"""
+        """입력 데이터 처리"""
         try:
             if isinstance(data, dict):
-                processed = {}
-                for k, v in data.items():
-                    if isinstance(v, str) and len(v) > 1000:
-                        processed[k] = v[:1000] + "..."
-                    elif isinstance(v, (list, tuple)) and len(v) > 10:
-                        processed[k] = list(v[:10]) + [f"... and {len(v)-10} more items"]
-                    else:
-                        processed[k] = v
-                return processed
+                return data
+            elif isinstance(data, str):
+                return {"content": data}
             else:
-                return self._process_input_data(data)
+                return {"data": str(data)}
         except Exception:
-            return {"error": "Failed to process output data"}
+            return {"data": "processing_error"}
+    
+    def _process_output_data(self, data: Any) -> Dict[str, Any]:
+        """출력 데이터 처리"""
+        try:
+            if isinstance(data, dict):
+                return data
+            elif isinstance(data, str):
+                return {"content": data}
+            else:
+                return {"data": str(data)}
+        except Exception:
+            return {"data": "processing_error"}
 
-# 전역 트레이서 인스턴스
-_global_tracer: Optional[SessionBasedTracer] = None
+# 전역 인스턴스 관리
+_session_tracer = None
 
 def get_session_tracer() -> SessionBasedTracer:
-    """전역 session tracer 인스턴스 반환"""
-    global _global_tracer
-    if _global_tracer is None:
-        _global_tracer = SessionBasedTracer()
-    return _global_tracer
+    """전역 세션 추적기 가져오기"""
+    global _session_tracer
+    if _session_tracer is None:
+        _session_tracer = SessionBasedTracer()
+    return _session_tracer
 
 def init_session_tracer(public_key: str = None, secret_key: str = None, 
                        host: str = None) -> SessionBasedTracer:
-    """Session tracer 초기화"""
-    global _global_tracer
-    _global_tracer = SessionBasedTracer(public_key, secret_key, host)
-    return _global_tracer 
+    """세션 추적기 초기화"""
+    global _session_tracer
+    _session_tracer = SessionBasedTracer(public_key, secret_key, host)
+    return _session_tracer 
