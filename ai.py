@@ -197,7 +197,16 @@ except Exception as e:
     def get_dataframe_summary(df): return [f"Shape: {df.shape}"]
     debug_log(f"⚠️ AI_DS_Team 유틸리티 예상치 못한 오류: {e}", "warning")
 
-# Langfuse Session Tracking 추가
+# Enhanced Langfuse Session Tracking 추가
+try:
+    from core.enhanced_langfuse_tracer import init_enhanced_tracer, get_enhanced_tracer
+    ENHANCED_LANGFUSE_AVAILABLE = True
+    print("✅ Enhanced Langfuse Tracer 로드 성공")
+except ImportError as e:
+    ENHANCED_LANGFUSE_AVAILABLE = False
+    print(f"⚠️ Enhanced Langfuse Tracer 로드 실패: {e}")
+
+# 기존 Langfuse Session Tracer (호환성을 위해 유지)
 try:
     from core.langfuse_session_tracer import init_session_tracer, get_session_tracer
     LANGFUSE_SESSION_AVAILABLE = True
@@ -209,7 +218,22 @@ except ImportError as e:
 # --- 초기 설정 ---
 setup_logging()
 
-# Langfuse 초기화 (환경변수에서 설정 가져오기)
+# Enhanced Langfuse 초기화 (환경변수에서 설정 가져오기)
+if ENHANCED_LANGFUSE_AVAILABLE:
+    try:
+        langfuse_public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
+        langfuse_secret_key = os.getenv("LANGFUSE_SECRET_KEY")
+        langfuse_host = os.getenv("LANGFUSE_HOST", "http://localhost:3000")
+        
+        if langfuse_public_key and langfuse_secret_key:
+            init_enhanced_tracer(langfuse_public_key, langfuse_secret_key, langfuse_host)
+            debug_log("🔍 Enhanced Langfuse Tracer 초기화 성공", "success")
+        else:
+            debug_log("⚠️ Langfuse 환경변수 미설정 - 향상된 추적 비활성화", "warning")
+    except Exception as e:
+        debug_log(f"❌ Enhanced Langfuse 초기화 실패: {e}", "error")
+
+# 기존 Langfuse 초기화 (호환성을 위해 유지)
 if LANGFUSE_SESSION_AVAILABLE:
     try:
         langfuse_public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
@@ -220,7 +244,7 @@ if LANGFUSE_SESSION_AVAILABLE:
             init_session_tracer(langfuse_public_key, langfuse_secret_key, langfuse_host)
             debug_log("🔍 Langfuse Session Tracer 초기화 성공", "success")
         else:
-            debug_log("⚠️ Langfuse 환경변수 미설정 - 추적 비활성화", "warning")
+            debug_log("⚠️ Langfuse 환경변수 미설정 - 기본 추적 비활성화", "warning")
     except Exception as e:
         debug_log(f"❌ Langfuse 초기화 실패: {e}", "error")
 
@@ -830,10 +854,34 @@ def _render_data_content(data_content: Dict, content_type: str, name: str, index
         st.json(data_content)
 
 async def process_query_streaming(prompt: str):
-    """A2A 프로토콜을 사용한 실시간 스트리밍 쿼리 처리 + Phase 3 전문가급 답변 합성 + 개선된 Langfuse 추적"""
+    """A2A 프로토콜을 사용한 실시간 스트리밍 쿼리 처리 + Phase 3 전문가급 답변 합성 + 향상된 Langfuse 추적"""
     debug_log(f"🚀 A2A 스트리밍 쿼리 처리 시작: {prompt[:100]}...")
     
-    # Langfuse Session 시작 - 개선된 버전
+    # Enhanced Langfuse Session 시작 - 향상된 버전
+    enhanced_tracer = None
+    enhanced_session_id = None
+    if ENHANCED_LANGFUSE_AVAILABLE:
+        try:
+            enhanced_tracer = get_enhanced_tracer()
+            # EMP_NO를 우선적으로 사용하여 user_id 설정
+            user_id = st.session_state.get("user_id") or os.getenv("EMP_NO") or os.getenv("LANGFUSE_USER_ID") or "cherryai_user"
+            session_metadata = {
+                "streamlit_session_id": st.session_state.get("session_id", "unknown"),
+                "user_interface": "streamlit",
+                "query_timestamp": time.time(),
+                "query_length": len(prompt),
+                "environment": "production" if os.getenv("ENV") == "production" else "development",
+                "app_version": "v9.0-enhanced",
+                "emp_no": os.getenv("EMP_NO", "unknown"),  # 직원 번호 명시적 기록
+                "enhanced_tracking": True,
+                "tracking_version": "v2.0"
+            }
+            enhanced_session_id = enhanced_tracer.start_user_session(prompt, user_id, session_metadata)
+            debug_log(f"🔍 Enhanced Langfuse Session 시작: {enhanced_session_id} (EMP_NO: {os.getenv('EMP_NO', 'N/A')})", "success")
+        except Exception as e:
+            debug_log(f"❌ Enhanced Langfuse Session 시작 실패: {e}", "error")
+    
+    # 기존 Langfuse Session 시작 - 호환성을 위해 유지
     session_tracer = None
     session_id = None
     if LANGFUSE_SESSION_AVAILABLE:
@@ -979,7 +1027,31 @@ async def process_query_streaming(prompt: str):
                     # 세션 메시지에 추가
                     st.session_state.messages.append({"role": "assistant", "content": final_response})
                     
-                    # Langfuse Session 종료 (성공 케이스)
+                    # Enhanced Langfuse Session 종료 (성공 케이스)
+                    if enhanced_tracer and enhanced_session_id:
+                        try:
+                            final_result = {
+                                "success": True,
+                                "total_steps": len(plan_steps),
+                                "total_artifacts": sum(len(r.get('artifacts', [])) for r in all_results),
+                                "processing_completed": True,
+                                "total_processing_time": sum(r.get('processing_time', 0) for r in all_results),
+                                "agents_used": list(set(step.get('agent_name', 'unknown') for step in plan_steps)),
+                                "enhanced_tracking": True
+                            }
+                            session_summary = {
+                                "steps_executed": len(plan_steps),
+                                "agents_used": list(set(step.get('agent_name', 'unknown') for step in plan_steps)),
+                                "artifacts_created": sum(len(r.get('artifacts', [])) for r in all_results),
+                                "user_satisfaction": "high",  # 임시 값
+                                "tracking_version": "v2.0"
+                            }
+                            enhanced_tracer.end_session(str(final_result), session_summary)
+                            debug_log(f"🔍 Enhanced Langfuse Session 종료 (성공): {enhanced_session_id}", "success")
+                        except Exception as session_end_error:
+                            debug_log(f"❌ Enhanced Langfuse Session 종료 실패: {session_end_error}", "error")
+                    
+                    # 기존 Langfuse Session 종료 (성공 케이스) - 호환성 유지
                     if session_tracer and session_id:
                         try:
                             final_result = {
@@ -1977,10 +2049,27 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
         stream_container = RealTimeStreamContainer(f"🤖 {agent_name}")
         stream_container.initialize()
         
-        # A2A 클라이언트를 통해 에이전트 실행
+        # A2A 클라이언트를 통해 에이전트 실행 with Enhanced Tracking
         results = []
         artifacts = []
         code_chunks = []
+        
+        # Enhanced Tracking: 에이전트 통신 시작 로깅
+        if ENHANCED_LANGFUSE_AVAILABLE:
+            try:
+                enhanced_tracer = get_enhanced_tracer()
+                enhanced_tracer.log_agent_communication(
+                    source_agent="CherryAI_UI",
+                    target_agent=agent_name,
+                    message=f"Task: {task_description}",
+                    metadata={
+                        "session_id": session_id,
+                        "streaming": True,
+                        "start_time": start_time
+                    }
+                )
+            except Exception as tracking_error:
+                debug_log(f"⚠️ Enhanced tracking 로깅 실패: {tracking_error}", "warning")
         
         async for chunk_data in client.stream_task(agent_name, task_description):
             try:
@@ -1990,6 +2079,24 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                 
                 results.append(chunk_data)
                 
+                # Enhanced Tracking: 청크 처리 추적
+                if ENHANCED_LANGFUSE_AVAILABLE:
+                    try:
+                        enhanced_tracer = get_enhanced_tracer()
+                        enhanced_tracer.log_data_operation(
+                            "chunk_processing",
+                            {
+                                "chunk_type": chunk_type,
+                                "chunk_size": len(str(chunk_content)),
+                                "agent_name": agent_name,
+                                "is_final": is_final,
+                                "total_chunks": len(results)
+                            },
+                            f"Processing {chunk_type} chunk from {agent_name}"
+                        )
+                    except Exception as tracking_error:
+                        debug_log(f"⚠️ 청크 추적 실패: {tracking_error}", "warning")
+                
                 # 메시지 청크 실시간 스트리밍
                 if chunk_type == 'message':
                     text = chunk_content.get('text', '')
@@ -1998,6 +2105,22 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                         if '```' in text or any(keyword in text.lower() for keyword in ['def ', 'import ', 'class ', 'for ', 'if ']):
                             stream_container.add_code_chunk(text)
                             code_chunks.append(text)
+                            
+                            # Enhanced Tracking: 코드 생성 추적
+                            if ENHANCED_LANGFUSE_AVAILABLE:
+                                try:
+                                    enhanced_tracer = get_enhanced_tracer()
+                                    enhanced_tracer.log_code_generation(
+                                        prompt=task_description,
+                                        generated_code=text,
+                                        metadata={
+                                            "agent_name": agent_name,
+                                            "chunk_index": len(code_chunks),
+                                            "streaming": True
+                                        }
+                                    )
+                                except Exception as tracking_error:
+                                    debug_log(f"⚠️ 코드 생성 추적 실패: {tracking_error}", "warning")
                         else:
                             stream_container.add_message_chunk(text)
                         
@@ -2011,6 +2134,24 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                     artifact_name = chunk_content.get('name', f'Artifact {len(artifacts)}')
                     debug_log(f"📦 아티팩트 생성: {artifact_name}", "success")
                     
+                    # Enhanced Tracking: 아티팩트 생성 추적
+                    if ENHANCED_LANGFUSE_AVAILABLE:
+                        try:
+                            enhanced_tracer = get_enhanced_tracer()
+                            enhanced_tracer.log_data_operation(
+                                "artifact_generation",
+                                {
+                                    "artifact_name": artifact_name,
+                                    "artifact_type": chunk_content.get('type', 'unknown'),
+                                    "agent_name": agent_name,
+                                    "artifact_size": len(str(chunk_content)),
+                                    "total_artifacts": len(artifacts)
+                                },
+                                f"Generated artifact: {artifact_name}"
+                            )
+                        except Exception as tracking_error:
+                            debug_log(f"⚠️ 아티팩트 추적 실패: {tracking_error}", "warning")
+                    
                     # 아티팩트 즉시 표시
                     with st.expander(f"📦 {artifact_name}", expanded=True):
                         render_artifact(chunk_content)
@@ -2020,6 +2161,23 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                     
             except Exception as chunk_error:
                 debug_log(f"❌ 청크 처리 오류: {chunk_error}", "error")
+                
+                # Enhanced Tracking: 청크 처리 에러 추적
+                if ENHANCED_LANGFUSE_AVAILABLE:
+                    try:
+                        enhanced_tracer = get_enhanced_tracer()
+                        enhanced_tracer.log_data_operation(
+                            "chunk_processing_error",
+                            {
+                                "error": str(chunk_error),
+                                "error_type": type(chunk_error).__name__,
+                                "agent_name": agent_name,
+                                "chunk_data": str(chunk_data) if chunk_data else "None"
+                            },
+                            f"Chunk processing error in {agent_name}"
+                        )
+                    except Exception as tracking_error:
+                        debug_log(f"⚠️ 에러 추적 실패: {tracking_error}", "warning")
         
         # 스트리밍 완료 처리
         stream_container.finalize()
