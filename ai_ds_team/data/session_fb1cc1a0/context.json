@@ -1,0 +1,10 @@
+{
+  "user_instructions": "스마트 선택 테스트",
+  "data_id": "test_smart.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-11T15:12:57.723071",
+  "file_path": "ai_ds_team/data/session_fb1cc1a0/test_smart.csv"
+}

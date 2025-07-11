@@ -1,0 +1,97 @@
+{
+  "test_start": "2025-07-11T17:40:32.305342",
+  "tests": [
+    {
+      "name": "MCP 설정 파일 (올바른 형식)",
+      "success": true,
+      "details": "9/9 설정 유효",
+      "timestamp": "2025-07-11T17:40:32.306511"
+    },
+    {
+      "name": "MCP 서버 연결",
+      "success": false,
+      "details": "0/27 서버 연결 가능",
+      "timestamp": "2025-07-11T17:40:32.333811"
+    },
+    {
+      "name": "CherryAI-MCP 통합 (안전)",
+      "success": true,
+      "details": "3/3 파일 확인",
+      "timestamp": "2025-07-11T17:40:32.334178"
+    },
+    {
+      "name": "MCP 파일 구조",
+      "success": true,
+      "details": "2/2 구조, 9개 설정",
+      "timestamp": "2025-07-11T17:40:32.334327"
+    }
+  ],
+  "overall_success": true,
+  "errors": [],
+  "mcp_configs": [
+    {
+      "file": "visualization_expert_tools.json",
+      "role": "Visualization_Expert",
+      "config_name": "visualization_expert_tools",
+      "servers_count": 3,
+      "valid": true
+    },
+    {
+      "file": "ml_specialist_tools.json",
+      "role": "ML_Specialist",
+      "config_name": "ml_specialist_tools",
+      "servers_count": 4,
+      "valid": true
+    },
+    {
+      "file": "data_validator_tools.json",
+      "role": "Data_Validator",
+      "config_name": "data_validator_tools",
+      "servers_count": 3,
+      "valid": true
+    },
+    {
+      "file": "statistical_analyst_tools.json",
+      "role": "Statistical_Analyst",
+      "config_name": "statistical_analyst_tools",
+      "servers_count": 4,
+      "valid": true
+    },
+    {
+      "file": "report_writer_tools.json",
+      "role": "Report_Writer",
+      "config_name": "report_writer_tools",
+      "servers_count": 1,
+      "valid": true
+    },
+    {
+      "file": "data_preprocessor_tools.json",
+      "role": "Data_Preprocessor",
+      "config_name": "data_preprocessor_tools",
+      "servers_count": 1,
+      "valid": true
+    },
+    {
+      "file": "report_generator_tools.json",
+      "role": "Report_Generator",
+      "config_name": "report_generator_tools",
+      "servers_count": 3,
+      "valid": true
+    },
+    {
+      "file": "preprocessing_expert_tools.json",
+      "role": "Preprocessing_Expert",
+      "config_name": "preprocessing_expert_tools",
+      "servers_count": 4,
+      "valid": true
+    },
+    {
+      "file": "eda_analyst_tools.json",
+      "role": "EDA_Analyst",
+      "config_name": "eda_analyst_tools",
+      "servers_count": 4,
+      "valid": true
+    }
+  ],
+  "server_status": {}
+}

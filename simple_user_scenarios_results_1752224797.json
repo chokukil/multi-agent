@@ -1,0 +1,12 @@
+{
+  "test_start": "2025-07-11T18:06:37.577717",
+  "tests": [
+    {
+      "name": "CSV 데이터 분석",
+      "success": true,
+      "details": "레코드: 100, 통계: 2",
+      "timestamp": "2025-07-11T18:06:37.580358"
+    },
+    {
+      "name": "Excel 데이터 분석",
+      "success": 

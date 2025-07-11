@@ -1,0 +1,104 @@
+{
+  "timestamp": "2025-07-11T16:50:27.636672",
+  "phases": {
+    "Phase1": {
+      "tests": [
+        {
+          "name": "UserFileTracker 초기화",
+          "success": true,
+          "details": "객체 생성 성공",
+          "timestamp": "2025-07-11T16:50:29.050989"
+        },
+        {
+          "name": "파일 등록",
+          "success": true,
+          "details": "파일: test_sample_data.csv",
+          "timestamp": "2025-07-11T16:50:29.055405"
+        },
+        {
+          "name": "전체 테스트",
+          "success": false,
+          "details": "오류: 'SessionDataManager' object has no attribute 'add_file'",
+          "timestamp": "2025-07-11T16:50:29.105390"
+        }
+      ],
+      "success_count": 2,
+      "total_count": 3
+    },
+    "Phase2": {
+      "tests": [
+        {
+          "name": "데이터 로드",
+          "success": true,
+          "details": "형태: (15, 9)",
+          "timestamp": "2025-07-11T16:50:29.106221"
+        },
+        {
+          "name": "기본 통계 계산",
+          "success": true,
+          "details": "컬럼 수: 4",
+          "timestamp": "2025-07-11T16:50:29.108130"
+        },
+        {
+          "name": "데이터 타입 분석",
+          "success": true,
+          "details": "숫자형: 4, 범주형: 4",
+          "timestamp": "2025-07-11T16:50:29.108272"
+        }
+      ],
+      "success_count": 3,
+      "total_count": 3
+    },
+    "Phase3": {
+      "tests": [
+        {
+          "name": "Universal Router 초기화",
+          "success": false,
+          "details": "모듈 로드 실패",
+          "timestamp": "2025-07-11T16:50:29.111508"
+        },
+        {
+          "name": "Specialized Agents 초기화",
+          "success": false,
+          "details": "모듈 로드 실패",
+          "timestamp": "2025-07-11T16:50:29.112899"
+        },
+        {
+          "name": "Multi-Agent Orchestrator 초기화",
+          "success": true,
+          "details": "오케스트레이터 생성 성공",
+          "timestamp": "2025-07-11T16:50:29.332257"
+        }
+      ],
+      "success_count": 1,
+      "total_count": 3
+    },
+    "Phase4": {
+      "tests": [
+        {
+          "name": "Auto Data Profiler",
+          "success": true,
+          "details": "품질 점수: 0.9666666666666666",
+          "timestamp": "2025-07-11T16:50:29.800722"
+        },
+        {
+          "name": "전체 테스트",
+          "success": false,
+          "details": "오류: AdvancedCodeTracker.track_and_execute_code() got an unexpected keyword argument 'code'",
+          "timestamp": "2025-07-11T16:50:29.802808"
+        }
+      ],
+      "success_count": 1,
+      "total_count": 2
+    },
+    "통합워크플로우": {
+      "tests": [
+        {
+          "name": "파일 처리",
+          "success": true,
+          "details": "레코드 수: 15",
+          "timestamp": "2025-07-11T16:50:29.803473"
+        },
+        {
+          "name": "데이터 품질",
+          "success": 

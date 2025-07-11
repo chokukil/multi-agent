@@ -1,0 +1,19 @@
+{
+  "session_id": "session_c13fd80a",
+  "created_at": "2025-07-11T14:39:56.929687",
+  "last_activity": "2025-07-11T14:39:56.929688",
+  "uploaded_files": [
+    {
+      "data_id": "sample_data.csv",
+      "uploaded_at": "2025-07-11T14:39:56.929256",
+      "file_size": 306,
+      "file_type": ".csv",
+      "user_context": "분석 수행",
+      "domain": null,
+      "original_name": "sample_data.csv"
+    }
+  ],
+  "active_file": "sample_data.csv",
+  "auto_cleanup_at": "2025-07-12T14:39:56.929687",
+  "status": "active"
+}

@@ -1,0 +1,10 @@
+{
+  "user_instructions": "기존 데이터로부터 세션 복구",
+  "data_id": "sample_data.csv",
+  "data_shape": [
+    3,
+    2
+  ],
+  "created_at": "2025-07-11T13:58:37.106141",
+  "file_path": "ai_ds_team/data/session_0cfb3c3e/sample_data.csv"
+}

@@ -1,0 +1,135 @@
+{
+  "agent_connections": {
+    "total_agents": 10,
+    "healthy_agents": 10,
+    "success_rate": 100.0,
+    "connections": {
+      "Orchestrator": {
+        "status": "healthy",
+        "port": 8100,
+        "name": "Universal Intelligent Orchestrator v8.0",
+        "description": "A2A SDK 0.2.9 표준 기능 극대화 + 실시간 스트리밍 혁신",
+        "skills": 5,
+        "streaming": true
+      },
+      "Data Cleaning": {
+        "status": "healthy",
+        "port": 8306,
+        "name": "AI_DS_Team DataCleaningAgent",
+        "description": "데이터 정리 및 품질 개선 전문가. 결측값 처리, 중복 제거, 이상값 탐지, 데이터 타입 최적화 등을 수행합니다.",
+        "skills": 1,
+        "streaming": false
+      },
+      "Data Loader": {
+        "status": "healthy",
+        "port": 8307,
+        "name": "AI_DS_Team DataLoaderToolsAgent",
+        "description": "다양한 데이터 소스 로딩 및 전처리 전문가. 파일, 데이터베이스, API 등에서 데이터를 로드하고 DataFrame으로 변환합니다.",
+        "skills": 1,
+        "streaming": true
+      },
+      "Data Visualization": {
+        "status": "healthy",
+        "port": 8308,
+        "name": "AI_DS_Team DataVisualizationAgent",
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "skills": 1,
+        "streaming": false
+      },
+      "Data Wrangling": {
+        "status": "healthy",
+        "port": 8309,
+        "name": "AI_DS_Team DataWranglingAgent",
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "skills": 1,
+        "streaming": false
+      },
+      "Feature Engineering": {
+        "status": "healthy",
+        "port": 8310,
+        "name": "AI_DS_Team FeatureEngineeringAgent",
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "skills": 1,
+        "streaming": false
+      },
+      "SQL Database": {
+        "status": "healthy",
+        "port": 8311,
+        "name": "AI_DS_Team SQLDatabaseAgent",
+        "description": "전문적인 SQL 데이터베이스 분석 및 쿼리 생성 서비스. 자연어를 SQL로 변환하고 복잡한 데이터베이스 분석을 수행합니다.",
+        "skills": 1,
+        "streaming": false
+      },
+      "EDA Tools": {
+        "status": "healthy",
+        "port": 8312,
+        "name": "AI_DS_Team EDAToolsAgent",
+        "description": "Enhanced EDA 전문가",
+        "skills": 1,
+        "streaming": false
+      },
+      "H2O ML": {
+        "status": "healthy",
+        "port": 8313,
+        "name": "AI_DS_Team H2OMLAgent",
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "skills": 1,
+        "streaming": false
+      },
+      "MLflow Tools": {
+        "status": "healthy",
+        "port": 8314,
+        "name": "AI_DS_Team MLflowToolsAgent",
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "skills": 1,
+        "streaming": false
+      }
+    }
+  },
+  "orchestrator": {
+    "status": "healthy",
+    "agent_card": true,
+    "name": "Universal Intelligent Orchestrator v8.0",
+    "skills": 5,
+    "streaming": true,
+    "capabilities": {
+      "pushNotifications": true,
+      "stateTransitionHistory": true,
+      "streaming": true
+    }
+  },
+  "migration_checklist": {
+    "checklist": {
+      "phase1_base_wrapper": true,
+      "phase2_core_servers": true,
+      "get_workflow_summary_fixed": true,
+      "a2a_protocol_compliance": true,
+      "streaming_support": false,
+      "error_handling": true,
+      "orchestrator_integration": true
+    },
+    "completed_items": 6,
+    "total_items": 7,
+    "completion_rate": 85.71428571428571
+  },
+  "integration": {
+    "tests": {
+      "orchestrator_discovery": true,
+      "agent_communication": true,
+      "error_recovery": true,
+      "protocol_compliance": true
+    },
+    "success_count": 4,
+    "total_tests": 4,
+    "success_rate": 100.0
+  },
+  "overall_success_rate": 96.42857142857143,
+  "migration_status": "COMPLETED",
+  "test_timestamp": "20250711_202433",
+  "recommendations": [
+    "Migration 완료! 프로덕션 환경 배포 준비",
+    "성능 벤치마크 및 부하 테스트 실행",
+    "사용자 교육 및 문서화 완료",
+    "모니터링 및 알림 시스템 구축"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "file_id": "large_dataset_10000.csv",
+  "original_name": "performance_test_10000_records.csv",
+  "uploaded_at": "2025-07-11T18:27:20.991693",
+  "user_context": "성능 테스트용 10,000개 레코드 데이터",
+  "data_shape": [
+    10000,
+    15
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/perf_test_1752226040_performance_test_10000_records.csv"
+}

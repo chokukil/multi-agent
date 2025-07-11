@@ -1,0 +1,195 @@
+{
+  "test_start": "2025-07-11T18:24:32.313190",
+  "tests": [
+    {
+      "name": "보안 키 생성",
+      "success": true,
+      "details": "보안 키가 성공적으로 생성됨",
+      "timestamp": "2025-07-11T18:24:34.168640"
+    },
+    {
+      "name": "파일 보안 스캔",
+      "success": true,
+      "details": "스캔 성공, 안전도: True",
+      "timestamp": "2025-07-11T18:24:34.171132"
+    },
+    {
+      "name": "코드 보안 검사",
+      "success": false,
+      "details": "코드 보안 검사 오류",
+      "timestamp": "2025-07-11T18:24:34.171820"
+    },
+    {
+      "name": "입력 정화",
+      "success": true,
+      "details": "악성 스크립트 제거 성공",
+      "timestamp": "2025-07-11T18:24:34.171897"
+    },
+    {
+      "name": "보안 저장소 생성",
+      "success": true,
+      "details": "보안 저장소 디렉토리 존재",
+      "timestamp": "2025-07-11T18:24:34.174318"
+    },
+    {
+      "name": "보안 파일 업로드",
+      "success": true,
+      "details": "파일 업로드 성공: file_20250711_182434_b57496ad",
+      "timestamp": "2025-07-11T18:24:34.175105"
+    },
+    {
+      "name": "보안 파일 조회",
+      "success": true,
+      "details": "파일 조회 성공",
+      "timestamp": "2025-07-11T18:24:34.175388"
+    },
+    {
+      "name": "파일 접근 권한 제어",
+      "success": true,
+      "details": "권한 없는 접근 차단",
+      "timestamp": "2025-07-11T18:24:34.175407"
+    },
+    {
+      "name": "보안 파일 삭제",
+      "success": true,
+      "details": "파일 삭제 성공",
+      "timestamp": "2025-07-11T18:24:34.175583"
+    },
+    {
+      "name": "악성 파일 차단",
+      "success": true,
+      "details": "4/4 악성 파일 차단",
+      "timestamp": "2025-07-11T18:24:34.197270"
+    },
+    {
+      "name": "파일 크기 제한",
+      "success": true,
+      "details": "대용량 파일 차단",
+      "timestamp": "2025-07-11T18:24:34.306527"
+    },
+    {
+      "name": "세션 토큰 생성",
+      "success": true,
+      "details": "보안 토큰 생성 성공",
+      "timestamp": "2025-07-11T18:24:34.312903"
+    },
+    {
+      "name": "세션 토큰 검증",
+      "success": true,
+      "details": "토큰 검증 성공",
+      "timestamp": "2025-07-11T18:24:34.313011"
+    },
+    {
+      "name": "잘못된 토큰 차단",
+      "success": true,
+      "details": "잘못된 토큰 차단",
+      "timestamp": "2025-07-11T18:24:34.313116"
+    },
+    {
+      "name": "세션 ID 검증",
+      "success": true,
+      "details": "세션 ID 검증 정상",
+      "timestamp": "2025-07-11T18:24:34.313222"
+    },
+    {
+      "name": "코드 보안 검사 정확도",
+      "success": false,
+      "details": "정확도 부족: 66.67%",
+      "timestamp": "2025-07-11T18:24:34.313471"
+    },
+    {
+      "name": "디렉토리 접근 제어",
+      "success": true,
+      "details": "3/3 디렉토리 적절한 권한",
+      "timestamp": "2025-07-11T18:24:34.313560"
+    },
+    {
+      "name": "중요 파일 보호",
+      "success": true,
+      "details": "중요 파일 적절히 보호됨",
+      "timestamp": "2025-07-11T18:24:34.313617"
+    },
+    {
+      "name": "파일 해싱",
+      "success": true,
+      "details": "SHA-256 해시 정상",
+      "timestamp": "2025-07-11T18:24:34.314265"
+    },
+    {
+      "name": "보안 토큰 생성",
+      "success": true,
+      "details": "유일한 토큰 생성",
+      "timestamp": "2025-07-11T18:24:34.314372"
+    },
+    {
+      "name": "토큰 길이",
+      "success": true,
+      "details": "적절한 토큰 길이",
+      "timestamp": "2025-07-11T18:24:34.314381"
+    },
+    {
+      "name": "보안 로그 디렉토리",
+      "success": true,
+      "details": "보안 로그 디렉토리 존재",
+      "timestamp": "2025-07-11T18:24:34.314430"
+    },
+    {
+      "name": "로그 파일 보안",
+      "success": true,
+      "details": "1/1 로그 파일 적절한 권한",
+      "timestamp": "2025-07-11T18:24:34.314594"
+    },
+    {
+      "name": "보안 이벤트 로깅",
+      "success": true,
+      "details": "보안 이벤트 기록됨",
+      "timestamp": "2025-07-11T18:24:34.315433"
+    },
+    {
+      "name": "서비스 포트 접근성",
+      "success": true,
+      "details": "2/4 포트 접근 가능",
+      "timestamp": "2025-07-11T18:24:34.316905"
+    },
+    {
+      "name": "HTTPS 설정",
+      "success": true,
+      "details": "개발 환경에서 생략",
+      "timestamp": "2025-07-11T18:24:34.316953"
+    },
+    {
+      "name": "외부 연결 제한",
+      "success": true,
+      "details": "내부 네트워크만 사용",
+      "timestamp": "2025-07-11T18:24:34.316963"
+    },
+    {
+      "name": "환경 변수 보안",
+      "success": true,
+      "details": "2/2 환경 변수 설정됨",
+      "timestamp": "2025-07-11T18:24:34.317019"
+    },
+    {
+      "name": "임시 파일 관리",
+      "success": true,
+      "details": "임시 디렉토리 정리됨",
+      "timestamp": "2025-07-11T18:24:34.317537"
+    },
+    {
+      "name": "보안 설정 파일",
+      "success": true,
+      "details": "보안 설정 파일 존재",
+      "timestamp": "2025-07-11T18:24:34.317560"
+    }
+  ],
+  "security_score": 93.3,
+  "critical_issues": [
+    "코드 보안 검사: 코드 보안 검사 오류",
+    "코드 보안 검사 정확도: 정확도 부족: 66.67%"
+  ],
+  "warnings": [],
+  "recommendations": [
+    "전반적으로 뛰어난 보안 상태입니다."
+  ],
+  "security_grade": "우수 (A)"
+}

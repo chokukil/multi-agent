@@ -1,0 +1,16 @@
+Name,Age,City,Salary,Department,Join_Date,Performance_Score,Is_Remote,Project_Count
+Alice Johnson,28,New York,75000,Engineering,2021-03-15,8.5,true,12
+Bob Smith,35,San Francisco,95000,Engineering,2019-07-22,9.2,false,18
+Carol Davis,42,Chicago,68000,Marketing,2020-01-10,7.8,true,8
+David Wilson,31,Seattle,82000,Engineering,2022-05-03,8.9,false,15
+Emma Brown,27,Boston,62000,Sales,2023-02-18,7.5,true,6
+Frank Miller,39,Austin,89000,Engineering,2018-11-30,9.0,false,22
+Grace Lee,33,Portland,71000,Marketing,2021-09-12,8.2,true,10
+Henry Garcia,45,Denver,94000,Management,2017-04-25,9.1,false,25
+Iris Kim,29,Miami,66000,Sales,2022-08-07,7.9,true,7
+Jack Rodriguez,36,Phoenix,78000,Engineering,2020-06-14,8.7,false,16
+Kate Thompson,41,Nashville,72000,Marketing,2019-12-03,8.0,true,11
+Luis Martinez,32,Las Vegas,85000,Engineering,2021-01-20,8.8,false,14
+Maya Patel,26,San Diego,59000,Sales,2023-06-10,7.6,true,5
+Noah Anderson,38,Philadelphia,91000,Engineering,2018-08-15,9.3,false,20
+Olivia Taylor,30,Houston,69000,Marketing,2022-03-28,8.1,true,9 

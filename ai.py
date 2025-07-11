@@ -199,6 +199,46 @@ except Exception as e:
 
 # Enhanced Langfuse Session Tracking 추가
 try:
+    from core.enhanced_langfuse_tracer import get_enhanced_tracer
+    ENHANCED_LANGFUSE_AVAILABLE = True
+    print("✅ Enhanced Langfuse Tracer 로드 성공")
+except ImportError as e:
+    ENHANCED_LANGFUSE_AVAILABLE = False
+    print(f"⚠️ Enhanced Langfuse Tracer 로드 실패: {e}")
+
+# Phase 4 Advanced Systems Integration
+try:
+    from core.auto_data_profiler import get_auto_data_profiler, profile_dataset, quick_profile
+    from core.advanced_code_tracker import get_advanced_code_tracker, track_and_execute
+    from core.intelligent_result_interpreter import get_intelligent_result_interpreter, interpret_analysis_results
+    from core.user_file_tracker import get_user_file_tracker
+    PHASE4_SYSTEMS_AVAILABLE = True
+    print("✅ Phase 4 Advanced Systems 로드 성공")
+except ImportError as e:
+    PHASE4_SYSTEMS_AVAILABLE = False
+    print(f"⚠️ Phase 4 Advanced Systems 로드 실패: {e}")
+
+# Performance Optimization System Integration
+try:
+    from core.performance_optimizer import get_performance_optimizer
+    from core.performance_monitor import PerformanceMonitor
+    PERFORMANCE_OPTIMIZATION_AVAILABLE = True
+    print("✅ Performance Optimization System 로드 성공")
+except ImportError as e:
+    PERFORMANCE_OPTIMIZATION_AVAILABLE = False
+    print(f"⚠️ Performance Optimization System 로드 실패: {e}")
+
+# Multi-Agent Orchestration Systems
+try:
+    from core.universal_data_analysis_router import get_universal_data_analysis_router
+    from core.specialized_data_agents import get_specialized_agents_manager
+    from core.multi_agent_orchestrator import get_multi_agent_orchestrator
+    ORCHESTRATION_SYSTEMS_AVAILABLE = True
+    print("✅ Multi-Agent Orchestration Systems 로드 성공")
+except ImportError as e:
+    ORCHESTRATION_SYSTEMS_AVAILABLE = False
+    print(f"⚠️ Multi-Agent Orchestration Systems 로드 실패: {e}")
+try:
     from core.enhanced_langfuse_tracer import init_enhanced_tracer, get_enhanced_tracer
     ENHANCED_LANGFUSE_AVAILABLE = True
     print("✅ Enhanced Langfuse Tracer 로드 성공")
@@ -313,18 +353,63 @@ def map_agent_name(plan_agent_name: str) -> str:
 
 def initialize_session_state():
     """세션 상태 초기화"""
-    if "messages" not in st.session_state: st.session_state.messages = []
-    if "session_id" not in st.session_state: st.session_state.session_id = f"ui_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    if "uploaded_data" not in st.session_state: st.session_state.uploaded_data = None
-    if "data_id" not in st.session_state: st.session_state.data_id = None
-    if "a2a_client" not in st.session_state: st.session_state.a2a_client = A2AStreamlitClient(AI_DS_TEAM_AGENTS)
-    if "agent_status" not in st.session_state: st.session_state.agent_status = {}
-    if "active_agent" not in st.session_state: st.session_state.active_agent = None
-    if "data_manager" not in st.session_state: st.session_state.data_manager = DataManager()  # DataManager 추가
-    if "session_data_manager" not in st.session_state: st.session_state.session_data_manager = SessionDataManager()  # 세션 기반 데이터 관리자 추가
-    # 프리로더 초기화 상태 추가
-    if "preloader_initialized" not in st.session_state: st.session_state.preloader_initialized = False
-    if "agents_preloaded" not in st.session_state: st.session_state.agents_preloaded = False
+    # 기본 세션 변수들
+    default_vars = {
+        'messages': [],
+        'data': None,
+        'query_history': [],
+        'chat_history': [],
+        'uploaded_file_info': {},
+        'thinking_steps': [],
+        'current_plan': None,
+        'available_agents': {},
+        'agent_status': {},
+        'debug_enabled': False,
+        'session_start_time': datetime.now().strftime("%Y%m%d_%H%M%S"),
+        'session_id': str(uuid.uuid4()),
+        'user_id': os.getenv("EMP_NO") or os.getenv("LANGFUSE_USER_ID") or f"user_{uuid.uuid4().hex[:8]}"
+    }
+    
+    for key, default_value in default_vars.items():
+        if key not in st.session_state:
+            st.session_state[key] = default_value
+    
+    # SessionDataManager 초기화
+    if 'session_data_manager' not in st.session_state:
+        st.session_state.session_data_manager = SessionDataManager()
+        st.session_state.session_data_manager._current_session_id = st.session_state.session_id
+        debug_log("✅ SessionDataManager 초기화 완료", "success")
+    
+    # Enhanced Langfuse Tracer 초기화 (수정된 버전)
+    if ENHANCED_LANGFUSE_AVAILABLE and 'enhanced_tracer' not in st.session_state:
+        try:
+            enhanced_tracer = get_enhanced_tracer()
+            st.session_state.enhanced_tracer = enhanced_tracer
+            debug_log("✅ Enhanced Langfuse Tracer 초기화 완료", "success")
+        except Exception as e:
+            debug_log(f"⚠️ Enhanced Langfuse Tracer 초기화 실패: {e}", "warning")
+    
+    # Performance Optimization System 초기화
+    if PERFORMANCE_OPTIMIZATION_AVAILABLE:
+        if 'performance_optimizer' not in st.session_state:
+            try:
+                performance_optimizer = get_performance_optimizer()
+                performance_optimizer.start_monitoring()  # 자동 모니터링 시작
+                st.session_state.performance_optimizer = performance_optimizer
+                debug_log("✅ Performance Optimizer 초기화 및 모니터링 시작", "success")
+            except Exception as e:
+                debug_log(f"⚠️ Performance Optimizer 초기화 실패: {e}", "warning")
+        
+        if 'performance_monitor' not in st.session_state:
+            try:
+                performance_monitor = PerformanceMonitor()
+                performance_monitor.start_monitoring()  # 성능 모니터링 시작
+                st.session_state.performance_monitor = performance_monitor
+                debug_log("✅ Performance Monitor 초기화 및 모니터링 시작", "success")
+            except Exception as e:
+                debug_log(f"⚠️ Performance Monitor 초기화 실패: {e}", "warning")
+    
+    debug_log(f"✅ 세션 상태 초기화 완료 - ID: {st.session_state.session_id[:8]}")
 
 @st.cache_resource
 def initialize_agent_preloader():
@@ -1200,124 +1285,128 @@ def display_session_status():
         debug_log(f"세션 상태 표시 오류: {e}", "warning")
 
 def handle_data_upload_with_ai_ds_team():
-    """SessionDataManager를 사용한 세션 기반 파일 업로드 처리"""
-    data_manager = st.session_state.data_manager
-    session_data_manager = st.session_state.session_data_manager
+    """AI DS Team 통합 데이터 업로드 처리"""
+    st.subheader("📁 데이터 업로드")
     
-    # 현재 로드된 데이터셋 표시
-    loaded_data_info = data_manager.list_dataframe_info()
-    
-    if loaded_data_info:
-        st.success(f"✅ {len(loaded_data_info)}개의 데이터셋이 로드되었습니다.")
-        
-        # 세션 동기화 확인 및 복구
-        current_session_id = session_data_manager.get_current_session_id()
-        if not current_session_id or current_session_id not in session_data_manager._session_metadata:
-            # 세션이 없거나 메타데이터가 없는 경우 복구
-            debug_log("세션 정보가 없어 데이터로부터 세션을 복구합니다.")
-            first_data_id = loaded_data_info[0]['data_id']
-            df = data_manager.get_dataframe(first_data_id)
-            if df is not None:
-                new_session_id = session_data_manager.create_session_with_data(
-                    data_id=first_data_id,
-                    data=df,
-                    user_instructions="기존 데이터로부터 세션 복구"
-                )
-                debug_log(f"세션 복구 완료: {new_session_id}")
-                st.info(f"🔄 세션이 복구되었습니다: {new_session_id}")
-        
-        # 로드된 데이터셋 목록을 expander로 표시
-        with st.expander("📋 로드된 데이터셋 보기", expanded=False):
-            for info in loaded_data_info:
-                data_id = info['data_id']
-                shape = info['shape']
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown(f"**{data_id}** (형태: {shape[0]}행 x {shape[1]}열)")
-                with col2:
-                    if st.button(f"🗑️ 삭제", key=f"del_{data_id}"):
-                        if data_manager.delete_dataframe(data_id):
-                            st.toast(f"'{data_id}'가 삭제되었습니다.")
-                            st.rerun()
-                        else:
-                            st.toast(f"'{data_id}' 삭제 실패.", icon="❌")
-        
-        # 첫 번째 데이터셋을 기본으로 설정
-        if not st.session_state.data_id or st.session_state.data_id not in [info['data_id'] for info in loaded_data_info]:
-            st.session_state.data_id = loaded_data_info[0]['data_id']
-            st.session_state.uploaded_data = data_manager.get_dataframe(st.session_state.data_id)
-    else:
-        st.info("현재 로드된 데이터가 없습니다. CSV 또는 Excel 파일을 업로드해주세요.")
-    
-    # 파일 업로드 (다중 파일 지원)
-    uploaded_files = st.file_uploader(
-        "CSV 또는 Excel 파일을 업로드하세요 (다중 선택 가능)",
-        type=["csv", "xlsx"],
-        accept_multiple_files=True,
-        help="여러 파일을 한 번에 업로드할 수 있습니다."
+    uploaded_file = st.file_uploader(
+        "파일을 업로드하세요 (CSV, Excel, JSON)",
+        type=['csv', 'xlsx', 'xls', 'json'],
+        help="지원 형식: CSV, Excel (.xlsx, .xls), JSON"
     )
     
-    if uploaded_files:
-        # 이미 로드된 파일들 확인
-        existing_df_ids = set(data_manager.list_dataframes())
-        files_to_process = []
-        
-        for file in uploaded_files:
-            file_id = file.name
-            if file_id not in existing_df_ids:
-                files_to_process.append(file)
-        
-        if files_to_process:
-            files_loaded = 0
-            
-            for file in files_to_process:
-                try:
-                    with st.spinner(f"'{file.name}' 처리 중..."):
-                        # 파일 읽기
-                        if file.name.endswith('.csv'):
-                            df = pd.read_csv(file)
+    if uploaded_file:
+        try:
+            with st.spinner("📊 데이터 로딩 중..."):
+                debug_log(f"📁 파일 업로드됨: {uploaded_file.name} ({uploaded_file.size} bytes)")
+                
+                # 성능 최적화 시스템 사용
+                if PERFORMANCE_OPTIMIZATION_AVAILABLE and 'performance_optimizer' in st.session_state:
+                    performance_optimizer = st.session_state.performance_optimizer
+                    debug_log("🚀 성능 최적화된 데이터 로딩 시작", "success")
+                else:
+                    performance_optimizer = None
+                    debug_log("⚠️ 성능 최적화 시스템 미사용", "warning")
+                
+                # 데이터 로딩
+                if uploaded_file.name.endswith('.csv'):
+                    df = pd.read_csv(uploaded_file)
+                elif uploaded_file.name.endswith(('.xlsx', '.xls')):
+                    df = pd.read_excel(uploaded_file)
+                elif uploaded_file.name.endswith('.json'):
+                    df = pd.read_json(uploaded_file)
+                else:
+                    st.error("지원하지 않는 파일 형식입니다.")
+                    return
+                
+                debug_log(f"✅ 데이터 로딩 완료: {df.shape}")
+                
+                # 성능 최적화 적용
+                if performance_optimizer and len(df) > 1000:  # 1000개 이상 레코드에 최적화 적용
+                    with st.spinner("⚡ 데이터 성능 최적화 중..."):
+                        try:
+                            optimized_df, optimization_stats = performance_optimizer.optimize_dataframe_processing(df, "general")
+                            df = optimized_df
+                            
+                            # 최적화 결과 표시
+                            if optimization_stats['memory_reduction_percent'] > 5:
+                                st.success(f"⚡ 메모리 사용량 {optimization_stats['memory_reduction_percent']:.1f}% 감소 "
+                                         f"({optimization_stats['memory_saved']:.1f}MB 절약)")
+                            
+                            debug_log(f"✅ 데이터 최적화 완료: {optimization_stats['memory_reduction_percent']:.1f}% 메모리 절약", "success")
+                        except Exception as e:
+                            debug_log(f"⚠️ 데이터 최적화 실패: {e}", "warning")
+                            # 최적화 실패 시 원본 데이터 사용
+                
+                # 대용량 데이터 처리 최적화
+                if len(df) > 50000:
+                    st.warning(f"📊 대용량 데이터셋 ({len(df):,}개 레코드) 감지 - 성능 최적화를 적용합니다.")
+                    
+                    if performance_optimizer:
+                        # 대용량 데이터를 위한 샘플링 적용
+                        if len(df) > 100000:
+                            sample_size = 50000
+                            df_sample = df.sample(n=sample_size, random_state=42)
+                            st.info(f"🎯 분석 속도 향상을 위해 {sample_size:,}개 레코드로 샘플링했습니다.")
+                            st.session_state.data = df_sample
+                            st.session_state.original_data = df  # 원본 데이터 보관
                         else:
-                            df = pd.read_excel(file)
+                            st.session_state.data = df
+                    else:
+                        st.session_state.data = df
+                else:
+                    st.session_state.data = df
+                
+                # UserFileTracker에 파일 등록
+                if PHASE4_SYSTEMS_AVAILABLE:
+                    try:
+                        user_file_tracker = get_user_file_tracker()
+                        file_id = f"{uploaded_file.name}_{int(time.time())}"
                         
-                        # DataManager에 추가 (자동으로 shared_dataframes에 저장됨)
-                        file_id = file.name
-                        data_manager.add_dataframe(data_id=file_id, data=df, source="File Upload")
-                        
-                        # 세션 기반 AI DS Team 환경 준비
-                        # 이 파일이 AI DS Team에서 사용될 예정이므로 세션에 추가
-                        session_id = session_data_manager.create_session_with_data(
-                            data_id=file_id,
-                            data=df,
-                            user_instructions="파일 업로드를 통한 데이터 로드"
+                        success = user_file_tracker.register_uploaded_file(
+                            file_id=file_id,
+                            original_name=uploaded_file.name,
+                            session_id=st.session_state.session_id,
+                            data=st.session_state.data,
+                            user_context=f"업로드된 데이터: {st.session_state.data.shape}"
                         )
                         
-                        # AI DS Team 환경 준비 (ai_ds_team/data/ 폴더에 파일 배치)
-                        env_info = session_data_manager.prepare_ai_ds_team_environment(session_id)
-                        
-                        files_loaded += 1
-                        debug_log(f"파일 업로드 성공: {file_id}, shape={df.shape}, session={session_id}")
-                        
-                        # 첫 번째 파일을 기본 데이터로 설정
-                        if not st.session_state.data_id:
-                            st.session_state.data_id = file_id
-                            st.session_state.uploaded_data = df
-                            st.session_state.current_session_id = session_id
+                        if success:
+                            debug_log(f"✅ UserFileTracker에 파일 등록: {file_id}", "success")
+                        else:
+                            debug_log("⚠️ UserFileTracker 파일 등록 실패", "warning")
                             
-                except Exception as e:
-                    st.error(f"'{file.name}' 로드 중 오류: {e}")
-                    debug_log(f"파일 업로드 실패: {file.name} - {e}", "error")
-            
-            if files_loaded > 0:
-                st.toast(f"✅ {files_loaded}개의 파일이 성공적으로 로드되었습니다!", icon="🎉")
-                st.success("🔄 AI DS Team 환경이 준비되었습니다. 이제 에이전트들이 올바른 데이터를 사용할 수 있습니다.")
-                st.rerun()
-        else:
-            # 모든 파일이 이미 로드됨
-            file_names = [f.name for f in uploaded_files]
-            if len(file_names) == 1:
-                st.info(f"'{file_names[0]}'는 이미 로드되어 있습니다.")
-            else:
-                st.info(f"선택된 {len(file_names)}개 파일이 모두 이미 로드되어 있습니다.")
+                    except Exception as e:
+                        debug_log(f"⚠️ UserFileTracker 등록 실패: {e}", "warning")
+                
+                # SessionDataManager에 데이터 저장
+                if hasattr(st.session_state, 'session_data_manager'):
+                    data_id = st.session_state.session_data_manager.store_dataframe(
+                        df=st.session_state.data,
+                        name=uploaded_file.name,
+                        description=f"업로드된 파일: {uploaded_file.name}"
+                    )
+                    debug_log(f"✅ SessionDataManager에 데이터 저장: {data_id}", "success")
+                
+                # 파일 정보 저장
+                st.session_state.uploaded_file_info = {
+                    'name': uploaded_file.name,
+                    'size': uploaded_file.size,
+                    'upload_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'shape': st.session_state.data.shape,
+                    'columns': list(st.session_state.data.columns),
+                    'optimized': performance_optimizer is not None and len(df) > 1000
+                }
+                
+                st.success(f"✅ 파일이 성공적으로 업로드되었습니다!")
+                
+                # 데이터 요약 표시
+                display_data_summary_ai_ds_team(st.session_state.data)
+                
+        except Exception as e:
+            st.error(f"❌ 파일 처리 중 오류가 발생했습니다: {str(e)}")
+            debug_log(f"❌ 파일 처리 오류: {e}", "error")
+            import traceback
+            debug_log(f"🔍 스택 트레이스: {traceback.format_exc()}", "error")
 
 def display_data_summary_ai_ds_team(data):
     """DataManager 기반 데이터 요약 표시"""
@@ -1712,7 +1801,7 @@ def main():
     # 에러 시스템을 앱에 통합
     integrate_error_system_to_app()
     
-    # 사이드바에 디버깅 제어 추가
+    # 사이드바에 디버깅 제어 및 성능 모니터링 추가
     with st.sidebar:
         st.markdown("### 🔧 시스템 설정")
         
@@ -1728,6 +1817,70 @@ def main():
             st.success("🐛 디버깅 모드 활성화")
         else:
             st.info("🔇 디버깅 메시지 숨김")
+        
+        # 성능 모니터링 대시보드
+        if PERFORMANCE_OPTIMIZATION_AVAILABLE:
+            st.markdown("### ⚡ 성능 모니터링")
+            
+            # 성능 최적화 시스템 상태
+            if 'performance_optimizer' in st.session_state:
+                optimizer = st.session_state.performance_optimizer
+                
+                # 실시간 시스템 메트릭
+                try:
+                    import psutil
+                    cpu_percent = psutil.cpu_percent(interval=0.1)
+                    memory = psutil.virtual_memory()
+                    
+                    # 메트릭 표시
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("CPU 사용률", f"{cpu_percent:.1f}%", 
+                                delta=None,
+                                delta_color="inverse" if cpu_percent > 80 else "normal")
+                    with col2:
+                        st.metric("메모리 사용률", f"{memory.percent:.1f}%",
+                                delta=None,
+                                delta_color="inverse" if memory.percent > 85 else "normal")
+                    
+                    # 사용 가능한 메모리
+                    available_gb = memory.available / (1024**3)
+                    st.metric("사용 가능 메모리", f"{available_gb:.1f}GB")
+                    
+                    # 성능 상태 표시
+                    if cpu_percent > 90 or memory.percent > 90:
+                        st.error("🚨 시스템 리소스 부족!")
+                    elif cpu_percent > 75 or memory.percent > 75:
+                        st.warning("⚠️ 리소스 사용량 높음")
+                    else:
+                        st.success("✅ 시스템 정상")
+                    
+                    # 성능 최적화 권장사항
+                    recommendations = optimizer.get_performance_recommendations()
+                    if recommendations and len(recommendations) > 1:  # "Start monitoring" 메시지 제외
+                        with st.expander("💡 성능 개선 권장사항"):
+                            for rec in recommendations:
+                                if "Start monitoring" not in rec:
+                                    st.info(f"• {rec}")
+                    
+                    # 수동 최적화 버튼
+                    if st.button("🚀 수동 최적화 실행", help="메모리 정리 및 성능 최적화를 수동으로 실행합니다"):
+                        with st.spinner("최적화 중..."):
+                            try:
+                                result = optimizer.optimize_memory()
+                                if result.success and result.improvement_percent > 0:
+                                    st.success(f"✅ 메모리 {result.improvement_percent:.1f}% 최적화 완료!")
+                                else:
+                                    st.info("ℹ️ 추가 최적화가 필요하지 않습니다.")
+                            except Exception as e:
+                                st.error(f"❌ 최적화 실패: {e}")
+                
+                except Exception as e:
+                    st.error(f"❌ 성능 모니터링 오류: {e}")
+            else:
+                st.warning("⚠️ 성능 최적화 시스템 미초기화")
+        else:
+            st.info("ℹ️ 성능 모니터링 비활성화")
     
     # 강화된 디버깅 로깅
     debug_log("🚀 Streamlit 애플리케이션 시작", "success")
@@ -1846,13 +1999,21 @@ def main():
         import traceback
         debug_log(f"🔍 스택 트레이스: {traceback.format_exc()}", "error")
         
-        # 향상된 에러 핸들링 시스템 사용
-        show_error(
-            e,
-            ErrorCategory.SYSTEM_ERROR,
-            ErrorSeverity.CRITICAL,
-            show_recovery=True
-        )
+        # 향상된 에러 핸들링 시스템 사용 (폴백)
+        if ENHANCED_ERROR_AVAILABLE:
+            try:
+                show_error(
+                    e,
+                    ErrorCategory.SYSTEM_ERROR,
+                    ErrorSeverity.CRITICAL,
+                    show_recovery=True
+                )
+            except:
+                st.error(f"시스템 오류가 발생했습니다: {str(e)}")
+                st.info("시스템을 다시 시작해보세요.")
+        else:
+            st.error(f"시스템 오류가 발생했습니다: {str(e)}")
+            st.info("시스템을 다시 시작해보세요.")
         
         # 기본 UI라도 표시
         st.title("🧬 AI DS Team")
@@ -2036,7 +2197,7 @@ class RealTimeStreamContainer:
             debug_log(f"❌ 스트리밍 완료 처리 오류: {e}", "error")
 
 async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> Dict[str, Any]:
-    """개별 에이전트 단계를 실행합니다 - 실시간 코드 스트리밍 개선"""
+    """개별 에이전트 단계를 실행합니다 - 통합 고급 시스템 (Phase 1-4) 활용"""
     start_time = time.time()
     
     try:
@@ -2045,16 +2206,88 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
         
         debug_log(f"🤖 {agent_name} 실행 시작", "info")
         
+        # Phase 1: Enhanced User File Management
+        session_data_manager = st.session_state.get('session_data_manager')
+        file_context = {}
+        current_data = None
+        
+        if session_data_manager:
+            try:
+                # 현재 세션의 적절한 파일 선택
+                file_path, reason = session_data_manager.get_file_for_a2a_agent(
+                    user_request=task_description,
+                    session_id=session_data_manager.get_current_session_id(),
+                    agent_name=agent_name
+                )
+                
+                if file_path:
+                    file_context = {
+                        "target_file": file_path,
+                        "selection_reason": reason,
+                        "session_id": session_data_manager.get_current_session_id()
+                    }
+                    debug_log(f"🎯 {agent_name}용 파일 선택: {file_path} ({reason})", "info")
+                    
+                    # Phase 4: Auto Data Profiling
+                    if PHASE4_SYSTEMS_AVAILABLE:
+                        try:
+                            import pandas as pd
+                            current_data = pd.read_csv(file_path)
+                            profiler = get_auto_data_profiler()
+                            data_profile = profiler.profile_data(
+                                current_data, 
+                                f"{agent_name}_data", 
+                                session_id
+                            )
+                            
+                            file_context["data_profile"] = {
+                                "quality_score": data_profile.quality_score,
+                                "shape": data_profile.shape,
+                                "missing_percentage": data_profile.missing_percentage,
+                                "key_insights": data_profile.key_insights[:3],
+                                "recommendations": data_profile.recommendations[:2]
+                            }
+                            
+                            debug_log(f"📊 데이터 프로파일링 완료: 품질 {data_profile.quality_score:.1%}", "success")
+                            
+                        except Exception as profile_error:
+                            debug_log(f"⚠️ 데이터 프로파일링 실패: {profile_error}", "warning")
+                    
+                    # task_description에 파일 정보 추가
+                    task_description += f"\n\n📁 **사용할 데이터 파일**: {file_path}\n💡 **선택 이유**: {reason}"
+                    
+                    if "data_profile" in file_context:
+                        profile_info = file_context["data_profile"]
+                        task_description += f"\n📊 **데이터 품질**: {profile_info['quality_score']:.1%} (크기: {profile_info['shape']})"
+                        if profile_info['key_insights']:
+                            task_description += f"\n🔍 **주요 인사이트**: {', '.join(profile_info['key_insights'])}"
+                        
+                else:
+                    debug_log(f"⚠️ {agent_name}용 적절한 파일을 찾지 못함", "warning")
+                    
+            except Exception as file_error:
+                debug_log(f"⚠️ {agent_name} 파일 선택 실패: {file_error}", "warning")
+        
         # 실시간 스트리밍 컨테이너 생성
         stream_container = RealTimeStreamContainer(f"🤖 {agent_name}")
         stream_container.initialize()
         
-        # A2A 클라이언트를 통해 에이전트 실행 with Enhanced Tracking
+        # Phase 4: Initialize Advanced Systems
         results = []
         artifacts = []
         code_chunks = []
+        executed_code_blocks = []
         
-        # Enhanced Tracking: 에이전트 통신 시작 로깅
+        # Initialize Advanced Code Tracker
+        code_tracker = None
+        if PHASE4_SYSTEMS_AVAILABLE:
+            try:
+                code_tracker = get_advanced_code_tracker()
+                debug_log(f"🔧 코드 추적기 초기화 완료", "info")
+            except Exception as tracker_error:
+                debug_log(f"⚠️ 코드 추적기 초기화 실패: {tracker_error}", "warning")
+        
+        # Enhanced Tracking: 에이전트 통신 시작 로깅 (파일 정보 포함)
         if ENHANCED_LANGFUSE_AVAILABLE:
             try:
                 enhanced_tracer = get_enhanced_tracer()
@@ -2065,7 +2298,8 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                     metadata={
                         "session_id": session_id,
                         "streaming": True,
-                        "start_time": start_time
+                        "start_time": start_time,
+                        "file_context": file_context  # 파일 컨텍스트 추가
                     }
                 )
             except Exception as tracking_error:
@@ -2106,6 +2340,42 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                             stream_container.add_code_chunk(text)
                             code_chunks.append(text)
                             
+                            # Phase 4: Advanced Code Tracking and Execution
+                            if code_tracker and PHASE4_SYSTEMS_AVAILABLE:
+                                try:
+                                    # 코드 추적 및 안전 실행
+                                    execution_result = await asyncio.to_thread(
+                                        code_tracker.track_and_execute,
+                                        code=text,
+                                        context={
+                                            "agent_name": agent_name,
+                                            "session_id": session_id,
+                                            "task_description": task_description,
+                                            "file_context": file_context,
+                                            "data": current_data if current_data is not None else {}
+                                        },
+                                        safe_execution=True
+                                    )
+                                    
+                                    if execution_result.success:
+                                        executed_code_blocks.append({
+                                            "code": text,
+                                            "result": execution_result.result,
+                                            "execution_time": execution_result.execution_time,
+                                            "memory_usage": execution_result.memory_usage
+                                        })
+                                        debug_log(f"✅ 코드 실행 성공: {execution_result.execution_time:.2f}초", "success")
+                                        
+                                        # 실행 결과를 실시간으로 표시
+                                        if execution_result.result:
+                                            with st.expander(f"📊 코드 실행 결과 #{len(executed_code_blocks)}", expanded=False):
+                                                st.code(str(execution_result.result), language="python")
+                                    else:
+                                        debug_log(f"⚠️ 코드 실행 실패: {execution_result.error}", "warning")
+                                        
+                                except Exception as exec_error:
+                                    debug_log(f"⚠️ 코드 추적/실행 실패: {exec_error}", "warning")
+                            
                             # Enhanced Tracking: 코드 생성 추적
                             if ENHANCED_LANGFUSE_AVAILABLE:
                                 try:
@@ -2116,7 +2386,8 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                                         metadata={
                                             "agent_name": agent_name,
                                             "chunk_index": len(code_chunks),
-                                            "streaming": True
+                                            "streaming": True,
+                                            "executed": len(executed_code_blocks) > 0
                                         }
                                     )
                                 except Exception as tracking_error:
@@ -2184,15 +2455,72 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
         
         processing_time = time.time() - start_time
         
-        return {
+        # Phase 4: Intelligent Result Interpretation
+        interpreted_results = None
+        if PHASE4_SYSTEMS_AVAILABLE and (artifacts or executed_code_blocks):
+            try:
+                interpreter = get_intelligent_result_interpreter()
+                
+                # 결과 데이터 준비
+                analysis_data = {
+                    "agent_name": agent_name,
+                    "task_description": task_description,
+                    "artifacts": artifacts,
+                    "executed_code_blocks": executed_code_blocks,
+                    "processing_time": processing_time,
+                    "file_context": file_context,
+                    "session_id": session_id
+                }
+                
+                # 결과 해석 수행
+                interpreted_results = await asyncio.to_thread(
+                    interpreter.interpret_results,
+                    analysis_data
+                )
+                
+                # 해석된 결과 표시
+                if interpreted_results:
+                    with st.expander(f"🧠 {agent_name} 결과 해석 및 추천사항", expanded=True):
+                        st.markdown(f"**📝 요약**: {interpreted_results.summary}")
+                        st.markdown(f"**🎯 핵심 발견사항**: {interpreted_results.key_findings}")
+                        if interpreted_results.recommendations:
+                            st.markdown("**💡 추천사항**:")
+                            for i, rec in enumerate(interpreted_results.recommendations, 1):
+                                st.markdown(f"  {i}. {rec}")
+                        
+                        # 신뢰도 표시
+                        confidence_color = "green" if interpreted_results.confidence > 0.8 else "orange" if interpreted_results.confidence > 0.6 else "red"
+                        st.markdown(f"**📊 분석 신뢰도**: :{confidence_color}[{interpreted_results.confidence:.1%}]")
+                
+                debug_log(f"🧠 결과 해석 완료: 신뢰도 {interpreted_results.confidence:.1%}", "success")
+                
+            except Exception as interpretation_error:
+                debug_log(f"⚠️ 결과 해석 실패: {interpretation_error}", "warning")
+        
+        # 통합된 결과 반환
+        final_result = {
             "success": True,
             "agent_name": agent_name,
             "artifacts": artifacts,
             "processing_time": processing_time,
             "data_points": len(results),
             "code_chunks": code_chunks,
+            "executed_code_blocks": executed_code_blocks,
+            "file_context": file_context,
             "confidence": 0.9 if artifacts else 0.7
         }
+        
+        # 해석된 결과가 있으면 추가
+        if interpreted_results:
+            final_result.update({
+                "interpreted_summary": interpreted_results.summary,
+                "key_findings": interpreted_results.key_findings,
+                "recommendations": interpreted_results.recommendations,
+                "interpretation_confidence": interpreted_results.confidence,
+                "confidence": max(final_result["confidence"], interpreted_results.confidence)
+            })
+        
+        return final_result
         
     except Exception as e:
         processing_time = time.time() - start_time

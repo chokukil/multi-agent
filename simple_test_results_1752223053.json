@@ -1,0 +1,31 @@
+{
+  "test_start": "2025-07-11T17:37:32.773767",
+  "tests": [
+    {
+      "name": "Streamlit 접근",
+      "success": true,
+      "details": "상태코드: 200, 크기: 1522bytes",
+      "timestamp": "2025-07-11T17:37:32.786424"
+    },
+    {
+      "name": "A2A 서버 상태",
+      "success": true,
+      "details": "10/11 서버 활성",
+      "timestamp": "2025-07-11T17:37:32.838109"
+    },
+    {
+      "name": "시스템 구성 요소",
+      "success": false,
+      "details": "0/9 모듈 정상",
+      "timestamp": "2025-07-11T17:37:33.264143"
+    },
+    {
+      "name": "파일 시스템",
+      "success": true,
+      "details": "9/9 항목 확인",
+      "timestamp": "2025-07-11T17:37:33.264383"
+    }
+  ],
+  "overall_success": false,
+  "errors": []
+}

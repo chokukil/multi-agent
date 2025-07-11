@@ -1,0 +1,11 @@
+{
+  "file_id": "test_sample_data.csv",
+  "original_name": "employee_data.csv",
+  "uploaded_at": "2025-07-11T16:50:29.052388",
+  "user_context": "테스트용 직원 데이터",
+  "data_shape": [
+    15,
+    9
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/test_session_001_employee_data.csv"
+}

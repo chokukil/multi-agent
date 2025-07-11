@@ -1,0 +1,32 @@
+[
+  {
+    "id":1,
+    "name":"Alice",
+    "score":85.5,
+    "category":"A"
+  },
+  {
+    "id":2,
+    "name":"Bob",
+    "score":92.0,
+    "category":"B"
+  },
+  {
+    "id":3,
+    "name":"Charlie",
+    "score":78.5,
+    "category":"A"
+  },
+  {
+    "id":4,
+    "name":"David",
+    "score":96.5,
+    "category":"C"
+  },
+  {
+    "id":5,
+    "name":"Eve",
+    "score":88.0,
+    "category":"B"
+  }
+]

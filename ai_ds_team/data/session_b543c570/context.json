@@ -1,0 +1,10 @@
+{
+  "user_instructions": "영속성 테스트",
+  "data_id": "persistence_test.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-11T15:12:57.820079",
+  "file_path": "ai_ds_team/data/session_b543c570/persistence_test.csv"
+}

@@ -1,0 +1,38 @@
+{
+  "test_start": "2025-07-11T17:43:51.302009",
+  "tests": [
+    {
+      "name": "서버 장애 복구",
+      "success": false,
+      "details": "복구파일: 1, 스크립트: True, 활성서버: 10",
+      "timestamp": "2025-07-11T17:43:51.348765"
+    },
+    {
+      "name": "네트워크 오류 처리",
+      "success": false,
+      "details": "처리된시나리오: 4/4, 오류처리파일: 1",
+      "timestamp": "2025-07-11T17:43:51.354144"
+    },
+    {
+      "name": "데이터 손상 복구",
+      "success": true,
+      "details": "복구테스트: 2/3, 검증메커니즘: 1",
+      "timestamp": "2025-07-11T17:43:51.357106"
+    },
+    {
+      "name": "시스템 리부팅 복구",
+      "success": true,
+      "details": "스크립트기능: 9/5, 지속저장소: 4/4",
+      "timestamp": "2025-07-11T17:43:51.357317"
+    },
+    {
+      "name": "로그 및 상태 복구",
+      "success": false,
+      "details": "로그디렉터리: 3, 상태메커니즘: 2, 로그파일: 328, 결과파일: 2",
+      "timestamp": "2025-07-11T17:43:51.359988"
+    }
+  ],
+  "overall_success": false,
+  "errors": [],
+  "recovery_scenarios": []
+}

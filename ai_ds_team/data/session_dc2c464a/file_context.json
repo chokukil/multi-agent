@@ -1,0 +1,11 @@
+{
+  "file_id": "env_test.csv",
+  "original_name": "env_test.csv",
+  "uploaded_at": "2025-07-11T15:12:57.782156",
+  "user_context": "환경 준비 테스트",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_dc2c464a_env_test.csv"
+}

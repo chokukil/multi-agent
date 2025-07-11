@@ -1,0 +1,10 @@
+{
+  "user_instructions": "컨텍스트 테스트용 데이터",
+  "data_id": "context_test.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-11T15:12:57.941097",
+  "file_path": "ai_ds_team/data/session_a7bceeb3/context_test.csv"
+}

@@ -1,0 +1,426 @@
+{
+  "tracked_files": {
+    "test_integration.csv": {
+      "file_id": "test_integration.csv",
+      "original_name": "test_integration.csv",
+      "session_id": "session_bd3e9585",
+      "uploaded_at": "2025-07-11T15:12:57.681684",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "통합 테스트용 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_bd3e9585/test_integration.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_bd3e9585_test_integration.csv"
+      }
+    },
+    "test_smart.csv": {
+      "file_id": "test_smart.csv",
+      "original_name": "test_smart.csv",
+      "session_id": "session_fb1cc1a0",
+      "uploaded_at": "2025-07-11T15:12:57.722205",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "스마트 선택 테스트",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_fb1cc1a0/test_smart.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_fb1cc1a0_test_smart.csv"
+      }
+    },
+    "fallback_test.csv": {
+      "file_id": "fallback_test.csv",
+      "original_name": "fallback_test.csv",
+      "session_id": "session_3e711929",
+      "uploaded_at": "2025-07-11T15:12:57.737515",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "fallback 테스트",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_3e711929/fallback_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_3e711929_fallback_test.csv"
+      }
+    },
+    "a2a_test.csv": {
+      "file_id": "a2a_test.csv",
+      "original_name": "a2a_test.csv",
+      "session_id": "session_5d2db9ab",
+      "uploaded_at": "2025-07-11T15:12:57.753056",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "A2A 에이전트 테스트",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_5d2db9ab/a2a_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_5d2db9ab_a2a_test.csv"
+      }
+    },
+    "env_test.csv": {
+      "file_id": "env_test.csv",
+      "original_name": "env_test.csv",
+      "session_id": "session_dc2c464a",
+      "uploaded_at": "2025-07-11T15:12:57.782156",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "환경 준비 테스트",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_dc2c464a/env_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_dc2c464a_env_test.csv"
+      }
+    },
+    "persistence_test.csv": {
+      "file_id": "persistence_test.csv",
+      "original_name": "persistence_test.csv",
+      "session_id": "session_b543c570",
+      "uploaded_at": "2025-07-11T15:12:57.818912",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "영속성 테스트",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_b543c570/persistence_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_b543c570_persistence_test.csv"
+      }
+    },
+    "session1_data.csv": {
+      "file_id": "session1_data.csv",
+      "original_name": "session1_data.csv",
+      "session_id": "session_660a90e7",
+      "uploaded_at": "2025-07-11T15:12:57.838390",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "첫 번째 세션",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_660a90e7/session1_data.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_660a90e7_session1_data.csv"
+      }
+    },
+    "session2_data.xlsx": {
+      "file_id": "session2_data.xlsx",
+      "original_name": "session2_data.xlsx",
+      "session_id": "session_7d5c3241",
+      "uploaded_at": "2025-07-11T15:12:57.912069",
+      "file_size": 730,
+      "file_type": ".xlsx",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "두 번째 세션",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_7d5c3241/session2_data.xlsx",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_7d5c3241_session2_data.xlsx"
+      }
+    },
+    "session3_data.json": {
+      "file_id": "session3_data.json",
+      "original_name": "session3_data.json",
+      "session_id": "session_28431117",
+      "uploaded_at": "2025-07-11T15:12:57.922028",
+      "file_size": 730,
+      "file_type": ".json",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "세 번째 세션",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_28431117/session3_data.json",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_28431117_session3_data.json"
+      }
+    },
+    "context_test.csv": {
+      "file_id": "context_test.csv",
+      "original_name": "context_test.csv",
+      "session_id": "session_a7bceeb3",
+      "uploaded_at": "2025-07-11T15:12:57.940113",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "컨텍스트 테스트용 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_a7bceeb3/context_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_a7bceeb3_context_test.csv"
+      }
+    },
+    "first_file.csv": {
+      "file_id": "first_file.csv",
+      "original_name": "first_file.csv",
+      "session_id": "session_782643c0",
+      "uploaded_at": "2025-07-11T15:12:57.953822",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "첫 번째 파일",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_782643c0/first_file.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_782643c0_first_file.csv"
+      }
+    },
+    "second_file.csv": {
+      "file_id": "second_file.csv",
+      "original_name": "second_file.csv",
+      "session_id": "session_782643c0",
+      "uploaded_at": "2025-07-11T15:12:57.956404",
+      "file_size": 730,
+      "file_type": ".csv",
+      "data_shape": [
+        5,
+        4
+      ],
+      "is_active": true,
+      "user_context": "두 번째 파일",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_782643c0/second_file.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_782643c0_second_file.csv"
+      }
+    },
+    "empty.csv": {
+      "file_id": "empty.csv",
+      "original_name": "empty.csv",
+      "session_id": "session_5be1dfa2",
+      "uploaded_at": "2025-07-11T17:33:42.649670",
+      "file_size": 132,
+      "file_type": ".csv",
+      "data_shape": [
+        0,
+        0
+      ],
+      "is_active": true,
+      "user_context": "기존 데이터로부터 세션 복구",
+      "file_paths": {
+        "session": "ai_ds_team/data/session_5be1dfa2/empty.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_5be1dfa2_empty.csv"
+      }
+    },
+    "test_sample_data.csv": {
+      "file_id": "test_sample_data.csv",
+      "original_name": "employee_data.csv",
+      "session_id": "test_session_001",
+      "uploaded_at": "2025-07-11T16:50:29.052388",
+      "file_size": 4146,
+      "file_type": ".csv",
+      "data_shape": [
+        15,
+        9
+      ],
+      "is_active": true,
+      "user_context": "테스트용 직원 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/test_session_001/employee_data.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/test_session_001_employee_data.csv"
+      }
+    },
+    "test_data.csv": {
+      "file_id": "test_data.csv",
+      "original_name": "test_data.csv",
+      "session_id": "test_session_1752221604",
+      "uploaded_at": "2025-07-11T17:13:24.895213",
+      "file_size": 342,
+      "file_type": ".csv",
+      "data_shape": [
+        3,
+        3
+      ],
+      "is_active": true,
+      "user_context": "통신 테스트용 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/test_session_1752221604/test_data.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/test_session_1752221604_test_data.csv"
+      }
+    },
+    "large_dataset_1000.csv": {
+      "file_id": "large_dataset_1000.csv",
+      "original_name": "performance_test_1000_records.csv",
+      "session_id": "perf_test_1752226415",
+      "uploaded_at": "2025-07-11T18:33:35.784955",
+      "file_size": 310219,
+      "file_type": ".csv",
+      "data_shape": [
+        1000,
+        15
+      ],
+      "is_active": true,
+      "user_context": "성능 테스트용 1,000개 레코드 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/perf_test_1752226415/performance_test_1000_records.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/perf_test_1752226415_performance_test_1000_records.csv"
+      }
+    },
+    "large_dataset_5000.csv": {
+      "file_id": "large_dataset_5000.csv",
+      "original_name": "performance_test_5000_records.csv",
+      "session_id": "perf_test_1752226416",
+      "uploaded_at": "2025-07-11T18:33:36.374629",
+      "file_size": 1548938,
+      "file_type": ".csv",
+      "data_shape": [
+        5000,
+        15
+      ],
+      "is_active": true,
+      "user_context": "성능 테스트용 5,000개 레코드 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/perf_test_1752226416/performance_test_5000_records.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/perf_test_1752226416_performance_test_5000_records.csv"
+      }
+    },
+    "large_dataset_10000.csv": {
+      "file_id": "large_dataset_10000.csv",
+      "original_name": "performance_test_10000_records.csv",
+      "session_id": "perf_test_1752226416",
+      "uploaded_at": "2025-07-11T18:33:36.600491",
+      "file_size": 3098538,
+      "file_type": ".csv",
+      "data_shape": [
+        10000,
+        15
+      ],
+      "is_active": true,
+      "user_context": "성능 테스트용 10,000개 레코드 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/perf_test_1752226416/performance_test_10000_records.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/perf_test_1752226416_performance_test_10000_records.csv"
+      }
+    },
+    "large_dataset_25000.csv": {
+      "file_id": "large_dataset_25000.csv",
+      "original_name": "performance_test_25000_records.csv",
+      "session_id": "perf_test_1752226416",
+      "uploaded_at": "2025-07-11T18:33:36.927006",
+      "file_size": 7744620,
+      "file_type": ".csv",
+      "data_shape": [
+        25000,
+        15
+      ],
+      "is_active": true,
+      "user_context": "성능 테스트용 25,000개 레코드 데이터",
+      "file_paths": {
+        "session": "ai_ds_team/data/perf_test_1752226416/performance_test_25000_records.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/perf_test_1752226416_performance_test_25000_records.csv"
+      }
+    }
+  },
+  "session_files": {
+    "session_bd3e9585": [
+      "test_integration.csv"
+    ],
+    "session_fb1cc1a0": [
+      "test_smart.csv"
+    ],
+    "session_3e711929": [
+      "fallback_test.csv"
+    ],
+    "session_5d2db9ab": [
+      "a2a_test.csv"
+    ],
+    "session_dc2c464a": [
+      "env_test.csv"
+    ],
+    "session_b543c570": [
+      "persistence_test.csv"
+    ],
+    "session_660a90e7": [
+      "session1_data.csv"
+    ],
+    "session_7d5c3241": [
+      "session2_data.xlsx"
+    ],
+    "session_28431117": [
+      "session3_data.json"
+    ],
+    "session_a7bceeb3": [
+      "context_test.csv"
+    ],
+    "session_782643c0": [
+      "first_file.csv",
+      "second_file.csv"
+    ],
+    "session_3ce595aa": [
+      "empty.csv"
+    ],
+    "session_c1a67a43": [
+      "empty.csv"
+    ],
+    "test_session_001": [
+      "test_sample_data.csv"
+    ],
+    "test_session_1752221510": [
+      "test_data.csv"
+    ],
+    "test_session_1752221604": [
+      "test_data.csv"
+    ],
+    "perf_test_1752221978": [
+      "large_dataset_1000.csv"
+    ],
+    "perf_test_1752221979": [
+      "large_dataset_5000.csv",
+      "large_dataset_10000.csv",
+      "large_dataset_25000.csv"
+    ],
+    "session_5be1dfa2": [
+      "empty.csv"
+    ],
+    "perf_test_1752226040": [
+      "large_dataset_1000.csv",
+      "large_dataset_5000.csv",
+      "large_dataset_10000.csv"
+    ],
+    "perf_test_1752226041": [
+      "large_dataset_25000.csv"
+    ],
+    "perf_test_1752226415": [
+      "large_dataset_1000.csv"
+    ],
+    "perf_test_1752226416": [
+      "large_dataset_5000.csv",
+      "large_dataset_10000.csv",
+      "large_dataset_25000.csv"
+    ]
+  },
+  "current_session_id": "perf_test_1752226416",
+  "last_updated": "2025-07-11T18:33:37.189709"
+}

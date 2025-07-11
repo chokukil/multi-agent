@@ -1,0 +1,19 @@
+{
+  "session_id": "session_c1a67a43",
+  "created_at": "2025-07-11T16:46:33.160660",
+  "last_activity": "2025-07-11T16:46:33.160665",
+  "uploaded_files": [
+    {
+      "data_id": "empty.csv",
+      "uploaded_at": "2025-07-11T16:46:33.146254",
+      "file_size": 132,
+      "file_type": ".csv",
+      "user_context": "기존 데이터로부터 세션 복구",
+      "domain": null,
+      "original_name": "empty.csv"
+    }
+  ],
+  "active_file": "empty.csv",
+  "auto_cleanup_at": "2025-07-12T16:46:33.160660",
+  "status": "active"
+}

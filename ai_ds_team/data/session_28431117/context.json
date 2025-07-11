@@ -1,0 +1,10 @@
+{
+  "user_instructions": "세 번째 세션",
+  "data_id": "session3_data.json",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-11T15:12:57.922901",
+  "file_path": "ai_ds_team/data/session_28431117/session3_data.json.csv"
+}

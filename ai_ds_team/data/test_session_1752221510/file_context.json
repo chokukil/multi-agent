@@ -1,0 +1,11 @@
+{
+  "file_id": "test_data.csv",
+  "original_name": "test_data.csv",
+  "uploaded_at": "2025-07-11T17:11:50.471055",
+  "user_context": "통신 테스트용 데이터",
+  "data_shape": [
+    3,
+    3
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/test_session_1752221510_test_data.csv"
+}

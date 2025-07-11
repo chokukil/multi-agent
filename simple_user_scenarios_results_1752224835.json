@@ -1,0 +1,30 @@
+{
+  "test_start": "2025-07-11T18:07:15.159966",
+  "tests": [
+    {
+      "name": "CSV 데이터 분석",
+      "success": true,
+      "details": "레코드: 100, 통계: 2",
+      "timestamp": "2025-07-11T18:07:15.162601"
+    },
+    {
+      "name": "Excel 데이터 분석",
+      "success": "True",
+      "details": "매출: 8,080,000, 평균이익: 475,000",
+      "timestamp": "2025-07-11T18:07:15.162811"
+    },
+    {
+      "name": "JSON 데이터 분석",
+      "success": true,
+      "details": "평균응답시간: 195.0ms, 상태코드: 2",
+      "timestamp": "2025-07-11T18:07:15.163156"
+    },
+    {
+      "name": "대용량 데이터 처리",
+      "success": true,
+      "details": "크기: 10000, 생성: 0.00s, 분석: 0.00s",
+      "timestamp": "2025-07-11T18:07:15.175717"
+    }
+  ],
+  "overall_success": true
+}

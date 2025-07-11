@@ -1,0 +1,10 @@
+{
+  "user_instructions": "통합 테스트용 데이터",
+  "data_id": "test_integration.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-11T15:12:57.683810",
+  "file_path": "ai_ds_team/data/session_bd3e9585/test_integration.csv"
+}

@@ -11,6 +11,14 @@ import logging
 from dataclasses import dataclass, asdict
 from core.data_manager import DataManager
 
+# UserFileTracker 통합
+try:
+    from core.user_file_tracker import get_user_file_tracker
+    USER_FILE_TRACKER_AVAILABLE = True
+except ImportError:
+    USER_FILE_TRACKER_AVAILABLE = False
+    logging.warning("UserFileTracker not available")
+
 # AI DS Team data directory for session-based data
 AI_DS_TEAM_DATA_DIR = Path("ai_ds_team/data")
 AI_DS_TEAM_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,15 +51,21 @@ class SessionMetadata:
 
 class SessionDataManager:
     """
-    세션 기반 데이터 관리자 (Enhanced)
+    세션 기반 데이터 관리자 (Enhanced with UserFileTracker)
     AI DS Team과 완벽하게 통합되어 세션별로 데이터와 컨텍스트를 관리합니다.
-    스마트 파일 선택, 중복 처리, 생명주기 관리 기능이 포함되어 있습니다.
+    UserFileTracker와 통합하여 A2A 에이전트들이 올바른 파일을 사용하도록 합니다.
     """
     
     def __init__(self):
         self.data_manager = DataManager()
         self._current_session_id: Optional[str] = None
         self._session_metadata: Dict[str, SessionMetadata] = {}
+        
+        # UserFileTracker 통합
+        if USER_FILE_TRACKER_AVAILABLE:
+            self.user_file_tracker = get_user_file_tracker()
+        else:
+            self.user_file_tracker = None
         
         # 세션 메타데이터 저장 디렉토리
         self._metadata_dir = Path("sessions_metadata")
@@ -63,12 +77,12 @@ class SessionDataManager:
         # 기존 세션 메타데이터 로드
         self._load_existing_sessions()
         
-        logging.info("Enhanced SessionDataManager initialized")
+        logging.info("Enhanced SessionDataManager initialized with UserFileTracker integration")
 
     def _initialize_default_data(self):
         """기본 AI DS Team 데이터 폴더 초기화"""
         default_dir = AI_DS_TEAM_DATA_DIR / "default"
-        default_dir.mkdir(exist_ok=True)
+        default_dir.mkdir(parents=True, exist_ok=True)
         
         # 기존 샘플 데이터를 default 폴더로 이동
         sample_files = [
@@ -178,10 +192,22 @@ class SessionDataManager:
         return None
 
     def smart_file_selection(self, user_request: str, session_id: Optional[str] = None) -> Tuple[Optional[str], str]:
-        """스마트 파일 선택 로직"""
+        """스마트 파일 선택 로직 (UserFileTracker 통합)"""
         if session_id is None:
             session_id = self._current_session_id
         
+        # UserFileTracker를 우선 사용
+        if self.user_file_tracker:
+            file_path, reason = self.user_file_tracker.get_file_for_a2a_request(
+                user_request=user_request,
+                session_id=session_id
+            )
+            if file_path:
+                # 파일 경로에서 파일명 추출
+                file_name = os.path.basename(file_path)
+                return file_name, f"UserFileTracker: {reason}"
+        
+        # Fallback: 기존 로직
         if not session_id or session_id not in self._session_metadata:
             return None, "세션을 찾을 수 없음"
         
@@ -210,7 +236,7 @@ class SessionDataManager:
 
     def create_session_with_data(self, data_id: str, data: pd.DataFrame, 
                                 user_instructions: str, session_id: Optional[str] = None) -> str:
-        """데이터와 함께 새로운 세션 생성 (Enhanced)"""
+        """데이터와 함께 새로운 세션 생성 (Enhanced with UserFileTracker)"""
         if session_id is None:
             session_id = f"session_{uuid.uuid4().hex[:8]}"
         
@@ -246,6 +272,20 @@ class SessionDataManager:
             # 기본적으로 CSV로 저장
             file_path = session_dir / f"{data_id}.csv"
             data.to_csv(file_path, index=False)
+        
+        # 🔥 UserFileTracker에 등록 (A2A 에이전트 호환성)
+        if self.user_file_tracker:
+            success = self.user_file_tracker.register_uploaded_file(
+                file_id=data_id,
+                original_name=data_id,
+                session_id=session_id,
+                data=data,
+                user_context=user_instructions
+            )
+            if success:
+                logging.info(f"✅ File registered in UserFileTracker: {data_id}")
+            else:
+                logging.warning(f"⚠️ Failed to register file in UserFileTracker: {data_id}")
         
         # 세션 메타데이터 생성 또는 업데이트
         if session_id in self._session_metadata:
@@ -383,7 +423,7 @@ class SessionDataManager:
 
     # 기존 메서드들 (하위 호환성)
     def prepare_ai_ds_team_environment(self, session_id: Optional[str] = None) -> Dict[str, Any]:
-        """AI DS Team 에이전트가 사용할 환경 준비"""
+        """AI DS Team 에이전트가 사용할 환경 준비 (UserFileTracker 통합)"""
         if session_id is None:
             session_id = self._current_session_id
         
@@ -413,11 +453,22 @@ class SessionDataManager:
                     except Exception as e:
                         logging.warning(f"Failed to copy {file_path.name}: {e}")
         
+        # 🔥 A2A 공유 경로 정보도 포함
+        shared_data_info = {}
+        if self.user_file_tracker:
+            files_info = self.user_file_tracker.get_session_files_info(session_id)
+            if files_info:
+                shared_data_info = {
+                    "available_files": files_info,
+                    "shared_path": "a2a_ds_servers/artifacts/data/shared_dataframes"
+                }
+        
         return {
             "session_id": session_id,
             "data_directory": str(session_dir),
             "context": context,
-            "main_data_directory": str(main_data_dir)
+            "main_data_directory": str(main_data_dir),
+            "shared_data_info": shared_data_info  # A2A 에이전트용 정보 추가
         }
 
     def get_current_session_id(self) -> Optional[str]:
@@ -441,3 +492,34 @@ class SessionDataManager:
                     "file_path": f"ai_ds_team/data/{session_id}/{latest_file.data_id}"
                 }
         return None
+
+    def get_file_for_a2a_agent(self, user_request: str, session_id: Optional[str] = None, agent_name: Optional[str] = None) -> Tuple[Optional[str], str]:
+        """A2A 에이전트가 사용할 파일 경로 반환"""
+        if self.user_file_tracker:
+            return self.user_file_tracker.get_file_for_a2a_request(
+                user_request=user_request,
+                session_id=session_id,
+                agent_name=agent_name
+            )
+        else:
+            # Fallback: 기존 로직으로 파일 선택
+            file_name, reason = self.smart_file_selection(user_request, session_id)
+            if file_name:
+                # shared_dataframes 경로에서 파일 찾기
+                shared_path = Path("a2a_ds_servers/artifacts/data/shared_dataframes")
+                potential_files = [
+                    shared_path / file_name,
+                    shared_path / f"{session_id or 'unknown'}_{file_name}",
+                ]
+                
+                for file_path in potential_files:
+                    if file_path.exists():
+                        return str(file_path), reason
+                
+                # 세션 경로에서 찾기
+                if session_id:
+                    session_file_path = AI_DS_TEAM_DATA_DIR / session_id / file_name
+                    if session_file_path.exists():
+                        return str(session_file_path), reason
+            
+            return None, "A2A 에이전트용 파일을 찾을 수 없음"

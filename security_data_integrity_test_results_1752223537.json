@@ -1,0 +1,38 @@
+{
+  "test_start": "2025-07-11T17:45:37.912772",
+  "tests": [
+    {
+      "name": "파일 업로드 보안",
+      "success": true,
+      "details": "보안메커니즘: 3/4, 안전디렉터리: 3/3",
+      "timestamp": "2025-07-11T17:45:37.921182"
+    },
+    {
+      "name": "A2A 통신 보안",
+      "success": true,
+      "details": "안전서버: 10/10, 보안코드: 2",
+      "timestamp": "2025-07-11T17:45:37.953764"
+    },
+    {
+      "name": "데이터 저장 무결성",
+      "success": false,
+      "details": "체크섬검증: False, 세션무결성: 0/5",
+      "timestamp": "2025-07-11T17:45:37.956303"
+    },
+    {
+      "name": "세션 보안",
+      "success": false,
+      "details": "보안메커니즘: 2, 격리구조: 1",
+      "timestamp": "2025-07-11T17:45:37.964736"
+    },
+    {
+      "name": "시스템 접근 제어",
+      "success": true,
+      "details": "안전파일: 4, 접근가능서비스: 2, 로그보안: 3",
+      "timestamp": "2025-07-11T17:45:37.971023"
+    }
+  ],
+  "overall_success": false,
+  "errors": [],
+  "security_findings": []
+}

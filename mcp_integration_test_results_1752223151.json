@@ -1,0 +1,79 @@
+{
+  "test_start": "2025-07-11T17:39:11.566353",
+  "tests": [
+    {
+      "name": "MCP 설정 파일",
+      "success": false,
+      "details": "0/9 설정 유효",
+      "timestamp": "2025-07-11T17:39:11.567430"
+    },
+    {
+      "name": "CherryAI-MCP 통합",
+      "success": false,
+      "details": "오류: numpy.dtype size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject",
+      "timestamp": "2025-07-11T17:39:11.637576"
+    },
+    {
+      "name": "MCP 도구 관리 모듈",
+      "success": false,
+      "details": "3개 함수 테스트 완료",
+      "timestamp": "2025-07-11T17:39:11.640018"
+    },
+    {
+      "name": "UI MCP 통합",
+      "success": false,
+      "details": "오류: numpy.dtype size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject",
+      "timestamp": "2025-07-11T17:39:11.928467"
+    }
+  ],
+  "overall_success": false,
+  "errors": [],
+  "mcp_configs": [
+    {
+      "file": "visualization_expert_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "ml_specialist_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "data_validator_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "statistical_analyst_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "report_writer_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "data_preprocessor_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "report_generator_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "preprocessing_expert_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    },
+    {
+      "file": "eda_analyst_tools.json",
+      "valid": false,
+      "error": "필수 필드 누락"
+    }
+  ],
+  "server_status": {}
+}
