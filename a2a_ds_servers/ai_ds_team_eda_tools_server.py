@@ -8,7 +8,11 @@ import asyncio
 import sys
 import os
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
+from datetime import datetime
+import pandas as pd
+import json
+import tempfile
 
 # 프로젝트 루트 경로 추가
 project_root = Path(__file__).parent.parent
@@ -75,6 +79,58 @@ class SessionEDAToolsAgentExecutor(AgentExecutor):
             "data_reference": data_reference
         }
 
+    async def _generate_profiling_report(self, df: pd.DataFrame, user_instructions: str) -> Optional[str]:
+        """ydata-profiling HTML 리포트 생성"""
+        try:
+            logger.info("🔍 ydata-profiling 리포트 생성 시작...")
+            logger.info(f"📊 DataFrame 정보: shape={df.shape}, columns={list(df.columns)}")
+            
+            # ydata-profiling 리포트 생성
+            from ydata_profiling import ProfileReport
+            logger.info("✅ ydata-profiling 모듈 import 성공")
+            
+            # 임시 파일 생성
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as tmp_file:
+                html_file_path = tmp_file.name
+            logger.info(f"📁 임시 HTML 파일 생성: {html_file_path}")
+            
+            # ProfileReport 생성
+            logger.info("📊 ydata-profiling ProfileReport 생성 중...")
+            profile = ProfileReport(
+                df, 
+                title="EDA Profiling Report",
+                explorative=True,
+                minimal=False  # 전체 리포트 생성
+            )
+            logger.info("✅ ProfileReport 생성 완료")
+            
+            logger.info("💾 HTML 파일 저장 중...")
+            profile.to_file(html_file_path)
+            logger.info("✅ HTML 파일 저장 완료")
+            
+            # 파일 크기 확인
+            file_size = os.path.getsize(html_file_path)
+            logger.info(f"📏 HTML 파일 크기: {file_size:,} bytes")
+            
+            # HTML 파일 읽기
+            logger.info("📖 HTML 파일 읽기 중...")
+            with open(html_file_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            logger.info(f"✅ HTML 내용 길이: {len(html_content):,} 문자")
+            
+            # 임시 파일 삭제
+            os.unlink(html_file_path)
+            logger.info("🗑️ 임시 파일 삭제 완료")
+            
+            logger.info("✅ ydata-profiling 리포트 생성 전체 완료")
+            return html_content
+            
+        except Exception as e:
+            logger.error(f"❌ ydata-profiling 리포트 생성 실패: {e}")
+            import traceback
+            logger.error(f"❌ 상세 오류 정보: {traceback.format_exc()}")
+            return None
+
     async def execute(self, context: RequestContext, event_queue) -> None:
         """Enhanced EDA 분석 실행"""
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
@@ -140,11 +196,36 @@ class SessionEDAToolsAgentExecutor(AgentExecutor):
                         else:
                             result_text = str(result)
                         
+                        # ydata-profiling HTML 리포트 생성
+                        await task_updater.update_status(
+                            TaskState.working,
+                            message=new_agent_text_message("📊 ydata-profiling 리포트를 생성하고 있습니다...")
+                        )
+                        
+                        html_content = await self._generate_profiling_report(df, user_instructions)
+                        
+                        if html_content:
+                            # A2A 아티팩트로 HTML 리포트 전송
+                            await task_updater.add_artifact(
+                                parts=[TextPart(text=html_content)],
+                                name="profiling_report.html",
+                                metadata={
+                                    "content_type": "text/html",
+                                    "report_type": "ydata_profiling_eda",
+                                    "data_source": data_source,
+                                    "data_shape": f"{df.shape[0]} rows × {df.shape[1]} columns",
+                                    "description": "ydata-profiling 탐색적 데이터 분석 보고서",
+                                    "created_at": datetime.now().isoformat()
+                                }
+                            )
+                            logger.info("✅ ydata-profiling HTML 아티팩트 전송 완료")
+                        
                         response_text = f"""## 🔍 Enhanced EDA 분석 완료
 
 ✅ **세션 ID**: {current_session_id}
 ✅ **데이터 소스**: {data_source}
 ✅ **데이터 형태**: {df.shape[0]:,} 행 × {df.shape[1]:,} 열
+{'✅ **Profiling 리포트**: HTML 아티팩트로 전송됨' if html_content else '⚠️ **Profiling 리포트**: 생성 실패'}
 
 ### 📊 분석 결과
 
@@ -152,6 +233,7 @@ class SessionEDAToolsAgentExecutor(AgentExecutor):
 
 ### 🎯 분석 완료
 AI DS Team EDA 에이전트가 성공적으로 데이터 분석을 완료했습니다.
+{'생성된 ydata-profiling HTML 리포트를 확인하세요.' if html_content else ''}
 """
                         
                         await task_updater.update_status(

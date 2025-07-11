@@ -1,0 +1,10 @@
+{
+  "user_instructions": "분석 수행",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-07-11T13:20:23.118321",
+  "file_path": "ai_ds_team/data/session_e8c203fb/ion_implant_3lot_dataset.xlsx"
+}

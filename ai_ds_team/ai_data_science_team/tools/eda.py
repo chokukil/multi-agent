@@ -278,17 +278,17 @@ def generate_correlation_funnel(
 
 
 @tool(response_format="content_and_artifact")
-def generate_sweetviz_report(
+def generate_profiling_report(
     data_raw: Annotated[dict, InjectedState("data_raw")],
     target: str = None,
-    report_name: str = "sweetviz_report.html",
+    report_name: str = "profiling_report.html",
     report_directory: str = None,  # <-- Default to None
     open_browser: bool = False,
 ) -> Tuple[str, Dict]:
     """
-    Tool: generate_sweetviz_report
+    Tool: generate_profiling_report
     Description:
-        Make an Exploratory Data Analysis (EDA) report using the Sweetviz library.
+        Make an Exploratory Data Analysis (EDA) report using the ydata-profiling library.
 
     Parameters:
     -----------
@@ -297,7 +297,7 @@ def generate_sweetviz_report(
     target : str, optional
         The target feature to analyze. Default is None.
     report_name : str, optional
-        The file name to save the Sweetviz HTML report. Default is "sweetviz_report.html".
+        The file name to save the profiling HTML report. Default is "profiling_report.html".
     report_directory : str, optional
         The directory where the report should be saved.
         If None, a temporary directory is created and used.
@@ -310,14 +310,14 @@ def generate_sweetviz_report(
         content: A summary message describing the generated report.
         artifact: A dictionary with the report file path and optionally the report's HTML content.
     """
-    print("    * Tool: generate_sweetviz_report")
+    print("    * Tool: generate_profiling_report")
 
-    # Import sweetviz
+    # Import ydata-profiling
     try:
-        import sweetviz as sv
+        from ydata_profiling import ProfileReport
     except ImportError:
         raise ImportError(
-            "Please install the 'sweetviz' package to use this tool. Run: pip install sweetviz"
+            "Please install the 'ydata-profiling' package to use this tool. Run: pip install ydata-profiling"
         )
 
     import pandas as pd
@@ -334,17 +334,19 @@ def generate_sweetviz_report(
         if not os.path.exists(report_directory):
             os.makedirs(report_directory)
 
-    # Create the Sweetviz report.
-    report = sv.analyze(df, target_feat=target)
+    # Create the ydata-profiling report.
+    profile = ProfileReport(
+        df, 
+        title="EDA Profiling Report",
+        explorative=True,
+        minimal=False
+    )
 
     # Determine the full path for the report.
     full_report_path = os.path.join(report_directory, report_name)
 
     # Save the report to the specified HTML file.
-    report.show_html(
-        filepath=full_report_path,
-        open_browser=open_browser,
-    )
+    profile.to_file(full_report_path)
 
     # Optionally, read the HTML content (if desired to pass along in the artifact).
     try:
@@ -354,7 +356,7 @@ def generate_sweetviz_report(
         html_content = None
 
     content = (
-        f"Sweetviz EDA report generated and saved as '{os.path.abspath(full_report_path)}'. "
+        f"ydata-profiling EDA report generated and saved as '{os.path.abspath(full_report_path)}'. "
         f"{'This was saved in a temporary directory.' if 'tmp' in report_directory else ''}"
     )
     artifact = {
@@ -362,6 +364,10 @@ def generate_sweetviz_report(
         "report_html": html_content,
     }
     return content, artifact
+
+
+# Backward compatibility alias
+generate_sweetviz_report = generate_profiling_report
 
 
 @tool(response_format="content_and_artifact")

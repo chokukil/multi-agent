@@ -1,0 +1,10 @@
+{
+  "user_instructions": "기존 데이터로부터 세션 복구",
+  "data_id": "ion_implant_3lot_dataset.xlsx",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-07-11T13:12:48.479300",
+  "file_path": "ai_ds_team/data/session_84b14061/ion_implant_3lot_dataset.xlsx"
+}

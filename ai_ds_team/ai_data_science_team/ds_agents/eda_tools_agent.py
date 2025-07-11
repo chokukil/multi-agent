@@ -18,7 +18,7 @@ from ai_data_science_team.tools.eda import (
     describe_dataset,
     visualize_missing,
     generate_correlation_funnel,
-    generate_sweetviz_report,
+    generate_profiling_report,
     generate_dtale_report,
 )
 from ai_data_science_team.utils.messages import get_tool_call_names
@@ -32,7 +32,7 @@ EDA_TOOLS = [
     describe_dataset,
     visualize_missing,
     generate_correlation_funnel,
-    generate_sweetviz_report,
+    generate_profiling_report,
     generate_dtale_report,
 ]
 
