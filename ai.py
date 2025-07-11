@@ -839,17 +839,19 @@ async def process_query_streaming(prompt: str):
     if LANGFUSE_SESSION_AVAILABLE:
         try:
             session_tracer = get_session_tracer()
-            user_id = st.session_state.get("user_id", os.getenv("LANGFUSE_USER_ID", "cherryai_user"))
+            # EMP_NO를 우선적으로 사용하여 user_id 설정
+            user_id = st.session_state.get("user_id") or os.getenv("EMP_NO") or os.getenv("LANGFUSE_USER_ID") or "cherryai_user"
             session_metadata = {
                 "streamlit_session_id": st.session_state.get("session_id", "unknown"),
                 "user_interface": "streamlit",
                 "query_timestamp": time.time(),
                 "query_length": len(prompt),
                 "environment": "production" if os.getenv("ENV") == "production" else "development",
-                "app_version": "v9.0"
+                "app_version": "v9.0",
+                "emp_no": os.getenv("EMP_NO", "unknown")  # 직원 번호 명시적 기록
             }
             session_id = session_tracer.start_user_session(prompt, user_id, session_metadata)
-            debug_log(f"🔍 Langfuse Session 시작: {session_id}", "success")
+            debug_log(f"🔍 Langfuse Session 시작: {session_id} (EMP_NO: {os.getenv('EMP_NO', 'N/A')})", "success")
         except Exception as e:
             debug_log(f"❌ Langfuse Session 시작 실패: {e}", "error")
     

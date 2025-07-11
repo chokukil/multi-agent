@@ -10,6 +10,7 @@ SDK v3를 사용한 session 기반 추적 시스템으로 하나의 사용자 �
 - SDK v3 OpenTelemetry: 자동 컨텍스트 전파 및 분산 추적
 """
 
+import os
 import time
 import json
 import uuid
@@ -87,14 +88,14 @@ class SessionBasedTracer:
         """현재 세션 trace 객체 반환 (wrapper 호환성용)"""
         return self.current_session_trace
     
-    def start_user_session(self, user_query: str, user_id: str = "anonymous", 
+    def start_user_session(self, user_query: str, user_id: str = None, 
                           session_metadata: Dict[str, Any] = None) -> str:
         """
         사용자 질문 세션 시작
         
         Args:
             user_query: 사용자 질문
-            user_id: 사용자 ID
+            user_id: 사용자 ID (None인 경우 EMP_NO 환경변수 사용)
             session_metadata: 세션 메타데이터
             
         Returns:
@@ -104,6 +105,10 @@ class SessionBasedTracer:
             return f"session_{int(time.time())}"
         
         try:
+            # 사용자 ID 결정: 매개변수 -> EMP_NO 환경변수 -> 기본값
+            if user_id is None:
+                user_id = os.getenv("EMP_NO", "anonymous")
+            
             # 고유한 세션 ID 생성
             timestamp = int(time.time())
             self.current_session_id = f"user_query_{timestamp}_{user_id}"
@@ -117,6 +122,7 @@ class SessionBasedTracer:
                 metadata={
                     "session_id": self.current_session_id,
                     "user_id": user_id,
+                    "emp_no": user_id,  # 직원 번호 명시적 기록
                     "start_time": datetime.now().isoformat(),
                     "query_length": len(user_query),
                     "query_complexity": self._assess_query_complexity(user_query),
@@ -124,7 +130,7 @@ class SessionBasedTracer:
                 }
             )
             
-            print(f"🎯 Session 시작: {self.current_session_id}")
+            print(f"🎯 Session 시작: {self.current_session_id} (User: {user_id})")
             return self.current_session_id
             
         except Exception as e:

@@ -254,13 +254,16 @@ def create_llm_instance(
     # Langfuse 콜백 추가 (환경 변수로 활성화된 경우)
     if LANGFUSE_AVAILABLE and os.getenv("LOGGING_PROVIDER") in ["langfuse", "both"]:
         try:
+            # EMP_NO를 user_id로 사용하도록 설정
+            user_id = os.getenv("EMP_NO", "system_user")
             langfuse_handler = CallbackHandler(
                 public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
                 secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
                 host=os.getenv("LANGFUSE_HOST"),
+                user_id=user_id  # EMP_NO를 user_id로 사용
             )
             callback_list.append(langfuse_handler)
-            logging.info("✅ Langfuse callback automatically added to LLM")
+            logging.info(f"✅ Langfuse callback automatically added to LLM (User: {user_id})")
         except Exception as e:
             logging.warning(f"⚠️ Failed to add Langfuse callback: {e}")
     
