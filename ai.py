@@ -54,15 +54,32 @@ from core.data_manager import DataManager  # DataManager 추가
 from core.session_data_manager import SessionDataManager  # 세션 기반 데이터 관리자 추가
 from ui.thinking_stream import ThinkingStream, PlanVisualization, BeautifulResults # 기존 클래스 활용 가능
 
-# 향상된 에러 핸들링 시스템 임포트
-from core.enhanced_error_system import (
-    error_manager, error_monitor, log_manager, 
-    ErrorCategory, ErrorSeverity, initialize_error_system
-)
-from ui.enhanced_error_ui import (
-    integrate_error_system_to_app, show_error, show_user_error, show_network_error,
-    ErrorNotificationSystem, ErrorAnalyticsWidget
-)
+# 향상된 에러 핸들링 시스템 임포트 (조건부)
+try:
+    from core.enhanced_error_system import (
+        error_manager, error_monitor, log_manager, 
+        ErrorCategory, ErrorSeverity, initialize_error_system
+    )
+    from ui.enhanced_error_ui import (
+        integrate_error_system_to_app, show_error, show_user_error, show_network_error,
+        ErrorNotificationSystem, ErrorAnalyticsWidget
+    )
+    ENHANCED_ERROR_AVAILABLE = True
+    print("✅ Enhanced Error System 로드 성공")
+except ImportError as e:
+    ENHANCED_ERROR_AVAILABLE = False
+    print(f"⚠️ Enhanced Error System 로드 실패: {e}")
+    # 폴백 함수들 정의
+    def show_error(msg): st.error(msg)
+    def show_user_error(msg): st.error(msg)
+    def show_network_error(msg): st.error(msg)
+    def integrate_error_system_to_app(): pass  # 빈 함수로 처리
+    class ErrorNotificationSystem:
+        def __init__(self): pass
+        def show_error(self, msg): st.error(msg)
+    class ErrorAnalyticsWidget:
+        def __init__(self): pass
+        def render(self): pass
 
 # Phase 3 Integration Layer 및 Expert UI 임포트
 try:
@@ -130,7 +147,7 @@ def debug_log(message: str, level: str = "info"):
         except:
             pass  # Streamlit 컨텍스트가 없을 때는 무시
 
-# 새로운 UI 컴포넌트 임포트
+# 새로운 UI 컴포넌트 임포트 (조건부)
 try:
     from core.ui.smart_display import SmartDisplayManager, AccumulativeStreamContainer
     from core.ui.a2a_orchestration_ui import A2AOrchestrationDashboard
@@ -140,6 +157,12 @@ try:
 except ImportError as e:
     SMART_UI_AVAILABLE = False
     print(f"⚠️ Smart UI 컴포넌트 로드 실패: {e}")
+    # 폴백 클래스들 정의
+    class AccumulativeStreamContainer:
+        def __init__(self, title): pass
+        def add_chunk(self, text, type): pass
+    
+    def get_agent_preloader(agents): return None
 
 # AI_DS_Team 유틸리티 임포트
 try:

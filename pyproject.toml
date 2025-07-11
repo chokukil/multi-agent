@@ -32,7 +32,6 @@ dependencies = [
     "langchain-experimental>=0.3.4",
     "langchain-openai>=0.3.25",
     "langchain-text-splitters>=0.3.8",
-    "langfuse>=2.60.8",
     "langgraph>=0.4.8",
     "langgraph-checkpoint>=2.1.0",
     "scikit-learn>=1.7.0",
@@ -55,7 +54,9 @@ dependencies = [
     "patsy>=1.0.1",
     "flask>=3.1.1",
     "gunicorn>=23.0.0",
-    "sqlalchemy>=2.0.41"
+    "sqlalchemy>=2.0.41",
+    "langfuse==2.60.8",
+    "beautifulsoup4>=4.13.4",
 ]
 
 [project.scripts]
