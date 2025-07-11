@@ -61,6 +61,7 @@ class SessionBasedTracer:
         self.current_session_id: Optional[str] = None
         self.current_session_trace = None
         self.agent_spans: Dict[str, Any] = {}
+        self.session_start_times: Dict[str, float] = {}  # 세션 시작 시간 추적
         
         if self.enabled:
             try:
@@ -112,6 +113,10 @@ class SessionBasedTracer:
             # 고유한 세션 ID 생성
             timestamp = int(time.time())
             self.current_session_id = f"user_query_{timestamp}_{user_id}"
+            
+            # 세션 시작 시간 기록
+            session_start_time = time.time()
+            self.session_start_times[self.current_session_id] = session_start_time
             
             # 세션 레벨 trace 시작
             self.current_session_trace = self.client.trace(
@@ -325,6 +330,13 @@ class SessionBasedTracer:
         except Exception as e:
             print(f"❌ 내부 작업 결과 기록 오류: {e}")
     
+    def get_session_duration(self) -> float:
+        """현재 세션의 지속 시간 반환 (초)"""
+        if not self.current_session_id or self.current_session_id not in self.session_start_times:
+            return 0.0
+        
+        return time.time() - self.session_start_times[self.current_session_id]
+    
     def end_user_session(self, final_result: Dict[str, Any] = None, 
                         session_summary: Dict[str, Any] = None):
         """
@@ -338,10 +350,14 @@ class SessionBasedTracer:
             return
         
         try:
+            # 세션 기간 계산
+            session_duration = self.get_session_duration()
+            
             # 세션 요약 데이터 준비
             summary_data = {
                 "session_id": self.current_session_id,
                 "end_time": datetime.now().isoformat(),
+                "session_duration": session_duration,
                 "agents_used": list(self.agent_spans.keys()),
                 "total_agents": len(self.agent_spans),
                 **(session_summary or {})
@@ -359,6 +375,9 @@ class SessionBasedTracer:
             
             # 리소스 정리
             self.current_session_trace = None
+            if self.current_session_id:
+                # 세션 시작 시간 정리
+                self.session_start_times.pop(self.current_session_id, None)
             self.current_session_id = None
             self.agent_spans.clear()
             

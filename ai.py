@@ -995,12 +995,22 @@ async def process_query_streaming(prompt: str):
                                 "agents_used": list(set(step.get('agent_name', 'unknown') for step in plan_steps)),
                                 "artifacts_created": sum(len(r.get('artifacts', [])) for r in all_results),
                                 "user_satisfaction": "high",  # 임시 값
-                                "session_duration": time.time() - session_tracer.current_session_trace.input.get('start_time', time.time()) if session_tracer.current_session_trace else 0
+                                "session_duration": session_tracer.get_session_duration()
                             }
                             session_tracer.end_user_session(final_result, session_summary)
                             debug_log(f"🔍 Langfuse Session 종료 (성공): {session_id}", "success")
                         except Exception as session_end_error:
                             debug_log(f"❌ Langfuse Session 종료 실패: {session_end_error}", "error")
+                            # 강제 세션 정리 시도
+                            try:
+                                if session_tracer.current_session_id:
+                                    session_tracer.session_start_times.pop(session_tracer.current_session_id, None)
+                                session_tracer.current_session_id = None
+                                session_tracer.current_session_trace = None
+                                session_tracer.agent_spans.clear()
+                                debug_log("🧹 Langfuse Session 강제 정리 완료", "warning")
+                            except Exception as cleanup_error:
+                                debug_log(f"❌ Langfuse Session 강제 정리 실패: {cleanup_error}", "error")
                     
             else:
                 # 폴백 모드
@@ -1036,6 +1046,16 @@ async def process_query_streaming(prompt: str):
                     debug_log(f"🔍 Langfuse Session 종료 (실패): {session_id}", "warning")
                 except Exception as session_error_end:
                     debug_log(f"❌ Langfuse Session 실패 종료 실패: {session_error_end}", "error")
+                    # 강제 세션 정리 시도
+                    try:
+                        if session_tracer.current_session_id:
+                            session_tracer.session_start_times.pop(session_tracer.current_session_id, None)
+                        session_tracer.current_session_id = None
+                        session_tracer.current_session_trace = None
+                        session_tracer.agent_spans.clear()
+                        debug_log("🧹 Langfuse Session 강제 정리 완료 (실패 케이스)", "warning")
+                    except Exception as cleanup_error:
+                        debug_log(f"❌ Langfuse Session 강제 정리 실패 (실패 케이스): {cleanup_error}", "error")
 
 def get_file_size_info(file_id: str) -> str:
     """파일 크기 정보를 반환하는 헬퍼 함수"""
@@ -1701,11 +1721,34 @@ def main():
             # Streamlit에서 비동기 함수를 안전하게 실행
             try:
                 debug_log("🔄 비동기 처리 시작...")
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(process_query_streaming(prompt))
-                loop.close()
-                debug_log("✅ 비동기 처리 완료", "success")
+                loop = None
+                try:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(process_query_streaming(prompt))
+                    debug_log("✅ 비동기 처리 완료", "success")
+                except asyncio.CancelledError:
+                    debug_log("⚠️ 비동기 작업이 취소되었습니다", "warning")
+                except Exception as async_error:
+                    debug_log(f"❌ 비동기 실행 중 오류: {async_error}", "error")
+                    raise async_error
+                finally:
+                    # 이벤트 루프 안전하게 정리
+                    if loop and not loop.is_closed():
+                        try:
+                            # 미완료 태스크 정리
+                            pending_tasks = asyncio.all_tasks(loop)
+                            if pending_tasks:
+                                debug_log(f"🧹 미완료 태스크 {len(pending_tasks)}개 정리 중...", "warning")
+                                for task in pending_tasks:
+                                    task.cancel()
+                                # 태스크 완료 대기
+                                if pending_tasks:
+                                    loop.run_until_complete(asyncio.gather(*pending_tasks, return_exceptions=True))
+                            loop.close()
+                        except Exception as cleanup_error:
+                            debug_log(f"⚠️ 이벤트 루프 정리 중 오류: {cleanup_error}", "warning")
+                            
             except Exception as e:
                 debug_log(f"❌ 비동기 처리 중 오류: {e}", "error")
                 import traceback
