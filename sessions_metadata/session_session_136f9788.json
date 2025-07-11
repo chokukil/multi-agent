@@ -1,0 +1,19 @@
+{
+  "session_id": "session_136f9788",
+  "created_at": "2025-07-11T21:20:47.626106",
+  "last_activity": "2025-07-11T21:20:47.626107",
+  "uploaded_files": [
+    {
+      "data_id": "ion_implant_3lot_dataset.csv",
+      "uploaded_at": "2025-07-11T21:20:47.619539",
+      "file_size": 28899,
+      "file_type": ".csv",
+      "user_context": "업로드된 파일: ion_implant_3lot_dataset.csv",
+      "domain": "semiconductor",
+      "original_name": "ion_implant_3lot_dataset.csv"
+    }
+  ],
+  "active_file": "ion_implant_3lot_dataset.csv",
+  "auto_cleanup_at": "2025-07-12T21:20:47.626106",
+  "status": "active"
+}

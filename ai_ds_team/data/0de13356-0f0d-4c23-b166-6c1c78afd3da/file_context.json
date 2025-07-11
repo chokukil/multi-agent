@@ -1,0 +1,11 @@
+{
+  "file_id": "ion_implant_3lot_dataset.csv_1752236447",
+  "original_name": "ion_implant_3lot_dataset.csv",
+  "uploaded_at": "2025-07-11T21:20:47.613920",
+  "user_context": "업로드된 데이터: (72, 14)",
+  "data_shape": [
+    72,
+    14
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/0de13356-0f0d-4c23-b166-6c1c78afd3da_ion_implant_3lot_dataset.csv"
+}

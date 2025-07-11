@@ -1,0 +1,10 @@
+{
+  "user_instructions": "업로드된 파일: ion_implant_3lot_dataset.csv",
+  "data_id": "ion_implant_3lot_dataset.csv",
+  "data_shape": [
+    72,
+    14
+  ],
+  "created_at": "2025-07-11T21:19:17.947572",
+  "file_path": "ai_ds_team/data/session_e55d3cd9/ion_implant_3lot_dataset.csv"
+}

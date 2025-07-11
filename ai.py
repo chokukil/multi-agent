@@ -357,6 +357,7 @@ def initialize_session_state():
     default_vars = {
         'messages': [],
         'data': None,
+        'uploaded_data': None,  # 🔧 추가: 업로드된 데이터
         'query_history': [],
         'chat_history': [],
         'uploaded_file_info': {},
@@ -364,6 +365,8 @@ def initialize_session_state():
         'current_plan': None,
         'available_agents': {},
         'agent_status': {},
+        'agents_preloaded': False,  # 🔧 추가: 에이전트 프리로드 상태
+        'active_agent': None,  # 🔧 추가: 현재 활성 에이전트
         'debug_enabled': False,
         'session_start_time': datetime.now().strftime("%Y%m%d_%H%M%S"),
         'session_id': str(uuid.uuid4()),
@@ -1380,10 +1383,10 @@ def handle_data_upload_with_ai_ds_team():
                 
                 # SessionDataManager에 데이터 저장
                 if hasattr(st.session_state, 'session_data_manager'):
-                    data_id = st.session_state.session_data_manager.store_dataframe(
-                        df=st.session_state.data,
-                        name=uploaded_file.name,
-                        description=f"업로드된 파일: {uploaded_file.name}"
+                    data_id = st.session_state.session_data_manager.create_session_with_data(
+                        data_id=uploaded_file.name,
+                        data=st.session_state.data,
+                        user_instructions=f"업로드된 파일: {uploaded_file.name}"
                     )
                     debug_log(f"✅ SessionDataManager에 데이터 저장: {data_id}", "success")
                 

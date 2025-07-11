@@ -219,8 +219,8 @@
     "empty.csv": {
       "file_id": "empty.csv",
       "original_name": "empty.csv",
-      "session_id": "session_5be1dfa2",
-      "uploaded_at": "2025-07-11T17:33:42.649670",
+      "session_id": "session_4753e68c",
+      "uploaded_at": "2025-07-11T21:21:20.686082",
       "file_size": 132,
       "file_type": ".csv",
       "data_shape": [
@@ -228,10 +228,10 @@
         0
       ],
       "is_active": true,
-      "user_context": "기존 데이터로부터 세션 복구",
+      "user_context": "공정 파라미터 최적화 방향 제시 작업을 수행하세요.\n\n\n\n🔬 **데이터 파일 선택 기준**:\n   1. ion_implant 관련 파일 우선 (반도체 분석 특화)\n   2. 가장 최근 수정된 파일\n   3. 사용 가능한 첫 번째 파일\n\n⚠️ **중요**: 선택된 데이터 파일명을 응답에 반드시 명시해주세요.\n\n\n📋 **작업 세부사항**:\n- 탐색적 데이터 분석 수행\n- 기술통계, 분포 분석, 상관관계 분석\n- 사용된 파일명을 명확히 표시",
       "file_paths": {
-        "session": "ai_ds_team/data/session_5be1dfa2/empty.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_5be1dfa2_empty.csv"
+        "session": "ai_ds_team/data/session_4753e68c/empty.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_4753e68c_empty.csv"
       }
     },
     "test_sample_data.csv": {
@@ -419,8 +419,17 @@
       "large_dataset_5000.csv",
       "large_dataset_10000.csv",
       "large_dataset_25000.csv"
+    ],
+    "session_2b5e25c5": [
+      "empty.csv"
+    ],
+    "session_a1581afa": [
+      "empty.csv"
+    ],
+    "session_4753e68c": [
+      "empty.csv"
     ]
   },
-  "current_session_id": "perf_test_1752226416",
-  "last_updated": "2025-07-11T18:33:37.189709"
+  "current_session_id": "session_4753e68c",
+  "last_updated": "2025-07-11T21:21:20.686955"
 }
