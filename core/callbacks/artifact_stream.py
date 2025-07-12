@@ -3,6 +3,7 @@ import logging
 from typing import Dict, Any, List, Set
 from core.artifact_system import artifact_manager
 from langchain_core.messages import AIMessage, ToolMessage
+from core.utils.streamlit_context import safe_rerun, has_streamlit_context
 
 class ArtifactStreamCallback:
     """
@@ -26,9 +27,13 @@ class ArtifactStreamCallback:
 
     def _get_current_artifact_ids(self) -> Set[str]:
         """Retrieves a set of current artifact IDs from the artifact_manager for the current session."""
-        if "session_id" not in st.session_state:
+        if not has_streamlit_context():
             return set()
+        
         try:
+            import streamlit as st
+            if "session_id" not in st.session_state:
+                return set()
             # list_artifacts should return a list of dictionaries, each with an 'id'
             artifacts = artifact_manager.list_artifacts(session_id=st.session_state.session_id)
             return {artifact['id'] for artifact in artifacts}
@@ -60,10 +65,15 @@ class ArtifactStreamCallback:
                     logging.info(f"🎨 ArtifactStreamCallback: Detected {len(new_ids)} new artifact(s): {new_ids}")
                     
                     # 세션 상태에 새 아티팩트 알림 저장 (강제 새로고침 대신)
-                    if hasattr(st.session_state, 'new_artifacts'):
-                        st.session_state.new_artifacts.extend(new_ids)
-                    else:
-                        st.session_state.new_artifacts = list(new_ids)
+                    if has_streamlit_context():
+                        try:
+                            import streamlit as st
+                            if hasattr(st.session_state, 'new_artifacts'):
+                                st.session_state.new_artifacts.extend(new_ids)
+                            else:
+                                st.session_state.new_artifacts = list(new_ids)
+                        except Exception as e:
+                            logging.warning(f"Failed to update session state: {e}")
                 
                 # Update the known list
                 self._known_artifact_ids = current_artifact_ids
@@ -72,17 +82,15 @@ class ArtifactStreamCallback:
                 node = msg.get("node", "")
                 if node == "final_responder" or node == "Final_Responder":
                     logging.info("🎨 Final responder completed, triggering UI refresh for artifacts")
-                    try:
-                        st.rerun()
-                    except Exception as rerun_e:
-                        logging.warning(f"Could not trigger UI rerun: {rerun_e}")
-
+                    safe_rerun()
+                    
         except Exception as e:
-            # Catch potential errors during the callback execution, e.g., if Streamlit state changes unexpectedly.
-            logging.error(f"Error in ArtifactStreamCallback: {e}")
-            # Re-initialize state to be safe
-            self.initialize_state()
+            logging.error(f"ArtifactStreamCallback error: {e}")
 
-# This is a simplified version. A full implementation would require
-# the astream_graph to pass the entire state object to callbacks
-# on each update, which is a more advanced pattern. 
+    def get_status(self) -> Dict[str, Any]:
+        """Return callback status information."""
+        return {
+            "known_artifacts": len(self._known_artifact_ids),
+            "last_check": self._last_check,
+            "check_interval": self._check_interval
+        } 

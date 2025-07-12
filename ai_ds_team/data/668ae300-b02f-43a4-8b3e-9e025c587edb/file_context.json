@@ -1,0 +1,11 @@
+{
+  "file_id": "test_data_comprehensive.csv_1752316774",
+  "original_name": "test_data_comprehensive.csv",
+  "uploaded_at": "2025-07-12T19:39:34.502860",
+  "user_context": "업로드된 데이터: (20, 10)",
+  "data_shape": [
+    20,
+    10
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/668ae300-b02f-43a4-8b3e-9e025c587edb_test_data_comprehensive.csv"
+}

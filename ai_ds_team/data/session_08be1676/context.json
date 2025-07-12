@@ -1,0 +1,10 @@
+{
+  "user_instructions": "fallback 테스트",
+  "data_id": "fallback_test.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-12T15:09:11.828040",
+  "file_path": "ai_ds_team/data/session_08be1676/fallback_test.csv"
+}

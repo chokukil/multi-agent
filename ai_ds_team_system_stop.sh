@@ -18,6 +18,7 @@ NC='\033[0m' # No Color
 # AI_DS_Team 서버 포트들
 AI_DS_TEAM_PORTS=(8306 8307 8308 8309 8310 8311 8312 8313 8314)
 CORE_PORTS=(8100)
+STANDALONE_PORTS=(8080)
 
 # 함수: 포트로 프로세스 종료
 kill_process_by_port() {
@@ -90,6 +91,23 @@ kill_process_by_pidfile() {
 }
 
 # 메인 종료 프로세스
+echo -e "${CYAN}🔄 Standalone 서버 종료 중...${NC}"
+
+# 0. Standalone 서버들 종료
+declare -A STANDALONE_SERVICES=(
+    [8080]="Standalone_Pandas_Agent"
+)
+
+for port in "${STANDALONE_PORTS[@]}"; do
+    service_name="${STANDALONE_SERVICES[$port]}"
+    kill_process_by_port $port "$service_name"
+    
+    # PID 파일도 확인
+    pidfile="a2a_ds_servers/logs/${service_name}.pid"
+    kill_process_by_pidfile "$pidfile" "$service_name"
+done
+
+echo ""
 echo -e "${CYAN}🔄 AI_DS_Team 에이전트 종료 중...${NC}"
 
 # 1. AI_DS_Team 서버들 종료
@@ -145,7 +163,7 @@ echo -e "${CYAN}🧹 추가 정리 작업...${NC}"
 echo -e "${BLUE}🔍 Python 서버 프로세스 검사 중...${NC}"
 
 # ai_ds_team 관련 프로세스들 찾기
-ai_ds_processes=$(ps aux | grep python | grep -E "(ai_ds_team.*server|orchestrator_server)" | grep -v grep | awk '{print $2}')
+ai_ds_processes=$(ps aux | grep python | grep -E "(ai_ds_team.*server|orchestrator_server|standalone_pandas_agent_server)" | grep -v grep | awk '{print $2}')
 
 if [ -n "$ai_ds_processes" ]; then
     echo -e "${YELLOW}⚡ AI_DS_Team 관련 Python 프로세스 종료 중...${NC}"
@@ -189,6 +207,16 @@ for port in "${AI_DS_TEAM_PORTS[@]}"; do
     fi
 done
 
+# Standalone 포트 확인
+for port in "${STANDALONE_PORTS[@]}"; do
+    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo -e "${RED}❌ Port $port: 여전히 사용 중${NC}"
+        active_ports=$((active_ports + 1))
+    else
+        echo -e "${GREEN}✅ Port $port: 정리됨${NC}"
+    fi
+done
+
 # 코어 포트 확인
 for port in "${CORE_PORTS[@]}"; do
     if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
@@ -209,7 +237,7 @@ if [ $active_ports -eq 0 ]; then
 else
     echo -e "${YELLOW}⚠️  일부 서비스가 여전히 실행 중입니다.${NC}"
     echo -e "${YELLOW}💡 강제 종료가 필요하면 다음 명령을 실행하세요:${NC}"
-    echo "sudo lsof -ti :8306,:8307,:8308,:8309,:8310,:8311,:8312,:8313,:8314,:8100 | xargs sudo kill -9"
+    echo "sudo lsof -ti :8080,:8100,:8306,:8307,:8308,:8309,:8310,:8311,:8312,:8313,:8314 | xargs sudo kill -9"
 fi
 
 # 재시작 안내

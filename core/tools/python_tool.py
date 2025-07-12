@@ -9,10 +9,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Union
 from langchain_core.tools import Tool
 from langchain_experimental.tools import PythonAstREPLTool
 from pydantic import BaseModel, Field
+import logging
+import warnings
+from core.utils.streamlit_context import safe_pyplot, has_streamlit_context
 
 # Matplotlib 설정
 matplotlib.use('Agg')  # GUI 백엔드 비활성화
@@ -71,13 +74,12 @@ def create_enhanced_python_tool() -> Tool:
     
     def custom_show(*args, **kwargs):
         """plt.show()를 streamlit과 통합"""
-        try:
-            import streamlit as st
+        if has_streamlit_context():
             # 현재 figure를 streamlit에 표시
             fig = plt.gcf()
-            st.pyplot(fig)
+            safe_pyplot(fig)
             plt.close(fig)  # 메모리 관리
-        except:
+        else:
             # streamlit이 없으면 원래 show 사용
             original_show(*args, **kwargs)
     

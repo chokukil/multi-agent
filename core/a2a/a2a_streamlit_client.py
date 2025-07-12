@@ -7,6 +7,7 @@ import json
 import httpx
 from datetime import datetime
 from typing import Dict, Any, List, AsyncGenerator
+from core.utils.streamlit_context import safe_error, safe_warning, safe_success, safe_info, has_streamlit_context
 
 
 class A2AStreamlitClient:
@@ -43,21 +44,19 @@ class A2AStreamlitClient:
         except:
             pass
         
-        try:
-            import streamlit as st
+        # 안전한 Streamlit 호출
+        if has_streamlit_context():
             if level == "error":
-                st.error(f"🐛 A2A DEBUG: {message}")
+                safe_error(f"🐛 A2A DEBUG: {message}")
             elif level == "warning":
-                st.warning(f"🐛 A2A DEBUG: {message}")
+                safe_warning(f"🐛 A2A DEBUG: {message}")
             elif level == "success":
-                st.success(f"🐛 A2A DEBUG: {message}")
+                safe_success(f"🐛 A2A DEBUG: {message}")
             else:
-                st.info(f"🐛 A2A DEBUG: {message}")
-        except:
-            pass
+                safe_info(f"🐛 A2A DEBUG: {message}")
 
-    async def get_plan(self, prompt: str) -> Dict[str, Any]:
-        """오케스트레이터에게 계획 요청"""
+    async def get_plan(self, prompt: str, session_context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """오케스트레이터에게 계획 요청 (세션 정보 및 파일 정보 포함)"""
         self._debug_log(f"🧠 오케스트레이터 계획 요청 시작: {prompt[:100]}...")
         
         orchestrator_url = "http://localhost:8100"
@@ -66,6 +65,41 @@ class A2AStreamlitClient:
         self._debug_log(f"📤 오케스트레이터 요청 URL: {orchestrator_url}")
         self._debug_log(f"📤 메시지 ID: {message_id}")
         
+        # 메시지 parts 구성 - 텍스트 프롬프트 + 세션 정보
+        message_parts = [{"kind": "text", "text": prompt}]
+        
+        # 세션 정보 추가
+        if session_context:
+            self._debug_log(f"📊 세션 컨텍스트 정보: {session_context}")
+            
+            # 업로드된 파일 정보 추가
+            if "uploaded_file_info" in session_context:
+                file_info = session_context["uploaded_file_info"]
+                self._debug_log(f"📁 업로드된 파일 정보: {file_info}")
+                
+                # 파일 정보를 데이터 part로 추가
+                message_parts.append({
+                    "kind": "data",
+                    "data": {
+                        "type": "file_reference",
+                        "file_path": file_info.get("file_path"),
+                        "file_name": file_info.get("file_name"),
+                        "session_id": file_info.get("session_id"),
+                        "data_shape": file_info.get("data_shape"),
+                        "data_info": file_info.get("data_info")
+                    }
+                })
+            
+            # 세션 메타데이터 추가
+            if "session_metadata" in session_context:
+                message_parts.append({
+                    "kind": "data",
+                    "data": {
+                        "type": "session_metadata",
+                        **session_context["session_metadata"]
+                    }
+                })
+        
         payload = {
             "jsonrpc": "2.0",
             "method": "message/send",
@@ -73,7 +107,7 @@ class A2AStreamlitClient:
                 "message": {
                     "messageId": message_id,
                     "role": "user",
-                    "parts": [{"kind": "text", "text": prompt}]
+                    "parts": message_parts
                 }
             },
             "id": message_id

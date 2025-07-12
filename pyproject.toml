@@ -3,7 +3,7 @@ name = "cherryai"
 version = "0.1.0"
 description = "CherryAI - A2A MCP Data Science Platform"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "streamlit>=1.28.0",
     "pandas>=2.0.0",
@@ -59,6 +59,7 @@ dependencies = [
     "beautifulsoup4>=4.13.4",
     "playwright>=1.53.0",
     "pytest-playwright>=0.7.0",
+    "flask-cors>=6.0.1",
 ]
 
 [project.scripts]
@@ -77,6 +78,7 @@ dev = [
     "requests",
     "black>=23.0.0",
     "flake8>=6.0.0",
+    "ruff>=0.1.0",  # Python 3.11 최적화 린터
 ]
 advanced-ml = [
     "imbalanced-learn>=0.11.0",
@@ -106,3 +108,26 @@ exclude = ["tests*"]
 pythonpath = [
   "."
 ]
+
+# uv 지원 설정
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.4.1",
+    "pytest-mock>=3.12.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-xprocess",
+    "requests",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "ruff>=0.1.0",
+]
+
+# Python 3.11 최적화 설정
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = ["E", "F", "W", "C90", "I", "N", "D", "UP", "ANN", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "EM", "EXE", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "NPY", "RUF"]
+
+[tool.black]
+target-version = ["py311"]
+line-length = 88

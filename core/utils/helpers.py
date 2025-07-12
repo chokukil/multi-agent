@@ -5,7 +5,6 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-import streamlit as st
 
 def log_event(event_type: str, content: dict):
     """로그 이벤트 기록"""
@@ -16,9 +15,17 @@ def log_event(event_type: str, content: dict):
         "content": content
     }
     
-    # Session state에 추가
-    if hasattr(st, 'session_state') and 'logs' in st.session_state:
-        st.session_state.logs.append(log_entry)
+    # Session state에 추가 (Streamlit이 사용 가능한 경우에만)
+    try:
+        import streamlit as st
+        # ScriptRunContext 존재 여부 확인
+        if hasattr(st, 'session_state') and st.runtime.scriptrunner.get_script_run_ctx() is not None:
+            if 'logs' not in st.session_state:
+                st.session_state.logs = []
+            st.session_state.logs.append(log_entry)
+    except (ImportError, AttributeError, Exception):
+        # Streamlit이 사용 불가능하거나 컨텍스트가 없는 경우 무시
+        pass
     
     # 파일에도 저장
     try:
@@ -30,6 +37,27 @@ def log_event(event_type: str, content: dict):
             f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
     except Exception as e:
         logging.error(f"Failed to write log to file: {e}")
+
+def safe_get_session_state(key: str, default=None):
+    """안전한 session_state 접근"""
+    try:
+        import streamlit as st
+        if hasattr(st, 'session_state') and st.runtime.scriptrunner.get_script_run_ctx() is not None:
+            return getattr(st.session_state, key, default)
+    except (ImportError, AttributeError, Exception):
+        pass
+    return default
+
+def safe_set_session_state(key: str, value):
+    """안전한 session_state 설정"""
+    try:
+        import streamlit as st
+        if hasattr(st, 'session_state') and st.runtime.scriptrunner.get_script_run_ctx() is not None:
+            setattr(st.session_state, key, value)
+            return True
+    except (ImportError, AttributeError, Exception):
+        pass
+    return False
 
 def save_code(code: str, executor_name: str):
     """생성된 코드 저장"""

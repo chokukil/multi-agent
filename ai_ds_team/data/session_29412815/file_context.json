@@ -1,0 +1,11 @@
+{
+  "file_id": "empty.csv",
+  "original_name": "empty.csv",
+  "uploaded_at": "2025-07-12T20:42:25.089982",
+  "user_context": "분석 수행\n\n📁 **사용할 데이터 파일**: a2a_ds_servers/artifacts/data/shared_dataframes/session_67f369fc_test_improved_system.csv\n💡 **선택 이유**: 가장 최근 업로드 파일\n📊 **데이터 품질**: 96.2% (크기: (5, 4))\n🔍 **주요 인사이트**: 데이터셋 크기: 5행 × 4열, 전체 데이터 품질: EXCELLENT (96.2%), 주요 데이터 타입: numeric_discrete (2개 컬럼)",
+  "data_shape": [
+    0,
+    0
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_29412815_empty.csv"
+}

@@ -1,0 +1,11 @@
+{
+  "file_id": "empty.csv",
+  "original_name": "empty.csv",
+  "uploaded_at": "2025-07-12T19:55:40.770906",
+  "user_context": "직원 데이터에 대한 탐색적 데이터 분석을 수행해주세요. 통계 요약, 분포 분석, 상관관계 분석을 포함해주세요.",
+  "data_shape": [
+    0,
+    0
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_fcdf9b4a_empty.csv"
+}

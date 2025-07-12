@@ -1,0 +1,11 @@
+{
+  "file_id": "persistence_test.csv",
+  "original_name": "persistence_test.csv",
+  "uploaded_at": "2025-07-12T15:09:23.896579",
+  "user_context": "영속성 테스트",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_e6f25747_persistence_test.csv"
+}

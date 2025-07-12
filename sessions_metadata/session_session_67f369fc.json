@@ -1,0 +1,19 @@
+{
+  "session_id": "session_67f369fc",
+  "created_at": "2025-07-12T20:42:10.796266",
+  "last_activity": "2025-07-12T20:42:10.796267",
+  "uploaded_files": [
+    {
+      "data_id": "test_improved_system.csv",
+      "uploaded_at": "2025-07-12T20:42:10.790772",
+      "file_size": 810,
+      "file_type": ".csv",
+      "user_context": "업로드된 파일: test_improved_system.csv",
+      "domain": null,
+      "original_name": "test_improved_system.csv"
+    }
+  ],
+  "active_file": "test_improved_system.csv",
+  "auto_cleanup_at": "2025-07-13T20:42:10.796266",
+  "status": "active"
+}

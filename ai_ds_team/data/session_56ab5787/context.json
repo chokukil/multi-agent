@@ -1,0 +1,10 @@
+{
+  "user_instructions": "분석 수행\n\n📁 **사용할 데이터 파일**: a2a_ds_servers/artifacts/data/shared_dataframes/session_9bf4ad1b_ion_implant_3lot_dataset.xlsx\n💡 **선택 이유**: 가장 최근 업로드 파일",
+  "data_id": "empty.csv",
+  "data_shape": [
+    0,
+    0
+  ],
+  "created_at": "2025-07-11T23:42:24.961923",
+  "file_path": "ai_ds_team/data/session_56ab5787/empty.csv"
+}

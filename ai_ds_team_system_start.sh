@@ -68,6 +68,10 @@ CORE_SERVERS=(
     "A2A_Orchestrator:8100:a2a_ds_servers/a2a_orchestrator.py"
 )
 
+STANDALONE_SERVERS=(
+    "Standalone_Pandas_Agent:8080:standalone_pandas_agent_server.py"
+)
+
 # 함수: 포트 사용 중인지 확인
 check_port() {
     local port=$1
@@ -125,6 +129,16 @@ for server_entry in "${CORE_SERVERS[@]}"; do
 done
 
 echo ""
+echo -e "${PURPLE}🚀 Starting Standalone Servers...${NC}"
+
+# 1.5. Standalone 서버들 시작
+for server_entry in "${STANDALONE_SERVERS[@]}"; do
+    IFS=':' read -r name port script <<< "$server_entry"
+    start_server "$name" "$port" "$script"
+    sleep 2
+done
+
+echo ""
 echo -e "${PURPLE}🧬 Starting AI_DS_Team Agents...${NC}"
 
 # 2. AI_DS_Team 서버들 시작
@@ -146,6 +160,7 @@ echo "=================================="
 # 최종 상태 확인
 echo -e "${CYAN}📊 Final System Status:${NC}"
 echo "Core Servers: ${#CORE_SERVERS[@]}"
+echo "Standalone Servers: ${#STANDALONE_SERVERS[@]}"
 echo "AI_DS_Team Agents: $started_count/$total_count"
 
 # 포트 상태 확인
@@ -154,6 +169,16 @@ echo -e "${CYAN}🔍 Port Status Check:${NC}"
 
 # 코어 서버 포트 확인
 for server_entry in "${CORE_SERVERS[@]}"; do
+    IFS=':' read -r name port script <<< "$server_entry"
+    if check_port $port; then
+        echo -e "${GREEN}✅ Port $port: $name${NC}"
+    else
+        echo -e "${RED}❌ Port $port: $name (not responding)${NC}"
+    fi
+done
+
+# Standalone 서버 포트 확인
+for server_entry in "${STANDALONE_SERVERS[@]}"; do
     IFS=':' read -r name port script <<< "$server_entry"
     if check_port $port; then
         echo -e "${GREEN}✅ Port $port: $name${NC}"
@@ -173,8 +198,9 @@ for server_entry in "${AI_DS_SERVERS[@]}"; do
 done
 
 echo ""
-echo -e "${CYAN}🌐 Streamlit UI:${NC}"
+echo -e "${CYAN}🌐 Services:${NC}"
 echo "Main Application: http://localhost:8501"
+echo "Standalone Pandas Agent: http://localhost:8080"
 echo "AI_DS_Team Orchestrator: http://localhost:8501 -> 7_🧬_AI_DS_Team_Orchestrator"
 
 echo ""

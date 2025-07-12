@@ -1,0 +1,19 @@
+{
+  "session_id": "session_2b6ef7e4",
+  "created_at": "2025-07-11T21:24:50.014660",
+  "last_activity": "2025-07-11T21:24:50.014664",
+  "uploaded_files": [
+    {
+      "data_id": "empty.csv",
+      "uploaded_at": "2025-07-11T21:24:50.008684",
+      "file_size": 132,
+      "file_type": ".csv",
+      "user_context": "분석 수행\n\n📁 **사용할 데이터 파일**: a2a_ds_servers/artifacts/data/shared_dataframes/session_1f8d31f9_ion_implant_3lot_dataset.xlsx\n💡 **선택 이유**: 가장 최근 업로드 파일",
+      "domain": "semiconductor",
+      "original_name": "empty.csv"
+    }
+  ],
+  "active_file": "empty.csv",
+  "auto_cleanup_at": "2025-07-12T21:24:50.014660",
+  "status": "active"
+}

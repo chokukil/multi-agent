@@ -9,11 +9,26 @@ Smart Data Analyst의 우수한 패턴을 기반으로 한 AI_DS_Team 통합 시
 - Professional Results: 전문적인 데이터 과학 결과 제공
 """
 
+# Streamlit 경고 메시지 억제
+import warnings
+import logging
+import os
+
+# Streamlit 로그 레벨 조정
+logging.getLogger("streamlit").setLevel(logging.ERROR)
+logging.getLogger("streamlit.runtime").setLevel(logging.ERROR)
+logging.getLogger("streamlit.runtime.scriptrunner").setLevel(logging.ERROR)
+
+# ScriptRunContext 경고 억제
+warnings.filterwarnings("ignore", message=".*ScriptRunContext.*")
+warnings.filterwarnings("ignore", message=".*missing ScriptRunContext.*")
+
+# Streamlit 환경 변수 설정
+os.environ["STREAMLIT_LOGGER_LEVEL"] = "ERROR"
+
 import streamlit as st
 import sys
-import os
 import asyncio
-import logging
 import platform
 from datetime import datetime
 from dotenv import load_dotenv
@@ -104,8 +119,14 @@ def debug_log(message: str, level: str = "info"):
     """향상된 디버깅 로그 - 사이드바 설정에 따라 제어"""
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
     
-    # 디버깅 모드 확인 (세션 상태에서)
-    debug_enabled = getattr(st.session_state, 'debug_enabled', False)
+    # 디버깅 모드 확인 (세션 상태에서) - 안전하게 처리
+    debug_enabled = False
+    try:
+        # Streamlit 컨텍스트가 있는지 확인
+        if hasattr(st, 'session_state') and st.runtime.scriptrunner.get_script_run_ctx() is not None:
+            debug_enabled = getattr(st.session_state, 'debug_enabled', False)
+    except (AttributeError, Exception):
+        pass
     
     # 로그 메시지 포맷
     if level == "error":
@@ -133,18 +154,20 @@ def debug_log(message: str, level: str = "info"):
     except Exception as e:
         print(f"[{timestamp}] ❌ 로그 파일 기록 실패: {e}")
     
-    # Streamlit UI에는 디버깅 모드가 켜져있을 때만 표시
+    # Streamlit UI에는 디버깅 모드가 켜져있고 컨텍스트가 있을 때만 표시
     if debug_enabled:
         try:
-            if level == "error":
-                st.error(f"🐛 DEBUG: {message}")
-            elif level == "warning":
-                st.warning(f"🐛 DEBUG: {message}")
-            elif level == "success":
-                st.success(f"🐛 DEBUG: {message}")
-            else:
-                st.info(f"🐛 DEBUG: {message}")
-        except:
+            # Streamlit 컨텍스트가 있는지 확인
+            if hasattr(st, 'session_state') and st.runtime.scriptrunner.get_script_run_ctx() is not None:
+                if level == "error":
+                    st.error(f"🐛 DEBUG: {message}")
+                elif level == "warning":
+                    st.warning(f"🐛 DEBUG: {message}")
+                elif level == "success":
+                    st.success(f"🐛 DEBUG: {message}")
+                else:
+                    st.info(f"🐛 DEBUG: {message}")
+        except (AttributeError, Exception):
             pass  # Streamlit 컨텍스트가 없을 때는 무시
 
 # 새로운 UI 컴포넌트 임포트 (조건부)
@@ -2028,8 +2051,73 @@ async def create_analysis_plan(prompt: str, client) -> List[Dict[str, Any]]:
     try:
         debug_log("📋 분석 계획 수립 중...", "info")
         
+        # 세션 정보 수집
+        session_context = {}
+        
+        # 업로드된 파일 정보 수집
+        if hasattr(st.session_state, 'session_data_manager') and st.session_state.session_data_manager:
+            session_manager = st.session_state.session_data_manager
+            current_session_id = session_manager.get_current_session_id()
+            
+            if current_session_id:
+                active_file, reason = session_manager.get_active_file_info(current_session_id)
+                if active_file:
+                    debug_log(f"📁 활성 파일 발견: {active_file} (이유: {reason})")
+                    
+                    # 파일 정보 구성
+                    file_info = {
+                        "file_name": active_file,
+                        "session_id": current_session_id,
+                        "file_path": f"a2a_ds_servers/artifacts/data/shared_dataframes/{current_session_id}_{active_file}",
+                        "reason": reason
+                    }
+                    
+                    # 파일 메타데이터 추가
+                    try:
+                        session_files = session_manager.get_session_files(current_session_id)
+                        if active_file in session_files:
+                            file_meta = next((f for f in session_manager._session_metadata[current_session_id].uploaded_files 
+                                            if f.data_id == active_file), None)
+                            if file_meta:
+                                file_info.update({
+                                    "data_shape": [file_meta.rows, file_meta.columns],
+                                    "file_size": file_meta.file_size,
+                                    "data_info": f"{active_file} ({file_meta.rows}행 × {file_meta.columns}열, {round(file_meta.file_size/1024**2, 2)}MB)"
+                                })
+                                debug_log(f"📊 파일 메타데이터: {file_meta.rows}행 × {file_meta.columns}열")
+                    except Exception as meta_error:
+                        debug_log(f"⚠️ 파일 메타데이터 수집 실패: {meta_error}", "warning")
+                    
+                    session_context["uploaded_file_info"] = file_info
+                    
+                    # 세션 메타데이터 추가
+                    session_context["session_metadata"] = {
+                        "session_id": current_session_id,
+                        "active_file": active_file,
+                        "file_selection_reason": reason,
+                        "timestamp": datetime.now().isoformat()
+                    }
+        
+        # 대체 방법: 세션 상태에서 업로드된 데이터 확인
+        if not session_context and hasattr(st.session_state, 'uploaded_data') and st.session_state.uploaded_data is not None:
+            debug_log("📁 세션 상태에서 업로드된 데이터 발견")
+            data = st.session_state.uploaded_data
+            file_info = {
+                "file_name": "uploaded_data",
+                "session_id": st.session_state.get('session_id', 'unknown'),
+                "data_shape": list(data.shape),
+                "data_info": f"업로드된 데이터 ({data.shape[0]}행 × {data.shape[1]}열)"
+            }
+            session_context["uploaded_file_info"] = file_info
+            session_context["session_metadata"] = {
+                "session_id": st.session_state.get('session_id', 'unknown'),
+                "data_source": "streamlit_session",
+                "timestamp": datetime.now().isoformat()
+            }
+        
         # A2A 클라이언트를 통해 오케스트레이터에게 계획 요청
-        plan_response = await client.get_plan(prompt)
+        debug_log(f"📤 세션 컨텍스트: {session_context}")
+        plan_response = await client.get_plan(prompt, session_context)
         debug_log(f"📋 계획 응답 수신: {type(plan_response)}")
         
         # 계획 파싱
@@ -2347,9 +2435,11 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                             if code_tracker and PHASE4_SYSTEMS_AVAILABLE:
                                 try:
                                     # 코드 추적 및 안전 실행
-                                    execution_result = await asyncio.to_thread(
-                                        code_tracker.track_and_execute,
-                                        code=text,
+                                    execution_id, execution_result = await asyncio.to_thread(
+                                        code_tracker.track_and_execute_code,
+                                        agent_id=agent_name,
+                                        session_id=session_id,
+                                        source_code=text,
                                         context={
                                             "agent_name": agent_name,
                                             "session_id": session_id,
@@ -2357,24 +2447,28 @@ async def execute_agent_step(step: Dict[str, Any], client, session_id: str) -> D
                                             "file_context": file_context,
                                             "data": current_data if current_data is not None else {}
                                         },
-                                        safe_execution=True
+                                        tags=["streamlit", "agent_generated"]
                                     )
                                     
-                                    if execution_result.success:
+                                    if execution_result.status.value == "success":
                                         executed_code_blocks.append({
+                                            "execution_id": execution_id,
                                             "code": text,
-                                            "result": execution_result.result,
+                                            "result": execution_result.return_value,
                                             "execution_time": execution_result.execution_time,
-                                            "memory_usage": execution_result.memory_usage
+                                            "stdout": execution_result.stdout
                                         })
                                         debug_log(f"✅ 코드 실행 성공: {execution_result.execution_time:.2f}초", "success")
                                         
                                         # 실행 결과를 실시간으로 표시
-                                        if execution_result.result:
+                                        if execution_result.return_value:
                                             with st.expander(f"📊 코드 실행 결과 #{len(executed_code_blocks)}", expanded=False):
-                                                st.code(str(execution_result.result), language="python")
+                                                st.code(str(execution_result.return_value), language="python")
+                                                if execution_result.stdout:
+                                                    st.text("출력:")
+                                                    st.text(execution_result.stdout)
                                     else:
-                                        debug_log(f"⚠️ 코드 실행 실패: {execution_result.error}", "warning")
+                                        debug_log(f"⚠️ 코드 실행 실패: {execution_result.error_message}", "warning")
                                         
                                 except Exception as exec_error:
                                     debug_log(f"⚠️ 코드 추적/실행 실패: {exec_error}", "warning")

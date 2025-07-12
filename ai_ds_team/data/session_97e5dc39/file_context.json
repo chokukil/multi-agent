@@ -1,0 +1,11 @@
+{
+  "file_id": "session3_data.json",
+  "original_name": "session3_data.json",
+  "uploaded_at": "2025-07-12T15:09:33.009952",
+  "user_context": "세 번째 세션",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_97e5dc39_session3_data.json"
+}

@@ -1,10 +1,10 @@
-from a2a.utils import new_agent_text_message#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 AI_DS_Team H2OMLAgent A2A Server
 Port: 8313
 
 AI_DS_Team의 H2OMLAgent를 A2A 프로토콜로 래핑하여 제공합니다.
-데이터 시각화 및 차트 생성 전문
+H2O AutoML 기반 머신러닝 모델링 전문
 """
 
 import asyncio
@@ -22,14 +22,15 @@ from a2a.server.request_handlers.default_request_handler import DefaultRequestHa
 from a2a.server.tasks.inmemory_task_store import InMemoryTaskStore
 from a2a.server.tasks.task_updater import TaskUpdater
 from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.server.events.event_queue import EventQueue
 from a2a.types import TextPart, TaskState, AgentCard, AgentSkill, AgentCapabilities
+from a2a.utils import new_agent_text_message
 import uvicorn
 import logging
 
 # AI_DS_Team imports
 from ai_data_science_team.tools.dataframe import get_dataframe_summary
 from ai_data_science_team.ml_agents import H2OMLAgent
-from ai_data_science_team.utils.plotly import plotly_from_dict
 import pandas as pd
 import json
 
@@ -43,48 +44,38 @@ load_dotenv()
 
 # Langfuse 로깅 설정 (선택적)
 langfuse_handler = None
-if os.getenv("LOGGING_PROVIDER") in ["langfuse", "both"]:
-    try:
-        from langfuse.callback import CallbackHandler
-        langfuse_handler = CallbackHandler(
-            public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
-            secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
-            host=os.getenv("LANGFUSE_HOST"),
-        )
-        logger.info("✅ Langfuse logging enabled")
-    except Exception as e:
-        logger.warning(f"⚠️ Langfuse logging setup failed: {e}")
+try:
+    from langfuse import Langfuse
+    from langfuse.callback import CallbackHandler
+    langfuse_handler = CallbackHandler()
+    logger.info("✅ Langfuse 로깅 활성화")
+except ImportError:
+    logger.info("⚠️ Langfuse 사용 불가 (선택적)")
 
-# LangSmith 로깅 설정 (선택적)
-if os.getenv("LOGGING_PROVIDER") in ["langsmith", "both"]:
-    os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2", "false")
-    os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT", "ai-ds-team")
-    if os.getenv("LANGCHAIN_API_KEY"):
-        os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-        logger.info("✅ LangSmith logging enabled")
-
+# 유틸리티 함수 import
+from a2a_ds_servers.utils.safe_data_loader import load_data_safely, create_safe_data_response
 
 class H2OMLAgentExecutor(AgentExecutor):
-    """AI_DS_Team H2OMLAgent를 A2A 프로토콜로 래핑"""
+    """H2O ML Agent A2A Executor"""
     
     def __init__(self):
         # LLM 설정 (langfuse 콜백은 LLM 팩토리에서 자동 처리)
         from core.llm_factory import create_llm_instance
-        self.llm = create_llm_instance()
-        self.agent = H2OMLAgent(model=self.llm)
-        logger.info("H2OMLAgent initialized with LLM factory (langfuse auto-enabled)")
-    
-    async def execute(self, context: RequestContext, event_queue) -> None:
-        """A2A 프로토콜에 따른 실행"""
-        # event_queue passed as parameter
-        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        llm = create_llm_instance()
+        self.agent = H2OMLAgent(model=llm)
         
+    async def execute(self, context: RequestContext, task_updater: TaskUpdater) -> None:
+        """H2O ML Agent 실행"""
         try:
-            # 작업 시작
-            await task_updater.submit()
-            await task_updater.start_work()
+            logger.info(f"🤖 H2O ML Agent 실행 시작: {context.task_id}")
             
-            # 사용자 메시지 추출
+            # 작업 시작 알림
+            await task_updater.update_status(
+                TaskState.working,
+                message="🔄 H2O ML Agent 분석을 시작합니다..."
+            )
+            
+            # 메시지 추출
             user_instructions = ""
             if context.message and context.message.parts:
                 for part in context.message.parts:
@@ -92,9 +83,15 @@ class H2OMLAgentExecutor(AgentExecutor):
                         user_instructions += part.root.text + " "
                 
                 user_instructions = user_instructions.strip()
-                logger.info(f"Processing data visualization request: {user_instructions}")
+                logger.info(f"사용자 요청: {user_instructions}")
                 
-                # 데이터 로드 시도
+                # 안전한 데이터 로딩 적용
+                await task_updater.update_status(
+                    TaskState.working,
+                    message="📊 데이터를 안전하게 로딩하고 있습니다..."
+                )
+                
+                # 사용 가능한 데이터 스캔
                 data_path = "a2a_ds_servers/artifacts/data/shared_dataframes/"
                 available_data = []
                 
@@ -105,48 +102,44 @@ class H2OMLAgentExecutor(AgentExecutor):
                 except:
                     pass
                 
-                if available_data:
-                    # 가장 최근 데이터 사용
-                    # FALLBACK REMOVED - data_file = available_data[0]
-                    if data_file.endswith('.csv'):
-                        df = pd.read_csv(os.path.join(data_path, data_file))
-                    else:
-                        df = pd.read_pickle(os.path.join(data_path, data_file))
+                # 안전한 데이터 로딩 적용
+                df, data_file, error_msg = load_data_safely(
+                    available_data=available_data,
+                    preferred_file=None,
+                    fallback_strategy='latest'
+                )
+                
+                if df is not None and data_file is not None:
+                    logger.info(f"✅ 안전한 데이터 로딩 성공: {data_file}, shape: {df.shape}")
                     
-                    logger.info(f"Loaded data: {data_file}, shape: {df.shape}")
+                    # H2O ML Agent 실행
+                    await task_updater.update_status(
+                        TaskState.working,
+                        message="🧠 H2O AutoML 모델 학습을 시작합니다..."
+                    )
                     
-                    # H2OMLAgent 실행
                     try:
                         result = self.agent.invoke_agent(
                             user_instructions=user_instructions,
                             data_raw=df
                         )
                         
-                        # 결과 처리
                         # 결과 처리 (안전한 방식으로 workflow summary 가져오기)
-
                         try:
-
                             workflow_summary = self.agent.get_workflow_summary(markdown=True)
-
                         except AttributeError:
-
                             # get_workflow_summary 메서드가 없는 경우 기본 요약 생성
-
-                            workflow_summary = f"✅ 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
-
+                            workflow_summary = f"✅ H2O AutoML 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
                         except Exception as e:
-
-                            logger.warning(f"Error getting workflow summary: {e}")
-
-                            workflow_summary = f"✅ 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
+                            logger.warning(f"워크플로우 요약 생성 오류: {e}")
+                            workflow_summary = f"✅ H2O AutoML 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
                         
-                        # 생성된 차트 정보 수집
-                        charts_info = ""
+                        # 생성된 모델 정보 수집
+                        models_info = ""
                         artifacts_path = "a2a_ds_servers/artifacts/plots/"
                         os.makedirs(artifacts_path, exist_ok=True)
                         
-                        # 차트 파일 저장 확인
+                        # 모델 파일 저장 확인
                         saved_files = []
                         try:
                             if os.path.exists(artifacts_path):
@@ -157,70 +150,67 @@ class H2OMLAgentExecutor(AgentExecutor):
                             pass
                         
                         if saved_files:
-                            charts_info += f"""
-### 💾 저장된 차트 파일들
+                            models_info += f"""
+### 💾 저장된 모델 파일들
 {chr(10).join([f"- {file}" for file in saved_files[-5:]])}
 """
                         
                         # 데이터 요약 생성
                         data_summary = get_dataframe_summary(df, n_sample=10)
                         
-                        response_text = f"""## 📊 데이터 시각화 완료
+                        response_text = f"""## 🤖 H2O AutoML 모델링 완료
 
 {workflow_summary}
 
-{charts_info}
+{models_info}
 
 ### 📋 사용된 데이터 요약
+**파일**: {data_file}
+**형태**: {df.shape}
 {data_summary[0] if data_summary else '데이터 요약을 생성할 수 없습니다.'}
 
-### 🎨 Data Visualization Agent 기능
-- **Plotly 차트**: 인터랙티브 차트 생성
-- **Matplotlib 차트**: 고품질 정적 차트
-- **통계 시각화**: 분포, 상관관계, 트렌드 분석
-- **대시보드**: 복합 시각화 대시보드
-- **커스텀 차트**: 요구사항에 맞는 맞춤형 시각화
+### 🎯 H2O AutoML 기능
+- **자동 모델 선택**: 최적의 알고리즘 자동 선택
+- **하이퍼파라미터 튜닝**: 자동 최적화
+- **모델 비교**: 성능 자동 평가 및 순위
+- **해석 가능한 AI**: 모델 해석 기능
+- **스케일링**: 대용량 데이터 처리 가능
 """
                         
                     except Exception as agent_error:
-                        logger.warning(f"Agent execution failed, providing guidance: {agent_error}")
-                        response_text = f"""## 📊 데이터 시각화 가이드
+                        logger.warning(f"H2O ML Agent 실행 실패, 가이드 제공: {agent_error}")
+                        response_text = f"""## 🤖 H2O AutoML 가이드
 
 요청을 처리하는 중 문제가 발생했습니다: {str(agent_error)}
 
-### 💡 데이터 시각화 사용법
+### 💡 H2O AutoML 사용법
 다음과 같은 요청을 시도해보세요:
 
-1. **기본 차트**:
-   - "매출 데이터의 월별 트렌드를 선 그래프로 그려주세요"
-   - "고객 나이대별 분포를 히스토그램으로 보여주세요"
+1. **분류 모델**:
+   - "고객 이탈 예측 모델을 만들어주세요"
+   - "상품 카테고리 분류 모델을 개발해주세요"
 
-2. **고급 시각화**:
-   - "변수들 간의 상관관계를 히트맵으로 표시해주세요"
-   - "카테고리별 박스플롯을 생성해주세요"
+2. **회귀 모델**:
+   - "매출 예측 모델을 구축해주세요"
+   - "가격 예측 모델을 만들어주세요"
 
-3. **인터랙티브 차트**:
-   - "Plotly를 사용해서 인터랙티브 차트를 만들어주세요"
-   - "대시보드 형태로 여러 차트를 조합해주세요"
+3. **모델 비교**:
+   - "여러 알고리즘을 비교해서 최적 모델을 찾아주세요"
+   - "성능 지표를 비교해서 보여주세요"
 
-요청: {user_instructions}
+**사용된 데이터**: {data_file}
+**데이터 형태**: {df.shape}
+**요청**: {user_instructions}
 """
                 
                 else:
-                    response_text = f"""## ❌ 데이터 없음
-
-데이터 시각화를 수행하려면 먼저 데이터를 업로드해야 합니다.
-사용 가능한 데이터가 없습니다: {data_path}
-
-요청: {user_instructions}
-
-### 📊 Data Visualization Agent 기능
-- **차트 유형**: 선그래프, 막대그래프, 히스토그램, 산점도, 박스플롯 등
-- **인터랙티브**: Plotly 기반 동적 차트
-- **정적 차트**: Matplotlib 기반 고품질 이미지
-- **통계 시각화**: 분포 분석, 상관관계 분석
-- **대시보드**: 복합 시각화 레이아웃
-"""
+                    # 데이터 로딩 실패 시 안전한 응답 생성
+                    response_text = create_safe_data_response(
+                        df, data_file, user_instructions, "H2O AutoML"
+                    )
+                    
+                    if error_msg:
+                        response_text += f"\n\n**오류 상세**: {error_msg}"
                 
                 # 작업 완료
                 await task_updater.update_status(
@@ -232,19 +222,19 @@ class H2OMLAgentExecutor(AgentExecutor):
                 # 메시지가 없는 경우
                 await task_updater.update_status(
                     TaskState.completed,
-                    message=new_agent_text_message("시각화 요청이 비어있습니다. 구체적인 차트나 그래프 요청을 해주세요.")
+                    message=new_agent_text_message("H2O AutoML 요청이 비어있습니다. 구체적인 머신러닝 모델링 요청을 해주세요.")
                 )
                 
         except Exception as e:
-            logger.error(f"Error in H2OMLAgent execution: {e}")
+            logger.error(f"H2O ML Agent 실행 중 오류: {e}")
             await task_updater.update_status(
                 TaskState.failed,
-                message=new_agent_text_message(f"데이터 시각화 중 오류 발생: {str(e)}")
+                message=new_agent_text_message(f"H2O AutoML 중 오류 발생: {str(e)}")
             )
     
     async def cancel(self, context: RequestContext) -> None:
         """작업 취소"""
-        logger.info(f"H2OMLAgent task cancelled: {context.task_id}")
+        logger.info(f"H2O ML Agent 작업 취소: {context.task_id}")
 
 
 def main():
@@ -253,22 +243,22 @@ def main():
     # AgentSkill 정의
     skill = AgentSkill(
         id="h2o-ml",
-        name="Data Visualization & Chart Creation",
-        description="전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
-        tags=["data-visualization", "plotly", "matplotlib", "charts", "dashboard"],
+        name="H2O AutoML Machine Learning",
+        description="H2O AutoML을 활용한 전문적인 머신러닝 모델링 서비스. 자동 모델 선택, 하이퍼파라미터 튜닝, 성능 평가를 제공합니다.",
+        tags=["machine-learning", "h2o", "automl", "modeling", "prediction"],
         examples=[
-            "매출 데이터의 월별 트렌드를 선 그래프로 그려주세요",
-            "고객 나이대별 분포를 히스토그램으로 보여주세요",
-            "변수들 간의 상관관계를 히트맵으로 표시해주세요",
-            "카테고리별 박스플롯을 생성해주세요",
-            "인터랙티브 대시보드를 만들어주세요"
+            "고객 이탈 예측 모델을 만들어주세요",
+            "매출 예측 모델을 구축해주세요",
+            "상품 카테고리 분류 모델을 개발해주세요",
+            "여러 알고리즘을 비교해서 최적 모델을 찾아주세요",
+            "성능 지표를 비교해서 보여주세요"
         ]
     )
     
     # Agent Card 정의
     agent_card = AgentCard(
         name="AI_DS_Team H2OMLAgent",
-        description="전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        description="H2O AutoML을 활용한 전문적인 머신러닝 모델링 서비스. 자동 모델 선택, 하이퍼파라미터 튜닝, 성능 평가를 제공합니다.",
         url="http://localhost:8313/",
         version="1.0.0",
         defaultInputModes=["text"],
@@ -290,10 +280,10 @@ def main():
         http_handler=request_handler,
     )
     
-    print("📊 Starting AI_DS_Team H2OMLAgent Server")
+    print("🤖 Starting AI_DS_Team H2OMLAgent Server")
     print("🌐 Server starting on http://localhost:8313")
     print("📋 Agent card: http://localhost:8313/.well-known/agent.json")
-    print("🎨 Features: Interactive charts, static plots, dashboards")
+    print("🎯 Features: H2O AutoML, 자동 모델 선택, 하이퍼파라미터 튜닝")
     
     uvicorn.run(server.build(), host="0.0.0.0", port=8313, log_level="info")
 

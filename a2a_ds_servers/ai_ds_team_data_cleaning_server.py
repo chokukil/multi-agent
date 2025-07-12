@@ -1,4 +1,5 @@
-from a2a.utils import new_agent_text_message#!/usr/bin/env python3
+from a2a.utils import new_agent_text_message
+#!/usr/bin/env python3
 """
 AI_DS_Team DataCleaningAgent A2A Server
 Port: 8306
@@ -62,35 +63,20 @@ if os.getenv("LOGGING_PROVIDER") in ["langfuse", "both"]:
         logger.warning(f"⚠️ Langfuse logging setup failed: {e}")
 
 # LangSmith 로깅 설정 (선택적)
+langsmith_handler = None
 if os.getenv("LOGGING_PROVIDER") in ["langsmith", "both"]:
-    os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2", "false")
-    os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT", "ai-ds-team")
-    if os.getenv("LANGCHAIN_API_KEY"):
-        os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-        logger.info("✅ LangSmith logging enabled")
-
-
-def get_dataframe_summary(df, n_sample=5):
-    """간단한 데이터프레임 요약 생성"""
     try:
-        summary = f"""
-**Shape**: {df.shape[0]:,} rows × {df.shape[1]:,} columns
-
-**Columns**: {', '.join(df.columns.tolist())}
-
-**Data Types**:
-{df.dtypes.to_string()}
-
-**Sample Data**:
-{df.head(n_sample).to_string()}
-
-**Missing Values**:
-{df.isnull().sum().to_string()}
-"""
-        return [summary]
+        from langsmith.run_helpers import CallbackHandler
+        langsmith_handler = CallbackHandler(
+            project_name=os.getenv("LANGSMITH_PROJECT_NAME", "ai-ds-team"),
+            api_key=os.getenv("LANGSMITH_API_KEY"),
+        )
+        logger.info("✅ LangSmith logging enabled")
     except Exception as e:
-        return [f"데이터 요약 생성 중 오류: {str(e)}"]
+        logger.warning(f"⚠️ LangSmith logging setup failed: {e}")
 
+# 유틸리티 함수 import
+from a2a_ds_servers.utils.safe_data_loader import load_data_safely, create_safe_data_response
 
 class DataCleaningAgentExecutor(AgentExecutor):
     """AI_DS_Team DataCleaningAgent를 A2A 프로토콜로 래핑"""
@@ -104,7 +90,7 @@ class DataCleaningAgentExecutor(AgentExecutor):
             log=True,
             log_path="logs/generated_code/"
         )
-        logger.info("DataCleaningAgent initialized with LLM factory (langfuse auto-enabled)")
+        logger.info("✅ DataCleaningAgent 초기화 완료 (LLM 팩토리 사용)")
     
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """A2A 프로토콜에 따른 실행"""
@@ -114,6 +100,12 @@ class DataCleaningAgentExecutor(AgentExecutor):
             # 작업 시작
             await task_updater.submit()
             await task_updater.start_work()
+            
+            # 작업 시작 알림
+            await task_updater.update_status(
+                TaskState.working,
+                message="🧹 Data Cleaning Agent 분석을 시작합니다..."
+            )
             
             # 사용자 메시지 추출
             user_instructions = ""
@@ -126,33 +118,153 @@ class DataCleaningAgentExecutor(AgentExecutor):
                         data_reference = part.root.data.get('data_reference', {})
                 
                 user_instructions = user_instructions.strip()
-                logger.info(f"Processing data cleaning request: {user_instructions}")
+                logger.info(f"사용자 요청: {user_instructions}")
                 
-                # 데이터 로딩
+                # 안전한 데이터 로딩 적용
+                await task_updater.update_status(
+                    TaskState.working,
+                    message="📊 데이터를 안전하게 로딩하고 있습니다..."
+                )
+                
+                # 데이터 로딩 - DataManager 사용
                 available_data = data_manager.list_dataframes()
                 
+                # 안전한 데이터 선택 로직 적용
+                df = None
+                selected_data_id = None
+                
                 if not available_data:
-                    result = """## ❌ 데이터 없음
-
-데이터 클리닝을 수행하려면 먼저 데이터를 업로드해야 합니다.
-
-### 📤 데이터 업로드 방법
-1. **UI에서 파일 업로드**: 메인 페이지에서 CSV, Excel 파일을 업로드하세요
-2. **파일명 명시**: 자연어로 "data.xlsx 파일을 클리닝해줘"와 같이 요청하세요
-3. **지원 형식**: CSV, Excel (.xlsx, .xls), JSON, Pickle
-
-**현재 상태**: 사용 가능한 데이터가 없습니다.
-"""
+                    result = create_safe_data_response(
+                        None, None, user_instructions, "Data Cleaning Agent"
+                    )
                 else:
-                    # 요청된 파일 찾기 (폴백 제거)
-                    data_file = None
+                    # 1. 명시적 데이터 요청 확인
                     if data_reference and 'data_id' in data_reference:
                         requested_id = data_reference['data_id']
                         if requested_id in available_data:
-                            data_file = requested_id
+                            selected_data_id = requested_id
                     
-                    if data_file is None:
-                        result = f"""## ❌ 요청된 데이터를 찾을 수 없음
+                    # 2. 데이터 선택 안전성 확인
+                    if selected_data_id is None and available_data:
+                        # 가장 최근 데이터를 기본으로 선택
+                        selected_data_id = available_data[0]
+                        logger.info(f"기본 데이터 선택: {selected_data_id}")
+                    
+                    # 3. 데이터 로딩
+                    if selected_data_id:
+                        df = data_manager.get_dataframe(selected_data_id)
+                        
+                        if df is not None:
+                            logger.info(f"✅ 데이터 로딩 성공: {selected_data_id}, shape: {df.shape}")
+                            
+                            # Data Cleaning Agent 실행
+                            await task_updater.update_status(
+                                TaskState.working,
+                                message="🧹 데이터 정리 작업을 실행하고 있습니다..."
+                            )
+                            
+                            try:
+                                result = self.agent.invoke_agent(
+                                    user_instructions=user_instructions,
+                                    data_raw=df
+                                )
+                                
+                                # 결과 처리
+                                try:
+                                    ai_message = self.agent.get_ai_message(markdown=True)
+                                except AttributeError:
+                                    ai_message = "✅ 데이터 정리가 완료되었습니다."
+                                except Exception as e:
+                                    logger.warning(f"AI 메시지 생성 오류: {e}")
+                                    ai_message = "✅ 데이터 정리가 완료되었습니다."
+                                
+                                # 정리된 데이터 저장
+                                cleaned_data_info = ""
+                                if hasattr(self.agent, 'data') and self.agent.data is not None:
+                                    # 정리된 데이터 공유 폴더에 저장
+                                    output_path = f"a2a_ds_servers/artifacts/data/shared_dataframes/cleaned_data_{context.task_id}.csv"
+                                    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                                    self.agent.data.to_csv(output_path, index=False)
+                                    
+                                    # 정리 전후 비교
+                                    original_shape = df.shape
+                                    cleaned_shape = self.agent.data.shape
+                                    
+                                    # 데이터 요약 생성
+                                    try:
+                                        data_summary = get_dataframe_summary(self.agent.data, n_sample=10)
+                                        summary_text = data_summary[0] if data_summary else "데이터 요약 생성 불가"
+                                    except Exception as e:
+                                        logger.warning(f"데이터 요약 생성 오류: {e}")
+                                        summary_text = "데이터 요약 생성 불가"
+                                    
+                                    cleaned_data_info = f"""
+### 📊 데이터 정리 결과
+- **원본 데이터**: {original_shape[0]:,} 행 × {original_shape[1]:,} 열
+- **정리된 데이터**: {cleaned_shape[0]:,} 행 × {cleaned_shape[1]:,} 열
+- **변화**: {cleaned_shape[0] - original_shape[0]:+,} 행, {cleaned_shape[1] - original_shape[1]:+,} 열
+
+### 📋 정리된 데이터 요약
+{summary_text}
+
+### 💾 저장된 파일
+- **경로**: {output_path}
+"""
+                                
+                                # 최종 응답 생성
+                                response_text = f"""## 🧹 데이터 정리 완료
+
+{ai_message}
+
+{cleaned_data_info}
+
+### 📋 사용된 데이터 정보
+**파일**: {selected_data_id}
+**원본 형태**: {df.shape}
+
+### 🛠️ Data Cleaning Agent 기능
+- **결측값 처리**: 지능적인 결측값 대체 및 제거
+- **중복 제거**: 중복 행 탐지 및 제거
+- **이상값 탐지**: 통계적 이상값 식별 및 처리
+- **데이터 타입 최적화**: 메모리 효율성 개선
+- **품질 평가**: 데이터 품질 지표 제공
+"""
+                                
+                                result = response_text
+                                
+                            except Exception as agent_error:
+                                logger.warning(f"Data Cleaning Agent 실행 실패: {agent_error}")
+                                result = f"""## 🧹 데이터 정리 가이드
+
+요청을 처리하는 중 문제가 발생했습니다: {str(agent_error)}
+
+### 💡 Data Cleaning Agent 사용법
+다음과 같은 요청을 시도해보세요:
+
+1. **결측값 처리**:
+   - "결측값을 처리해주세요"
+   - "빈 값을 적절히 채워주세요"
+
+2. **중복 제거**:
+   - "중복된 행을 제거해주세요"
+   - "중복 데이터를 찾아서 정리해주세요"
+
+3. **이상값 처리**:
+   - "이상값을 탐지하고 처리해주세요"
+   - "통계적 이상값을 찾아주세요"
+
+4. **데이터 품질 개선**:
+   - "데이터 품질을 평가하고 개선해주세요"
+   - "데이터 타입을 최적화해주세요"
+
+**사용된 데이터**: {selected_data_id}
+**데이터 형태**: {df.shape}
+**요청**: {user_instructions}
+"""
+                        else:
+                            result = f"❌ 데이터 로드 실패: {selected_data_id}"
+                    else:
+                        result = f"""## ❌ 적절한 데이터를 찾을 수 없음
 
 **사용 가능한 데이터**: {', '.join(available_data)}
 
@@ -162,106 +274,30 @@ class DataCleaningAgentExecutor(AgentExecutor):
 
 **요청**: {user_instructions}
 """
-                    else:
-                        # 데이터 로드 및 처리
-                        df = data_manager.get_dataframe(data_file)
-                        if df is not None:
-                            # AI_DS_Team DataCleaningAgent 실행
-                            result = self.agent.invoke_agent(
-                                user_instructions=user_instructions,
-                                data_raw=df
-                            )
-                        else:
-                            result = f"❌ 데이터 로드 실패: {data_file}"
                 
-                # 결과 처리 - AI_DS_Team의 올바른 메서드 사용
-                try:
-                    # 정리된 데이터 가져오기
-                    cleaned_data = self.agent.get_data_cleaned()
-                    # 결과 처리 (안전한 방식으로 workflow summary 가져오기)
-                    try:
-                        workflow_summary = self.agent.get_workflow_summary(markdown=True)
-                    except AttributeError:
-                        # get_workflow_summary 메서드가 없는 경우 기본 요약 생성
-                        workflow_summary = f"✅ 데이터 정제 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
-                    except Exception as e:
-                        logger.warning(f"Error getting workflow summary: {e}")
-                        workflow_summary = f"✅ 데이터 정제 작업이 완료되었습니다.\n\n**요청**: {user_instructions}"
-                    
-                    # 데이터 요약 생성
-                    data_summary = get_dataframe_summary(df, n_sample=10)
-                    
-                    # 정리 결과 요약
-                    if cleaned_data is not None:
-                        cleaned_summary = get_dataframe_summary(cleaned_data, n_sample=10)
-                        response_text = f"""## 🧹 데이터 정리 완료
-
-### 📋 작업 요약
-{workflow_summary}
-
-### 📊 원본 데이터 요약
-{data_summary[0] if data_summary else '데이터 요약을 생성할 수 없습니다.'}
-
-### 🔧 정리된 데이터 요약
-{cleaned_summary[0] if cleaned_summary else '정리된 데이터 요약을 생성할 수 없습니다.'}
-
-### 💾 저장된 파일
-정리된 데이터가 아티팩트 폴더에 저장되었습니다.
-
-### 🧹 Data Cleaning Agent 기능
-- **결측값 처리**: fillna, dropna, 보간법 등
-- **중복 제거**: drop_duplicates 최적화
-- **이상값 탐지**: IQR, Z-score, Isolation Forest
-- **데이터 타입 변환**: 메모리 효율적인 타입 선택
-- **텍스트 정리**: 공백 제거, 대소문자 통일
-- **날짜 형식 표준화**: datetime 변환 및 검증
-"""
-                    else:
-                        response_text = f"""## 🧹 데이터 정리 완료
-
-### 📋 작업 요약
-{workflow_summary}
-
-### 📊 원본 데이터 요약
-{data_summary[0] if data_summary else '데이터 요약을 생성할 수 없습니다.'}
-
-데이터 정리가 완료되었지만 정리된 데이터를 가져올 수 없습니다.
-"""
-                except Exception as result_error:
-                    logger.warning(f"Result processing failed: {result_error}")
-                    response_text = f"""## 🧹 데이터 정리 완료
-
-데이터 정리 작업이 수행되었지만 결과 처리 중 오류가 발생했습니다: {str(result_error)}
-
-### 🧹 Data Cleaning Agent 기능
-- **결측값 처리**: fillna, dropna, 보간법 등
-- **중복 제거**: drop_duplicates 최적화
-- **이상값 탐지**: IQR, Z-score, Isolation Forest
-- **데이터 타입 변환**: 메모리 효율적인 타입 선택
-- **텍스트 정리**: 공백 제거, 대소문자 통일
-- **날짜 형식 표준화**: datetime 변환 및 검증
-
-요청: {user_instructions}
-"""
+                # 최종 응답 전송
+                await task_updater.update_status(
+                    TaskState.completed,
+                    message=new_agent_text_message(result)
+                )
                 
-            # 작업 완료
-            from a2a.utils import new_agent_text_message
-            await task_updater.update_status(
-                TaskState.completed,
-                message=new_agent_text_message(response_text)
-            )
-            
+            else:
+                # 메시지가 없는 경우
+                await task_updater.update_status(
+                    TaskState.completed,
+                    message=new_agent_text_message("❌ 데이터 정리 요청이 비어있습니다.")
+                )
+                
         except Exception as e:
-            logger.error(f"Error in DataCleaningAgent execution: {e}")
-            from a2a.utils import new_agent_text_message
+            logger.error(f"❌ Data Cleaning Agent 실행 중 오류: {e}")
             await task_updater.update_status(
                 TaskState.failed,
                 message=new_agent_text_message(f"데이터 정리 중 오류 발생: {str(e)}")
             )
-    
-    async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
+
+    async def cancel(self, context: RequestContext) -> None:
         """작업 취소"""
-        logger.info(f"DataCleaningAgent task cancelled: {context.task_id}")
+        logger.info(f"Data Cleaning Agent 작업 취소: {context.task_id}")
 
 
 def main():

@@ -1,0 +1,11 @@
+{
+  "file_id": "second_file.csv",
+  "original_name": "second_file.csv",
+  "uploaded_at": "2025-07-12T15:09:46.204925",
+  "user_context": "두 번째 파일",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_5f81e64f_second_file.csv"
+}

@@ -1,0 +1,10 @@
+{
+  "user_instructions": "EDA 분석을 수행해주세요",
+  "data_id": "empty.csv",
+  "data_shape": [
+    0,
+    0
+  ],
+  "created_at": "2025-07-12T19:54:47.432620",
+  "file_path": "ai_ds_team/data/session_2e132e8b/empty.csv"
+}

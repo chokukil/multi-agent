@@ -1,0 +1,11 @@
+{
+  "file_id": "test_smart.csv",
+  "original_name": "test_smart.csv",
+  "uploaded_at": "2025-07-12T15:09:11.569712",
+  "user_context": "스마트 선택 테스트",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_95439080_test_smart.csv"
+}

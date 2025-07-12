@@ -1,0 +1,11 @@
+{
+  "file_id": "session2_data.xlsx",
+  "original_name": "session2_data.xlsx",
+  "uploaded_at": "2025-07-12T15:09:32.146069",
+  "user_context": "두 번째 세션",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_fc4531dd_session2_data.xlsx"
+}

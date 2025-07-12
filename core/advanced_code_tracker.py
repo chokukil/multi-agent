@@ -776,6 +776,44 @@ class AdvancedCodeTracker:
         result = self.execute_tracked_code(execution_id, input_variables, context)
         return execution_id, result
     
+    def track_and_execute(
+        self,
+        agent_id: str = None,
+        session_id: str = None,
+        code: str = None,
+        source_code: str = None,
+        variables: Optional[Dict[str, Any]] = None,
+        input_variables: Optional[Dict[str, Any]] = None,
+        context: Optional[Dict[str, Any]] = None,
+        tags: Optional[List[str]] = None,
+        safe_execution: bool = True,
+        **kwargs
+    ) -> Tuple[str, ExecutionResult]:
+        """편의 메서드: 다양한 매개변수 형태를 지원하는 track_and_execute"""
+        # 매개변수 정규화
+        final_agent_id = agent_id or "unknown_agent"
+        final_session_id = session_id or "unknown_session"
+        final_code = code or source_code or ""
+        final_variables = variables or input_variables or {}
+        
+        if not final_code:
+            error_result = ExecutionResult(
+                status=ExecutionStatus.ERROR,
+                execution_time=0.0,
+                error_type="ParameterError",
+                error_message="코드가 제공되지 않았습니다."
+            )
+            return None, error_result
+        
+        return self.track_and_execute_code(
+            agent_id=final_agent_id,
+            session_id=final_session_id,
+            source_code=final_code,
+            input_variables=final_variables,
+            context=context,
+            tags=tags
+        )
+    
     def _generate_code_id(self, code: str) -> str:
         """코드 해시 기반 ID 생성"""
         code_hash = hashlib.md5(code.encode()).hexdigest()[:12]

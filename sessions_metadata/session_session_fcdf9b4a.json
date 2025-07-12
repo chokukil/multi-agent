@@ -1,0 +1,19 @@
+{
+  "session_id": "session_fcdf9b4a",
+  "created_at": "2025-07-12T19:55:40.772260",
+  "last_activity": "2025-07-12T19:55:40.772261",
+  "uploaded_files": [
+    {
+      "data_id": "empty.csv",
+      "uploaded_at": "2025-07-12T19:55:40.770595",
+      "file_size": 132,
+      "file_type": ".csv",
+      "user_context": "직원 데이터에 대한 탐색적 데이터 분석을 수행해주세요. 통계 요약, 분포 분석, 상관관계 분석을 포함해주세요.",
+      "domain": null,
+      "original_name": "empty.csv"
+    }
+  ],
+  "active_file": "empty.csv",
+  "auto_cleanup_at": "2025-07-13T19:55:40.772260",
+  "status": "active"
+}

@@ -1,0 +1,10 @@
+{
+  "user_instructions": "업로드된 파일: test_improved_system.csv",
+  "data_id": "test_improved_system.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-12T20:42:10.796284",
+  "file_path": "ai_ds_team/data/session_67f369fc/test_improved_system.csv"
+}

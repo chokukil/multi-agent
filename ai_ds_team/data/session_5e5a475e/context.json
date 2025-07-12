@@ -1,0 +1,10 @@
+{
+  "user_instructions": "UserFileTracker 통합 테스트",
+  "data_id": "test_with_tracker.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-12T15:09:09.029273",
+  "file_path": "ai_ds_team/data/session_5e5a475e/test_with_tracker.csv"
+}

@@ -1,0 +1,21 @@
+Name,Age,Department,Salary,Performance_Score,Start_Date,Is_Manager,Revenue_Generated,Projects_Completed,Satisfaction_Rating
+Alice Johnson,28,Engineering,75000,8.5,2020-03-15,False,450000,12,4.2
+Bob Smith,35,Marketing,65000,7.2,2018-07-22,True,380000,8,3.8
+Carol Brown,42,Engineering,95000,9.1,2015-01-10,True,720000,15,4.7
+David Wilson,31,Sales,58000,6.8,2019-11-05,False,290000,6,3.5
+Eve Davis,39,Engineering,88000,8.9,2016-09-30,False,610000,14,4.5
+Frank Miller,26,Marketing,52000,7.5,2021-02-18,False,310000,7,4.0
+Grace Lee,33,Sales,62000,8.2,2018-04-12,False,420000,9,4.1
+Henry Taylor,45,Engineering,102000,9.3,2013-06-25,True,850000,18,4.8
+Ivy Chen,29,Marketing,56000,7.8,2020-08-14,False,340000,8,3.9
+Jack Thompson,37,Sales,69000,8.0,2017-12-03,False,480000,11,4.3
+Kate Anderson,24,Engineering,48000,6.5,2022-01-20,False,180000,4,3.7
+Liam Roberts,41,Marketing,78000,8.7,2016-05-17,True,520000,13,4.4
+Maya Patel,36,Sales,71000,8.4,2018-10-08,False,560000,10,4.2
+Noah Garcia,30,Engineering,82000,8.8,2019-03-25,False,630000,12,4.6
+Olivia Martinez,34,Marketing,64000,7.9,2017-09-14,False,390000,9,4.0
+Paul Rodriguez,38,Sales,66000,7.6,2018-02-28,False,410000,8,3.8
+Quinn Kim,27,Engineering,53000,7.1,2021-07-19,False,220000,5,3.9
+Rachel Green,32,Marketing,59000,8.1,2019-06-11,False,360000,7,4.1
+Sam White,40,Sales,73000,8.6,2016-11-22,False,540000,12,4.5
+Tina Lopez,25,Engineering,49000,6.9,2022-04-05,False,160000,3,3.6 

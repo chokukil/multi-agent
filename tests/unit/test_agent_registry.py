@@ -1,5 +1,5 @@
 import pytest
-from core.agents.agent_registry import AgentRegistry
+from core.agents import AgentRegistry
 import os
 
 @pytest.fixture

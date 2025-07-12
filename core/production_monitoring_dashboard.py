@@ -35,9 +35,11 @@ try:
     from core.performance_monitor import PerformanceMonitor
     from core.performance_optimizer import get_performance_optimizer
     MONITORING_SYSTEMS_AVAILABLE = True
+    MONITORING_IMPORT_ERROR = None
 except ImportError as e:
     MONITORING_SYSTEMS_AVAILABLE = False
-    st.error(f"모니터링 시스템을 로드할 수 없습니다: {e}")
+    MONITORING_IMPORT_ERROR = f"모니터링 시스템을 로드할 수 없습니다: {e}"
+    logging.warning(MONITORING_IMPORT_ERROR)
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +83,7 @@ class ProductionMonitoringDashboard:
         self._render_sidebar()
         
         if not MONITORING_SYSTEMS_AVAILABLE:
-            st.error("⚠️ 모니터링 시스템을 사용할 수 없습니다. 시스템을 확인해주세요.")
+            st.error(f"⚠️ {MONITORING_IMPORT_ERROR}")
             return
         
         # 메인 대시보드

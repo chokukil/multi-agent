@@ -1,0 +1,11 @@
+{
+  "file_id": "a2a_test.csv",
+  "original_name": "a2a_test.csv",
+  "uploaded_at": "2025-07-12T15:09:13.394664",
+  "user_context": "A2A 에이전트 테스트",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_acb6f38d_a2a_test.csv"
+}

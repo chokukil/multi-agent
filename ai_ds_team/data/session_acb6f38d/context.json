@@ -1,0 +1,10 @@
+{
+  "user_instructions": "A2A 에이전트 테스트",
+  "data_id": "a2a_test.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-12T15:09:13.533803",
+  "file_path": "ai_ds_team/data/session_acb6f38d/a2a_test.csv"
+}

@@ -3,9 +3,9 @@
     "test_integration.csv": {
       "file_id": "test_integration.csv",
       "original_name": "test_integration.csv",
-      "session_id": "session_bd3e9585",
-      "uploaded_at": "2025-07-11T15:12:57.681684",
-      "file_size": 730,
+      "session_id": "session_b49319e0",
+      "uploaded_at": "2025-07-12T15:09:08.228714",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -14,16 +14,16 @@
       "is_active": true,
       "user_context": "통합 테스트용 데이터",
       "file_paths": {
-        "session": "ai_ds_team/data/session_bd3e9585/test_integration.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_bd3e9585_test_integration.csv"
+        "session": "ai_ds_team/data/session_b49319e0/test_integration.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_b49319e0_test_integration.csv"
       }
     },
     "test_smart.csv": {
       "file_id": "test_smart.csv",
       "original_name": "test_smart.csv",
-      "session_id": "session_fb1cc1a0",
-      "uploaded_at": "2025-07-11T15:12:57.722205",
-      "file_size": 730,
+      "session_id": "session_95439080",
+      "uploaded_at": "2025-07-12T15:09:11.569712",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -32,16 +32,16 @@
       "is_active": true,
       "user_context": "스마트 선택 테스트",
       "file_paths": {
-        "session": "ai_ds_team/data/session_fb1cc1a0/test_smart.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_fb1cc1a0_test_smart.csv"
+        "session": "ai_ds_team/data/session_95439080/test_smart.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_95439080_test_smart.csv"
       }
     },
     "fallback_test.csv": {
       "file_id": "fallback_test.csv",
       "original_name": "fallback_test.csv",
-      "session_id": "session_3e711929",
-      "uploaded_at": "2025-07-11T15:12:57.737515",
-      "file_size": 730,
+      "session_id": "session_08be1676",
+      "uploaded_at": "2025-07-12T15:09:11.818812",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -50,16 +50,16 @@
       "is_active": true,
       "user_context": "fallback 테스트",
       "file_paths": {
-        "session": "ai_ds_team/data/session_3e711929/fallback_test.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_3e711929_fallback_test.csv"
+        "session": "ai_ds_team/data/session_08be1676/fallback_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_08be1676_fallback_test.csv"
       }
     },
     "a2a_test.csv": {
       "file_id": "a2a_test.csv",
       "original_name": "a2a_test.csv",
-      "session_id": "session_5d2db9ab",
-      "uploaded_at": "2025-07-11T15:12:57.753056",
-      "file_size": 730,
+      "session_id": "session_acb6f38d",
+      "uploaded_at": "2025-07-12T15:09:13.394664",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -68,16 +68,16 @@
       "is_active": true,
       "user_context": "A2A 에이전트 테스트",
       "file_paths": {
-        "session": "ai_ds_team/data/session_5d2db9ab/a2a_test.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_5d2db9ab_a2a_test.csv"
+        "session": "ai_ds_team/data/session_acb6f38d/a2a_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_acb6f38d_a2a_test.csv"
       }
     },
     "env_test.csv": {
       "file_id": "env_test.csv",
       "original_name": "env_test.csv",
-      "session_id": "session_dc2c464a",
-      "uploaded_at": "2025-07-11T15:12:57.782156",
-      "file_size": 730,
+      "session_id": "session_854e5410",
+      "uploaded_at": "2025-07-12T15:09:16.678990",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -86,16 +86,16 @@
       "is_active": true,
       "user_context": "환경 준비 테스트",
       "file_paths": {
-        "session": "ai_ds_team/data/session_dc2c464a/env_test.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_dc2c464a_env_test.csv"
+        "session": "ai_ds_team/data/session_854e5410/env_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_854e5410_env_test.csv"
       }
     },
     "persistence_test.csv": {
       "file_id": "persistence_test.csv",
       "original_name": "persistence_test.csv",
-      "session_id": "session_b543c570",
-      "uploaded_at": "2025-07-11T15:12:57.818912",
-      "file_size": 730,
+      "session_id": "session_e6f25747",
+      "uploaded_at": "2025-07-12T15:09:23.896579",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -104,16 +104,16 @@
       "is_active": true,
       "user_context": "영속성 테스트",
       "file_paths": {
-        "session": "ai_ds_team/data/session_b543c570/persistence_test.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_b543c570_persistence_test.csv"
+        "session": "ai_ds_team/data/session_e6f25747/persistence_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_e6f25747_persistence_test.csv"
       }
     },
     "session1_data.csv": {
       "file_id": "session1_data.csv",
       "original_name": "session1_data.csv",
-      "session_id": "session_660a90e7",
-      "uploaded_at": "2025-07-11T15:12:57.838390",
-      "file_size": 730,
+      "session_id": "session_310429eb",
+      "uploaded_at": "2025-07-12T15:09:26.075573",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -122,16 +122,16 @@
       "is_active": true,
       "user_context": "첫 번째 세션",
       "file_paths": {
-        "session": "ai_ds_team/data/session_660a90e7/session1_data.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_660a90e7_session1_data.csv"
+        "session": "ai_ds_team/data/session_310429eb/session1_data.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_310429eb_session1_data.csv"
       }
     },
     "session2_data.xlsx": {
       "file_id": "session2_data.xlsx",
       "original_name": "session2_data.xlsx",
-      "session_id": "session_7d5c3241",
-      "uploaded_at": "2025-07-11T15:12:57.912069",
-      "file_size": 730,
+      "session_id": "session_fc4531dd",
+      "uploaded_at": "2025-07-12T15:09:32.146069",
+      "file_size": 810,
       "file_type": ".xlsx",
       "data_shape": [
         5,
@@ -140,16 +140,16 @@
       "is_active": true,
       "user_context": "두 번째 세션",
       "file_paths": {
-        "session": "ai_ds_team/data/session_7d5c3241/session2_data.xlsx",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_7d5c3241_session2_data.xlsx"
+        "session": "ai_ds_team/data/session_fc4531dd/session2_data.xlsx",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_fc4531dd_session2_data.xlsx"
       }
     },
     "session3_data.json": {
       "file_id": "session3_data.json",
       "original_name": "session3_data.json",
-      "session_id": "session_28431117",
-      "uploaded_at": "2025-07-11T15:12:57.922028",
-      "file_size": 730,
+      "session_id": "session_97e5dc39",
+      "uploaded_at": "2025-07-12T15:09:33.009952",
+      "file_size": 810,
       "file_type": ".json",
       "data_shape": [
         5,
@@ -158,16 +158,16 @@
       "is_active": true,
       "user_context": "세 번째 세션",
       "file_paths": {
-        "session": "ai_ds_team/data/session_28431117/session3_data.json",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_28431117_session3_data.json"
+        "session": "ai_ds_team/data/session_97e5dc39/session3_data.json",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_97e5dc39_session3_data.json"
       }
     },
     "context_test.csv": {
       "file_id": "context_test.csv",
       "original_name": "context_test.csv",
-      "session_id": "session_a7bceeb3",
-      "uploaded_at": "2025-07-11T15:12:57.940113",
-      "file_size": 730,
+      "session_id": "session_77b6ca62",
+      "uploaded_at": "2025-07-12T15:09:39.442467",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -176,16 +176,16 @@
       "is_active": true,
       "user_context": "컨텍스트 테스트용 데이터",
       "file_paths": {
-        "session": "ai_ds_team/data/session_a7bceeb3/context_test.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_a7bceeb3_context_test.csv"
+        "session": "ai_ds_team/data/session_77b6ca62/context_test.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_77b6ca62_context_test.csv"
       }
     },
     "first_file.csv": {
       "file_id": "first_file.csv",
       "original_name": "first_file.csv",
-      "session_id": "session_782643c0",
-      "uploaded_at": "2025-07-11T15:12:57.953822",
-      "file_size": 730,
+      "session_id": "session_5f81e64f",
+      "uploaded_at": "2025-07-12T15:09:45.956469",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -194,16 +194,16 @@
       "is_active": true,
       "user_context": "첫 번째 파일",
       "file_paths": {
-        "session": "ai_ds_team/data/session_782643c0/first_file.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_782643c0_first_file.csv"
+        "session": "ai_ds_team/data/session_5f81e64f/first_file.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_5f81e64f_first_file.csv"
       }
     },
     "second_file.csv": {
       "file_id": "second_file.csv",
       "original_name": "second_file.csv",
-      "session_id": "session_782643c0",
-      "uploaded_at": "2025-07-11T15:12:57.956404",
-      "file_size": 730,
+      "session_id": "session_5f81e64f",
+      "uploaded_at": "2025-07-12T15:09:46.204925",
+      "file_size": 810,
       "file_type": ".csv",
       "data_shape": [
         5,
@@ -212,15 +212,15 @@
       "is_active": true,
       "user_context": "두 번째 파일",
       "file_paths": {
-        "session": "ai_ds_team/data/session_782643c0/second_file.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_782643c0_second_file.csv"
+        "session": "ai_ds_team/data/session_5f81e64f/second_file.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_5f81e64f_second_file.csv"
       }
     },
     "empty.csv": {
       "file_id": "empty.csv",
       "original_name": "empty.csv",
-      "session_id": "session_4753e68c",
-      "uploaded_at": "2025-07-11T21:21:20.686082",
+      "session_id": "session_29412815",
+      "uploaded_at": "2025-07-12T20:42:25.089982",
       "file_size": 132,
       "file_type": ".csv",
       "data_shape": [
@@ -228,10 +228,10 @@
         0
       ],
       "is_active": true,
-      "user_context": "공정 파라미터 최적화 방향 제시 작업을 수행하세요.\n\n\n\n🔬 **데이터 파일 선택 기준**:\n   1. ion_implant 관련 파일 우선 (반도체 분석 특화)\n   2. 가장 최근 수정된 파일\n   3. 사용 가능한 첫 번째 파일\n\n⚠️ **중요**: 선택된 데이터 파일명을 응답에 반드시 명시해주세요.\n\n\n📋 **작업 세부사항**:\n- 탐색적 데이터 분석 수행\n- 기술통계, 분포 분석, 상관관계 분석\n- 사용된 파일명을 명확히 표시",
+      "user_context": "분석 수행\n\n📁 **사용할 데이터 파일**: a2a_ds_servers/artifacts/data/shared_dataframes/session_67f369fc_test_improved_system.csv\n💡 **선택 이유**: 가장 최근 업로드 파일\n📊 **데이터 품질**: 96.2% (크기: (5, 4))\n🔍 **주요 인사이트**: 데이터셋 크기: 5행 × 4열, 전체 데이터 품질: EXCELLENT (96.2%), 주요 데이터 타입: numeric_discrete (2개 컬럼)",
       "file_paths": {
-        "session": "ai_ds_team/data/session_4753e68c/empty.csv",
-        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_4753e68c_empty.csv"
+        "session": "ai_ds_team/data/session_29412815/empty.csv",
+        "shared": "a2a_ds_servers/artifacts/data/shared_dataframes/session_29412815_empty.csv"
       }
     },
     "test_sample_data.csv": {
@@ -428,8 +428,81 @@
     ],
     "session_4753e68c": [
       "empty.csv"
+    ],
+    "session_b36fe6df": [
+      "empty.csv"
+    ],
+    "session_2b6ef7e4": [
+      "empty.csv"
+    ],
+    "session_0d5bd0c5": [
+      "empty.csv"
+    ],
+    "session_56ab5787": [
+      "empty.csv"
+    ],
+    "session_b49319e0": [
+      "test_integration.csv"
+    ],
+    "session_95439080": [
+      "test_smart.csv"
+    ],
+    "session_08be1676": [
+      "fallback_test.csv"
+    ],
+    "session_acb6f38d": [
+      "a2a_test.csv"
+    ],
+    "session_854e5410": [
+      "env_test.csv"
+    ],
+    "session_e6f25747": [
+      "persistence_test.csv"
+    ],
+    "session_310429eb": [
+      "session1_data.csv"
+    ],
+    "session_fc4531dd": [
+      "session2_data.xlsx"
+    ],
+    "session_97e5dc39": [
+      "session3_data.json"
+    ],
+    "session_77b6ca62": [
+      "context_test.csv"
+    ],
+    "session_5f81e64f": [
+      "first_file.csv",
+      "second_file.csv"
+    ],
+    "session_b85219bd": [
+      "empty.csv"
+    ],
+    "session_6633d2f1": [
+      "empty.csv"
+    ],
+    "session_90e16834": [
+      "empty.csv"
+    ],
+    "session_15db3c2e": [
+      "empty.csv"
+    ],
+    "session_ce30982f": [
+      "empty.csv"
+    ],
+    "session_2e132e8b": [
+      "empty.csv"
+    ],
+    "session_7ad2d1f3": [
+      "empty.csv"
+    ],
+    "session_fcdf9b4a": [
+      "empty.csv"
+    ],
+    "session_29412815": [
+      "empty.csv"
     ]
   },
-  "current_session_id": "session_4753e68c",
-  "last_updated": "2025-07-11T21:21:20.686955"
+  "current_session_id": "session_29412815",
+  "last_updated": "2025-07-12T20:42:25.091855"
 }

@@ -1,0 +1,10 @@
+{
+  "user_instructions": "tracker 없는 테스트",
+  "data_id": "no_tracker_test.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-12T15:09:14.433905",
+  "file_path": "ai_ds_team/data/session_e8667ba6/no_tracker_test.csv"
+}

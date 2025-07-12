@@ -1,0 +1,10 @@
+{
+  "user_instructions": "분석 수행\n\n📁 **사용할 데이터 파일**: a2a_ds_servers/artifacts/data/shared_dataframes/session_52d8c05b_test_data_comprehensive.csv\n💡 **선택 이유**: 가장 최근 업로드 파일\n📊 **데이터 품질**: 98.5% (크기: (20, 10))\n🔍 **주요 인사이트**: 데이터셋 크기: 20행 × 10열, 전체 데이터 품질: EXCELLENT (98.5%), 주요 데이터 타입: numeric_discrete (4개 컬럼)",
+  "data_id": "empty.csv",
+  "data_shape": [
+    0,
+    0
+  ],
+  "created_at": "2025-07-12T19:39:58.487126",
+  "file_path": "ai_ds_team/data/session_ce30982f/empty.csv"
+}

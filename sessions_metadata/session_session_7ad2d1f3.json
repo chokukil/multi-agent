@@ -1,0 +1,19 @@
+{
+  "session_id": "session_7ad2d1f3",
+  "created_at": "2025-07-12T19:55:06.462302",
+  "last_activity": "2025-07-12T19:55:06.462303",
+  "uploaded_files": [
+    {
+      "data_id": "empty.csv",
+      "uploaded_at": "2025-07-12T19:55:06.460131",
+      "file_size": 132,
+      "file_type": ".csv",
+      "user_context": "안녕하세요",
+      "domain": null,
+      "original_name": "empty.csv"
+    }
+  ],
+  "active_file": "empty.csv",
+  "auto_cleanup_at": "2025-07-13T19:55:06.462302",
+  "status": "active"
+}

@@ -1,0 +1,11 @@
+{
+  "file_id": "test_integration.csv",
+  "original_name": "test_integration.csv",
+  "uploaded_at": "2025-07-12T15:09:08.228714",
+  "user_context": "통합 테스트용 데이터",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_b49319e0_test_integration.csv"
+}
