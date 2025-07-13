@@ -76,14 +76,14 @@ class DataLoaderExecutor(AgentExecutor):
             if not user_message:
                 await task_updater.update_status(
                     TaskState.failed,
-                    message=task_updater.new_agent_message(parts=[TextPart(text="❌ No valid message provided")])
+                    message=new_agent_text_message("❌ No valid message provided")
                 )
                 return
             
             # 진행 상황 알림
             await task_updater.update_status(
                 TaskState.working,
-                message=task_updater.new_agent_message(parts=[TextPart(text="🔄 Initializing Data Loader Agent...")])
+                message=new_agent_text_message("🔄 Initializing Data Loader Agent...")
             )
             
             # 에이전트 실행
@@ -92,14 +92,14 @@ class DataLoaderExecutor(AgentExecutor):
             # 작업 완료
             await task_updater.update_status(
                 TaskState.completed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=result)])
+                message=new_agent_text_message(result)
             )
             
         except Exception as e:
             # Task 실패 처리
             await task_updater.update_status(
                 TaskState.failed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=f"❌ Error: {str(e)}")])
+                message=new_agent_text_message(f"❌ Error: {str(e)}")
             )
 
     async def cancel(
@@ -109,7 +109,7 @@ class DataLoaderExecutor(AgentExecutor):
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         await task_updater.update_status(
             TaskState.canceled,
-            message=task_updater.new_agent_message(parts=[TextPart(text="❌ Data loading operation cancelled")])
+            message=new_agent_text_message("❌ Data loading operation cancelled")
         )
 
 

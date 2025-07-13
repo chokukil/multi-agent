@@ -1,0 +1,85 @@
+{
+  "timestamp": "2025-07-13 16:44:50",
+  "system_info": {
+    "memory_mb": 6232.34375,
+    "cpu_percent": 14.8,
+    "memory_available_mb": 4012.765625
+  },
+  "response_time_test": {
+    "measurements": [
+      0.03631997108459473,
+      0.02809000015258789,
+      0.02199101448059082,
+      0.019040822982788086,
+      0.018043994903564453
+    ],
+    "average": 0.024697160720825194,
+    "target": 2.0,
+    "passed": true
+  },
+  "streaming_delay_test": {
+    "measurements": [
+      17.951011657714844,
+      17.84825325012207,
+      32.32884407043457,
+      17.868995666503906,
+      17.674922943115234
+    ],
+    "average": 20.734405517578125,
+    "target": 100.0,
+    "passed": true
+  },
+  "concurrent_users_test": {
+    "5_users": {
+      "total_users": 5,
+      "successful": 5,
+      "failed": 0,
+      "success_rate": 100.0,
+      "avg_response_time": 0.0386347770690918,
+      "max_response_time": 0.07124185562133789,
+      "total_test_time": 0.08805584907531738
+    },
+    "10_users": {
+      "total_users": 10,
+      "successful": 10,
+      "failed": 0,
+      "success_rate": 100.0,
+      "avg_response_time": 0.08218464851379395,
+      "max_response_time": 0.15532493591308594,
+      "total_test_time": 0.17459726333618164
+    },
+    "15_users": {
+      "total_users": 15,
+      "successful": 15,
+      "failed": 0,
+      "success_rate": 100.0,
+      "avg_response_time": 0.1297568162282308,
+      "max_response_time": 0.25141191482543945,
+      "total_test_time": 0.26807498931884766
+    }
+  },
+  "resource_usage": {
+    "initial": {
+      "memory_mb": 6232.34375,
+      "cpu_percent": 14.8,
+      "memory_available_mb": 4012.765625
+    },
+    "final": {
+      "memory_mb": 6133.953125,
+      "cpu_percent": 13.6,
+      "memory_available_mb": 4113.015625
+    },
+    "memory_target_mb": 2048,
+    "cpu_target_percent": 70,
+    "memory_passed": false,
+    "cpu_passed": true
+  },
+  "performance_summary": {
+    "overall_passed": false,
+    "response_time_score": "✅ PASS",
+    "streaming_delay_score": "✅ PASS",
+    "memory_score": "❌ FAIL",
+    "cpu_score": "✅ PASS",
+    "total_errors": 0
+  }
+}

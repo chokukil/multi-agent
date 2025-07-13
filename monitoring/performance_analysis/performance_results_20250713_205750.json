@@ -1,0 +1,326 @@
+{
+  "timestamp": "2025-07-13T20:57:50.657898",
+  "routing_results": {
+    "orchestrator": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 6.121550930870904,
+        "median": 6.391315937042236,
+        "min": 2.6167078018188477,
+        "max": 9.32824993133545,
+        "p95": 9.32824993133545,
+        "p99": 9.32824993133545
+      },
+      "memory_usage": {
+        "avg_delta_mb": -15.480902777777779,
+        "max_delta_mb": 46.59375,
+        "min_delta_mb": -294.96875
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 8.188888888888888,
+        "max_delta_percent": 31.8
+      },
+      "performance_grade": "D"
+    },
+    "data_cleaning": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 0.007575882805718316,
+        "median": 0.0036890506744384766,
+        "min": 0.00257110595703125,
+        "max": 0.041647911071777344,
+        "p95": 0.041647911071777344,
+        "p99": 0.041647911071777344
+      },
+      "memory_usage": {
+        "avg_delta_mb": -0.14930555555555555,
+        "max_delta_mb": 0.234375,
+        "min_delta_mb": -1.71875
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 11.244444444444444,
+        "max_delta_percent": 60.0
+      },
+      "performance_grade": "A"
+    },
+    "data_loader": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 0.00236866209242079,
+        "median": 0.001583099365234375,
+        "min": 0.0013780593872070312,
+        "max": 0.008580923080444336,
+        "p95": 0.008580923080444336,
+        "p99": 0.008580923080444336
+      },
+      "memory_usage": {
+        "avg_delta_mb": 0.0,
+        "max_delta_mb": 0.0,
+        "min_delta_mb": 0.0
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 0.0,
+        "max_delta_percent": 0.0
+      },
+      "performance_grade": "A"
+    },
+    "data_visualization": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 0.004397153854370117,
+        "median": 0.0023241043090820312,
+        "min": 0.0020139217376708984,
+        "max": 0.020228147506713867,
+        "p95": 0.020228147506713867,
+        "p99": 0.020228147506713867
+      },
+      "memory_usage": {
+        "avg_delta_mb": 0.0,
+        "max_delta_mb": 0.0,
+        "min_delta_mb": 0.0
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 0.0,
+        "max_delta_percent": 0.0
+      },
+      "performance_grade": "A"
+    },
+    "data_wrangling": {
+      "status": "degraded",
+      "total_requests": 9,
+      "successful_requests": 8,
+      "failed_requests": 1,
+      "error_rate": 0.1111111111111111,
+      "response_times": {
+        "avg": 17.212351977825165,
+        "median": 14.163758873939514,
+        "min": 12.39839482307434,
+        "max": 28.259814023971558,
+        "p95": 28.259814023971558,
+        "p99": 28.259814023971558
+      },
+      "memory_usage": {
+        "avg_delta_mb": -13.8359375,
+        "max_delta_mb": 71.03125,
+        "min_delta_mb": -87.046875
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 20.162499999999998,
+        "max_delta_percent": 34.8
+      },
+      "performance_grade": "F"
+    },
+    "feature_engineering": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 12.361761861377293,
+        "median": 12.46094274520874,
+        "min": 8.27709698677063,
+        "max": 16.656943798065186,
+        "p95": 16.656943798065186,
+        "p99": 16.656943798065186
+      },
+      "memory_usage": {
+        "avg_delta_mb": 2.6475694444444446,
+        "max_delta_mb": 120.125,
+        "min_delta_mb": -180.640625
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 29.2,
+        "max_delta_percent": 47.3
+      },
+      "performance_grade": "F"
+    },
+    "sql_database": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 6.831755956013997,
+        "median": 6.40778923034668,
+        "min": 5.697071313858032,
+        "max": 8.73743224143982,
+        "p95": 8.73743224143982,
+        "p99": 8.73743224143982
+      },
+      "memory_usage": {
+        "avg_delta_mb": -10.34548611111111,
+        "max_delta_mb": 156.0625,
+        "min_delta_mb": -199.65625
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 22.933333333333334,
+        "max_delta_percent": 46.3
+      },
+      "performance_grade": "D"
+    },
+    "eda_tools": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 1.2160729302300348,
+        "median": 1.1128871440887451,
+        "min": 0.46845531463623047,
+        "max": 3.129020929336548,
+        "p95": 3.129020929336548,
+        "p99": 3.129020929336548
+      },
+      "memory_usage": {
+        "avg_delta_mb": 6.776041666666667,
+        "max_delta_mb": 40.875,
+        "min_delta_mb": -11.71875
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 20.455555555555556,
+        "max_delta_percent": 33.6
+      },
+      "performance_grade": "A"
+    },
+    "h2o_modeling": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 0.5051298141479492,
+        "median": 0.5033197402954102,
+        "min": 0.5030069351196289,
+        "max": 0.5162308216094971,
+        "p95": 0.5162308216094971,
+        "p99": 0.5162308216094971
+      },
+      "memory_usage": {
+        "avg_delta_mb": 3.4010416666666665,
+        "max_delta_mb": 18.234375,
+        "min_delta_mb": -3.828125
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 26.433333333333334,
+        "max_delta_percent": 36.1
+      },
+      "performance_grade": "A"
+    },
+    "mlflow_tracking": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 0.5162424776289198,
+        "median": 0.5044910907745361,
+        "min": 0.5024580955505371,
+        "max": 0.596923828125,
+        "p95": 0.596923828125,
+        "p99": 0.596923828125
+      },
+      "memory_usage": {
+        "avg_delta_mb": -22.03298611111111,
+        "max_delta_mb": 39.296875,
+        "min_delta_mb": -124.015625
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 38.32222222222222,
+        "max_delta_percent": 85.4
+      },
+      "performance_grade": "A"
+    },
+    "pandas_data_analyst": {
+      "status": "healthy",
+      "total_requests": 9,
+      "successful_requests": 9,
+      "failed_requests": 0,
+      "error_rate": 0.0,
+      "response_times": {
+        "avg": 16.023044374254013,
+        "median": 16.129377126693726,
+        "min": 7.87477707862854,
+        "max": 22.76710605621338,
+        "p95": 22.76710605621338,
+        "p99": 22.76710605621338
+      },
+      "memory_usage": {
+        "avg_delta_mb": 0.8663194444444444,
+        "max_delta_mb": 270.984375,
+        "min_delta_mb": -119.109375
+      },
+      "cpu_usage": {
+        "avg_delta_percent": 24.81111111111111,
+        "max_delta_percent": 51.8
+      },
+      "performance_grade": "F"
+    }
+  },
+  "overall_analysis": {
+    "system_health": "warning",
+    "agent_status_summary": {
+      "healthy": 10,
+      "degraded": 1,
+      "failed": 0,
+      "total": 11
+    },
+    "healthy_agents": [
+      "orchestrator",
+      "data_cleaning",
+      "data_loader",
+      "data_visualization",
+      "feature_engineering",
+      "sql_database",
+      "eda_tools",
+      "h2o_modeling",
+      "mlflow_tracking",
+      "pandas_data_analyst"
+    ],
+    "degraded_agents": [
+      "data_wrangling"
+    ],
+    "failed_agents": [],
+    "performance_summary": {
+      "avg_response_time": 5.527477456463708,
+      "avg_error_rate": 0.0101010101010101,
+      "fastest_agent": "data_loader",
+      "slowest_agent": "data_wrangling"
+    },
+    "bottlenecks": [
+      "BottleneckAnalysis(component='data_wrangling', severity='critical', avg_response_time=17.212351977825165, max_response_time=28.259814023971558, error_rate=0.1111111111111111, memory_pressure=-13.8359375, cpu_pressure=20.162499999999998, recommendations=['data_wrangling의 평균 응답시간이 17.21초로 매우 느립니다.', '코드 최적화나 인프라 업그레이드를 고려하세요.', 'data_wrangling의 에러율이 11.1%로 높습니다.', '에러 로그를 분석하여 근본 원인을 파악하세요.'])",
+      "BottleneckAnalysis(component='feature_engineering', severity='critical', avg_response_time=12.361761861377293, max_response_time=16.656943798065186, error_rate=0.0, memory_pressure=2.6475694444444446, cpu_pressure=29.2, recommendations=['feature_engineering의 평균 응답시간이 12.36초로 매우 느립니다.', '코드 최적화나 인프라 업그레이드를 고려하세요.'])",
+      "BottleneckAnalysis(component='pandas_data_analyst', severity='critical', avg_response_time=16.023044374254013, max_response_time=22.76710605621338, error_rate=0.0, memory_pressure=0.8663194444444444, cpu_pressure=24.81111111111111, recommendations=['pandas_data_analyst의 평균 응답시간이 16.02초로 매우 느립니다.', '코드 최적화나 인프라 업그레이드를 고려하세요.'])",
+      "BottleneckAnalysis(component='orchestrator', severity='high', avg_response_time=6.121550930870904, max_response_time=9.32824993133545, error_rate=0.0, memory_pressure=-15.480902777777779, cpu_pressure=8.188888888888888, recommendations=['orchestrator의 응답시간 최적화가 필요합니다.'])",
+      "BottleneckAnalysis(component='sql_database', severity='high', avg_response_time=6.831755956013997, max_response_time=8.73743224143982, error_rate=0.0, memory_pressure=-10.34548611111111, cpu_pressure=22.933333333333334, recommendations=['sql_database의 응답시간 최적화가 필요합니다.'])"
+    ],
+    "optimization_recommendations": [
+      "전체 평균 응답시간(5.53초)이 목표치(3초)를 초과합니다.",
+      "연결 풀 크기 증가를 고려하세요.",
+      "타임아웃 설정을 조정하세요.",
+      "가장 느린 에이전트 data_wrangling(17.21초) 우선 최적화",
+      "CPU 사용량이 높은 에이전트: data_wrangling(20.2%), feature_engineering(29.2%), sql_database(22.9%), eda_tools(20.5%), h2o_modeling(26.4%), mlflow_tracking(38.3%), pandas_data_analyst(24.8%)",
+      "비동기 처리 최적화를 고려하세요."
+    ]
+  }
+}

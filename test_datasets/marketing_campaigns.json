@@ -1,0 +1,3060 @@
+[
+  {
+    "campaign_id": "CAMP_001",
+    "campaign_name": "Campaign 1",
+    "campaign_type": "Display Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-09-11T00:00:00",
+    "end_date": "2023-10-04T00:00:00",
+    "budget": 32025.301118614152,
+    "target_audience": {
+      "age_range": "31-47",
+      "interests": [
+        "Technology",
+        "Food"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 934366,
+      "clicks": 11632,
+      "conversions": 1790,
+      "cost_per_click": 0.8842751296424802,
+      "click_through_rate": 0.01438528527918152,
+      "conversion_rate": 0.09515596083249288,
+      "return_on_ad_spend": 3.1726313317746078
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 1",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_002",
+    "campaign_name": "Campaign 2",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-01-02T00:00:00",
+    "end_date": "2023-02-06T00:00:00",
+    "budget": 12267.077527849504,
+    "target_audience": {
+      "age_range": "18-62",
+      "interests": [
+        "Technology",
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 709259,
+      "clicks": 19117,
+      "conversions": 1953,
+      "cost_per_click": 3.191228102849405,
+      "click_through_rate": 0.017229642448175986,
+      "conversion_rate": 0.06485238339935322,
+      "return_on_ad_spend": 7.338915141477513
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 2",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_003",
+    "campaign_name": "Campaign 3",
+    "campaign_type": "Search Ads",
+    "channel": "Facebook",
+    "start_date": "2023-05-20T00:00:00",
+    "end_date": "2023-06-29T00:00:00",
+    "budget": 25545.880819763905,
+    "target_audience": {
+      "age_range": "34-52",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 589701,
+      "clicks": 6544,
+      "conversions": 1973,
+      "cost_per_click": 0.6906108184082579,
+      "click_through_rate": 0.0713629927011813,
+      "conversion_rate": 0.01872810004469853,
+      "return_on_ad_spend": 5.852985754404635
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 3",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_004",
+    "campaign_name": "Campaign 4",
+    "campaign_type": "Video Ads",
+    "channel": "Instagram",
+    "start_date": "2023-05-14T00:00:00",
+    "end_date": "2023-06-14T00:00:00",
+    "budget": 45850.375166798774,
+    "target_audience": {
+      "age_range": "37-46",
+      "interests": [
+        "Travel"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 334156,
+      "clicks": 36911,
+      "conversions": 638,
+      "cost_per_click": 0.5703438943194721,
+      "click_through_rate": 0.03295783503262694,
+      "conversion_rate": 0.11807464177208499,
+      "return_on_ad_spend": 2.6934061187087766
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 4",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_005",
+    "campaign_name": "Campaign 5",
+    "campaign_type": "Display Ads",
+    "channel": "Twitter",
+    "start_date": "2023-10-08T00:00:00",
+    "end_date": "2023-12-04T00:00:00",
+    "budget": 15575.869470356294,
+    "target_audience": {
+      "age_range": "24-53",
+      "interests": [
+        "Sports",
+        "Technology"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 437533,
+      "clicks": 10089,
+      "conversions": 195,
+      "cost_per_click": 3.3776878761443725,
+      "click_through_rate": 0.06075974904371211,
+      "conversion_rate": 0.02690143737884704,
+      "return_on_ad_spend": 7.88502483566609
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 5",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_006",
+    "campaign_name": "Campaign 6",
+    "campaign_type": "Video Ads",
+    "channel": "Twitter",
+    "start_date": "2023-10-03T00:00:00",
+    "end_date": "2023-10-13T00:00:00",
+    "budget": 39813.76955342565,
+    "target_audience": {
+      "age_range": "42-61",
+      "interests": [
+        "Food"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 19407,
+      "clicks": 42570,
+      "conversions": 1933,
+      "cost_per_click": 3.1426654404363488,
+      "click_through_rate": 0.08183278432056325,
+      "conversion_rate": 0.016778752383431215,
+      "return_on_ad_spend": 6.092125584494349
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 6",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_007",
+    "campaign_name": "Campaign 7",
+    "campaign_type": "Display Ads",
+    "channel": "YouTube",
+    "start_date": "2023-01-12T00:00:00",
+    "end_date": "2023-01-22T00:00:00",
+    "budget": 10396.355201676246,
+    "target_audience": {
+      "age_range": "30-61",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 291307,
+      "clicks": 30862,
+      "conversions": 1545,
+      "cost_per_click": 1.4646470988241596,
+      "click_through_rate": 0.07418958754288348,
+      "conversion_rate": 0.09196830976985211,
+      "return_on_ad_spend": 6.419123605416843
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 7",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_008",
+    "campaign_name": "Campaign 8",
+    "campaign_type": "Search Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-09-06T00:00:00",
+    "end_date": "2023-09-25T00:00:00",
+    "budget": 24380.877719589305,
+    "target_audience": {
+      "age_range": "24-48",
+      "interests": [
+        "Travel",
+        "Food"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 589624,
+      "clicks": 18680,
+      "conversions": 651,
+      "cost_per_click": 3.385839497708596,
+      "click_through_rate": 0.08751882059884207,
+      "conversion_rate": 0.13049330402157341,
+      "return_on_ad_spend": 4.6346179570054025
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 8",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_009",
+    "campaign_name": "Campaign 9",
+    "campaign_type": "Video Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-01-17T00:00:00",
+    "end_date": "2023-01-26T00:00:00",
+    "budget": 44179.52810542489,
+    "target_audience": {
+      "age_range": "18-53",
+      "interests": [
+        "Technology",
+        "Technology"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 750183,
+      "clicks": 19718,
+      "conversions": 441,
+      "cost_per_click": 1.167984951304255,
+      "click_through_rate": 0.09858998249363823,
+      "conversion_rate": 0.09164269992126908,
+      "return_on_ad_spend": 7.529721053778429
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 9",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_010",
+    "campaign_name": "Campaign 10",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-03-13T00:00:00",
+    "end_date": "2023-04-10T00:00:00",
+    "budget": 27309.645710579738,
+    "target_audience": {
+      "age_range": "37-52",
+      "interests": [
+        "Technology",
+        "Sports"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 671837,
+      "clicks": 25105,
+      "conversions": 1086,
+      "cost_per_click": 0.8601328466884192,
+      "click_through_rate": 0.010062953314378995,
+      "conversion_rate": 0.04875453170536338,
+      "return_on_ad_spend": 6.009138537873745
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 10",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_011",
+    "campaign_name": "Campaign 11",
+    "campaign_type": "Video Ads",
+    "channel": "YouTube",
+    "start_date": "2023-09-27T00:00:00",
+    "end_date": "2023-10-06T00:00:00",
+    "budget": 23880.802813771028,
+    "target_audience": {
+      "age_range": "37-60",
+      "interests": [
+        "Technology",
+        "Sports"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 223849,
+      "clicks": 9760,
+      "conversions": 1337,
+      "cost_per_click": 4.371072950445001,
+      "click_through_rate": 0.04940756417673793,
+      "conversion_rate": 0.08132005575147018,
+      "return_on_ad_spend": 6.962351804662957
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 11",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_012",
+    "campaign_name": "Campaign 12",
+    "campaign_type": "Video Ads",
+    "channel": "Facebook",
+    "start_date": "2023-09-08T00:00:00",
+    "end_date": "2023-09-20T00:00:00",
+    "budget": 20867.760972050677,
+    "target_audience": {
+      "age_range": "30-55",
+      "interests": [
+        "Technology",
+        "Fashion"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 734001,
+      "clicks": 29069,
+      "conversions": 216,
+      "cost_per_click": 4.480566757452401,
+      "click_through_rate": 0.09685951872992911,
+      "conversion_rate": 0.10377987735371522,
+      "return_on_ad_spend": 5.83749518946226
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 12",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_013",
+    "campaign_name": "Campaign 13",
+    "campaign_type": "Email",
+    "channel": "LinkedIn",
+    "start_date": "2023-01-14T00:00:00",
+    "end_date": "2023-03-09T00:00:00",
+    "budget": 23240.146323686185,
+    "target_audience": {
+      "age_range": "33-53",
+      "interests": [
+        "Food",
+        "Sports"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 361272,
+      "clicks": 22558,
+      "conversions": 1730,
+      "cost_per_click": 2.321883705035779,
+      "click_through_rate": 0.07731410789895324,
+      "conversion_rate": 0.1261607717194769,
+      "return_on_ad_spend": 3.637221972743219
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 13",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_014",
+    "campaign_name": "Campaign 14",
+    "campaign_type": "Video Ads",
+    "channel": "Facebook",
+    "start_date": "2023-03-28T00:00:00",
+    "end_date": "2023-05-20T00:00:00",
+    "budget": 32460.929920840852,
+    "target_audience": {
+      "age_range": "39-59",
+      "interests": [
+        "Travel",
+        "Fashion"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 757465,
+      "clicks": 14730,
+      "conversions": 1247,
+      "cost_per_click": 4.171425070620012,
+      "click_through_rate": 0.03585487138955245,
+      "conversion_rate": 0.09932415479543834,
+      "return_on_ad_spend": 2.8077075271157383
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 14",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_015",
+    "campaign_name": "Campaign 15",
+    "campaign_type": "Social Media",
+    "channel": "YouTube",
+    "start_date": "2023-02-15T00:00:00",
+    "end_date": "2023-02-22T00:00:00",
+    "budget": 36514.46569254959,
+    "target_audience": {
+      "age_range": "27-48",
+      "interests": [
+        "Fashion",
+        "Fashion"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 90681,
+      "clicks": 35605,
+      "conversions": 972,
+      "cost_per_click": 1.8304411373426446,
+      "click_through_rate": 0.03258789972724384,
+      "conversion_rate": 0.027911482330572734,
+      "return_on_ad_spend": 5.99526369040723
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 15",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_016",
+    "campaign_name": "Campaign 16",
+    "campaign_type": "Display Ads",
+    "channel": "YouTube",
+    "start_date": "2023-04-22T00:00:00",
+    "end_date": "2023-05-12T00:00:00",
+    "budget": 5718.881320394521,
+    "target_audience": {
+      "age_range": "33-49",
+      "interests": [
+        "Food",
+        "Technology"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 844677,
+      "clicks": 30411,
+      "conversions": 1866,
+      "cost_per_click": 1.8743063308776815,
+      "click_through_rate": 0.06751338206920496,
+      "conversion_rate": 0.12167312023579142,
+      "return_on_ad_spend": 3.1214976341431115
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 16",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_017",
+    "campaign_name": "Campaign 17",
+    "campaign_type": "Search Ads",
+    "channel": "Twitter",
+    "start_date": "2023-04-07T00:00:00",
+    "end_date": "2023-04-24T00:00:00",
+    "budget": 48807.37814633077,
+    "target_audience": {
+      "age_range": "41-57",
+      "interests": [
+        "Sports"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 145899,
+      "clicks": 2950,
+      "conversions": 917,
+      "cost_per_click": 0.8717100935604355,
+      "click_through_rate": 0.024941021892688642,
+      "conversion_rate": 0.13891594555655876,
+      "return_on_ad_spend": 4.520854524359226
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 17",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_018",
+    "campaign_name": "Campaign 18",
+    "campaign_type": "Search Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-07-06T00:00:00",
+    "end_date": "2023-08-08T00:00:00",
+    "budget": 5539.790455942754,
+    "target_audience": {
+      "age_range": "40-54",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 201365,
+      "clicks": 29649,
+      "conversions": 762,
+      "cost_per_click": 1.314804412183822,
+      "click_through_rate": 0.03725927552664642,
+      "conversion_rate": 0.06794819609360166,
+      "return_on_ad_spend": 2.122870264595457
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 18",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_019",
+    "campaign_name": "Campaign 19",
+    "campaign_type": "Display Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-05-23T00:00:00",
+    "end_date": "2023-07-18T00:00:00",
+    "budget": 36783.8377660576,
+    "target_audience": {
+      "age_range": "34-55",
+      "interests": [
+        "Fashion",
+        "Technology"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 175302,
+      "clicks": 47680,
+      "conversions": 1875,
+      "cost_per_click": 3.2199409351870156,
+      "click_through_rate": 0.08442272015451906,
+      "conversion_rate": 0.07175257794464468,
+      "return_on_ad_spend": 5.501921425877345
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 19",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_020",
+    "campaign_name": "Campaign 20",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-09-09T00:00:00",
+    "end_date": "2023-11-03T00:00:00",
+    "budget": 44437.611450181015,
+    "target_audience": {
+      "age_range": "31-47",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 529541,
+      "clicks": 29771,
+      "conversions": 1163,
+      "cost_per_click": 1.1948883856244492,
+      "click_through_rate": 0.06883285524985004,
+      "conversion_rate": 0.100054707936553,
+      "return_on_ad_spend": 3.6177730426270545
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 20",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_021",
+    "campaign_name": "Campaign 21",
+    "campaign_type": "Video Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-03-21T00:00:00",
+    "end_date": "2023-05-12T00:00:00",
+    "budget": 11864.661649774978,
+    "target_audience": {
+      "age_range": "29-46",
+      "interests": [
+        "Technology",
+        "Food"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 787370,
+      "clicks": 27815,
+      "conversions": 1701,
+      "cost_per_click": 2.3159620733792994,
+      "click_through_rate": 0.013145082173713693,
+      "conversion_rate": 0.1124966733107176,
+      "return_on_ad_spend": 3.7039707983438457
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 21",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_022",
+    "campaign_name": "Campaign 22",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-05-24T00:00:00",
+    "end_date": "2023-06-19T00:00:00",
+    "budget": 38441.36100640332,
+    "target_audience": {
+      "age_range": "43-47",
+      "interests": [
+        "Fashion",
+        "Food"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 185361,
+      "clicks": 3185,
+      "conversions": 232,
+      "cost_per_click": 2.9788389222667604,
+      "click_through_rate": 0.02331204231502027,
+      "conversion_rate": 0.016741261664817125,
+      "return_on_ad_spend": 5.533160764907223
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 22",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_023",
+    "campaign_name": "Campaign 23",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-10-03T00:00:00",
+    "end_date": "2023-11-20T00:00:00",
+    "budget": 12791.409182982701,
+    "target_audience": {
+      "age_range": "20-52",
+      "interests": [
+        "Sports"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 707468,
+      "clicks": 48418,
+      "conversions": 1019,
+      "cost_per_click": 3.361571355788037,
+      "click_through_rate": 0.054373675679890106,
+      "conversion_rate": 0.048980680273764794,
+      "return_on_ad_spend": 7.047936277801648
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 23",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_024",
+    "campaign_name": "Campaign 24",
+    "campaign_type": "Search Ads",
+    "channel": "Twitter",
+    "start_date": "2023-02-04T00:00:00",
+    "end_date": "2023-02-24T00:00:00",
+    "budget": 20790.797938516607,
+    "target_audience": {
+      "age_range": "28-62",
+      "interests": [
+        "Technology",
+        "Food"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 416978,
+      "clicks": 20293,
+      "conversions": 669,
+      "cost_per_click": 3.379949569029855,
+      "click_through_rate": 0.04968731831401853,
+      "conversion_rate": 0.0646049870239284,
+      "return_on_ad_spend": 5.448785169744181
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 24",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_025",
+    "campaign_name": "Campaign 25",
+    "campaign_type": "Social Media",
+    "channel": "YouTube",
+    "start_date": "2023-09-12T00:00:00",
+    "end_date": "2023-10-10T00:00:00",
+    "budget": 41055.14753479913,
+    "target_audience": {
+      "age_range": "18-63",
+      "interests": [
+        "Food",
+        "Travel"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 433484,
+      "clicks": 33374,
+      "conversions": 806,
+      "cost_per_click": 2.41570428662827,
+      "click_through_rate": 0.09936458966293088,
+      "conversion_rate": 0.11828194523575662,
+      "return_on_ad_spend": 6.258122880613067
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 25",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_026",
+    "campaign_name": "Campaign 26",
+    "campaign_type": "Social Media",
+    "channel": "YouTube",
+    "start_date": "2023-04-02T00:00:00",
+    "end_date": "2023-05-15T00:00:00",
+    "budget": 22913.46134680657,
+    "target_audience": {
+      "age_range": "36-48",
+      "interests": [
+        "Travel"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 57872,
+      "clicks": 24182,
+      "conversions": 1457,
+      "cost_per_click": 2.6866029969312244,
+      "click_through_rate": 0.05155919171355534,
+      "conversion_rate": 0.04386680647247322,
+      "return_on_ad_spend": 6.787149361555906
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 26",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_027",
+    "campaign_name": "Campaign 27",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-03-11T00:00:00",
+    "end_date": "2023-04-17T00:00:00",
+    "budget": 46759.17758258237,
+    "target_audience": {
+      "age_range": "27-46",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 718938,
+      "clicks": 49056,
+      "conversions": 869,
+      "cost_per_click": 2.235640390717345,
+      "click_through_rate": 0.08013864063474203,
+      "conversion_rate": 0.041418915506436706,
+      "return_on_ad_spend": 3.8654699495509983
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 27",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_028",
+    "campaign_name": "Campaign 28",
+    "campaign_type": "Video Ads",
+    "channel": "YouTube",
+    "start_date": "2023-09-27T00:00:00",
+    "end_date": "2023-10-28T00:00:00",
+    "budget": 20309.72180541655,
+    "target_audience": {
+      "age_range": "18-64",
+      "interests": [
+        "Travel",
+        "Food"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 144954,
+      "clicks": 38659,
+      "conversions": 73,
+      "cost_per_click": 2.918609708059419,
+      "click_through_rate": 0.0845584955481537,
+      "conversion_rate": 0.056907743103601666,
+      "return_on_ad_spend": 3.8759908899311775
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 28",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_029",
+    "campaign_name": "Campaign 29",
+    "campaign_type": "Display Ads",
+    "channel": "Facebook",
+    "start_date": "2023-08-05T00:00:00",
+    "end_date": "2023-09-20T00:00:00",
+    "budget": 44619.85702639755,
+    "target_audience": {
+      "age_range": "23-50",
+      "interests": [
+        "Sports"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 154093,
+      "clicks": 24403,
+      "conversions": 281,
+      "cost_per_click": 2.8060030923100845,
+      "click_through_rate": 0.08075281431771059,
+      "conversion_rate": 0.09402248491521306,
+      "return_on_ad_spend": 7.4455405868609486
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 29",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_030",
+    "campaign_name": "Campaign 30",
+    "campaign_type": "Video Ads",
+    "channel": "Instagram",
+    "start_date": "2023-10-27T00:00:00",
+    "end_date": "2023-11-28T00:00:00",
+    "budget": 38487.13351728361,
+    "target_audience": {
+      "age_range": "44-51",
+      "interests": [
+        "Food"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 203805,
+      "clicks": 36929,
+      "conversions": 675,
+      "cost_per_click": 1.5137331046725895,
+      "click_through_rate": 0.08751056201087015,
+      "conversion_rate": 0.029561618415125272,
+      "return_on_ad_spend": 1.8460584890380456
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 30",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_031",
+    "campaign_name": "Campaign 31",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-05-22T00:00:00",
+    "end_date": "2023-05-29T00:00:00",
+    "budget": 35939.409333024545,
+    "target_audience": {
+      "age_range": "18-51",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 150817,
+      "clicks": 44874,
+      "conversions": 1398,
+      "cost_per_click": 0.8546185665143164,
+      "click_through_rate": 0.016613877388073472,
+      "conversion_rate": 0.05626319949164072,
+      "return_on_ad_spend": 4.302911734041691
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 31",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_032",
+    "campaign_name": "Campaign 32",
+    "campaign_type": "Video Ads",
+    "channel": "Instagram",
+    "start_date": "2023-07-17T00:00:00",
+    "end_date": "2023-07-24T00:00:00",
+    "budget": 2850.205461702949,
+    "target_audience": {
+      "age_range": "31-64",
+      "interests": [
+        "Fashion",
+        "Travel"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 656276,
+      "clicks": 40910,
+      "conversions": 1828,
+      "cost_per_click": 0.6959149280078978,
+      "click_through_rate": 0.04279937845105685,
+      "conversion_rate": 0.14942121082200777,
+      "return_on_ad_spend": 5.725377026163909
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 32",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_033",
+    "campaign_name": "Campaign 33",
+    "campaign_type": "Social Media",
+    "channel": "Facebook",
+    "start_date": "2023-07-23T00:00:00",
+    "end_date": "2023-08-05T00:00:00",
+    "budget": 36215.46848845837,
+    "target_audience": {
+      "age_range": "44-51",
+      "interests": [
+        "Food"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 40563,
+      "clicks": 49492,
+      "conversions": 1509,
+      "cost_per_click": 4.411274811207838,
+      "click_through_rate": 0.09348803744776343,
+      "conversion_rate": 0.12404960098408138,
+      "return_on_ad_spend": 5.719089811997115
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 33",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_034",
+    "campaign_name": "Campaign 34",
+    "campaign_type": "Social Media",
+    "channel": "Facebook",
+    "start_date": "2023-08-28T00:00:00",
+    "end_date": "2023-10-22T00:00:00",
+    "budget": 27478.60055122589,
+    "target_audience": {
+      "age_range": "42-51",
+      "interests": [
+        "Sports",
+        "Fashion"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 208086,
+      "clicks": 48040,
+      "conversions": 417,
+      "cost_per_click": 1.2030219939504265,
+      "click_through_rate": 0.059136076036415776,
+      "conversion_rate": 0.13066834002000607,
+      "return_on_ad_spend": 5.683065382941585
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 34",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_035",
+    "campaign_name": "Campaign 35",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-10-05T00:00:00",
+    "end_date": "2023-10-27T00:00:00",
+    "budget": 1307.0906417766746,
+    "target_audience": {
+      "age_range": "44-48",
+      "interests": [
+        "Travel",
+        "Travel"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 106486,
+      "clicks": 16204,
+      "conversions": 786,
+      "cost_per_click": 2.497100031707424,
+      "click_through_rate": 0.03665105965508007,
+      "conversion_rate": 0.13185420067233913,
+      "return_on_ad_spend": 3.8036943734326103
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 35",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_036",
+    "campaign_name": "Campaign 36",
+    "campaign_type": "Display Ads",
+    "channel": "Google",
+    "start_date": "2023-06-15T00:00:00",
+    "end_date": "2023-08-02T00:00:00",
+    "budget": 31488.92306933078,
+    "target_audience": {
+      "age_range": "28-53",
+      "interests": [
+        "Fashion",
+        "Travel"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 647968,
+      "clicks": 14378,
+      "conversions": 818,
+      "cost_per_click": 1.9261901212868842,
+      "click_through_rate": 0.060093500924836146,
+      "conversion_rate": 0.058126004584833364,
+      "return_on_ad_spend": 7.484158796450411
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 36",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_037",
+    "campaign_name": "Campaign 37",
+    "campaign_type": "Email",
+    "channel": "Google",
+    "start_date": "2023-08-12T00:00:00",
+    "end_date": "2023-09-24T00:00:00",
+    "budget": 30723.762740573424,
+    "target_audience": {
+      "age_range": "34-51",
+      "interests": [
+        "Food",
+        "Technology"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 246898,
+      "clicks": 12317,
+      "conversions": 212,
+      "cost_per_click": 2.660514036115944,
+      "click_through_rate": 0.08415808841543725,
+      "conversion_rate": 0.09315936044404638,
+      "return_on_ad_spend": 3.6662152461005126
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 37",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_038",
+    "campaign_name": "Campaign 38",
+    "campaign_type": "Search Ads",
+    "channel": "Twitter",
+    "start_date": "2023-10-16T00:00:00",
+    "end_date": "2023-12-01T00:00:00",
+    "budget": 16213.419926354734,
+    "target_audience": {
+      "age_range": "39-47",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 79477,
+      "clicks": 5622,
+      "conversions": 1727,
+      "cost_per_click": 3.076432119467037,
+      "click_through_rate": 0.020625562936884462,
+      "conversion_rate": 0.01272491829684533,
+      "return_on_ad_spend": 5.450247301410503
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 38",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_039",
+    "campaign_name": "Campaign 39",
+    "campaign_type": "Video Ads",
+    "channel": "Instagram",
+    "start_date": "2023-10-03T00:00:00",
+    "end_date": "2023-10-19T00:00:00",
+    "budget": 17013.157943155817,
+    "target_audience": {
+      "age_range": "41-46",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 424241,
+      "clicks": 24053,
+      "conversions": 1378,
+      "cost_per_click": 1.3437652699544833,
+      "click_through_rate": 0.036548649788344025,
+      "conversion_rate": 0.14038651056344523,
+      "return_on_ad_spend": 3.4380641237319853
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 39",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_040",
+    "campaign_name": "Campaign 40",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-10-16T00:00:00",
+    "end_date": "2023-12-13T00:00:00",
+    "budget": 4649.733189981961,
+    "target_audience": {
+      "age_range": "35-59",
+      "interests": [
+        "Food",
+        "Technology"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 174331,
+      "clicks": 4364,
+      "conversions": 1090,
+      "cost_per_click": 1.0434187856988253,
+      "click_through_rate": 0.05815257811333784,
+      "conversion_rate": 0.06788319712148229,
+      "return_on_ad_spend": 2.217339590617735
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 40",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_041",
+    "campaign_name": "Campaign 41",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-01-13T00:00:00",
+    "end_date": "2023-01-22T00:00:00",
+    "budget": 2728.284911650786,
+    "target_audience": {
+      "age_range": "19-53",
+      "interests": [
+        "Travel"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 78663,
+      "clicks": 45013,
+      "conversions": 1327,
+      "cost_per_click": 1.1262088197837579,
+      "click_through_rate": 0.046127230358725735,
+      "conversion_rate": 0.05116705325437633,
+      "return_on_ad_spend": 6.141707254601592
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 41",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_042",
+    "campaign_name": "Campaign 42",
+    "campaign_type": "Search Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-06-18T00:00:00",
+    "end_date": "2023-07-07T00:00:00",
+    "budget": 46527.28150424097,
+    "target_audience": {
+      "age_range": "29-52",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 47356,
+      "clicks": 23822,
+      "conversions": 1383,
+      "cost_per_click": 1.925959843473438,
+      "click_through_rate": 0.08348156201027311,
+      "conversion_rate": 0.11462121345767519,
+      "return_on_ad_spend": 6.547273318534187
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 42",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_043",
+    "campaign_name": "Campaign 43",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-03-23T00:00:00",
+    "end_date": "2023-04-28T00:00:00",
+    "budget": 12773.524022558962,
+    "target_audience": {
+      "age_range": "42-64",
+      "interests": [
+        "Technology",
+        "Travel"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 999732,
+      "clicks": 8562,
+      "conversions": 1301,
+      "cost_per_click": 3.5705141359545323,
+      "click_through_rate": 0.08213583574004472,
+      "conversion_rate": 0.12609329489581222,
+      "return_on_ad_spend": 2.2631063181432984
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 43",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_044",
+    "campaign_name": "Campaign 44",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-08-06T00:00:00",
+    "end_date": "2023-09-21T00:00:00",
+    "budget": 27891.745808049942,
+    "target_audience": {
+      "age_range": "34-63",
+      "interests": [
+        "Technology",
+        "Sports"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 714504,
+      "clicks": 3924,
+      "conversions": 1115,
+      "cost_per_click": 2.128372558958749,
+      "click_through_rate": 0.09756629975663102,
+      "conversion_rate": 0.0832514501239135,
+      "return_on_ad_spend": 6.825493115161808
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 44",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_045",
+    "campaign_name": "Campaign 45",
+    "campaign_type": "Search Ads",
+    "channel": "Google",
+    "start_date": "2023-05-07T00:00:00",
+    "end_date": "2023-06-07T00:00:00",
+    "budget": 17037.601266841753,
+    "target_audience": {
+      "age_range": "33-62",
+      "interests": [
+        "Technology"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 39888,
+      "clicks": 5770,
+      "conversions": 432,
+      "cost_per_click": 4.595861967959665,
+      "click_through_rate": 0.07785220595617959,
+      "conversion_rate": 0.12719420384627772,
+      "return_on_ad_spend": 6.657290641652182
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 45",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_046",
+    "campaign_name": "Campaign 46",
+    "campaign_type": "Display Ads",
+    "channel": "Twitter",
+    "start_date": "2023-08-10T00:00:00",
+    "end_date": "2023-09-09T00:00:00",
+    "budget": 38595.31683110919,
+    "target_audience": {
+      "age_range": "30-52",
+      "interests": [
+        "Food"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 63127,
+      "clicks": 35044,
+      "conversions": 1404,
+      "cost_per_click": 4.677727319594818,
+      "click_through_rate": 0.014119167274750427,
+      "conversion_rate": 0.1391383829378872,
+      "return_on_ad_spend": 3.665513279337044
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 46",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_047",
+    "campaign_name": "Campaign 47",
+    "campaign_type": "Video Ads",
+    "channel": "Google",
+    "start_date": "2023-10-23T00:00:00",
+    "end_date": "2023-11-25T00:00:00",
+    "budget": 43402.44412658254,
+    "target_audience": {
+      "age_range": "28-49",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 715477,
+      "clicks": 4756,
+      "conversions": 882,
+      "cost_per_click": 3.4317644295412357,
+      "click_through_rate": 0.06264790201945658,
+      "conversion_rate": 0.09321725983505681,
+      "return_on_ad_spend": 5.918034841416938
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 47",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_048",
+    "campaign_name": "Campaign 48",
+    "campaign_type": "Display Ads",
+    "channel": "Twitter",
+    "start_date": "2023-10-02T00:00:00",
+    "end_date": "2023-11-27T00:00:00",
+    "budget": 44640.89098296284,
+    "target_audience": {
+      "age_range": "43-63",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 251830,
+      "clicks": 7117,
+      "conversions": 351,
+      "cost_per_click": 1.637026354625697,
+      "click_through_rate": 0.028722472331450404,
+      "conversion_rate": 0.07176353146359887,
+      "return_on_ad_spend": 3.4142926519952264
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 48",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_049",
+    "campaign_name": "Campaign 49",
+    "campaign_type": "Search Ads",
+    "channel": "Google",
+    "start_date": "2023-07-19T00:00:00",
+    "end_date": "2023-08-10T00:00:00",
+    "budget": 14177.719115731843,
+    "target_audience": {
+      "age_range": "39-49",
+      "interests": [
+        "Technology",
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 368939,
+      "clicks": 13174,
+      "conversions": 1893,
+      "cost_per_click": 4.971333887310662,
+      "click_through_rate": 0.03507099956280957,
+      "conversion_rate": 0.06633877978100952,
+      "return_on_ad_spend": 5.946037704096874
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 49",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_050",
+    "campaign_name": "Campaign 50",
+    "campaign_type": "Search Ads",
+    "channel": "Facebook",
+    "start_date": "2023-04-26T00:00:00",
+    "end_date": "2023-06-16T00:00:00",
+    "budget": 34642.27094241214,
+    "target_audience": {
+      "age_range": "27-52",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 670027,
+      "clicks": 20847,
+      "conversions": 1765,
+      "cost_per_click": 2.7209625508447846,
+      "click_through_rate": 0.0482881023254726,
+      "conversion_rate": 0.06243881312453635,
+      "return_on_ad_spend": 1.6496351822213147
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 50",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_051",
+    "campaign_name": "Campaign 51",
+    "campaign_type": "Email",
+    "channel": "Twitter",
+    "start_date": "2023-01-31T00:00:00",
+    "end_date": "2023-03-06T00:00:00",
+    "budget": 48808.452469121934,
+    "target_audience": {
+      "age_range": "31-62",
+      "interests": [
+        "Sports",
+        "Travel"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 820268,
+      "clicks": 3275,
+      "conversions": 897,
+      "cost_per_click": 2.312891195220102,
+      "click_through_rate": 0.05321732306595321,
+      "conversion_rate": 0.10572664449705783,
+      "return_on_ad_spend": 5.931472464980777
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 51",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_052",
+    "campaign_name": "Campaign 52",
+    "campaign_type": "Email",
+    "channel": "YouTube",
+    "start_date": "2023-04-28T00:00:00",
+    "end_date": "2023-05-29T00:00:00",
+    "budget": 8938.97390216812,
+    "target_audience": {
+      "age_range": "27-60",
+      "interests": [
+        "Sports"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 210120,
+      "clicks": 41987,
+      "conversions": 1611,
+      "cost_per_click": 1.7699365586511475,
+      "click_through_rate": 0.07085006452942735,
+      "conversion_rate": 0.06298737610958485,
+      "return_on_ad_spend": 3.440167474889578
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 52",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_053",
+    "campaign_name": "Campaign 53",
+    "campaign_type": "Email",
+    "channel": "Instagram",
+    "start_date": "2023-01-05T00:00:00",
+    "end_date": "2023-01-25T00:00:00",
+    "budget": 34793.32126989116,
+    "target_audience": {
+      "age_range": "19-57",
+      "interests": [
+        "Technology"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 815022,
+      "clicks": 38867,
+      "conversions": 1874,
+      "cost_per_click": 4.460459590884902,
+      "click_through_rate": 0.018477415982897687,
+      "conversion_rate": 0.11334274058563201,
+      "return_on_ad_spend": 6.681425861722785
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 53",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_054",
+    "campaign_name": "Campaign 54",
+    "campaign_type": "Email",
+    "channel": "Facebook",
+    "start_date": "2023-09-16T00:00:00",
+    "end_date": "2023-10-04T00:00:00",
+    "budget": 47451.725619656434,
+    "target_audience": {
+      "age_range": "28-51",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 563241,
+      "clicks": 49414,
+      "conversions": 45,
+      "cost_per_click": 3.793010683330818,
+      "click_through_rate": 0.07780215939340435,
+      "conversion_rate": 0.14231450246956007,
+      "return_on_ad_spend": 5.277883054970367
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 54",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_055",
+    "campaign_name": "Campaign 55",
+    "campaign_type": "Search Ads",
+    "channel": "Instagram",
+    "start_date": "2023-02-12T00:00:00",
+    "end_date": "2023-03-04T00:00:00",
+    "budget": 1748.4266644924055,
+    "target_audience": {
+      "age_range": "44-63",
+      "interests": [
+        "Travel",
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 415323,
+      "clicks": 12751,
+      "conversions": 611,
+      "cost_per_click": 3.8989895074498664,
+      "click_through_rate": 0.03849826744503795,
+      "conversion_rate": 0.031128423359947918,
+      "return_on_ad_spend": 5.729584815973581
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 55",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_056",
+    "campaign_name": "Campaign 56",
+    "campaign_type": "Display Ads",
+    "channel": "Twitter",
+    "start_date": "2023-01-01T00:00:00",
+    "end_date": "2023-01-16T00:00:00",
+    "budget": 35346.143401765905,
+    "target_audience": {
+      "age_range": "27-56",
+      "interests": [
+        "Sports",
+        "Travel"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 565220,
+      "clicks": 9872,
+      "conversions": 1001,
+      "cost_per_click": 1.0397503094894274,
+      "click_through_rate": 0.05308320033928621,
+      "conversion_rate": 0.013147360595029753,
+      "return_on_ad_spend": 5.989952068637304
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 56",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_057",
+    "campaign_name": "Campaign 57",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-03-16T00:00:00",
+    "end_date": "2023-04-22T00:00:00",
+    "budget": 3948.7411097062472,
+    "target_audience": {
+      "age_range": "27-61",
+      "interests": [
+        "Food",
+        "Travel"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 691391,
+      "clicks": 16581,
+      "conversions": 879,
+      "cost_per_click": 3.344825471095105,
+      "click_through_rate": 0.05490267385637221,
+      "conversion_rate": 0.10325575954722538,
+      "return_on_ad_spend": 1.7659111227458884
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 57",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_058",
+    "campaign_name": "Campaign 58",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-06-03T00:00:00",
+    "end_date": "2023-07-05T00:00:00",
+    "budget": 8640.58506884747,
+    "target_audience": {
+      "age_range": "43-49",
+      "interests": [
+        "Sports"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 487259,
+      "clicks": 27013,
+      "conversions": 801,
+      "cost_per_click": 0.8499861953284573,
+      "click_through_rate": 0.0810325513661813,
+      "conversion_rate": 0.13326051348468065,
+      "return_on_ad_spend": 7.612369872370376
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 58",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_059",
+    "campaign_name": "Campaign 59",
+    "campaign_type": "Search Ads",
+    "channel": "Twitter",
+    "start_date": "2023-08-11T00:00:00",
+    "end_date": "2023-09-22T00:00:00",
+    "budget": 40590.806832451046,
+    "target_audience": {
+      "age_range": "25-51",
+      "interests": [
+        "Sports"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 853264,
+      "clicks": 42825,
+      "conversions": 1683,
+      "cost_per_click": 1.4046072968216259,
+      "click_through_rate": 0.08464504099213396,
+      "conversion_rate": 0.05257834219758756,
+      "return_on_ad_spend": 3.454130844781719
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 59",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_060",
+    "campaign_name": "Campaign 60",
+    "campaign_type": "Display Ads",
+    "channel": "Facebook",
+    "start_date": "2023-05-04T00:00:00",
+    "end_date": "2023-06-03T00:00:00",
+    "budget": 45753.39072451444,
+    "target_audience": {
+      "age_range": "24-46",
+      "interests": [
+        "Travel",
+        "Food"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 934995,
+      "clicks": 4260,
+      "conversions": 1324,
+      "cost_per_click": 4.238697360309703,
+      "click_through_rate": 0.039433462057658665,
+      "conversion_rate": 0.0978344161296914,
+      "return_on_ad_spend": 2.404158711293061
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 60",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_061",
+    "campaign_name": "Campaign 61",
+    "campaign_type": "Email",
+    "channel": "Google",
+    "start_date": "2023-02-13T00:00:00",
+    "end_date": "2023-04-02T00:00:00",
+    "budget": 29443.90701734689,
+    "target_audience": {
+      "age_range": "39-57",
+      "interests": [
+        "Travel",
+        "Sports"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 393675,
+      "clicks": 25817,
+      "conversions": 987,
+      "cost_per_click": 2.6870111918687494,
+      "click_through_rate": 0.07854852804095629,
+      "conversion_rate": 0.1275683303255512,
+      "return_on_ad_spend": 5.574774289806952
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 61",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_062",
+    "campaign_name": "Campaign 62",
+    "campaign_type": "Social Media",
+    "channel": "Instagram",
+    "start_date": "2023-09-26T00:00:00",
+    "end_date": "2023-10-08T00:00:00",
+    "budget": 27695.031743249736,
+    "target_audience": {
+      "age_range": "41-52",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 869848,
+      "clicks": 25241,
+      "conversions": 1282,
+      "cost_per_click": 0.6608333057042193,
+      "click_through_rate": 0.05875220593763459,
+      "conversion_rate": 0.11262352245554849,
+      "return_on_ad_spend": 4.079610893866571
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 62",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_063",
+    "campaign_name": "Campaign 63",
+    "campaign_type": "Social Media",
+    "channel": "Twitter",
+    "start_date": "2023-07-11T00:00:00",
+    "end_date": "2023-08-24T00:00:00",
+    "budget": 33607.13423555142,
+    "target_audience": {
+      "age_range": "21-60",
+      "interests": [
+        "Fashion",
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 627867,
+      "clicks": 43063,
+      "conversions": 1816,
+      "cost_per_click": 3.3575896923602424,
+      "click_through_rate": 0.03881174239678343,
+      "conversion_rate": 0.015496606293673396,
+      "return_on_ad_spend": 2.4202191594137052
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 63",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_064",
+    "campaign_name": "Campaign 64",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-10-17T00:00:00",
+    "end_date": "2023-11-11T00:00:00",
+    "budget": 7615.6936662732305,
+    "target_audience": {
+      "age_range": "30-46",
+      "interests": [
+        "Fashion",
+        "Travel"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 911698,
+      "clicks": 46407,
+      "conversions": 258,
+      "cost_per_click": 0.688536559626649,
+      "click_through_rate": 0.043638363372683064,
+      "conversion_rate": 0.12512430281590003,
+      "return_on_ad_spend": 1.708099597333271
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 64",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_065",
+    "campaign_name": "Campaign 65",
+    "campaign_type": "Search Ads",
+    "channel": "Facebook",
+    "start_date": "2023-04-04T00:00:00",
+    "end_date": "2023-05-18T00:00:00",
+    "budget": 6958.972618981746,
+    "target_audience": {
+      "age_range": "44-49",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 725056,
+      "clicks": 13262,
+      "conversions": 1616,
+      "cost_per_click": 4.477679093604602,
+      "click_through_rate": 0.08935304371656089,
+      "conversion_rate": 0.05944628701782581,
+      "return_on_ad_spend": 3.364420124955065
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 65",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_066",
+    "campaign_name": "Campaign 66",
+    "campaign_type": "Search Ads",
+    "channel": "Twitter",
+    "start_date": "2023-10-05T00:00:00",
+    "end_date": "2023-10-13T00:00:00",
+    "budget": 47948.270507120666,
+    "target_audience": {
+      "age_range": "28-56",
+      "interests": [
+        "Technology",
+        "Technology"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 555341,
+      "clicks": 36746,
+      "conversions": 1332,
+      "cost_per_click": 0.5072116104993636,
+      "click_through_rate": 0.038790898891551656,
+      "conversion_rate": 0.06787507305966951,
+      "return_on_ad_spend": 3.906896997763179
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 66",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_067",
+    "campaign_name": "Campaign 67",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-04-01T00:00:00",
+    "end_date": "2023-05-04T00:00:00",
+    "budget": 19749.13232268032,
+    "target_audience": {
+      "age_range": "21-56",
+      "interests": [
+        "Food",
+        "Sports"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 691231,
+      "clicks": 27162,
+      "conversions": 1308,
+      "cost_per_click": 4.473006733328212,
+      "click_through_rate": 0.017820149844415,
+      "conversion_rate": 0.058091942160483086,
+      "return_on_ad_spend": 3.1490870418096497
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 67",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_068",
+    "campaign_name": "Campaign 68",
+    "campaign_type": "Email",
+    "channel": "LinkedIn",
+    "start_date": "2023-08-30T00:00:00",
+    "end_date": "2023-09-28T00:00:00",
+    "budget": 13996.243064976352,
+    "target_audience": {
+      "age_range": "27-62",
+      "interests": [
+        "Technology",
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 464109,
+      "clicks": 38128,
+      "conversions": 516,
+      "cost_per_click": 2.980609989944132,
+      "click_through_rate": 0.06830311398249654,
+      "conversion_rate": 0.030690164031090962,
+      "return_on_ad_spend": 7.807055154250897
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 68",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_069",
+    "campaign_name": "Campaign 69",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-08-15T00:00:00",
+    "end_date": "2023-10-10T00:00:00",
+    "budget": 21200.958022482606,
+    "target_audience": {
+      "age_range": "36-52",
+      "interests": [
+        "Sports",
+        "Fashion"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 24355,
+      "clicks": 1850,
+      "conversions": 1856,
+      "cost_per_click": 4.118887206001148,
+      "click_through_rate": 0.026168613636543925,
+      "conversion_rate": 0.01180788879472888,
+      "return_on_ad_spend": 6.942007650557904
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 69",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_070",
+    "campaign_name": "Campaign 70",
+    "campaign_type": "Search Ads",
+    "channel": "Google",
+    "start_date": "2023-06-07T00:00:00",
+    "end_date": "2023-06-14T00:00:00",
+    "budget": 45569.140801050846,
+    "target_audience": {
+      "age_range": "21-50",
+      "interests": [
+        "Technology",
+        "Sports"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 573819,
+      "clicks": 1350,
+      "conversions": 1264,
+      "cost_per_click": 2.541792231927953,
+      "click_through_rate": 0.04822460166485602,
+      "conversion_rate": 0.09702850476585892,
+      "return_on_ad_spend": 2.6973269235659387
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 70",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_071",
+    "campaign_name": "Campaign 71",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-09-17T00:00:00",
+    "end_date": "2023-10-28T00:00:00",
+    "budget": 34703.186636120954,
+    "target_audience": {
+      "age_range": "21-63",
+      "interests": [
+        "Fashion",
+        "Technology"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 953014,
+      "clicks": 41609,
+      "conversions": 804,
+      "cost_per_click": 4.996564232031276,
+      "click_through_rate": 0.05108151557205528,
+      "conversion_rate": 0.12126173582458633,
+      "return_on_ad_spend": 7.33827698739395
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 71",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_072",
+    "campaign_name": "Campaign 72",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-09-15T00:00:00",
+    "end_date": "2023-10-19T00:00:00",
+    "budget": 27581.61343498382,
+    "target_audience": {
+      "age_range": "36-57",
+      "interests": [
+        "Food",
+        "Technology"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 957442,
+      "clicks": 27372,
+      "conversions": 1138,
+      "cost_per_click": 1.277602721163967,
+      "click_through_rate": 0.046059242542064206,
+      "conversion_rate": 0.020436698990976467,
+      "return_on_ad_spend": 5.668221560850205
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 72",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_073",
+    "campaign_name": "Campaign 73",
+    "campaign_type": "Video Ads",
+    "channel": "Twitter",
+    "start_date": "2023-07-14T00:00:00",
+    "end_date": "2023-08-13T00:00:00",
+    "budget": 6994.8313252277885,
+    "target_audience": {
+      "age_range": "37-53",
+      "interests": [
+        "Technology",
+        "Sports"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 879642,
+      "clicks": 49950,
+      "conversions": 714,
+      "cost_per_click": 4.583990417541659,
+      "click_through_rate": 0.05589213932148553,
+      "conversion_rate": 0.0366870538272977,
+      "return_on_ad_spend": 2.9893143565885745
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 73",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_074",
+    "campaign_name": "Campaign 74",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-09-26T00:00:00",
+    "end_date": "2023-10-28T00:00:00",
+    "budget": 39400.5019630236,
+    "target_audience": {
+      "age_range": "22-63",
+      "interests": [
+        "Travel"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 186187,
+      "clicks": 31616,
+      "conversions": 510,
+      "cost_per_click": 2.664441287663164,
+      "click_through_rate": 0.0547888647856532,
+      "conversion_rate": 0.08232193925041553,
+      "return_on_ad_spend": 7.929690419850126
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 74",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_075",
+    "campaign_name": "Campaign 75",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-01-09T00:00:00",
+    "end_date": "2023-02-04T00:00:00",
+    "budget": 5362.034112699195,
+    "target_audience": {
+      "age_range": "30-46",
+      "interests": [
+        "Sports"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 604349,
+      "clicks": 21353,
+      "conversions": 1813,
+      "cost_per_click": 2.753447138847943,
+      "click_through_rate": 0.09688870736394282,
+      "conversion_rate": 0.10239696455239074,
+      "return_on_ad_spend": 6.325454951373839
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 75",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_076",
+    "campaign_name": "Campaign 76",
+    "campaign_type": "Search Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-10-07T00:00:00",
+    "end_date": "2023-10-24T00:00:00",
+    "budget": 19764.431548252698,
+    "target_audience": {
+      "age_range": "21-60",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 606489,
+      "clicks": 27529,
+      "conversions": 1972,
+      "cost_per_click": 4.535816304335535,
+      "click_through_rate": 0.013472402950954558,
+      "conversion_rate": 0.1137855700511403,
+      "return_on_ad_spend": 2.186674304559909
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 76",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_077",
+    "campaign_name": "Campaign 77",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-05-22T00:00:00",
+    "end_date": "2023-06-12T00:00:00",
+    "budget": 14839.806264358398,
+    "target_audience": {
+      "age_range": "34-57",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 903054,
+      "clicks": 7307,
+      "conversions": 115,
+      "cost_per_click": 0.6688330340722219,
+      "click_through_rate": 0.0186891423860485,
+      "conversion_rate": 0.14261758255913576,
+      "return_on_ad_spend": 4.748378612122076
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 77",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_078",
+    "campaign_name": "Campaign 78",
+    "campaign_type": "Video Ads",
+    "channel": "Google",
+    "start_date": "2023-07-19T00:00:00",
+    "end_date": "2023-09-01T00:00:00",
+    "budget": 11381.328289814564,
+    "target_audience": {
+      "age_range": "32-60",
+      "interests": [
+        "Fashion",
+        "Sports"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 672222,
+      "clicks": 26790,
+      "conversions": 1073,
+      "cost_per_click": 4.656278042984661,
+      "click_through_rate": 0.04849141122098787,
+      "conversion_rate": 0.06424170884602454,
+      "return_on_ad_spend": 6.211655958376703
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 78",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_079",
+    "campaign_name": "Campaign 79",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-02-20T00:00:00",
+    "end_date": "2023-04-09T00:00:00",
+    "budget": 9219.05273066136,
+    "target_audience": {
+      "age_range": "30-52",
+      "interests": [
+        "Travel",
+        "Sports"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 759133,
+      "clicks": 5158,
+      "conversions": 920,
+      "cost_per_click": 4.326944091170332,
+      "click_through_rate": 0.024390217288006846,
+      "conversion_rate": 0.046223578144411574,
+      "return_on_ad_spend": 7.3440484284277865
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 79",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_080",
+    "campaign_name": "Campaign 80",
+    "campaign_type": "Display Ads",
+    "channel": "Facebook",
+    "start_date": "2023-06-27T00:00:00",
+    "end_date": "2023-08-02T00:00:00",
+    "budget": 47412.43182264551,
+    "target_audience": {
+      "age_range": "44-46",
+      "interests": [
+        "Travel",
+        "Travel"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 231014,
+      "clicks": 12149,
+      "conversions": 747,
+      "cost_per_click": 4.115372750944995,
+      "click_through_rate": 0.05158160031666721,
+      "conversion_rate": 0.07762666283742817,
+      "return_on_ad_spend": 4.745189082777162
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 80",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_081",
+    "campaign_name": "Campaign 81",
+    "campaign_type": "Video Ads",
+    "channel": "YouTube",
+    "start_date": "2023-07-15T00:00:00",
+    "end_date": "2023-08-08T00:00:00",
+    "budget": 6194.4591548336375,
+    "target_audience": {
+      "age_range": "35-57",
+      "interests": [
+        "Sports",
+        "Food"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 433940,
+      "clicks": 14742,
+      "conversions": 1847,
+      "cost_per_click": 4.1741553749552,
+      "click_through_rate": 0.032923041717329994,
+      "conversion_rate": 0.09399979385982003,
+      "return_on_ad_spend": 2.467254639940231
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 81",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_082",
+    "campaign_name": "Campaign 82",
+    "campaign_type": "Search Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-04-12T00:00:00",
+    "end_date": "2023-05-12T00:00:00",
+    "budget": 2624.986216639399,
+    "target_audience": {
+      "age_range": "24-63",
+      "interests": [
+        "Food"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 460952,
+      "clicks": 23216,
+      "conversions": 847,
+      "cost_per_click": 1.8241460847189204,
+      "click_through_rate": 0.030689139523669726,
+      "conversion_rate": 0.11943486015551028,
+      "return_on_ad_spend": 1.674413121315141
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 82",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_083",
+    "campaign_name": "Campaign 83",
+    "campaign_type": "Email",
+    "channel": "Instagram",
+    "start_date": "2023-01-03T00:00:00",
+    "end_date": "2023-02-01T00:00:00",
+    "budget": 18302.699994685572,
+    "target_audience": {
+      "age_range": "37-54",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 926242,
+      "clicks": 11991,
+      "conversions": 1018,
+      "cost_per_click": 4.472096298489466,
+      "click_through_rate": 0.09933988240245915,
+      "conversion_rate": 0.08560450445077715,
+      "return_on_ad_spend": 2.5434598505750405
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 83",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_084",
+    "campaign_name": "Campaign 84",
+    "campaign_type": "Display Ads",
+    "channel": "YouTube",
+    "start_date": "2023-10-03T00:00:00",
+    "end_date": "2023-10-21T00:00:00",
+    "budget": 19604.045005693064,
+    "target_audience": {
+      "age_range": "28-47",
+      "interests": [
+        "Fashion",
+        "Travel"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 98581,
+      "clicks": 16648,
+      "conversions": 39,
+      "cost_per_click": 4.265415561514299,
+      "click_through_rate": 0.08286383561375063,
+      "conversion_rate": 0.04606159288491142,
+      "return_on_ad_spend": 5.671417170120064
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 84",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_085",
+    "campaign_name": "Campaign 85",
+    "campaign_type": "Video Ads",
+    "channel": "Facebook",
+    "start_date": "2023-04-21T00:00:00",
+    "end_date": "2023-06-02T00:00:00",
+    "budget": 27947.18788068247,
+    "target_audience": {
+      "age_range": "40-50",
+      "interests": [
+        "Food",
+        "Food"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 311599,
+      "clicks": 30973,
+      "conversions": 600,
+      "cost_per_click": 4.596887057247474,
+      "click_through_rate": 0.09076257816004688,
+      "conversion_rate": 0.058085390758334486,
+      "return_on_ad_spend": 7.243728950853249
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 85",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_086",
+    "campaign_name": "Campaign 86",
+    "campaign_type": "Email",
+    "channel": "Facebook",
+    "start_date": "2023-03-20T00:00:00",
+    "end_date": "2023-04-21T00:00:00",
+    "budget": 23348.994190346235,
+    "target_audience": {
+      "age_range": "22-48",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 64677,
+      "clicks": 41904,
+      "conversions": 800,
+      "cost_per_click": 2.473560634219166,
+      "click_through_rate": 0.07271621877933802,
+      "conversion_rate": 0.1064309872345217,
+      "return_on_ad_spend": 2.258659638604949
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 86",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_087",
+    "campaign_name": "Campaign 87",
+    "campaign_type": "Search Ads",
+    "channel": "YouTube",
+    "start_date": "2023-01-15T00:00:00",
+    "end_date": "2023-02-16T00:00:00",
+    "budget": 43362.365374288514,
+    "target_audience": {
+      "age_range": "35-63",
+      "interests": [
+        "Fashion",
+        "Fashion"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 455533,
+      "clicks": 19455,
+      "conversions": 446,
+      "cost_per_click": 2.832996007318258,
+      "click_through_rate": 0.02824793880952083,
+      "conversion_rate": 0.07356216410459769,
+      "return_on_ad_spend": 4.712253369554786
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 87",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_088",
+    "campaign_name": "Campaign 88",
+    "campaign_type": "Email",
+    "channel": "YouTube",
+    "start_date": "2023-05-31T00:00:00",
+    "end_date": "2023-06-09T00:00:00",
+    "budget": 29049.14880654207,
+    "target_audience": {
+      "age_range": "27-52",
+      "interests": [
+        "Food"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 673381,
+      "clicks": 35457,
+      "conversions": 1887,
+      "cost_per_click": 1.5492361660939167,
+      "click_through_rate": 0.06013065406124413,
+      "conversion_rate": 0.12210443227122555,
+      "return_on_ad_spend": 3.0977592069690147
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 88",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_089",
+    "campaign_name": "Campaign 89",
+    "campaign_type": "Search Ads",
+    "channel": "Google",
+    "start_date": "2023-07-07T00:00:00",
+    "end_date": "2023-08-27T00:00:00",
+    "budget": 39136.612112210256,
+    "target_audience": {
+      "age_range": "22-60",
+      "interests": [
+        "Fashion"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 591435,
+      "clicks": 44865,
+      "conversions": 1367,
+      "cost_per_click": 0.7483488080426739,
+      "click_through_rate": 0.01843023077336452,
+      "conversion_rate": 0.09604341431837406,
+      "return_on_ad_spend": 7.1476688355023565
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 89",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Learn More"
+    }
+  },
+  {
+    "campaign_id": "CAMP_090",
+    "campaign_name": "Campaign 90",
+    "campaign_type": "Display Ads",
+    "channel": "Google",
+    "start_date": "2023-10-13T00:00:00",
+    "end_date": "2023-10-30T00:00:00",
+    "budget": 32388.955412859672,
+    "target_audience": {
+      "age_range": "44-52",
+      "interests": [
+        "Technology",
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 249471,
+      "clicks": 38495,
+      "conversions": 1046,
+      "cost_per_click": 3.3856400251964094,
+      "click_through_rate": 0.07412976415596682,
+      "conversion_rate": 0.09166813398110707,
+      "return_on_ad_spend": 6.440420228023816
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 90",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_091",
+    "campaign_name": "Campaign 91",
+    "campaign_type": "Email",
+    "channel": "LinkedIn",
+    "start_date": "2023-03-21T00:00:00",
+    "end_date": "2023-04-07T00:00:00",
+    "budget": 35983.7108930956,
+    "target_audience": {
+      "age_range": "26-59",
+      "interests": [
+        "Technology"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 443814,
+      "clicks": 14906,
+      "conversions": 219,
+      "cost_per_click": 4.707586992043482,
+      "click_through_rate": 0.0826683979538055,
+      "conversion_rate": 0.13002831275985122,
+      "return_on_ad_spend": 7.809659693606427
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 91",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_092",
+    "campaign_name": "Campaign 92",
+    "campaign_type": "Search Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-01-01T00:00:00",
+    "end_date": "2023-01-29T00:00:00",
+    "budget": 38371.718161835175,
+    "target_audience": {
+      "age_range": "38-54",
+      "interests": [
+        "Travel",
+        "Food"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 541625,
+      "clicks": 36723,
+      "conversions": 546,
+      "cost_per_click": 3.5409369267313866,
+      "click_through_rate": 0.015473489471630651,
+      "conversion_rate": 0.05787382557304551,
+      "return_on_ad_spend": 6.193382720097323
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 92",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_093",
+    "campaign_name": "Campaign 93",
+    "campaign_type": "Display Ads",
+    "channel": "YouTube",
+    "start_date": "2023-07-13T00:00:00",
+    "end_date": "2023-07-22T00:00:00",
+    "budget": 8454.25899884639,
+    "target_audience": {
+      "age_range": "36-52",
+      "interests": [
+        "Fashion",
+        "Fashion"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 692943,
+      "clicks": 35928,
+      "conversions": 1961,
+      "cost_per_click": 1.2546543472034235,
+      "click_through_rate": 0.022373425513313318,
+      "conversion_rate": 0.028209456868203715,
+      "return_on_ad_spend": 3.87825158300166
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 93",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_094",
+    "campaign_name": "Campaign 94",
+    "campaign_type": "Email",
+    "channel": "Twitter",
+    "start_date": "2023-04-02T00:00:00",
+    "end_date": "2023-05-28T00:00:00",
+    "budget": 21086.343629777584,
+    "target_audience": {
+      "age_range": "39-50",
+      "interests": [
+        "Sports",
+        "Fashion"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 820629,
+      "clicks": 17649,
+      "conversions": 1825,
+      "cost_per_click": 3.4716571255036603,
+      "click_through_rate": 0.07550808644711278,
+      "conversion_rate": 0.014077381942600052,
+      "return_on_ad_spend": 3.272013270743746
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 94",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_095",
+    "campaign_name": "Campaign 95",
+    "campaign_type": "Video Ads",
+    "channel": "YouTube",
+    "start_date": "2023-09-09T00:00:00",
+    "end_date": "2023-10-16T00:00:00",
+    "budget": 35931.10992865669,
+    "target_audience": {
+      "age_range": "26-56",
+      "interests": [
+        "Technology"
+      ],
+      "location": "US"
+    },
+    "metrics": {
+      "impressions": 461521,
+      "clicks": 43062,
+      "conversions": 1805,
+      "cost_per_click": 3.34220521036525,
+      "click_through_rate": 0.01928052510921039,
+      "conversion_rate": 0.14000367176895331,
+      "return_on_ad_spend": 3.0110494860393198
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 95",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Shop Now"
+    }
+  },
+  {
+    "campaign_id": "CAMP_096",
+    "campaign_name": "Campaign 96",
+    "campaign_type": "Email",
+    "channel": "YouTube",
+    "start_date": "2023-04-12T00:00:00",
+    "end_date": "2023-05-19T00:00:00",
+    "budget": 2733.126987782748,
+    "target_audience": {
+      "age_range": "41-52",
+      "interests": [
+        "Travel"
+      ],
+      "location": "Asia"
+    },
+    "metrics": {
+      "impressions": 836642,
+      "clicks": 27118,
+      "conversions": 1299,
+      "cost_per_click": 2.1624124586632467,
+      "click_through_rate": 0.04188297140680387,
+      "conversion_rate": 0.024802096230667727,
+      "return_on_ad_spend": 3.8233317662733732
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 96",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_097",
+    "campaign_name": "Campaign 97",
+    "campaign_type": "Video Ads",
+    "channel": "LinkedIn",
+    "start_date": "2023-02-24T00:00:00",
+    "end_date": "2023-04-17T00:00:00",
+    "budget": 23417.11649448253,
+    "target_audience": {
+      "age_range": "36-58",
+      "interests": [
+        "Sports",
+        "Technology"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 470294,
+      "clicks": 40854,
+      "conversions": 1652,
+      "cost_per_click": 4.743822508313007,
+      "click_through_rate": 0.08857176280556697,
+      "conversion_rate": 0.1350849850063963,
+      "return_on_ad_spend": 6.749184627387956
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 97",
+      "description": "Discover the best quality with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_098",
+    "campaign_name": "Campaign 98",
+    "campaign_type": "Search Ads",
+    "channel": "Facebook",
+    "start_date": "2023-10-23T00:00:00",
+    "end_date": "2023-11-19T00:00:00",
+    "budget": 30153.779509694064,
+    "target_audience": {
+      "age_range": "42-64",
+      "interests": [
+        "Technology",
+        "Sports"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 864423,
+      "clicks": 31530,
+      "conversions": 215,
+      "cost_per_click": 0.9663723994400284,
+      "click_through_rate": 0.03963526682039625,
+      "conversion_rate": 0.10012861301690668,
+      "return_on_ad_spend": 6.619408163805441
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 98",
+      "description": "Discover the best value with our product.",
+      "call_to_action": "Sign Up"
+    }
+  },
+  {
+    "campaign_id": "CAMP_099",
+    "campaign_name": "Campaign 99",
+    "campaign_type": "Social Media",
+    "channel": "Google",
+    "start_date": "2023-02-23T00:00:00",
+    "end_date": "2023-03-12T00:00:00",
+    "budget": 27736.14445119034,
+    "target_audience": {
+      "age_range": "21-56",
+      "interests": [
+        "Travel",
+        "Technology"
+      ],
+      "location": "Europe"
+    },
+    "metrics": {
+      "impressions": 487856,
+      "clicks": 47515,
+      "conversions": 1000,
+      "cost_per_click": 3.930224338110484,
+      "click_through_rate": 0.04288571742926401,
+      "conversion_rate": 0.11233319141057452,
+      "return_on_ad_spend": 6.086117969559247
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 99",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Download"
+    }
+  },
+  {
+    "campaign_id": "CAMP_100",
+    "campaign_name": "Campaign 100",
+    "campaign_type": "Display Ads",
+    "channel": "Instagram",
+    "start_date": "2023-10-10T00:00:00",
+    "end_date": "2023-11-07T00:00:00",
+    "budget": 14040.550266663482,
+    "target_audience": {
+      "age_range": "43-55",
+      "interests": [
+        "Travel",
+        "Technology"
+      ],
+      "location": "Global"
+    },
+    "metrics": {
+      "impressions": 416251,
+      "clicks": 27238,
+      "conversions": 417,
+      "cost_per_click": 4.015212828476264,
+      "click_through_rate": 0.0809390004842173,
+      "conversion_rate": 0.03701625604361551,
+      "return_on_ad_spend": 1.5706899531723448
+    },
+    "creative_elements": {
+      "headline": "Amazing Product 100",
+      "description": "Discover the best experience with our product.",
+      "call_to_action": "Sign Up"
+    }
+  }
+]

@@ -98,7 +98,7 @@ class StructuredFormatter(logging.Formatter):
         
         return json.dumps(log_data, default=str)
 
-def log_agent_execution(
+async def log_agent_execution_dynamic(
     logger: logging.Logger,
     agent_name: str,
     operation: str,
@@ -106,37 +106,122 @@ def log_agent_execution(
     execution_time: Optional[float] = None,
     details: Optional[Dict[str, Any]] = None,
     task_id: Optional[str] = None,
-    context_id: Optional[str] = None
+    context_id: Optional[str] = None,
+    user_query: Optional[str] = None
 ) -> None:
     """
-    Log agent execution with structured data.
-    
-    Parameters:
-    ----------
-    logger : logging.Logger
-        Logger instance to use.
-    agent_name : str
-        Name of the executing agent.
-    operation : str
-        Operation being performed.
-    status : str
-        Execution status (started, completed, failed).
-    execution_time : float, optional
-        Execution time in seconds.
-    details : Dict[str, Any], optional
-        Additional execution details.
-    task_id : str, optional
-        A2A task ID.
-    context_id : str, optional
-        A2A context ID.
+    LLM First 동적 에이전트 실행 로깅
+    LLM이 로그 형식, 레벨, 메시지를 동적으로 결정
     """
+    
+    # LLM 사용 가능 여부 확인
+    try:
+        from openai import AsyncOpenAI
+        import os
+        
+        llm_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        LLM_AVAILABLE = True
+    except:
+        LLM_AVAILABLE = False
+    
+    if LLM_AVAILABLE:
+        try:
+            # LLM이 로깅 컨텍스트를 동적으로 분석
+            context_prompt = f"""
+당신은 시스템 로깅 전문가입니다. 다음 에이전트 실행 정보를 분석하여 최적의 로깅 방식을 결정해주세요.
+
+에이전트 정보:
+- 에이전트명: {agent_name}
+- 작업: {operation}
+- 상태: {status}
+- 실행 시간: {execution_time}초 (있는 경우)
+- 사용자 질문: {user_query}
+- 상세 정보: {details}
+
+이 상황에 맞는 로그 레벨(INFO/WARNING/ERROR), 메시지 형식, 중요도를 결정하고
+다음 JSON 형식으로 응답해주세요:
+{{
+    "log_level": "INFO/WARNING/ERROR",
+    "message": "상황에 맞는 로그 메시지",
+    "importance": "high/medium/low",
+    "category": "로그 카테고리",
+    "tags": ["관련 태그들"]
+}}
+
+템플릿이나 고정된 형식을 사용하지 말고, 이 특정 상황에 맞는 최적의 로깅을 제안해주세요.
+"""
+            
+            response = await llm_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "당신은 시스템 로깅 전문가입니다."},
+                    {"role": "user", "content": context_prompt}
+                ],
+                temperature=0.3
+            )
+            
+            # LLM 응답 파싱
+            import json
+            import re
+            
+            response_content = response.choices[0].message.content
+            json_match = re.search(r'\{.*\}', response_content, re.DOTALL)
+            
+            if json_match:
+                llm_decision = json.loads(json_match.group())
+                
+                # LLM 결정에 따른 동적 로깅
+                log_level = llm_decision.get("log_level", "INFO")
+                message = llm_decision.get("message", f"Agent {agent_name} {operation} - {status}")
+                importance = llm_decision.get("importance", "medium")
+                category = llm_decision.get("category", "agent_execution")
+                tags = llm_decision.get("tags", [])
+                
+                # 동적 extra 필드 생성
+                extra = {
+                    'agent_name': agent_name,
+                    'operation': operation,
+                    'status': status,
+                    'llm_determined_importance': importance,
+                    'llm_category': category,
+                    'llm_tags': tags,
+                    'dynamic_logging': True
+                }
+                
+                if execution_time is not None:
+                    extra['execution_time'] = execution_time
+                
+                if task_id:
+                    extra['task_id'] = task_id
+                
+                if context_id:
+                    extra['context_id'] = context_id
+                
+                if details:
+                    extra.update(details)
+                
+                # LLM이 결정한 로그 레벨로 기록
+                if log_level == "ERROR":
+                    logger.error(message, extra=extra)
+                elif log_level == "WARNING":
+                    logger.warning(message, extra=extra)
+                else:
+                    logger.info(message, extra=extra)
+                
+                return
+                
+        except Exception as e:
+            # LLM 처리 실패 시 기본 로깅으로 폴백
+            logger.warning(f"LLM 동적 로깅 실패, 기본 로깅으로 폴백: {e}")
+    
+    # 기본 로깅 (LLM 없거나 실패 시)
     message = f"Agent {agent_name} {operation} - {status}"
     
-    # Create log record with extra fields
     extra = {
         'agent_name': agent_name,
         'operation': operation,
         'status': status,
+        'dynamic_logging': False
     }
     
     if execution_time is not None:
@@ -152,13 +237,77 @@ def log_agent_execution(
     if details:
         extra.update(details)
     
-    # Log at appropriate level based on status
+    # 기본 로그 레벨 결정
     if status == "failed":
         logger.error(message, extra=extra)
     elif status == "started":
         logger.info(message, extra=extra)
     else:
         logger.info(message, extra=extra)
+
+def log_agent_execution(
+    logger: logging.Logger,
+    agent_name: str,
+    operation: str,
+    status: str,
+    execution_time: Optional[float] = None,
+    details: Optional[Dict[str, Any]] = None,
+    task_id: Optional[str] = None,
+    context_id: Optional[str] = None
+) -> None:
+    """
+    레거시 호환성을 위한 래퍼 함수
+    내부적으로 동적 로깅을 사용하도록 변경
+    """
+    import asyncio
+    
+    # 비동기 동적 로깅 호출
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # 이미 실행 중인 루프가 있으면 태스크로 실행
+            loop.create_task(log_agent_execution_dynamic(
+                logger, agent_name, operation, status, 
+                execution_time, details, task_id, context_id
+            ))
+        else:
+            # 새로운 이벤트 루프 실행
+            asyncio.run(log_agent_execution_dynamic(
+                logger, agent_name, operation, status, 
+                execution_time, details, task_id, context_id
+            ))
+    except Exception as e:
+        # 비동기 처리 실패 시 기본 로깅으로 폴백
+        logger.warning(f"동적 로깅 실행 실패, 기본 로깅 사용: {e}")
+        
+        message = f"Agent {agent_name} {operation} - {status}"
+        
+        extra = {
+            'agent_name': agent_name,
+            'operation': operation,
+            'status': status,
+        }
+        
+        if execution_time is not None:
+            extra['execution_time'] = execution_time
+            message += f" ({execution_time:.2f}s)"
+        
+        if task_id:
+            extra['task_id'] = task_id
+        
+        if context_id:
+            extra['context_id'] = context_id
+        
+        if details:
+            extra.update(details)
+        
+        # 기본 로그 레벨
+        if status == "failed":
+            logger.error(message, extra=extra)
+        elif status == "started":
+            logger.info(message, extra=extra)
+        else:
+            logger.info(message, extra=extra)
 
 def log_ai_function(
     response: str,

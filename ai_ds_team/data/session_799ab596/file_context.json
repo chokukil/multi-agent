@@ -1,0 +1,11 @@
+{
+  "file_id": "empty.csv",
+  "original_name": "empty.csv",
+  "uploaded_at": "2025-07-13T20:55:09.429985",
+  "user_context": "데이터를 분석해주세요",
+  "data_shape": [
+    0,
+    0
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_799ab596_empty.csv"
+}

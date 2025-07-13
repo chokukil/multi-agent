@@ -169,7 +169,7 @@ class PandasDataAnalystExecutor(AgentExecutor):
             from a2a.types import TaskState, TextPart
             await task_updater.update_status(
                 TaskState.completed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=result)])
+                message=new_agent_text_message(result)
             )
             
         except Exception as e:
@@ -178,7 +178,7 @@ class PandasDataAnalystExecutor(AgentExecutor):
             from a2a.types import TaskState, TextPart
             await task_updater.update_status(
                 TaskState.failed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=f"Analysis failed: {str(e)}")])
+                message=new_agent_text_message(f"Analysis failed: {str(e)}")
             )
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:

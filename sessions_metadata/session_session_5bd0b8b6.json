@@ -1,0 +1,19 @@
+{
+  "session_id": "session_5bd0b8b6",
+  "created_at": "2025-07-13T20:55:15.945312",
+  "last_activity": "2025-07-13T20:55:15.945313",
+  "uploaded_files": [
+    {
+      "data_id": "empty.csv",
+      "uploaded_at": "2025-07-13T20:55:15.943917",
+      "file_size": 132,
+      "file_type": ".csv",
+      "user_context": "시각화를 만들어주세요",
+      "domain": null,
+      "original_name": "empty.csv"
+    }
+  ],
+  "active_file": "empty.csv",
+  "auto_cleanup_at": "2025-07-14T20:55:15.945312",
+  "status": "active"
+}

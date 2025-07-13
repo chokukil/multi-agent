@@ -1,0 +1,638 @@
+{
+  "scan_timestamp": "2025-07-13T21:18:31.497086",
+  "summary": {
+    "total_files_scanned": 7,
+    "total_violations": 49,
+    "llm_first_compliance_score": 29.7,
+    "files_with_violations": 3
+  },
+  "violations_by_type": {
+    "rule_based_logic": 6,
+    "template_response": 2,
+    "hardcoded_values": 33,
+    "conditional_hardcode": 8
+  },
+  "violations_by_severity": {
+    "high": 14,
+    "medium": 35
+  },
+  "violations": [
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 207,
+      "violation_type": "rule_based_logic",
+      "severity": "high",
+      "description": "Rule 기반 로직: 'if event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']'",
+      "code_snippet": "if event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']:",
+      "suggested_fix": "조건문을 LLM 판단으로 대체. 'if event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']' 대신 LLM에게 컨텍스트 기반 결정 위임",
+      "llm_first_impact": 0.8,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "if.*in.*\\[.*[\"\\'].*[\"\\'].*\\]",
+        "matched_text": "if event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']"
+      }
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 222,
+      "violation_type": "template_response",
+      "severity": "medium",
+      "description": "템플릿 응답: 'response = '\\n''",
+      "code_snippet": "full_response = '\\n'.join(response_parts)",
+      "suggested_fix": "고정 템플릿을 LLM 생성 응답으로 대체. 'response = '\\n'' 대신 동적 응답 생성",
+      "llm_first_impact": 0.6,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "response\\s*=\\s*[f]?[\"\\'].*[\"\\']",
+        "matched_text": "response = '\\n'"
+      }
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 114,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "datasets[\"sales_data\"] = pd.DataFrame({",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 124,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "datasets[\"customer_data\"] = pd.DataFrame({",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 138,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "datasets[\"financial_data\"] = pd.DataFrame({",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 166,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "message_content = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 224,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 234,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 244,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 320,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "analysis_queries = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 345,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "system_metrics = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 402,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "avg_quality = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 411,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 412,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "\"test_summary\": {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 421,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "{",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 430,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "\"system_performance\": {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/comprehensive_ai_agent_validation.py",
+      "line_number": 481,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "if __name__ == \"__main__\":",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 159,
+      "violation_type": "rule_based_logic",
+      "severity": "high",
+      "description": "Rule 기반 로직: 'if 'result' in result_data and 'message' in result_data['result']'",
+      "code_snippet": "if 'result' in result_data and 'message' in result_data['result']:",
+      "suggested_fix": "조건문을 LLM 판단으로 대체. 'if 'result' in result_data and 'message' in result_data['result']' 대신 LLM에게 컨텍스트 기반 결정 위임",
+      "llm_first_impact": 0.8,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "if.*in.*\\[.*[\"\\'].*[\"\\'].*\\]",
+        "matched_text": "if 'result' in result_data and 'message' in result_data['result']"
+      }
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 233,
+      "violation_type": "rule_based_logic",
+      "severity": "high",
+      "description": "Rule 기반 로직: 'if any(word in response_lower for word in ['error', 'failed', 'cannot', 'unable']'",
+      "code_snippet": "if any(word in response_lower for word in ['error', 'failed', 'cannot', 'unable']):",
+      "suggested_fix": "조건문을 LLM 판단으로 대체. 'if any(word in response_lower for word in ['error', 'failed', 'cannot', 'unable']' 대신 LLM에게 컨텍스트 기반 결정 위임",
+      "llm_first_impact": 0.8,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "if.*in.*\\[.*[\"\\'].*[\"\\'].*\\]",
+        "matched_text": "if any(word in response_lower for word in ['error', 'failed', 'cannot', 'unable']"
+      }
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 239,
+      "violation_type": "rule_based_logic",
+      "severity": "high",
+      "description": "Rule 기반 로직: 'if any(word in response_lower for word in ['recommend', 'suggest', 'result', 'found']'",
+      "code_snippet": "if any(word in response_lower for word in ['recommend', 'suggest', 'result', 'found']):",
+      "suggested_fix": "조건문을 LLM 판단으로 대체. 'if any(word in response_lower for word in ['recommend', 'suggest', 'result', 'found']' 대신 LLM에게 컨텍스트 기반 결정 위임",
+      "llm_first_impact": 0.8,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "if.*in.*\\[.*[\"\\'].*[\"\\'].*\\]",
+        "matched_text": "if any(word in response_lower for word in ['recommend', 'suggest', 'result', 'found']"
+      }
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 32,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "self.online_agents = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 53,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "data = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 84,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 93,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 100,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 111,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "test_queries = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 129,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "message = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 137,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "\"data_summary\": {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 162,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "if part.get('kind') == 'text':",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 165,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 174,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 182,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 189,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "return {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 198,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "quality_score = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 218,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "agent_keywords = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 276,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "if health_result['status'] == 'healthy':",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 280,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "if functionality_result['status'] == 'success':",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 287,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "agent_results[agent_name] = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 310,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "avg_quality = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 320,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "comprehensive_result = {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 321,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "'validation_summary': {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 332,
+      "violation_type": "hardcoded_values",
+      "severity": "medium",
+      "description": "하드코딩된 매핑 딕셔너리",
+      "code_snippet": "'test_data_info': {",
+      "suggested_fix": "정적 매핑을 동적 로직 또는 설정 파일로 대체",
+      "llm_first_impact": 0.5,
+      "confidence": 0.6,
+      "context": {}
+    },
+    {
+      "file_path": "tests/production_ai_agent_validation.py",
+      "line_number": 374,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "if __name__ == \"__main__\":",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    },
+    {
+      "file_path": "tests/simple_workflow_test.py",
+      "line_number": 60,
+      "violation_type": "rule_based_logic",
+      "severity": "high",
+      "description": "Rule 기반 로직: 'if event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']'",
+      "code_snippet": "elif event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']:",
+      "suggested_fix": "조건문을 LLM 판단으로 대체. 'if event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']' 대신 LLM에게 컨텍스트 기반 결정 위임",
+      "llm_first_impact": 0.8,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "if.*in.*\\[.*[\"\\'].*[\"\\'].*\\]",
+        "matched_text": "if event_type in ['a2a_response', 'mcp_sse_response', 'mcp_stdio_response']"
+      }
+    },
+    {
+      "file_path": "tests/simple_workflow_test.py",
+      "line_number": 73,
+      "violation_type": "rule_based_logic",
+      "severity": "high",
+      "description": "Rule 기반 로직: 'elif event_type == 'error':\n                logger.error(f\"'",
+      "code_snippet": "elif event_type == 'error':",
+      "suggested_fix": "조건문을 LLM 판단으로 대체. 'elif event_type == 'error':\n                logger.error(f\"' 대신 LLM에게 컨텍스트 기반 결정 위임",
+      "llm_first_impact": 0.8,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "elif.*==.*[\"\\'][^\"\\']*[\"\\']",
+        "matched_text": "elif event_type == 'error':\n                logger.error(f\""
+      }
+    },
+    {
+      "file_path": "tests/simple_workflow_test.py",
+      "line_number": 85,
+      "violation_type": "template_response",
+      "severity": "medium",
+      "description": "템플릿 응답: 'response = '\\n''",
+      "code_snippet": "full_response = '\\n'.join(response_parts)",
+      "suggested_fix": "고정 템플릿을 LLM 생성 응답으로 대체. 'response = '\\n'' 대신 동적 응답 생성",
+      "llm_first_impact": 0.6,
+      "confidence": 0.8,
+      "context": {
+        "pattern": "response\\s*=\\s*[f]?[\"\\'].*[\"\\']",
+        "matched_text": "response = '\\n'"
+      }
+    },
+    {
+      "file_path": "tests/simple_workflow_test.py",
+      "line_number": 57,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "if event_type == 'orchestration_start':",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    },
+    {
+      "file_path": "tests/simple_workflow_test.py",
+      "line_number": 73,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "elif event_type == 'error':",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    },
+    {
+      "file_path": "tests/simple_workflow_test.py",
+      "line_number": 190,
+      "violation_type": "conditional_hardcode",
+      "severity": "high",
+      "description": "하드코딩된 조건문 탐지",
+      "code_snippet": "if __name__ == \"__main__\":",
+      "suggested_fix": "조건부 로직을 LLM 기반 동적 판단으로 대체",
+      "llm_first_impact": 0.7,
+      "confidence": 0.8,
+      "context": {}
+    }
+  ],
+  "refactoring_priority": [
+    "tests/production_ai_agent_validation.py",
+    "tests/comprehensive_ai_agent_validation.py",
+    "tests/simple_workflow_test.py"
+  ]
+}

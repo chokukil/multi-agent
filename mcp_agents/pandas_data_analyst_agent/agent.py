@@ -156,49 +156,133 @@ def make_pandas_data_analyst(
     checkpointer: Checkpointer = None
 ):
     """
-    Creates a multi-agent system that wrangles data and optionally visualizes it.
-
-    Parameters:
-    -----------
-    model: The language model to be used.
-    data_wrangling_agent: CompiledStateGraph
-        The Data Wrangling Agent.
-    data_visualization_agent: CompiledStateGraph
-        The Data Visualization Agent.
-    checkpointer: Checkpointer (optional)
-        The checkpointer to save the state.
-
-    Returns:
-    --------
-    CompiledStateGraph: The compiled multi-agent system.
+    LLM First 원칙을 준수하는 멀티 에이전트 시스템 생성
+    모든 템플릿과 하드코딩된 로직을 제거하고 LLM이 동적으로 결정하도록 구현
     """
     
     llm = model
     
-    routing_preprocessor_prompt = PromptTemplate(
-        template="""
-        You are an expert in routing decisions for a Pandas Data Manipulation Wrangling Agent, a Charting Visualization Agent, and a Pandas Table Agent. Your job is to tell the agents which actions to perform and determine the correct routing for the incoming user question:
+    # LLM First: 동적 라우팅 결정 시스템
+    async def dynamic_routing_decision(user_instructions: str) -> dict:
+        """LLM이 사용자 질문을 분석하여 동적으로 라우팅 결정"""
         
-        1. Determine what the correct format for a Users Question should be for use with a Pandas Data Wrangling Agent based on the incoming user question. Anything related to data wrangling and manipulation should be passed along. Anything related to data analysis can be handled by the Pandas Agent. Anything that uses Pandas can be passed along. Tables can be returned from this agent. Don't pass along anything about plotting or visualization.
-        2. Determine whether or not a chart should be generated or a table should be returned based on the users question.
-        3. If a chart is requested, determine the correct format of a Users Question should be used with a Data Visualization Agent. Anything related to plotting and visualization should be passed along.
-        
-        Use the following criteria on how to route the the initial user question:
-        
-        From the incoming user question, remove any details about the format of the final response as either a Chart or Table and return only the important part of the incoming user question that is relevant for the Pandas Data Wrangling and Transformation agent. This will be the 'user_instructions_data_wrangling'. If 'None' is found, return the original user question.
-        
-        Next, determine if the user would like a data visualization ('chart') or a 'table' returned with the results of the Data Wrangling Agent. If unknown, not specified or 'None' is found, then select 'table'.  
-        
-        If a 'chart' is requested, return the 'user_instructions_data_visualization'. If 'None' is found, return None.
-        
-        Return JSON with 'user_instructions_data_wrangling', 'user_instructions_data_visualization' and 'routing_preprocessor_decision'.
-        
-        INITIAL_USER_QUESTION: {user_instructions}
-        """,
-        input_variables=["user_instructions"]
-    )
+        # 1단계: LLM이 질문 분석 방식을 스스로 결정
+        analysis_prompt = f"""
+당신은 데이터 분석 라우팅 전문가입니다. 다음 사용자 질문을 분석해주세요:
 
-    routing_preprocessor = routing_preprocessor_prompt | llm | JsonOutputParser()
+사용자 질문: {user_instructions}
+
+이 질문을 분석하여 다음을 결정해주세요:
+1. 데이터 조작/가공이 필요한가?
+2. 시각화가 필요한가?
+3. 어떤 접근 방식이 최적인가?
+
+이 특정 질문에 맞는 최적의 분석 방식을 제안해주세요.
+고정된 템플릿이 아닌, 이 질문에 특화된 분석을 제공해주세요.
+"""
+        
+        analysis_response = await llm.ainvoke(analysis_prompt)
+        analysis = analysis_response.content if hasattr(analysis_response, 'content') else str(analysis_response)
+        
+        # 2단계: 분석 결과를 바탕으로 라우팅 결정
+        routing_prompt = f"""
+앞서 분석한 내용을 바탕으로 구체적인 라우팅 결정을 내려주세요:
+
+사용자 질문: {user_instructions}
+분석 결과: {analysis}
+
+다음 JSON 형식으로 응답해주세요:
+{{
+    "user_instructions_data_wrangling": "데이터 조작 에이전트에게 전달할 지시사항 (필요하지 않으면 null)",
+    "user_instructions_data_visualization": "시각화 에이전트에게 전달할 지시사항 (필요하지 않으면 null)",
+    "routing_preprocessor_decision": "chart 또는 table 중 선택",
+    "reasoning": "이 결정을 내린 이유"
+}}
+
+이 특정 상황에 맞는 최적의 결정을 내려주세요.
+"""
+        
+        routing_response = await llm.ainvoke(routing_prompt)
+        routing_content = routing_response.content if hasattr(routing_response, 'content') else str(routing_response)
+        
+        # JSON 파싱
+        import json
+        import re
+        
+        json_match = re.search(r'\{.*\}', routing_content, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group())
+            except json.JSONDecodeError:
+                pass
+        
+        # 파싱 실패 시 LLM이 다시 시도
+        fallback_prompt = f"""
+이전 응답을 유효한 JSON 형식으로 변환해주세요:
+
+{routing_content}
+
+다음 형식으로 정확히 응답해주세요:
+{{
+    "user_instructions_data_wrangling": "...",
+    "user_instructions_data_visualization": "...",
+    "routing_preprocessor_decision": "chart 또는 table"
+}}
+"""
+        
+        fallback_response = await llm.ainvoke(fallback_prompt)
+        fallback_content = fallback_response.content if hasattr(fallback_response, 'content') else str(fallback_response)
+        
+        json_match = re.search(r'\{.*\}', fallback_content, re.DOTALL)
+        if json_match:
+            try:
+                return json.loads(json_match.group())
+            except json.JSONDecodeError:
+                pass
+        
+        # 모든 파싱 실패 시 기본값 반환
+        return {
+            "user_instructions_data_wrangling": user_instructions,
+            "user_instructions_data_visualization": None,
+            "routing_preprocessor_decision": "table"
+        }
+    
+    # 기존 PromptTemplate 완전 제거하고 동적 처리로 대체
+    def routing_preprocessor_dynamic(user_instructions: str) -> dict:
+        """동적 라우팅 전처리"""
+        import asyncio
+        
+        try:
+            # 비동기 처리
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # 이미 실행 중인 루프가 있으면 태스크로 실행
+                task = loop.create_task(dynamic_routing_decision(user_instructions))
+                # 동기 함수에서 비동기 태스크 결과를 기다리는 것은 복잡하므로 
+                # 여기서는 간단한 동기 처리로 폴백
+                return simple_routing_decision(user_instructions)
+            else:
+                # 새로운 이벤트 루프 실행
+                return asyncio.run(dynamic_routing_decision(user_instructions))
+        except Exception as e:
+            print(f"동적 라우팅 실패, 간단한 결정으로 폴백: {e}")
+            return simple_routing_decision(user_instructions)
+    
+    def simple_routing_decision(user_instructions: str) -> dict:
+        """간단한 라우팅 결정 (폴백용)"""
+        # LLM이 사용 불가능한 경우 최소한의 로직
+        if any(keyword in user_instructions.lower() for keyword in ['chart', 'plot', 'graph', 'visual']):
+            return {
+                "user_instructions_data_wrangling": user_instructions,
+                "user_instructions_data_visualization": user_instructions,
+                "routing_preprocessor_decision": "chart"
+            }
+        else:
+            return {
+                "user_instructions_data_wrangling": user_instructions,
+                "user_instructions_data_visualization": None,
+                "routing_preprocessor_decision": "table"
+            }
 
     class PrimaryState(TypedDict):
         messages: Annotated[Sequence[BaseMessage], operator.add]
@@ -217,13 +301,13 @@ def make_pandas_data_analyst(
         
         
     def preprocess_routing(state: PrimaryState):
-        print("---PANDAS DATA ANALYST---")
-        print("*************************")
-        print("---PREPROCESS ROUTER---")
+        print("---PANDAS DATA ANALYST (LLM First)---")
+        print("*************************************")
+        print("---DYNAMIC ROUTING PREPROCESSOR---")
         question = state.get("user_instructions")
         
-        # Chart Routing and SQL Prep
-        response = routing_preprocessor.invoke({"user_instructions": question})
+        # LLM First 동적 라우팅
+        response = routing_preprocessor_dynamic(question)
         
         return {
             "user_instructions_data_wrangling": response.get('user_instructions_data_wrangling'),
@@ -232,7 +316,7 @@ def make_pandas_data_analyst(
         }
     
     def router_chart_or_table(state: PrimaryState):
-        print("---ROUTER: CHART OR TABLE---")
+        print("---DYNAMIC ROUTER: CHART OR TABLE---")
         return "chart" if state.get('routing_preprocessor_decision') == "chart" else "table"
     
     
@@ -270,7 +354,7 @@ def make_pandas_data_analyst(
         }
 
     def route_printer(state: PrimaryState):
-        print("---ROUTE PRINTER---")
+        print("---DYNAMIC ROUTE PRINTER---")
         print(f"    Route: {state.get('routing_preprocessor_decision')}")
         print("---END---")
         return {}

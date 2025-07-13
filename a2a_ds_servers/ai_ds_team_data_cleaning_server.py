@@ -104,7 +104,7 @@ class DataCleaningAgentExecutor(AgentExecutor):
             # 작업 시작 알림
             await task_updater.update_status(
                 TaskState.working,
-                message="🧹 Data Cleaning Agent 분석을 시작합니다..."
+                message=new_agent_text_message("🧹 Data Cleaning Agent 분석을 시작합니다...")
             )
             
             # 사용자 메시지 추출
@@ -123,7 +123,7 @@ class DataCleaningAgentExecutor(AgentExecutor):
                 # 안전한 데이터 로딩 적용
                 await task_updater.update_status(
                     TaskState.working,
-                    message="📊 데이터를 안전하게 로딩하고 있습니다..."
+                    message=new_agent_text_message("📊 데이터를 안전하게 로딩하고 있습니다...")
                 )
                 
                 # 데이터 로딩 - DataManager 사용
@@ -160,7 +160,7 @@ class DataCleaningAgentExecutor(AgentExecutor):
                             # Data Cleaning Agent 실행
                             await task_updater.update_status(
                                 TaskState.working,
-                                message="🧹 데이터 정리 작업을 실행하고 있습니다..."
+                                message=new_agent_text_message("🧹 데이터 정리 작업을 실행하고 있습니다...")
                             )
                             
                             try:

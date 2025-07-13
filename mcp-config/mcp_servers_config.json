@@ -1,0 +1,212 @@
+{
+  "mcpServers": {
+    "dataCleaningLocal": {
+      "type": "stdio",
+      "name": "Data Cleaning Tools",
+      "description": "Fast data cleaning - missing values, outliers, duplicates",
+      "command": "uv",
+      "args": ["run", "python", "-m", "mcp_agents.mcp_datacleaning_agent.server"],
+      "env": {
+        "PYTHONPATH": ".",
+        "MCP_LOG_LEVEL": "INFO"
+      },
+      "cwd": "./",
+      "timeout": 15.0,
+      "retry_count": 2,
+      "enabled": true
+    },
+    
+    "dataWranglingLocal": {
+      "type": "stdio", 
+      "name": "Data Wrangling Tools",
+      "description": "Fast data transformation - joins, aggregation, reshaping",
+      "command": "uv",
+      "args": ["run", "python", "-m", "mcp_agents.mcp_datawrangling_agent.server"],
+      "env": {
+        "PYTHONPATH": ".",
+        "MCP_LOG_LEVEL": "INFO"
+      },
+      "cwd": "./",
+      "timeout": 15.0,
+      "retry_count": 2,
+      "enabled": true
+    },
+    
+    "featureEngineeringLocal": {
+      "type": "stdio",
+      "name": "Feature Engineering",
+      "description": "Fast feature creation - generation, selection, scaling",
+      "command": "uv",
+      "args": ["run", "python", "-m", "mcp_agents.mcp_featureengineering_agent.server"],
+      "env": {
+        "PYTHONPATH": ".",
+        "MCP_LOG_LEVEL": "INFO"
+      },
+      "cwd": "./",
+      "timeout": 20.0,
+      "retry_count": 2,
+      "enabled": true
+    },
+    
+    "sqlDatabaseLocal": {
+      "type": "stdio",
+      "name": "SQL Database Tools",
+      "description": "Fast query execution - SQLite local database operations",
+      "command": "uv",
+      "args": ["run", "python", "-m", "mcp_agents.mcp_sqldatabase_agent.server"],
+      "env": {
+        "PYTHONPATH": ".",
+        "MCP_LOG_LEVEL": "INFO",
+        "DATABASE_URL": "sqlite:///./data/cherryai.db"
+      },
+      "cwd": "./",
+      "timeout": 10.0,
+      "retry_count": 2,
+      "enabled": true
+    },
+    
+    "dataLoaderLocal": {
+      "type": "stdio",
+      "name": "Data Loader",
+      "description": "Fast file loading - CSV, Excel, JSON reading",
+      "command": "uv", 
+      "args": ["run", "python", "-m", "mcp_agents.mcp_dataloader_agent.server"],
+      "env": {
+        "PYTHONPATH": ".",
+        "MCP_LOG_LEVEL": "INFO"
+      },
+      "cwd": "./",
+      "timeout": 10.0,
+      "retry_count": 2,
+      "enabled": true
+    },
+
+    "edaAnalysisLocal": {
+      "type": "sse",
+      "name": "Exploratory Data Analysis",
+      "description": "Real-time EDA - statistical analysis with progress streaming",
+      "url": "http://localhost:3001/sse",
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      },
+      "server_command": "uv run python -m mcp_agents.mcp_eda_agent.sse_server --port 3001",
+      "timeout": 60.0,
+      "retry_count": 3,
+      "health_check_interval": 30.0,
+      "capabilities": ["statistical_analysis", "correlation_analysis", "distribution_analysis"],
+      "enabled": true
+    },
+    
+    "dataVisualizationLocal": {
+      "type": "sse", 
+      "name": "Data Visualization Tools",
+      "description": "Real-time chart generation - interactive visualizations with progress",
+      "url": "http://localhost:3002/sse",
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      },
+      "server_command": "uv run python -m mcp_agents.mcp_datavisualization_agent.sse_server --port 3002",
+      "timeout": 45.0,
+      "retry_count": 3,
+      "health_check_interval": 30.0,
+      "capabilities": ["chart_generation", "interactive_plots", "dashboard_creation"],
+      "enabled": true
+    },
+    
+    "h2oModelingLocal": {
+      "type": "sse",
+      "name": "H2O AutoML Modeling", 
+      "description": "Real-time AutoML - model training with progress and metrics streaming",
+      "url": "http://localhost:3003/sse",
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      },
+      "server_command": "uv run python -m mcp_agents.mcp_h2o_modeling_agent.sse_server --port 3003",
+      "timeout": 300.0,
+      "retry_count": 3,
+      "health_check_interval": 60.0,
+      "capabilities": ["automl", "model_training", "performance_tracking"],
+      "enabled": true
+    },
+    
+    "mlflowTrackingLocal": {
+      "type": "sse",
+      "name": "MLflow Experiment Tracking",
+      "description": "Real-time experiment management - model versioning and metrics tracking",
+      "url": "http://localhost:3004/sse", 
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      },
+      "server_command": "uv run python -m mcp_agents.mcp_mlflow_agent.sse_server --port 3004",
+      "timeout": 60.0,
+      "retry_count": 3,
+      "health_check_interval": 45.0,
+      "capabilities": ["experiment_tracking", "model_registry", "metrics_logging"],
+      "enabled": true
+    },
+    
+    "pandasAnalystLocal": {
+      "type": "sse",
+      "name": "Advanced Pandas Analyst",
+      "description": "Real-time complex analysis - advanced pandas operations with result streaming",
+      "url": "http://localhost:3005/sse",
+      "headers": {
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"
+      },
+      "server_command": "uv run python -m mcp_agents.pandas_data_analyst_agent.sse_server --port 3005", 
+      "timeout": 60.0,
+      "retry_count": 3,
+      "health_check_interval": 30.0,
+      "capabilities": ["advanced_analysis", "complex_operations", "result_streaming"],
+      "enabled": true
+    }
+  },
+  
+  "globalSettings": {
+    "default_timeout": 30.0,
+    "default_retry_count": 3,
+    "default_health_check_interval": 45.0,
+    "environment_variables": {
+      "DATABASE_URL": "sqlite:///./data/cherryai.db",
+      "MCP_LOG_LEVEL": "INFO",
+      "PYTHONPATH": "."
+    },
+    "stdio_config": {
+      "buffer_size": 4096,
+      "max_timeout": 30.0,
+      "quick_response": true
+    },
+    "sse_config": {
+      "heartbeat_interval": 30.0,
+      "stream_buffer_size": 1024,
+      "port_range_start": 3001,
+      "port_range_end": 3010,
+      "reconnect_attempts": 3
+    },
+    "auto_discovery": {
+      "enabled": true,
+      "scan_interval": 300.0,
+      "health_check_enabled": true
+    },
+    "llm_enhancement": {
+      "enabled": true,
+      "auto_configure": true,
+      "suggest_optimizations": true
+    }
+  },
+
+  "metadata": {
+    "version": "1.1.0",
+    "created_at": "2025-07-13T00:00:00Z",
+    "last_updated": "2025-07-13T00:00:00Z", 
+    "description": "CherryAI Local MCP Configuration - 100% offline operation",
+    "total_servers": 10,
+    "stdio_servers": 5,
+    "sse_servers": 5
+  }
+} 

@@ -1,11 +1,6 @@
-Name,Age,Department,Salary,Performance_Score
-김철수,28,IT,5500000,85
-이영희,32,Marketing,4800000,92
-박민수,29,IT,6200000,78
-정수진,35,Finance,5800000,88
-최호영,26,Marketing,4200000,75
-김영미,41,Finance,7200000,94
-이동욱,33,IT,6800000,82
-박선영,27,Marketing,4500000,89
-정민철,38,Finance,6500000,91
-최은정,31,IT,5900000,87
+name,age,score,category
+Alice,25,85,A
+Bob,30,92,B
+Charlie,28,78,A
+Diana,35,95,B
+Eve,22,88,A

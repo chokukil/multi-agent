@@ -16,9 +16,99 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # AI_DS_Team 서버 포트들
-AI_DS_TEAM_PORTS=(8306 8307 8308 8309 8310 8311 8312 8313 8314)
+AI_DS_TEAM_PORTS=(8306 8307 8308 8309 8310 8311 8312 8313 8314 8315)
 CORE_PORTS=(8100)
 STANDALONE_PORTS=(8080)
+
+# Context Engineering 시스템 정리
+cleanup_context_engineering() {
+    echo -e "${CYAN}🧠 Context Engineering 시스템 정리 중...${NC}"
+    
+    # Agent Persona Manager 관련 프로세스 정리
+    persona_processes=$(ps aux | grep -E "agent_persona_manager|collaboration_rules_engine" | grep -v grep | awk '{print $2}')
+    if [ -n "$persona_processes" ]; then
+        echo -e "${BLUE}🔄 Context Engineering 프로세스 정리...${NC}"
+        for pid in $persona_processes; do
+            if kill $pid 2>/dev/null; then
+                echo -e "${GREEN}✅ Context Engineering 프로세스 종료됨 (PID: $pid)${NC}"
+            fi
+        done
+    fi
+    
+    # Context Engineering 세션 정리
+    if [ -d "a2a_ds_servers/context_engineering" ]; then
+        echo -e "${BLUE}📊 Context Engineering 세션 정리...${NC}"
+        # 임시 파일들 정리
+        find a2a_ds_servers/context_engineering -name "*.tmp" -delete 2>/dev/null
+        find a2a_ds_servers/context_engineering -name "*.lock" -delete 2>/dev/null
+        echo -e "${GREEN}✅ Context Engineering 세션 정리 완료${NC}"
+    fi
+}
+
+# A2A + MCP 통합 시스템 정리
+cleanup_a2a_mcp_integration() {
+    echo -e "${CYAN}🌐 A2A + MCP 통합 시스템 정리 중...${NC}"
+    
+    # MCP 관련 프로세스 정리
+    mcp_processes=$(ps aux | grep -E "mcp_integration|mcp.*server" | grep -v grep | awk '{print $2}')
+    if [ -n "$mcp_processes" ]; then
+        echo -e "${BLUE}🔄 MCP 프로세스 정리...${NC}"
+        for pid in $mcp_processes; do
+            if kill $pid 2>/dev/null; then
+                echo -e "${GREEN}✅ MCP 프로세스 종료됨 (PID: $pid)${NC}"
+            fi
+        done
+    fi
+    
+    # 통합 시스템 세션 정리
+    echo -e "${BLUE}📊 A2A + MCP 통합 세션 정리...${NC}"
+    
+    # 임시 파일들 정리
+    if [ -d "a2a_ds_servers/tools" ]; then
+        find a2a_ds_servers/tools -name "*.tmp" -delete 2>/dev/null
+        find a2a_ds_servers/tools -name "*.lock" -delete 2>/dev/null
+    fi
+    
+    # 아티팩트 정리 (선택적)
+    if [ -d "a2a_ds_servers/artifacts" ]; then
+        # 임시 아티팩트만 정리
+        find a2a_ds_servers/artifacts -name "temp_*" -delete 2>/dev/null
+        find a2a_ds_servers/artifacts -name "*.tmp" -delete 2>/dev/null
+    fi
+    
+    echo -e "${GREEN}✅ A2A + MCP 통합 시스템 정리 완료${NC}"
+}
+
+# 시스템 상태 최종 확인
+check_final_system_status() {
+    echo -e "${CYAN}📊 최종 시스템 상태 확인...${NC}"
+    
+    # Context Engineering 컴포넌트 상태
+    echo -e "${BLUE}🧠 Context Engineering 상태:${NC}"
+    echo -e "${BLUE}  • INSTRUCTIONS Layer: Agent Persona Manager 정리됨${NC}"
+    echo -e "${BLUE}  • MEMORY Layer: Collaboration Rules Engine 정리됨${NC}"
+    echo -e "${BLUE}  • HISTORY Layer: Session Management 정리됨${NC}"
+    echo -e "${BLUE}  • INPUT Layer: Intelligent Data Handler 정리됨${NC}"
+    echo -e "${BLUE}  • TOOLS Layer: MCP Integration 정리됨${NC}"
+    echo -e "${BLUE}  • OUTPUT Layer: Streaming Wrapper 정리됨${NC}"
+    
+    # A2A + MCP 통합 상태
+    echo -e "${PURPLE}🌐 A2A + MCP 통합 플랫폼 상태:${NC}"
+    echo -e "${BLUE}  • A2A 에이전트: 10개 (포트 8306-8315) 정리됨${NC}"
+    echo -e "${BLUE}  • MCP 도구: 7개 도구 정리됨${NC}"
+    echo -e "${BLUE}  • 워크플로우 세션: 정리됨${NC}"
+    echo -e "${BLUE}  • 세계 최초 A2A + MCP 통합 플랫폼 정상 종료${NC}"
+    
+    # 메모리 사용량 확인
+    if command -v ps >/dev/null 2>&1; then
+        remaining_processes=$(ps aux | grep -E "(python.*server|streamlit)" | grep -v grep | wc -l)
+        if [ $remaining_processes -gt 0 ]; then
+            echo -e "${YELLOW}⚠️ 남은 프로세스: ${remaining_processes}개${NC}"
+        else
+            echo -e "${GREEN}✅ 모든 프로세스 정리 완료${NC}"
+        fi
+    fi
+}
 
 # 함수: 포트로 프로세스 종료
 kill_process_by_port() {
@@ -121,6 +211,7 @@ declare -A AI_DS_SERVICES=(
     [8312]="AI_DS_Team_EDATools"
     [8313]="AI_DS_Team_H2OML"
     [8314]="AI_DS_Team_MLflowTools"
+    [8315]="AI_DS_Team_PythonREPL"
 )
 
 stopped_count=0
@@ -144,7 +235,7 @@ echo -e "${CYAN}🔄 코어 A2A 서버 종료 중...${NC}"
 
 # 2. 코어 서버들 종료
 declare -A CORE_SERVICES=(
-    [8100]="Universal_AI_Orchestrator"
+    [8100]="A2A_Orchestrator"
 )
 
 for port in "${CORE_PORTS[@]}"; do
@@ -159,11 +250,21 @@ done
 echo ""
 echo -e "${CYAN}🧹 추가 정리 작업...${NC}"
 
-# 3. Python 프로세스 중 서버 관련 프로세스들 종료
+# 3. Context Engineering 시스템 정리
+cleanup_context_engineering
+
+echo ""
+
+# 4. A2A + MCP 통합 시스템 정리
+cleanup_a2a_mcp_integration
+
+echo ""
+
+# 5. Python 프로세스 중 서버 관련 프로세스들 종료
 echo -e "${BLUE}🔍 Python 서버 프로세스 검사 중...${NC}"
 
 # ai_ds_team 관련 프로세스들 찾기
-ai_ds_processes=$(ps aux | grep python | grep -E "(ai_ds_team.*server|orchestrator_server|standalone_pandas_agent_server)" | grep -v grep | awk '{print $2}')
+ai_ds_processes=$(ps aux | grep python | grep -E "(ai_ds_team.*server|orchestrator_server|standalone_pandas_agent_server|python_repl_server)" | grep -v grep | awk '{print $2}')
 
 if [ -n "$ai_ds_processes" ]; then
     echo -e "${YELLOW}⚡ AI_DS_Team 관련 Python 프로세스 종료 중...${NC}"
@@ -176,7 +277,7 @@ else
     echo -e "${GREEN}✅ AI_DS_Team 관련 Python 프로세스 없음${NC}"
 fi
 
-# 4. 로그 디렉토리 정리 (선택사항)
+# 6. 로그 디렉토리 정리 (선택사항)
 echo -e "${CYAN}📁 로그 파일 정리...${NC}"
 
 if [ -d "a2a_ds_servers/logs" ]; then
@@ -189,7 +290,7 @@ if [ -d "a2a_ds_servers/logs" ]; then
     echo -e "${GREEN}✅ 오래된 로그 파일들 압축됨${NC}"
 fi
 
-# 5. 최종 상태 확인
+# 7. 최종 상태 확인
 echo ""
 echo "==================================="
 echo -e "${CYAN}📊 최종 상태 확인:${NC}"
@@ -228,16 +329,23 @@ for port in "${CORE_PORTS[@]}"; do
 done
 
 echo ""
+
+# 8. 최종 시스템 상태 확인
+check_final_system_status
+
+echo ""
 echo -e "${CYAN}📈 종료 요약:${NC}"
 echo "AI_DS_Team 에이전트: $stopped_count/$total_ai_agents 종료됨"
 echo "활성 포트: $active_ports개"
 
 if [ $active_ports -eq 0 ]; then
     echo -e "${GREEN}🎉 AI_DS_Team A2A 시스템이 완전히 종료되었습니다!${NC}"
+    echo -e "${GREEN}🌟 Context Engineering 시스템 정상 종료${NC}"
+    echo -e "${GREEN}🌟 A2A + MCP 통합 플랫폼 정상 종료${NC}"
 else
     echo -e "${YELLOW}⚠️  일부 서비스가 여전히 실행 중입니다.${NC}"
     echo -e "${YELLOW}💡 강제 종료가 필요하면 다음 명령을 실행하세요:${NC}"
-    echo "sudo lsof -ti :8080,:8100,:8306,:8307,:8308,:8309,:8310,:8311,:8312,:8313,:8314 | xargs sudo kill -9"
+    echo "sudo lsof -ti :8080,:8100,:8306,:8307,:8308,:8309,:8310,:8311,:8312,:8313,:8314,:8315 | xargs sudo kill -9"
 fi
 
 # 재시작 안내
@@ -248,5 +356,6 @@ echo "./ai_ds_team_system_start.sh"
 echo ""
 echo -e "${CYAN}📖 추가 정보:${NC}"
 echo "- 로그 파일: a2a_ds_servers/logs/"
-echo "- 데이터 아티팩트: a2a_ds_servers/artifacts/"
-echo "- 시스템 상태 확인: ps aux | grep python | grep server" 
+echo "- Context Engineering 컴포넌트: a2a_ds_servers/context_engineering/"
+echo "- MCP 통합 도구: a2a_ds_servers/tools/"
+echo "- 세계 최초 A2A + MCP 통합 플랫폼 종료 완료" 

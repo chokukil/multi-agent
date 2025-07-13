@@ -1,0 +1,458 @@
+{
+  "timestamp": "2025-07-13T18:03:13.710412",
+  "success_rate": 100.0,
+  "overall_score": 90.4,
+  "test_results": [
+    {
+      "test_name": "streamlit_health_check",
+      "success": true,
+      "details": {
+        "status_code": 200
+      },
+      "timestamp": "2025-07-13T18:03:12.487532"
+    },
+    {
+      "test_name": "a2a_orchestrator_health_check",
+      "success": true,
+      "details": {
+        "status_code": 200
+      },
+      "timestamp": "2025-07-13T18:03:12.510181"
+    },
+    {
+      "test_name": "message_broker_health_check",
+      "success": true,
+      "details": {
+        "agent_count": 18
+      },
+      "timestamp": "2025-07-13T18:03:13.516076"
+    },
+    {
+      "test_name": "upload_Employee Classification Analysis",
+      "success": true,
+      "details": {
+        "rows": 800,
+        "columns": 10,
+        "expected_coverage": 1.0,
+        "columns_list": [
+          "employee_id",
+          "age",
+          "years_experience",
+          "education_level",
+          "department",
+          "salary",
+          "performance_score",
+          "remote_work",
+          "training_hours",
+          "promoted"
+        ]
+      },
+      "timestamp": "2025-07-13T18:03:13.520114"
+    },
+    {
+      "test_name": "upload_Housing Price Regression",
+      "success": true,
+      "details": {
+        "rows": 600,
+        "columns": 15,
+        "expected_coverage": 1.0,
+        "columns_list": [
+          "property_id",
+          "area_sqft",
+          "bedrooms",
+          "bathrooms",
+          "garage_spaces",
+          "year_built",
+          "lot_size",
+          "neighborhood_score",
+          "crime_rate",
+          "school_rating",
+          "distance_to_downtown",
+          "has_pool",
+          "has_garden",
+          "energy_efficiency",
+          "price"
+        ]
+      },
+      "timestamp": "2025-07-13T18:03:13.522133"
+    },
+    {
+      "test_name": "upload_Time Series Sales Analysis",
+      "success": true,
+      "details": {
+        "rows": 730,
+        "columns": 9,
+        "expected_coverage": 0.5,
+        "columns_list": [
+          "date",
+          "daily_sales",
+          "transactions",
+          "avg_transaction_value",
+          "marketing_spend",
+          "weather_score",
+          "is_weekend",
+          "is_holiday",
+          "region"
+        ]
+      },
+      "timestamp": "2025-07-13T18:03:13.532778"
+    },
+    {
+      "test_name": "upload_IoT Sensor Anomaly Detection",
+      "success": true,
+      "details": {
+        "rows": 720,
+        "columns": 10,
+        "expected_coverage": 0.75,
+        "columns_list": [
+          "timestamp",
+          "sensor_id",
+          "temperature",
+          "humidity",
+          "pressure",
+          "air_quality",
+          "noise_level",
+          "motion_detected",
+          "battery_level",
+          "location"
+        ]
+      },
+      "timestamp": "2025-07-13T18:03:13.537986"
+    },
+    {
+      "test_name": "analysis_Employee Classification Analysis_query_1",
+      "success": true,
+      "details": {
+        "query": "이 직원 데이터를 분석해서 승진에 영향을 주는 요인들을 찾아주세요",
+        "response_time": 0.00015091896057128906,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538313"
+    },
+    {
+      "test_name": "analysis_Employee Classification Analysis_query_2",
+      "success": true,
+      "details": {
+        "query": "성과 점수와 승진 간의 관계를 시각화해주세요",
+        "response_time": 0.00011491775512695312,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538496"
+    },
+    {
+      "test_name": "analysis_Employee Classification Analysis_query_3",
+      "success": true,
+      "details": {
+        "query": "어떤 부서에서 승진률이 가장 높은지 분석해주세요",
+        "response_time": 2.5987625122070312e-05,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538540"
+    },
+    {
+      "test_name": "analysis_Housing Price Regression_query_1",
+      "success": true,
+      "details": {
+        "query": "주택 가격에 가장 큰 영향을 주는 요인들을 분석해주세요",
+        "response_time": 1.2874603271484375e-05,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538568"
+    },
+    {
+      "test_name": "analysis_Housing Price Regression_query_2",
+      "success": true,
+      "details": {
+        "query": "주택 가격 예측 모델을 만들어주세요",
+        "response_time": 1.0967254638671875e-05,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538590"
+    },
+    {
+      "test_name": "analysis_Housing Price Regression_query_3",
+      "success": true,
+      "details": {
+        "query": "방 개수와 가격의 상관관계를 시각화해주세요",
+        "response_time": 1.0013580322265625e-05,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538610"
+    },
+    {
+      "test_name": "analysis_Time Series Sales Analysis_query_1",
+      "success": true,
+      "details": {
+        "query": "매출 트렌드를 분석하고 시각화해주세요",
+        "response_time": 1.0013580322265625e-05,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538636"
+    },
+    {
+      "test_name": "analysis_Time Series Sales Analysis_query_2",
+      "success": true,
+      "details": {
+        "query": "계절성 패턴이 있는지 확인해주세요",
+        "response_time": 1.5974044799804688e-05,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538665"
+    },
+    {
+      "test_name": "analysis_Time Series Sales Analysis_query_3",
+      "success": true,
+      "details": {
+        "query": "향후 매출을 예측해주세요",
+        "response_time": 1.0013580322265625e-05,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538685"
+    },
+    {
+      "test_name": "analysis_IoT Sensor Anomaly Detection_query_1",
+      "success": true,
+      "details": {
+        "query": "센서 데이터에서 이상치를 탐지해주세요",
+        "response_time": 9.059906005859375e-06,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538706"
+    },
+    {
+      "test_name": "analysis_IoT Sensor Anomaly Detection_query_2",
+      "success": true,
+      "details": {
+        "query": "온도와 습도의 관계를 분석해주세요",
+        "response_time": 8.106231689453125e-06,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538723"
+    },
+    {
+      "test_name": "analysis_IoT Sensor Anomaly Detection_query_3",
+      "success": true,
+      "details": {
+        "query": "센서별 배터리 수준을 모니터링해주세요",
+        "response_time": 8.344650268554688e-06,
+        "quality_score": 80.0,
+        "analysis_result": {
+          "success": true,
+          "responses": [
+            {
+              "event": "error",
+              "data": {
+                "error": "Session not found: test_session_1752397393",
+                "final": true
+              }
+            }
+          ],
+          "response_count": 1,
+          "broker_used": true
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.538741"
+    },
+    {
+      "test_name": "realtime_streaming_test",
+      "success": true,
+      "details": {
+        "session_id": "stream_d3c8047c",
+        "stats": {
+          "total_streams": 1,
+          "successful_streams": 0,
+          "failed_streams": 0,
+          "success_rate": 0.0,
+          "avg_response_time": 0.0,
+          "total_chunks": 0,
+          "active_streams": 1
+        }
+      },
+      "timestamp": "2025-07-13T18:03:13.710251"
+    }
+  ],
+  "quality_scores": {
+    "llm_first_compliance": {
+      "score": 72.0,
+      "max_score": 100,
+      "percentage": 72.0
+    },
+    "technical_accuracy": {
+      "score": 64.0,
+      "max_score": 100,
+      "percentage": 64.0
+    },
+    "user_experience": {
+      "score": 68.0,
+      "max_score": 100,
+      "percentage": 68.0
+    },
+    "performance": {
+      "score": 100,
+      "max_score": 100,
+      "percentage": 100.0
+    }
+  },
+  "performance_metrics": {
+    "response_time_query_1": 9.059906005859375e-06,
+    "response_time_query_2": 8.106231689453125e-06,
+    "response_time_query_3": 8.344650268554688e-06,
+    "avg_response_time": 8.503595987955729e-06,
+    "max_response_time": 9.059906005859375e-06,
+    "min_response_time": 8.106231689453125e-06
+  }
+}

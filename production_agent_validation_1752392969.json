@@ -1,0 +1,585 @@
+{
+  "validation_summary": {
+    "total_agents_tested": 10,
+    "healthy_agents": 10,
+    "functional_agents": 0,
+    "health_rate": 100.0,
+    "functionality_rate": 0.0,
+    "avg_response_time": 0.03072805404663086,
+    "total_validation_time": 0.5825259685516357
+  },
+  "quality_analysis": null,
+  "agent_details": {
+    "data_cleaning": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.09581637382507324,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "데이터 정리 및 품질 개선 전문가. 결측값 처리, 중복 제거, 이상값 탐지, 데이터 타입 최적화 등을 수행합니다.",
+          "name": "AI_DS_Team DataCleaningAgent",
+          "skills": [
+            {
+              "description": "전문적인 데이터 정리 및 품질 개선 서비스. 결측값 처리, 중복 제거, 이상값 탐지, 데이터 타입 최적화 등을 수행합니다.",
+              "examples": [
+                "결측값을 처리해주세요",
+                "중복 데이터를 제거해주세요",
+                "데이터 품질을 평가해주세요",
+                "이상값을 탐지하고 처리해주세요",
+                "데이터 타입을 최적화해주세요"
+              ],
+              "id": "data_cleaning",
+              "name": "Data Cleaning & Quality Improvement",
+              "tags": [
+                "data-cleaning",
+                "preprocessing",
+                "quality-improvement",
+                "missing-values",
+                "outliers"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8306/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "데이터 정리 및 품질 개선 전문가. 결측값 처리, 중복 제거, 이상값 탐지, 데이터 타입 최적화 등을 수행합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.02960991859436035,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8306"
+    },
+    "data_loader": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.023044824600219727,
+        "agent_info": {
+          "capabilities": {
+            "streaming": true
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "다양한 데이터 소스 로딩 및 전처리 전문가. 파일, 데이터베이스, API 등에서 데이터를 로드하고 DataFrame으로 변환합니다.",
+          "name": "AI_DS_Team DataLoaderToolsAgent",
+          "skills": [
+            {
+              "description": "다양한 데이터 소스 로딩 및 전처리 전문가. 파일, 데이터베이스, API 등에서 데이터를 로드하고 DataFrame으로 변환합니다.",
+              "examples": [
+                "CSV 파일을 로드해주세요",
+                "데이터베이스에서 고객 테이블을 가져와주세요",
+                "API에서 실시간 데이터를 수집해주세요",
+                "Excel 파일의 특정 시트를 읽어주세요",
+                "사용 가능한 데이터 파일들을 보여주세요"
+              ],
+              "id": "data_loading",
+              "name": "Data Loading & File Processing",
+              "tags": [
+                "data-loading",
+                "etl",
+                "file-processing",
+                "database",
+                "api-integration"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8307/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": true
+        },
+        "description": "다양한 데이터 소스 로딩 및 전처리 전문가. 파일, 데이터베이스, API 등에서 데이터를 로드하고 DataFrame으로 변환합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.028382062911987305,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8307"
+    },
+    "data_visualization": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.020675182342529297,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+          "name": "AI_DS_Team DataVisualizationAgent",
+          "skills": [
+            {
+              "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+              "examples": [
+                "매출 데이터의 월별 트렌드를 선 그래프로 그려주세요",
+                "고객 나이대별 분포를 히스토그램으로 보여주세요",
+                "변수들 간의 상관관계를 히트맵으로 표시해주세요",
+                "카테고리별 박스플롯을 생성해주세요",
+                "인터랙티브 대시보드를 만들어주세요"
+              ],
+              "id": "data_visualization",
+              "name": "Data Visualization & Chart Creation",
+              "tags": [
+                "data-visualization",
+                "plotly",
+                "matplotlib",
+                "charts",
+                "dashboard"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8308/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.026599884033203125,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8308"
+    },
+    "data_wrangling": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.021817684173583984,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+          "name": "AI_DS_Team DataWranglingAgent",
+          "skills": [
+            {
+              "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+              "examples": [
+                "매출 데이터의 월별 트렌드를 선 그래프로 그려주세요",
+                "고객 나이대별 분포를 히스토그램으로 보여주세요",
+                "변수들 간의 상관관계를 히트맵으로 표시해주세요",
+                "카테고리별 박스플롯을 생성해주세요",
+                "인터랙티브 대시보드를 만들어주세요"
+              ],
+              "id": "data-wrangling",
+              "name": "Data Visualization & Chart Creation",
+              "tags": [
+                "data-visualization",
+                "plotly",
+                "matplotlib",
+                "charts",
+                "dashboard"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8309/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.02360701560974121,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8309"
+    },
+    "eda": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.02085566520690918,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+          "name": "AI_DS_Team FeatureEngineeringAgent",
+          "skills": [
+            {
+              "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+              "examples": [
+                "매출 데이터의 월별 트렌드를 선 그래프로 그려주세요",
+                "고객 나이대별 분포를 히스토그램으로 보여주세요",
+                "변수들 간의 상관관계를 히트맵으로 표시해주세요",
+                "카테고리별 박스플롯을 생성해주세요",
+                "인터랙티브 대시보드를 만들어주세요"
+              ],
+              "id": "feature-engineering",
+              "name": "Data Visualization & Chart Creation",
+              "tags": [
+                "data-visualization",
+                "plotly",
+                "matplotlib",
+                "charts",
+                "dashboard"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8310/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "전문적인 데이터 시각화 및 차트 생성 서비스. Plotly, Matplotlib을 활용하여 인터랙티브 및 정적 차트를 생성합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.025787830352783203,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8310"
+    },
+    "feature_engineering": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.027773380279541016,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "전문적인 SQL 데이터베이스 분석 및 쿼리 생성 서비스. 자연어를 SQL로 변환하고 복잡한 데이터베이스 분석을 수행합니다.",
+          "name": "AI_DS_Team SQLDatabaseAgent",
+          "skills": [
+            {
+              "description": "전문적인 SQL 데이터베이스 분석 및 쿼리 생성 서비스. 자연어를 SQL로 변환하고 복잡한 데이터베이스 분석을 수행합니다.",
+              "examples": [
+                "모든 데이터를 조회해주세요",
+                "카테고리별 평균값을 계산해주세요",
+                "상위 10개 행을 보여주세요",
+                "조건에 맞는 데이터를 필터링해주세요",
+                "월별 매출 합계를 구해주세요"
+              ],
+              "id": "sql-database",
+              "name": "SQL Database Analysis & Query Generation",
+              "tags": [
+                "sql",
+                "database",
+                "query",
+                "analysis",
+                "data"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8311/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "전문적인 SQL 데이터베이스 분석 및 쿼리 생성 서비스. 자연어를 SQL로 변환하고 복잡한 데이터베이스 분석을 수행합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.022722721099853516,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8311"
+    },
+    "h2o_modeling": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.02140498161315918,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "Enhanced EDA 전문가",
+          "name": "AI_DS_Team EDAToolsAgent",
+          "skills": [
+            {
+              "description": "Enhanced 탐색적 데이터 분석",
+              "examples": [
+                "데이터 EDA를 진행해주세요"
+              ],
+              "id": "enhanced_eda",
+              "name": "Enhanced EDA",
+              "tags": [
+                "eda",
+                "enhanced"
+              ]
+            }
+          ],
+          "url": "http://localhost:8312/",
+          "version": "3.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "Enhanced EDA 전문가",
+        "version": "3.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.02602696418762207,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8312"
+    },
+    "mlflow": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.021327972412109375,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "H2O AutoML을 활용한 전문적인 머신러닝 모델링 서비스. 자동 모델 선택, 하이퍼파라미터 튜닝, 성능 평가를 제공합니다.",
+          "name": "AI_DS_Team H2OMLAgent",
+          "skills": [
+            {
+              "description": "H2O AutoML을 활용한 전문적인 머신러닝 모델링 서비스. 자동 모델 선택, 하이퍼파라미터 튜닝, 성능 평가를 제공합니다.",
+              "examples": [
+                "고객 이탈 예측 모델을 만들어주세요",
+                "매출 예측 모델을 구축해주세요",
+                "상품 카테고리 분류 모델을 개발해주세요",
+                "여러 알고리즘을 비교해서 최적 모델을 찾아주세요",
+                "성능 지표를 비교해서 보여주세요"
+              ],
+              "id": "h2o-ml",
+              "name": "H2O AutoML Machine Learning",
+              "tags": [
+                "machine-learning",
+                "h2o",
+                "automl",
+                "modeling",
+                "prediction"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8313/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "H2O AutoML을 활용한 전문적인 머신러닝 모델링 서비스. 자동 모델 선택, 하이퍼파라미터 튜닝, 성능 평가를 제공합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.028856754302978516,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8313"
+    },
+    "sql_database": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.026516437530517578,
+        "agent_info": {
+          "capabilities": {
+            "streaming": false
+          },
+          "defaultInputModes": [
+            "text"
+          ],
+          "defaultOutputModes": [
+            "text"
+          ],
+          "description": "MLflow를 활용한 전문적인 머신러닝 실험 추적 및 모델 관리 서비스. 실험 추적, 모델 레지스트리, 비교 분석을 제공합니다.",
+          "name": "AI_DS_Team MLflowToolsAgent",
+          "skills": [
+            {
+              "description": "MLflow를 활용한 전문적인 머신러닝 실험 추적 및 모델 관리 서비스. 실험 추적, 모델 레지스트리, 비교 분석을 제공합니다.",
+              "examples": [
+                "모델 성능을 MLflow로 추적해주세요",
+                "실험 결과를 기록하고 비교해주세요",
+                "모델을 MLflow 레지스트리에 등록해주세요",
+                "여러 실험의 성능을 비교해주세요",
+                "최적 모델을 선택해주세요"
+              ],
+              "id": "mlflow-tools",
+              "name": "MLflow Experiment Tracking",
+              "tags": [
+                "mlflow",
+                "experiment-tracking",
+                "model-registry",
+                "ml-ops",
+                "versioning"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8314/",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "streaming": false
+        },
+        "description": "MLflow를 활용한 전문적인 머신러닝 실험 추적 및 모델 관리 서비스. 실험 추적, 모델 레지스트리, 비교 분석을 제공합니다.",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.0293729305267334,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8314"
+    },
+    "pandas": {
+      "health": {
+        "status": "healthy",
+        "response_time": 0.028048038482666016,
+        "agent_info": {
+          "capabilities": {
+            "pushNotifications": false,
+            "stateTransitionHistory": true,
+            "streaming": true
+          },
+          "defaultInputModes": [
+            "text/plain"
+          ],
+          "defaultOutputModes": [
+            "text/plain"
+          ],
+          "description": "LangGraph 기반 Python 코드 실행 에이전트 - 비동기 스트리밍 + 실시간 결과 표시",
+          "name": "AI_DS_Team PythonREPLAgent",
+          "provider": {
+            "organization": "CherryAI Team",
+            "url": "https://github.com/CherryAI"
+          },
+          "skills": [
+            {
+              "description": "사용자 요청에 따른 Python 코드 생성, 실행, 결과 분석 및 시각화",
+              "examples": [
+                "간단한 데이터 분석을 해주세요",
+                "그래프를 그려주세요",
+                "pandas로 데이터를 처리해주세요",
+                "통계 분석을 수행해주세요"
+              ],
+              "id": "python_code_execution",
+              "inputModes": [
+                "text/plain"
+              ],
+              "name": "Python Code Execution",
+              "outputModes": [
+                "text/plain"
+              ],
+              "tags": [
+                "python",
+                "code_execution",
+                "data_analysis",
+                "visualization",
+                "langgraph"
+              ]
+            }
+          ],
+          "supportsAuthenticatedExtendedCard": false,
+          "url": "http://localhost:8315",
+          "version": "1.0.0"
+        },
+        "capabilities": {
+          "pushNotifications": false,
+          "stateTransitionHistory": true,
+          "streaming": true
+        },
+        "description": "LangGraph 기반 Python 코드 실행 에이전트 - 비동기 스트리밍 + 실시간 결과 표시",
+        "version": "1.0.0"
+      },
+      "functionality": {
+        "status": "http_error",
+        "response_time": 0.02941584587097168,
+        "error": "HTTP 404: Not Found"
+      },
+      "quality": null,
+      "endpoint": "http://localhost:8315"
+    }
+  },
+  "test_data_info": {
+    "rows": 1000,
+    "columns": 9,
+    "column_names": [
+      "customer_id",
+      "age",
+      "income",
+      "purchase_amount",
+      "region",
+      "product_category",
+      "satisfaction_score",
+      "is_premium",
+      "days_since_last_purchase"
+    ]
+  },
+  "timestamp": "2025-07-13T16:49:29.215890"
+}

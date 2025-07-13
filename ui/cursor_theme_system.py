@@ -173,86 +173,227 @@ class CursorThemeSystem:
         
         /* Streamlit 기본 스타일 오버라이드 */
         .stApp {{
-            background-color: var(--cursor-primary-bg);
-            color: var(--cursor-primary-text);
-            font-family: var(--cursor-font-family);
+            background-color: var(--cursor-primary-bg) !important;
+            color: var(--cursor-primary-text) !important;
+            font-family: var(--cursor-font-family) !important;
         }}
         
-        /* 메인 컨테이너 */
+        /* 메인 컨테이너 강화 */
         .main .block-container {{
-            padding: 2rem 1rem;
-            max-width: 1200px;
+            padding: 2rem 1rem !important;
+            max-width: 1400px !important;
+            margin: 0 auto !important;
+            background-color: var(--cursor-primary-bg) !important;
+        }}
+        
+        /* 모든 컨테이너 배경 다크테마 강제 적용 */
+        .stMainBlockContainer, .element-container, .stVerticalBlock, .stHorizontalBlock {{
+            background-color: transparent !important;
+        }}
+        
+        /* 텍스트 영역 및 입력 필드 다크테마 */
+        .stTextArea textarea, .stTextInput input, .stSelectbox select {{
+            background-color: var(--cursor-secondary-bg) !important;
+            color: var(--cursor-primary-text) !important;
+            border: 1px solid var(--cursor-border-light) !important;
+            border-radius: 6px !important;
+        }}
+        
+        .stTextArea textarea:focus, .stTextInput input:focus {{
+            border-color: var(--cursor-accent-blue) !important;
+            box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2) !important;
+        }}
+        
+        /* 마크다운 및 텍스트 요소 */
+        .stMarkdown, .stMarkdown p, .stMarkdown div {{
+            color: var(--cursor-primary-text) !important;
+        }}
+        
+        /* 테이블 다크테마 */
+        .stDataFrame, .stTable {{
+            background-color: var(--cursor-secondary-bg) !important;
+            color: var(--cursor-primary-text) !important;
+        }}
+        
+        .stDataFrame th, .stDataFrame td {{
+            background-color: var(--cursor-secondary-bg) !important;
+            color: var(--cursor-primary-text) !important;
+            border-color: var(--cursor-border-light) !important;
         }}
         
         /* 사이드바 스타일 */
         .css-1d391kg {{
-            background-color: var(--cursor-secondary-bg);
-            border-right: 1px solid var(--cursor-border-light);
+            background-color: var(--cursor-secondary-bg) !important;
+            border-right: 1px solid var(--cursor-border-light) !important;
         }}
         
-        /* 헤더 스타일 */
+        /* Expander 다크테마 */
+        .stExpander {{
+            background-color: var(--cursor-secondary-bg) !important;
+            border: 1px solid var(--cursor-border-light) !important;
+            border-radius: 6px !important;
+        }}
+        
+        .stExpander .st-emotion-cache-ccs0ff {{
+            background-color: var(--cursor-tertiary-bg) !important;
+            color: var(--cursor-primary-text) !important;
+        }}
+        
+        /* 네비게이션 스타일 개선 */
+        .cursor-nav {{
+            background: linear-gradient(135deg, var(--cursor-secondary-bg) 0%, var(--cursor-tertiary-bg) 100%) !important;
+            border-radius: 12px !important;
+            padding: 2rem !important;
+            margin-bottom: 2rem !important;
+            border: 1px solid var(--cursor-border-light) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+        }}
+        
+        .nav-header {{
+            text-align: center !important;
+            margin-bottom: 1rem !important;
+        }}
+        
+        .nav-header h1 {{
+            font-size: 3rem !important;
+            font-weight: 700 !important;
+            background: linear-gradient(135deg, var(--cursor-accent-blue), #00d4ff) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+            margin: 0 !important;
+            padding: 0.5rem 0 !important;
+        }}
+        
+        .nav-subtitle {{
+            font-size: 1.4rem !important;
+            color: var(--cursor-secondary-text) !important;
+            font-weight: 300 !important;
+            margin: 0.5rem 0 !important;
+        }}
+        
+        /* 헤더 스타일 강화 */
         h1, h2, h3, h4, h5, h6 {{
-            color: var(--cursor-primary-text);
-            font-weight: 600;
-            margin-bottom: 1rem;
+            color: var(--cursor-primary-text) !important;
+            font-weight: 600 !important;
+            margin-bottom: 1rem !important;
+            line-height: 1.4 !important;
         }}
         
-        /* 텍스트 스타일 */
-        p, span, div {{
-            color: var(--cursor-secondary-text);
-            line-height: 1.6;
+        /* 텍스트 스타일 강화 */
+        p, div, span {{
+            color: var(--cursor-primary-text) !important;
+            line-height: 1.6 !important;
         }}
         
-        /* 링크 스타일 */
-        a {{
-            color: var(--cursor-accent-blue);
-            text-decoration: none;
-            transition: var(--cursor-transition);
+        /* 버튼 스타일 강화 */
+        .stButton > button {{
+            background: linear-gradient(135deg, var(--cursor-secondary-bg), var(--cursor-tertiary-bg)) !important;
+            border: 1px solid var(--cursor-border-light) !important;
+            color: var(--cursor-primary-text) !important;
+            font-weight: 500 !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+            font-size: 1rem !important;
         }}
         
-        a:hover {{
-            color: var(--cursor-accent-blue-hover);
+        .stButton > button:hover {{
+            background: linear-gradient(135deg, var(--cursor-accent-blue), var(--cursor-accent-blue-hover)) !important;
+            border-color: var(--cursor-accent-blue) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 16px rgba(0, 122, 204, 0.4) !important;
         }}
         
-        /* 애니메이션 정의 */
+        /* 메트릭 스타일 */
+        .stMetric {{
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-radius: 8px !important;
+            padding: 1rem !important;
+            border: 1px solid var(--cursor-border-light) !important;
+        }}
+        
+        .stMetric > div {{
+            color: var(--cursor-primary-text) !important;
+        }}
+        
+        /* 알림 스타일 */
+        .stAlert {{
+            border-radius: 8px !important;
+            border: none !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+        }}
+        
+        .stAlert > div {{
+            color: var(--cursor-primary-text) !important;
+        }}
+        
+        /* 입력 필드 스타일 */
+        .stTextInput > div > div > input {{
+            background-color: var(--cursor-secondary-bg) !important;
+            border: 1px solid var(--cursor-border-light) !important;
+            color: var(--cursor-primary-text) !important;
+            border-radius: 6px !important;
+            padding: 0.75rem !important;
+        }}
+        
+        .stTextInput > div > div > input:focus {{
+            border-color: var(--cursor-accent-blue) !important;
+            box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2) !important;
+        }}
+        
+        /* 파일 업로더 스타일 */
+        .stFileUploader {{
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 2px dashed var(--cursor-border-light) !important;
+            border-radius: 12px !important;
+            padding: 2rem !important;
+            text-align: center !important;
+        }}
+        
+        .stFileUploader:hover {{
+            border-color: var(--cursor-accent-blue) !important;
+            background: rgba(0, 122, 204, 0.1) !important;
+        }}
+        
+        /* 데이터프레임 스타일 */
+        .stDataFrame {{
+            background: var(--cursor-secondary-bg) !important;
+            border-radius: 8px !important;
+            border: 1px solid var(--cursor-border-light) !important;
+            overflow: hidden !important;
+        }}
+        
+        /* 컬럼 스타일 */
+        .stColumn {{
+            padding: 0.5rem !important;
+        }}
+        
+        /* 애니메이션 */
         {self.animations.get_pulse_animation()}
         {self.animations.get_typing_animation()}
         {self.animations.get_progress_animation()}
         {self.animations.get_slide_in_animation()}
         {self.animations.get_glow_animation()}
         
-        /* 공통 유틸리티 클래스 */
-        .cursor-fade-in {{
-            animation: cursor-slide-in 0.3s ease;
-        }}
-        
-        .cursor-pulse {{
-            animation: cursor-pulse 2s infinite;
-        }}
-        
-        .cursor-glow {{
-            animation: cursor-glow 3s ease-in-out infinite;
-        }}
-        
-        /* 스크롤바 스타일 */
-        ::-webkit-scrollbar {{
-            width: 8px;
-            height: 8px;
-        }}
-        
-        ::-webkit-scrollbar-track {{
-            background: var(--cursor-secondary-bg);
-            border-radius: 4px;
-        }}
-        
-        ::-webkit-scrollbar-thumb {{
-            background: var(--cursor-border-medium);
-            border-radius: 4px;
-            transition: var(--cursor-transition);
-        }}
-        
-        ::-webkit-scrollbar-thumb:hover {{
-            background: var(--cursor-border-dark);
+        /* 반응형 디자인 강화 */
+        @media (max-width: 768px) {{
+            .main .block-container {{
+                padding: 1rem 0.5rem !important;
+                max-width: 100% !important;
+            }}
+            
+            .cursor-nav {{
+                padding: 1rem !important;
+            }}
+            
+            .nav-header h1 {{
+                font-size: 2rem !important;
+            }}
+            
+            .nav-subtitle {{
+                font-size: 1rem !important;
+            }}
         }}
         </style>
         """

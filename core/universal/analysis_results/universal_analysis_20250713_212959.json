@@ -1,0 +1,47 @@
+{
+  "analysis_metadata": {
+    "timestamp": "2025-07-13T21:29:59.454379",
+    "strategy": {
+      "context": "exploration",
+      "confidence": 0.6
+    },
+    "data_profile": {
+      "shape": [
+        100,
+        4
+      ],
+      "quality_score": 1.0,
+      "complexity": "low"
+    }
+  },
+  "insights": [
+    "데이터셋 크기: 100행 × 4열",
+    "데이터 품질 점수: 1.00/1.0",
+    "복잡도 수준: low",
+    "주요 데이터 특성: numerical, mixed",
+    "feature2: moderately skewed distribution (skewness: 1.49)",
+    "강한 상관관계(|r| > 0.7)를 가진 변수 쌍 없음",
+    "패턴 탐지를 위한 추가 분석이 필요합니다.",
+    "분석 결과 종합을 위한 추가 처리가 필요합니다."
+  ],
+  "recommendations": [
+    "탐색적 분석 완료 후 특정 목적의 분석(예측, 분류) 수행 권장",
+    "지속적인 데이터 모니터링 및 분석 결과 검증 필요"
+  ],
+  "methodology": "exploration 분석 (LLM 기반 범용 접근법)",
+  "limitations": [
+    "범용적 분석 접근법으로 인한 도메인 특화 인사이트 제한"
+  ],
+  "next_steps": [
+    "목표 변수 설정 후 예측 또는 분류 분석 수행",
+    "도메인 전문가와 결과 검토 및 해석",
+    "추가 데이터 수집을 통한 분석 확장",
+    "시각화 대시보드 구축으로 지속적 모니터링"
+  ],
+  "confidence_scores": {
+    "data_overview": 0.9,
+    "distribution_analysis": 0.8,
+    "correlation_analysis": 0.7,
+    "pattern_discovery": 0.6
+  }
+}

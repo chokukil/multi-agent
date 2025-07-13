@@ -27,6 +27,7 @@ from a2a.types import (
     TaskState,
     TextPart
 )
+from a2a.utils import new_agent_text_message
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -75,7 +76,7 @@ class A2AStandardOrchestratorExecutor(AgentExecutor):
             if not available_agents:
                 await task_updater.update_status(
                     TaskState.failed,
-                    message=task_updater.new_agent_message(parts=[TextPart(text="❌ 사용 가능한 A2A 에이전트를 찾을 수 없습니다.")])
+                    message=new_agent_text_message("❌ 사용 가능한 A2A 에이전트를 찾을 수 없습니다.")
                 )
                 return
             
@@ -106,14 +107,14 @@ class A2AStandardOrchestratorExecutor(AgentExecutor):
             
             await task_updater.update_status(
                 TaskState.completed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=completion_message)])
+                message=new_agent_text_message(completion_message)
             )
             
         except Exception as e:
             logger.error(f"Error in execute: {e}", exc_info=True)
             await task_updater.update_status(
                 TaskState.failed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=f"오류 발생: {str(e)}")])
+                message=new_agent_text_message(f"오류 발생: {str(e)}")
             )
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
