@@ -1,0 +1,11 @@
+{
+  "file_id": "test_data.csv_1752530026",
+  "original_name": "test_data.csv",
+  "uploaded_at": "2025-07-15T06:53:46.516871",
+  "user_context": "업로드된 데이터: (5, 4)",
+  "data_shape": [
+    5,
+    4
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/b857e48d-536b-4dd8-8c8e-8f8f10f7fbc1_test_data.csv"
+}

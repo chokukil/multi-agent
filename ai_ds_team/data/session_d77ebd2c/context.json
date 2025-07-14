@@ -1,0 +1,10 @@
+{
+  "user_instructions": "업로드된 파일: test_data.csv",
+  "data_id": "test_data.csv",
+  "data_shape": [
+    5,
+    4
+  ],
+  "created_at": "2025-07-15T06:43:36.571290",
+  "file_path": "ai_ds_team/data/session_d77ebd2c/test_data.csv"
+}

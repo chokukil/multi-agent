@@ -1,0 +1,11 @@
+{
+  "file_id": "empty.csv",
+  "original_name": "empty.csv",
+  "uploaded_at": "2025-07-14T22:33:38.393566",
+  "user_context": "분석 수행",
+  "data_shape": [
+    0,
+    0
+  ],
+  "shared_file_path": "a2a_ds_servers/artifacts/data/shared_dataframes/session_6b8a31f9_empty.csv"
+}

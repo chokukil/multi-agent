@@ -1,0 +1,19 @@
+{
+  "session_id": "session_6b8a31f9",
+  "created_at": "2025-07-14T22:33:38.398005",
+  "last_activity": "2025-07-14T22:33:38.398006",
+  "uploaded_files": [
+    {
+      "data_id": "empty.csv",
+      "uploaded_at": "2025-07-14T22:33:38.383920",
+      "file_size": 132,
+      "file_type": ".csv",
+      "user_context": "분석 수행",
+      "domain": null,
+      "original_name": "empty.csv"
+    }
+  ],
+  "active_file": "empty.csv",
+  "auto_cleanup_at": "2025-07-15T22:33:38.398005",
+  "status": "active"
+}
