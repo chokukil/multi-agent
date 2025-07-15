@@ -71,7 +71,7 @@ class AgentPreloader:
         logger.info("🚀 에이전트 프리로딩 시작")
         
         # 프로그레시브 로딩: 핵심 에이전트부터 우선순위로 초기화
-        priority_agents = ["Orchestrator", "🔍 EDA Tools", "📊 Data Visualization"]
+        priority_agents = ["Orchestrator", "🔍 EDA Tools", "📊 Data Visualization", "🐼 pandas_agent", "📋 report_generator"]
         secondary_agents = [name for name in self.agents.keys() if name not in priority_agents]
         
         total_agents = len(self.agents)

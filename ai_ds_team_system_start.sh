@@ -63,6 +63,8 @@ AI_DS_SERVERS=(
     "AI_DS_Team_H2OML:8313:a2a_ds_servers/ai_ds_team_h2o_ml_server.py"
     "AI_DS_Team_MLflowTools:8314:a2a_ds_servers/ai_ds_team_mlflow_tools_server.py"
     "AI_DS_Team_PythonREPL:8315:a2a_ds_servers/ai_ds_team_python_repl_server.py"
+    "pandas_agent:8210:a2a_ds_servers/pandas_agent_simple_server.py"
+    "report_generator:8316:a2a_ds_servers/report_generator_simple_server.py"
 )
 
 CORE_SERVERS=(

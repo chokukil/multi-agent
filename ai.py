@@ -343,7 +343,9 @@ AI_DS_TEAM_AGENTS = {
     "⚙️ Feature Engineering": {"port": 8310, "description": "고급 피처 생성 및 선택", "capabilities": ["feature_creation", "selection"], "color": "#DDA0DD"},
     "🗄️ SQL Database": {"port": 8311, "description": "SQL 데이터베이스 분석", "capabilities": ["sql_query", "db_analysis"], "color": "#F39C12"},
     "🤖 H2O ML": {"port": 8313, "description": "H2O AutoML 기반 머신러닝", "capabilities": ["automl", "model_training"], "color": "#9B59B6"},
-    "📈 MLflow Tools": {"port": 8314, "description": "MLflow 실험 관리", "capabilities": ["experiment_tracking", "model_registry"], "color": "#E74C3C"}
+    "📈 MLflow Tools": {"port": 8314, "description": "MLflow 실험 관리", "capabilities": ["experiment_tracking", "model_registry"], "color": "#E74C3C"},
+    "🐼 pandas_agent": {"port": 8210, "description": "pandas 기반 데이터 분석 전문가", "capabilities": ["pandas_analysis", "data_calculation"], "color": "#FF9500"},
+    "📋 report_generator": {"port": 8316, "description": "종합 분석 보고서 생성", "capabilities": ["report_generation", "summary_analysis"], "color": "#8A2BE2"}
 }
 
 # 에이전트 이름 매핑 (계획에서 사용하는 이름 -> 실제 에이전트 이름)
@@ -357,6 +359,8 @@ AGENT_NAME_MAPPING = {
     "sql_database": "🗄️ SQL Database",
     "h2o_ml": "🤖 H2O ML",
     "mlflow_tools": "📈 MLflow Tools",
+    "pandas_agent": "🐼 pandas_agent",
+    "report_generator": "📋 report_generator",
     # 오케스트레이터 계획에서 사용하는 이름들 추가 (정확한 Agent Card name 사용)
     "AI_DS_Team EDAToolsAgent": "🔍 EDA Tools",
     "AI_DS_Team DataLoaderToolsAgent": "📁 Data Loader",
@@ -364,8 +368,8 @@ AGENT_NAME_MAPPING = {
     "AI_DS_Team DataVisualizationAgent": "📊 Data Visualization",
     "AI_DS_Team SQLDatabaseAgent": "🗄️ SQL Database",
     "AI_DS_Team DataWranglingAgent": "🔧 Data Wrangling",
-    # 호환성을 위해 기존 이름도 유지
-    "SessionEDAToolsAgent": "🔍 EDA Tools",
+    "pandas_agent": "🐼 pandas_agent",
+    "report_generator": "📋 report_generator",
     # 호환성을 위해 기존 이름도 유지
     "SessionEDAToolsAgent": "🔍 EDA Tools"
 }
@@ -441,6 +445,13 @@ def initialize_session_state():
 def initialize_agent_preloader():
     """에이전트 프리로더 초기화 (캐시됨)"""
     return get_agent_preloader(AI_DS_TEAM_AGENTS)
+
+def clear_agent_cache():
+    """에이전트 캐시 클리어"""
+    initialize_agent_preloader.clear()
+    st.session_state.agents_preloaded = False
+    st.session_state.agent_status = {}
+    debug_log("🧹 에이전트 캐시가 클리어되었습니다.", "success")
 
 async def preload_agents_with_ui():
     """UI와 함께 에이전트 프리로딩"""
@@ -1954,6 +1965,7 @@ def main():
         display_session_status()
 
         if st.button("🔄 에이전트 상태 새로고침") or not st.session_state.agent_status:
+            clear_agent_cache()  # 캐시 클리어
             st.session_state.agent_status = asyncio.run(preload_agents_with_ui())
         display_agent_status()
 

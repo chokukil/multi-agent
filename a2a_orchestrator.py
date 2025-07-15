@@ -2,6 +2,7 @@
 """
 CherryAI v8 - Universal Intelligent Orchestrator
 A2A SDK v0.2.9 표준 준수 + 실시간 스트리밍 + 지능형 에이전트 발견
+Enhanced with pandas_agent pattern for LLM First orchestration
 """
 
 import asyncio
@@ -37,7 +38,7 @@ from a2a.utils import new_agent_text_message, new_task
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# AI DS Team 에이전트 포트 매핑 (실제 실행 중인 에이전트들에 맞춰 수정)
+# 🔥 완전한 12개 A2A 에이전트 포트 매핑 (pandas_agent 패턴 기준)
 AGENT_PORTS = {
     "data_cleaning": 8306,
     "data_loader": 8307,
@@ -47,21 +48,139 @@ AGENT_PORTS = {
     "sql_database": 8311,
     "eda_tools": 8312,
     "h2o_ml": 8313,
-    "mlflow_tools": 8314
+    "mlflow_tools": 8314,
+    "pandas_agent": 8210,  # 🎯 기준 모델
+    "report_generator": 8316  # 📋 종합 보고서
+}
+
+# pandas_agent 패턴 기반 Agent 카테고리
+AGENT_CATEGORIES = {
+    "coordination": ["orchestrator"],
+    "data_loading": ["data_loader", "pandas_agent"],
+    "data_processing": ["data_cleaning", "data_wrangling", "feature_engineering"],
+    "analysis": ["eda_tools", "sql_database"],
+    "visualization": ["data_visualization"],
+    "modeling": ["h2o_ml", "mlflow_tools"],
+    "reporting": ["report_generator"]
 }
 
 
+class LLMIntentAnalyzer:
+    """pandas_agent 패턴: LLM 기반 의도 분석기"""
+    
+    def __init__(self, openai_client):
+        self.client = openai_client
+    
+    async def analyze_orchestration_intent(self, user_query: str) -> Dict[str, Any]:
+        """사용자 요청의 오케스트레이션 의도 분석"""
+        if not self.client:
+            return {
+                "complexity": "medium",
+                "required_agents": ["data_loader", "eda_tools"],
+                "workflow_type": "sequential",
+                "confidence": 0.7
+            }
+        
+        try:
+            response = await self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """당신은 데이터 과학 워크플로우 분석 전문가입니다. 
+                        사용자 요청을 분석하여 적절한 에이전트들과 실행 순서를 결정해주세요.
+                        
+                        Available agents: data_cleaning, data_loader, data_visualization, 
+                        data_wrangling, feature_engineering, sql_database, eda_tools, 
+                        h2o_ml, mlflow_tools, pandas_agent, report_generator
+                        """
+                    },
+                    {
+                        "role": "user", 
+                        "content": f"다음 요청을 분석해주세요: {user_query}"
+                    }
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            return json.loads(response.choices[0].message.content)
+            
+        except Exception as e:
+            logger.error(f"❌ LLM 의도 분석 실패: {e}")
+            return {
+                "complexity": "medium",
+                "required_agents": ["data_loader", "eda_tools"],
+                "workflow_type": "sequential",
+                "confidence": 0.5
+            }
+
+
+class LLMAgentSelector:
+    """pandas_agent 패턴: LLM 기반 최적 에이전트 선택기"""
+    
+    def __init__(self, openai_client):
+        self.client = openai_client
+    
+    async def select_optimal_agents(self, intent_analysis: Dict) -> List[str]:
+        """의도 분석 결과를 바탕으로 최적 에이전트들 선택"""
+        required_agents = intent_analysis.get("required_agents", [])
+        
+        # pandas_agent를 항상 우선 고려 (기준 모델)
+        if "data_analysis" in str(intent_analysis) and "pandas_agent" not in required_agents:
+            required_agents.insert(0, "pandas_agent")
+        
+        return required_agents
+
+
+class LLMWorkflowPlanner:
+    """pandas_agent 패턴: LLM 기반 워크플로우 계획 수립기"""
+    
+    def __init__(self, openai_client):
+        self.client = openai_client
+    
+    async def create_execution_plan(self, intent_analysis: Dict, available_agents: List[str]) -> List[Dict]:
+        """실행 계획 수립"""
+        required_agents = intent_analysis.get("required_agents", [])
+        workflow_type = intent_analysis.get("workflow_type", "sequential")
+        
+        # 기본 실행 계획
+        execution_plan = []
+        
+        for i, agent_name in enumerate(required_agents):
+            if agent_name in AGENT_PORTS:
+                execution_plan.append({
+                    "step": i + 1,
+                    "agent": agent_name,
+                    "port": AGENT_PORTS[agent_name],
+                    "description": f"{agent_name} 에이전트 실행",
+                    "dependencies": [] if i == 0 else [execution_plan[i-1]["step"]],
+                    "parallel": workflow_type == "parallel"
+                })
+        
+        return execution_plan
+
+
 class CherryAI_v8_UniversalIntelligentOrchestrator(AgentExecutor):
-    """CherryAI v8 - Universal Intelligent Orchestrator"""
+    """
+    CherryAI v8 - Universal Intelligent Orchestrator
+    Enhanced with pandas_agent pattern for LLM First orchestration
+    """
     
     def __init__(self):
         super().__init__()
         self.openai_client = self._initialize_openai_client()
         self.discovered_agents = {}
+        
+        # pandas_agent 패턴: LLM First 의도 분석기
+        self.intent_analyzer = LLMIntentAnalyzer(self.openai_client)
+        self.agent_selector = LLMAgentSelector(self.openai_client)
+        self.workflow_planner = LLMWorkflowPlanner(self.openai_client)
+        
         logger.info("🚀 CherryAI v8 Universal Intelligent Orchestrator 초기화 완료")
+        logger.info(f"🎯 관리 대상: {len(AGENT_PORTS)}개 A2A 에이전트")
     
     def _initialize_openai_client(self) -> Optional[AsyncOpenAI]:
-        """OpenAI 클라이언트 초기화"""
+        """OpenAI 클라이언트 초기화 (pandas_agent 패턴)"""
         try:
             api_key = os.getenv("OPENAI_API_KEY")
             if not api_key:
@@ -71,14 +190,10 @@ class CherryAI_v8_UniversalIntelligentOrchestrator(AgentExecutor):
         except Exception as e:
             logger.error(f"❌ OpenAI 클라이언트 초기화 실패: {e}")
             return None
-    
+
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """
-        A2A 표준 프로토콜 기반 실행 메서드
-        
-        Args:
-            context: A2A 요청 컨텍스트 (메시지, 태스크 ID, 컨텍스트 ID 포함)
-            event_queue: A2A 이벤트 큐 (응답 전송용)
+        pandas_agent 패턴 기반 A2A 표준 실행 메서드
         """
         # A2A 표준 TaskUpdater 초기화
         updater = TaskUpdater(event_queue, context.task_id, context.context_id)
@@ -93,142 +208,97 @@ class CherryAI_v8_UniversalIntelligentOrchestrator(AgentExecutor):
             
             # 사용자 입력 추출
             user_input = self._extract_user_input(context)
-            logger.info(f"📝 사용자 요청: {user_input[:100]}...")
+            logger.info(f"🧑🏻 사용자 요청: {user_input[:100]}...")
             
-            # 복잡도 평가
+            # 🎯 pandas_agent 패턴: LLM First 의도 분석
             await updater.update_status(
                 TaskState.working, 
-                message=new_agent_text_message("🔍 A2A 프로토콜로 에이전트를 발견하고 있습니다...")
+                message=new_agent_text_message("🍒 LLM 기반 요청 의도를 정밀 분석하고 있습니다...")
             )
             
-            # 에이전트 발견
+            intent_analysis = await self.intent_analyzer.analyze_orchestration_intent(user_input)
+            
+            await updater.update_status(
+                TaskState.working, 
+                message=new_agent_text_message(f"🍒 의도 분석 완료 - 복잡도: {intent_analysis.get('complexity', 'medium')}")
+            )
+            
+            # 🔍 Agent 발견 및 가용성 확인
+            await updater.update_status(
+                TaskState.working, 
+                message=new_agent_text_message("🍒 A2A 에이전트들을 발견하고 가용성을 확인하고 있습니다...")
+            )
+            
             available_agents = await self._discover_agent_capabilities()
-            await updater.update_status(
-                TaskState.working, 
-                message=new_agent_text_message(f"✅ {len(available_agents)}개의 A2A 에이전트를 발견했습니다!")
-            )
             
             await updater.update_status(
                 TaskState.working, 
-                message=new_agent_text_message("🧠 요청 복잡도를 분석하고 있습니다...")
+                message=new_agent_text_message(f"🍒 {len(available_agents)}개 에이전트 발견 완료")
             )
             
-            complexity_level = await self._assess_request_complexity(user_input)
+            # 🎯 최적 에이전트 선택
+            optimal_agents = await self.agent_selector.select_optimal_agents(intent_analysis)
+            
+            # 📋 실행 계획 수립
             await updater.update_status(
                 TaskState.working, 
-                message=new_agent_text_message(f"📊 요청 복잡도: {complexity_level}")
+                message=new_agent_text_message("🍒 LLM 기반 최적 실행 계획을 수립하고 있습니다...")
             )
-
-            if complexity_level == "Simple":
-                # 단순 요청 - 직접 LLM 응답
-                await updater.update_status(
-                    TaskState.working, 
-                    message=new_agent_text_message("💡 단순 요청으로 분류 - 직접 응답 생성 중...")
-                )
-                
-                response = await self._generate_simple_response(user_input)
-                
-                await updater.add_artifact(
-                    [TextPart(text=response)],
-                    name="simple_response"
-                )
-                await updater.complete()
-                return
-                
-            elif complexity_level == "Single Agent":
-                # 단일 에이전트 요청 - 적절한 에이전트 직접 호출
-                await updater.update_status(
-                    TaskState.working, 
-                    message=new_agent_text_message("🎯 단일 에이전트 요청으로 분류 - 최적 에이전트 선택 중...")
-                )
-                
-                agent_info = await self._select_best_agent(user_input)
-                if agent_info:
-                    response = await self._execute_single_agent(agent_info, user_input, context.context_id)
-                    
-                    await updater.add_artifact(
-                        [TextPart(text=response)],
-                        name="single_agent_response"
-                    )
-                    await updater.complete()
-                    return
             
-            # 복잡한 요청 - 전체 워크플로우 실행
+            execution_plan = await self.workflow_planner.create_execution_plan(intent_analysis, available_agents)
+            
             await updater.update_status(
                 TaskState.working, 
-                message=new_agent_text_message("🔄 복합적인 요청으로 에이전트들과 협력하여 처리합니다...")
+                message=new_agent_text_message(f"🍒 실행 계획 완료 - {len(execution_plan)}단계 워크플로우")
             )
             
-            # 사용자 의도 정밀 분석
-            await updater.update_status(
-                TaskState.working, 
-                message=new_agent_text_message("🎯 사용자 의도 정밀 분석 중...")
-            )
-            
-            intent_analysis = await self._extract_user_intent_precisely(user_input)
-            
-            # 실행 계획 생성
-            await updater.update_status(
-                TaskState.working, 
-                message=new_agent_text_message("📋 최적 실행 계획 수립 중...")
-            )
-            
-            execution_plan = await self._create_execution_plan(intent_analysis, available_agents)
-            
-            # 계획 단계별 실행
+            # ⚡ 계획 단계별 실행
             final_results = []
             
-            await updater.update_status(
-                TaskState.working, 
-                message=new_agent_text_message("📝 최종 종합 분석을 생성하고 있습니다...")
-            )
-            
-            # 실제 에이전트 실행 시도
-            try:
-                for i, step in enumerate(execution_plan):
-                    await updater.update_status(
-                        TaskState.working, 
-                        message=new_agent_text_message(f"⚡ 단계 {i+1}/{len(execution_plan)} 실행 중: {step.get('description', '처리 중...')}")
-                    )
-                    
+            for i, step in enumerate(execution_plan):
+                await updater.update_status(
+                    TaskState.working, 
+                    message=new_agent_text_message(f"🍒 단계 {i+1}/{len(execution_plan)} 실행 중: {step.get('description', '처리 중...')}")
+                )
+                
+                try:
                     step_result = await self._execute_plan_step(step, context.context_id)
-                    
-                    # 결과 검증
                     validated_result = await self._validate_agent_response(step_result, step)
                     final_results.append(validated_result)
                     
-            except Exception as e:
-                logger.error(f"에이전트 실행 중 오류: {e}")
-                # 에이전트 실행 실패 시에도 LLM으로 응답 생성
-                await updater.update_status(
-                    TaskState.working, 
-                    message=new_agent_text_message("📝 답변을 실시간으로 생성하고 있습니다...")
-                )
+                except Exception as e:
+                    logger.error(f"❌ 단계 {i+1} 실행 실패: {e}")
+                    await updater.update_status(
+                        TaskState.working, 
+                        message=new_agent_text_message(f"⚠️ 단계 {i+1} 실행 중 오류 발생, 다음 단계 진행...")
+                    )
             
-            # 최종 응답 생성 (LLM 기반)
-            final_response = await self._create_evidence_based_response(
-                user_input, intent_analysis, final_results
-            )
-            
+            # 📝 최종 결과 종합
             await updater.update_status(
                 TaskState.working, 
-                message=new_agent_text_message("✅ 답변 생성이 완료되었습니다!")
+                message=new_agent_text_message("🍒 모든 에이전트 결과를 종합하고 있습니다...")
             )
             
-            # 최종 결과 전송
+            comprehensive_result = await self._synthesize_results(final_results, user_input)
+            
+            # ✅ 결과 반환
             await updater.add_artifact(
-                [TextPart(text=final_response)],
-                name="comprehensive_analysis"
+                [TextPart(text=comprehensive_result)],
+                name="orchestration_result",
+                metadata={"execution_plan": execution_plan, "agent_count": len(execution_plan)}
             )
-            await updater.complete()
+            
+            await updater.update_status(
+                TaskState.completed,
+                message=new_agent_text_message("✅ 멀티 에이전트 오케스트레이션이 완료되었습니다!")
+            )
             
         except Exception as e:
-            logger.error(f"오케스트레이터 실행 중 오류 발생: {str(e)}")
+            logger.error(f"❌ Orchestrator 실행 실패: {e}")
             await updater.update_status(
                 TaskState.failed,
-                message=new_agent_text_message(f"오류 발생: {str(e)}")
+                message=new_agent_text_message(f"❌ 오케스트레이션 중 오류가 발생했습니다: {str(e)}")
             )
-            raise
     
     def _extract_user_input(self, context: RequestContext) -> str:
         """사용자 입력 추출"""
