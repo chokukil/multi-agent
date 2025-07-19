@@ -17,10 +17,10 @@ import pandas as pd
 import numpy as np
 import io
 
-# 프로젝트 루트 경로 추가
+# 프로젝트 루트 경로 추가 (단순화)
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "ai_ds_team"))
+sys.path.insert(0, str(Path(__file__).parent))  # a2a_ds_servers 디렉토리 추가
 
 # A2A imports
 from a2a.server.apps import A2AStarletteApplication
@@ -33,9 +33,34 @@ from a2a.types import TextPart, TaskState, AgentCard, AgentSkill, AgentCapabilit
 from a2a.utils import new_agent_text_message
 import uvicorn
 
-# AI_DS_Team imports
-from ai_data_science_team.tools.dataframe import get_dataframe_summary
-from ai_data_science_team.agents import DataCleaningAgent
+# AI_DS_Team imports - 직접 모듈 import 방식
+try:
+    # __init__.py를 거치지 않고 직접 모듈 import
+    from ai_data_science_team.tools.dataframe import get_dataframe_summary
+    from ai_data_science_team.agents.data_cleaning_agent import DataCleaningAgent, make_data_cleaning_agent
+    AI_DS_TEAM_AVAILABLE = True
+    logger.info("✅ AI DS Team 원본 모듈 직접 import 성공")
+except ImportError as e:
+    AI_DS_TEAM_AVAILABLE = False
+    logger.warning(f"⚠️ AI DS Team 모듈 import 실패: {e}")
+    
+    # 폴백 함수
+    def get_dataframe_summary(df: pd.DataFrame) -> str:
+        """DataFrame 요약 정보 생성 (폴백 버전)"""
+        return f"""
+데이터 형태: {df.shape[0]}행 × {df.shape[1]}열
+컬럼: {list(df.columns)}
+데이터 타입: {df.dtypes.to_dict()}
+결측값: {df.isnull().sum().to_dict()}
+메모리 사용량: {df.memory_usage(deep=True).sum() / 1024**2:.2f} MB
+"""
+    
+    # 더미 클래스
+    class DataCleaningAgent:
+        pass
+    
+    def make_data_cleaning_agent(*args, **kwargs):
+        return DataCleaningAgent()
 
 # pandas-ai imports (for enhanced data handling)
 try:

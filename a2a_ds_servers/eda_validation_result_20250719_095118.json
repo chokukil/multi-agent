@@ -1,0 +1,19 @@
+{
+  "success_count": 4,
+  "total_count": 6,
+  "success_rate": 66.66666666666666,
+  "results": {
+    "기본 연결": false,
+    "기술 통계": false,
+    "상관관계 분석": true,
+    "분포 분석": true,
+    "이상치 탐지": true,
+    "결측값 분석": true
+  },
+  "performance_metrics": {
+    "correlation_analysis_time": 13.4010329246521,
+    "distribution_analysis_time": 18.51620888710022,
+    "outlier_detection_time": 17.61448097229004,
+    "missing_value_analysis_time": 15.032083988189697
+  }
+}

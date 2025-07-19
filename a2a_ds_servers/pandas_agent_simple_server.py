@@ -1,5 +1,14 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 #!/usr/bin/env python3
 """
+
 Simple Pandas Agent Server - A2A Compatible
 Simplified version for immediate integration testing
 """

@@ -1,5 +1,14 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 #!/usr/bin/env python3
 """
+
 AI Data Science Orchestrator Server - A2A Compatible
 Universal AI-driven orchestration using dynamic agent discovery and LLM reasoning
 Based on A2A protocol research and best practices

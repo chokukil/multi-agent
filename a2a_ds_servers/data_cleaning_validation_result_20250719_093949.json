@@ -1,0 +1,21 @@
+{
+  "success_count": 6,
+  "total_count": 6,
+  "success_rate": 100.0,
+  "results": {
+    "기본 연결": true,
+    "데이터 클리닝 기능": true,
+    "결측값 처리": true,
+    "중복 제거": true,
+    "이상치 탐지": true,
+    "오류 처리": true
+  },
+  "performance_metrics": {
+    "basic_connection_time": 0.0566411018371582,
+    "data_cleaning_time": 0.011451005935668945,
+    "missing_value_time": 0.023768901824951172,
+    "duplicate_removal_time": 0.012195110321044922,
+    "outlier_detection_time": 0.016318082809448242,
+    "error_handling_time": 0.0019571781158447266
+  }
+}

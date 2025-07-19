@@ -1,0 +1,21 @@
+{
+  "success_count": 6,
+  "total_count": 6,
+  "success_rate": 100.0,
+  "results": {
+    "기본 연결": true,
+    "수치형 특성 엔지니어링": true,
+    "범주형 특성 엔지니어링": true,
+    "특성 선택": true,
+    "특성 스케일링": true,
+    "다항식 특성 생성": true
+  },
+  "performance_metrics": {
+    "basic_connection_time": 0.36190199851989746,
+    "numerical_feature_engineering_time": 0.008391380310058594,
+    "categorical_feature_engineering_time": 0.0062711238861083984,
+    "feature_selection_time": 0.006395816802978516,
+    "feature_scaling_time": 0.010848045349121094,
+    "polynomial_features_time": 0.03328680992126465
+  }
+}

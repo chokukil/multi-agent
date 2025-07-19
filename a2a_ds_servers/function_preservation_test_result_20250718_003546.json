@@ -1,0 +1,17 @@
+{
+  "test_name": "pandas_analyst_function_preservation",
+  "timestamp": "2025-07-18T00:35:46.999941",
+  "tests": [
+    {
+      "name": "테스트 설정",
+      "status": "FAILED",
+      "error": "A2ACardResolver.__init__() missing 2 required positional arguments: 'httpx_client' and 'base_url'",
+      "timestamp": "2025-07-18T00:35:46.999954"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1
+  }
+}

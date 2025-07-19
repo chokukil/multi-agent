@@ -1,0 +1,16 @@
+{
+  "success_count": 1,
+  "total_count": 6,
+  "success_rate": 16.666666666666664,
+  "results": {
+    "기본 연결": true,
+    "막대 차트 생성": false,
+    "선 차트 생성": false,
+    "산점도 생성": false,
+    "히트맵 생성": false,
+    "분포도 생성": false
+  },
+  "performance_metrics": {
+    "basic_connection_time": 0.08595919609069824
+  }
+}

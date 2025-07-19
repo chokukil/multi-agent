@@ -1,5 +1,21 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import common utilities
+from a2a_ds_servers.common.import_utils import setup_project_paths, log_import_status
+
+# Setup paths and log status
+setup_project_paths()
+log_import_status()
+
 #!/usr/bin/env python3
 """
+
 Pandas Data Analyst Server - A2A Compatible 
 🎯 원래 기능 100% 유지하면서 A2A 프로토콜로 마이그레이션 
 포트: 8317 (Enhanced)

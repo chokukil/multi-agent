@@ -1,0 +1,19 @@
+{
+  "success_count": 4,
+  "total_count": 6,
+  "success_rate": 66.66666666666666,
+  "results": {
+    "기본 연결": true,
+    "CSV 파일 로딩": false,
+    "Excel 파일 로딩": false,
+    "JSON 파일 로딩": true,
+    "데이터 검증": true,
+    "데이터 미리보기": true
+  },
+  "performance_metrics": {
+    "basic_connection_time": 10.816406011581421,
+    "json_loading_time": 28.22269892692566,
+    "data_validation_time": 12.685293197631836,
+    "data_preview_time": 13.836843013763428
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "success_count": 4,
+  "total_count": 6,
+  "success_rate": 66.66666666666666,
+  "results": {
+    "기본 연결": true,
+    "분류 모델": false,
+    "회귀 모델": false,
+    "AutoML": true,
+    "모델 평가": true,
+    "특성 중요도": true
+  },
+  "performance_metrics": {
+    "basic_connection_time": 0.06990218162536621,
+    "automl_time": 16.46689796447754,
+    "model_evaluation_time": 21.287482023239136,
+    "feature_importance_time": 24.132073879241943
+  }
+}

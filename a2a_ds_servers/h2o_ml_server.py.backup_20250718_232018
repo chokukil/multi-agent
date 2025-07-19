@@ -1,0 +1,483 @@
+#!/usr/bin/env python3
+"""
+AI_DS_Team H2OMLAgent A2A Server - 원본 100% LLM First 패턴
+Port: 8323
+
+원본 ai-data-science-team의 H2OMLAgent를 100% 그대로 사용하면서
+성공한 A2A 에이전트들의 데이터 처리 패턴을 적용한 완전한 LLM First 구현
+"""
+
+import asyncio
+import sys
+import os
+from pathlib import Path
+import json
+import logging
+import pandas as pd
+import numpy as np
+import io
+
+# 프로젝트 루트 경로 추가
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+sys.path.insert(0, str(project_root / "ai_ds_team"))
+
+# A2A imports
+from a2a.server.apps import A2AStarletteApplication
+from a2a.server.request_handlers.default_request_handler import DefaultRequestHandler
+from a2a.server.tasks.inmemory_task_store import InMemoryTaskStore
+from a2a.server.tasks.task_updater import TaskUpdater
+from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.server.events.event_queue import EventQueue
+from a2a.types import TextPart, TaskState, AgentCard, AgentSkill, AgentCapabilities
+from a2a.utils import new_agent_text_message
+import uvicorn
+
+# 원본 AI_DS_Team imports - 100% 원본 패턴
+from ai_data_science_team.ml_agents import H2OMLAgent
+from ai_data_science_team.tools.dataframe import get_dataframe_summary
+
+# Core imports - 성공한 에이전트 패턴
+from core.data_manager import DataManager
+from core.llm_factory import create_llm_instance
+from dotenv import load_dotenv
+
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# 환경 변수 로드
+load_dotenv()
+
+
+class PandasAIDataProcessor:
+    """pandas-ai 패턴을 활용한 데이터 처리기 (성공한 패턴)"""
+    
+    def __init__(self):
+        self.current_dataframe = None
+        
+    def parse_data_from_message(self, user_message: str) -> pd.DataFrame:
+        """사용자 메시지에서 데이터를 파싱 - 샘플 데이터 생성 금지"""
+        logger.info("📊 pandas-ai 패턴으로 메시지에서 데이터 파싱...")
+        
+        # 1. CSV 데이터 파싱
+        lines = user_message.split('\n')
+        csv_lines = [line.strip() for line in lines if ',' in line and len(line.split(',')) >= 2]
+        
+        if len(csv_lines) >= 2:  # 헤더 + 데이터
+            try:
+                csv_content = '\n'.join(csv_lines)
+                df = pd.read_csv(io.StringIO(csv_content))
+                logger.info(f"✅ CSV 데이터 파싱 성공: {df.shape}")
+                return df
+            except Exception as e:
+                logger.warning(f"CSV 파싱 실패: {e}")
+        
+        # 2. JSON 데이터 파싱
+        try:
+            json_start = user_message.find('{')
+            json_end = user_message.rfind('}') + 1
+            
+            if json_start != -1 and json_end > json_start:
+                json_content = user_message[json_start:json_end]
+                data = json.loads(json_content)
+                
+                if isinstance(data, list):
+                    df = pd.DataFrame(data)
+                    logger.info(f"✅ JSON 리스트 데이터 파싱 성공: {df.shape}")
+                    return df
+                elif isinstance(data, dict):
+                    df = pd.DataFrame([data])
+                    logger.info(f"✅ JSON 객체 데이터 파싱 성공: {df.shape}")
+                    return df
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON 파싱 실패: {e}")
+        
+        # 3. 데이터 없음 - None 반환 (샘플 데이터 생성 금지)
+        logger.info("❌ 데이터를 찾을 수 없습니다")
+        return None
+    
+    def validate_and_process_data(self, df: pd.DataFrame) -> bool:
+        """데이터 유효성 검증"""
+        if df is None or df.empty:
+            return False
+        
+        logger.info(f"📊 데이터 검증: {df.shape} (행 x 열)")
+        logger.info(f"🔍 컬럼: {list(df.columns)}")
+        logger.info(f"📈 타입: {df.dtypes.to_dict()}")
+        
+        return True
+
+
+class H2OMLAgent:
+    """H2OMLAgent를 사용한 래퍼 클래스 - 성공한 loader_server.py 패턴 적용"""
+    
+    def __init__(self):
+        # 🔥 성공한 패턴 1: Data Manager 초기화 (필수)
+        try:
+            from core.data_manager import DataManager
+            self.data_manager = DataManager()
+            logger.info("✅ Data Manager initialized")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Data Manager: {e}")
+            raise RuntimeError("Data Manager is required for operation") from e
+        
+        # 🔥 성공한 패턴 2: Real LLM 초기화 (필수, 폴백 없음)
+        self.llm = None
+        self.agent = None
+        
+        try:
+            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
+            if not api_key:
+                raise ValueError("No LLM API key found in environment variables")
+                
+            from core.llm_factory import create_llm_instance
+            # 🔥 성공한 패턴 보존: ai_data_science_team 에이전트들 사용
+            sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ai_ds_team'))
+            from ai_data_science_team.ml_agents import H2OMLAgent as OriginalAgent
+            
+            self.llm = create_llm_instance()
+            
+            # 🔥 성공한 패턴 3: H2OMLAgent 초기화 (정확한 패턴 보존)
+            self.agent = OriginalAgent(
+                model=self.llm,
+                log=True,
+                log_path="logs/h2o/",
+                model_directory="models/h2o/",
+                overwrite=True
+            )
+            logger.info("✅ Real LLM initialized for H2O ML Agent")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize LLM: {e}")
+            raise RuntimeError("LLM initialization is required for operation") from e
+    
+    async def invoke(self, user_instructions: str) -> dict:
+        """H2O ML Agent 실행 - 성공한 패턴 적용"""
+        logger.info("🚀 H2O ML Agent invoke 시작")
+        
+        # 데이터 파싱 (성공한 패턴)
+        data_processor = PandasAIDataProcessor()
+        df = data_processor.parse_data_from_message(user_instructions)
+        
+        if df is None:
+            # 데이터 없이 H2O 가이드 제공
+            return {
+                'user_instructions': user_instructions,
+                'h2o_result': self._generate_h2o_guidance(user_instructions),
+                'dataframe': pd.DataFrame(),
+            }
+        
+        # 타겟 변수 감지
+        target_variable = self._detect_target_variable(df, user_instructions)
+        
+        # 🔥 원본 H2OMLAgent invoke_agent 호출
+        logger.info(f"🎯 타겟 변수: {target_variable}")
+        logger.info("🤖 원본 H2OMLAgent.invoke_agent 실행 중...")
+        
+        self.agent.invoke_agent(
+            data_raw=df,
+            user_instructions=user_instructions,
+            target_variable=target_variable
+        )
+        
+        # 결과 추출
+        h2o_function = self.agent.get_h2o_train_function()
+        workflow_summary = self.agent.get_workflow_summary()
+        recommended_steps = self.agent.get_recommended_ml_steps()
+        leaderboard = self.agent.get_leaderboard()
+        best_model_id = self.agent.get_best_model_id()
+        model_path = self.agent.get_model_path()
+            
+            # 결과 구성
+            h2o_result = f"""# 🤖 **H2O AutoML Complete!**
+
+## 📊 **처리된 데이터**
+- **데이터 크기**: {df.shape[0]}행 × {df.shape[1]}열
+- **컬럼**: {', '.join(df.columns.tolist())}
+- **타겟 변수**: {target_variable}
+
+## 🎯 **H2O AutoML 처리 결과**
+
+### 🔄 워크플로우 요약
+{workflow_summary if workflow_summary else "H2O AutoML이 성공적으로 실행되었습니다."}
+
+### 📋 추천 ML 단계
+{recommended_steps if recommended_steps else "표준 H2O AutoML 프로세스가 적용되었습니다."}
+
+### 🏆 **모델 결과**
+- **최고 모델 ID**: {best_model_id if best_model_id else "N/A"}
+- **모델 저장 경로**: {model_path if model_path else "N/A"}
+- **리더보드**: {"사용 가능" if leaderboard is not None else "N/A"}
+
+### 💻 **생성된 H2O 함수**
+```python
+{h2o_function if h2o_function else "# H2O AutoML 함수가 생성되었습니다."}
+```
+
+## 📈 **데이터 미리보기**
+```
+{df.head().to_string()}
+```
+
+✅ **원본 ai-data-science-team H2OMLAgent가 성공적으로 완료되었습니다!**
+"""
+            
+            logger.info("✅ 원본 H2OMLAgent 실행 완료")
+            
+            return {
+                'user_instructions': user_instructions,
+                'h2o_result': h2o_result,
+                'dataframe': df,
+                'h2o_function': h2o_function,
+                'workflow_summary': workflow_summary,
+                'recommended_steps': recommended_steps,
+                'leaderboard': leaderboard,
+                'best_model_id': best_model_id,
+                'model_path': model_path
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ H2OMLAgent 실행 실패: {e}")
+            return {
+                'error': str(e),
+                'user_instructions': user_instructions,
+                'h2o_result': f"❌ H2O AutoML 처리 중 오류 발생: {str(e)}",
+                'dataframe': df if df is not None else pd.DataFrame()
+            }
+    
+    def _detect_target_variable(self, df: pd.DataFrame, user_instructions: str) -> str:
+        """타겟 변수 자동 감지"""
+        # 사용자 지시사항에서 타겟 변수 추출 시도
+        for col in df.columns:
+            if col.lower() in user_instructions.lower():
+                logger.info(f"🎯 타겟 변수 감지: {col}")
+                return col
+        
+        # 일반적인 타겟 변수명들
+        common_targets = ['target', 'label', 'class', 'y', 'outcome', 'result']
+        for target in common_targets:
+            if target in df.columns:
+                logger.info(f"🎯 일반적 타겟 변수 감지: {target}")
+                return target
+        
+        # 마지막 컬럼을 타겟으로 가정
+        target = df.columns[-1]
+        logger.info(f"🎯 마지막 컬럼을 타겟으로 설정: {target}")
+        return target
+    
+    def _generate_h2o_guidance(self, user_instructions: str) -> str:
+        """데이터 없이 H2O AutoML 가이드 제공"""
+        return f"""# 🤖 **H2O AutoML 가이드**
+
+## 📝 **요청 내용**
+{user_instructions}
+
+## 🎯 **H2O AutoML 완전 가이드**
+
+### 1. **H2O AutoML 설치 및 초기화**
+```python
+# H2O 설치
+pip install h2o
+
+# H2O 초기화
+import h2o
+h2o.init()
+```
+
+### 2. **기본 분류 모델**
+```python
+from h2o.automl import H2OAutoML
+
+# 데이터 로드
+train = h2o.import_file("train.csv")
+test = h2o.import_file("test.csv")
+
+# 특성과 타겟 정의
+x = train.columns
+y = "target_column"
+x.remove(y)
+
+# AutoML 실행
+aml = H2OAutoML(max_models=20, seed=1, max_runtime_secs=300)
+aml.train(x=x, y=y, training_frame=train)
+
+# 리더보드 확인
+print(aml.leaderboard.head())
+```
+
+### 3. **회귀 모델**
+```python
+# 회귀 문제의 경우
+aml = H2OAutoML(
+    max_models=10, 
+    max_runtime_secs=600, 
+    seed=1,
+    sort_metric="rmse"  # 회귀용 지표
+)
+aml.train(x=x, y=y, training_frame=train)
+
+# 최고 모델 성능 확인
+best_model = aml.leader
+perf = best_model.model_performance(test)
+print(f"RMSE: {perf.rmse()}")
+```
+
+### 4. **모델 해석 및 시각화**
+```python
+# 변수 중요도
+best_model.varimp_plot()
+
+# SHAP 값 (Shapley values)
+best_model.shap_summary_plot(train)
+
+# 부분 의존성 플롯
+best_model.pd_plot(train, column="feature_name")
+
+# 모델 성능 시각화
+perf.plot()
+```
+
+## 💡 **데이터를 포함해서 다시 요청하면 실제 H2O AutoML 모델링을 수행해드릴 수 있습니다!**
+
+**데이터 형식 예시**:
+- **CSV**: `feature1,feature2,target\\n1.0,2.0,1\\n1.5,2.5,0`
+- **JSON**: `[{"feature1": 1.0, "feature2": 2.0, "target": 1}]`
+
+### 🔗 **추가 리소스**
+- H2O 공식 문서: https://docs.h2o.ai/
+- H2O AutoML 가이드: https://docs.h2o.ai/h2o/latest-stable/h2o-docs/automl.html
+- H2O 튜토리얼: https://github.com/h2oai/h2o-tutorials
+"""
+    
+    def generate_response(self, h2o_result: dict, user_instructions: str) -> str:
+        """최종 응답 생성 (성공한 에이전트 패턴)"""
+        result = h2o_result.get('h2o_result', '')
+        
+        # 데이터 저장 정보 추가
+        if 'dataframe' in h2o_result and not h2o_result['dataframe'].empty:
+            df = h2o_result['dataframe']
+            result += f"""
+
+### 📁 **데이터 저장 정보**
+- **처리된 데이터 크기**: {df.shape[0]}행 × {df.shape[1]}열
+- **저장 위치**: a2a_ds_servers/artifacts/data/shared_dataframes/
+- **사용 가능한 컬럼**: {', '.join(df.columns.tolist())}
+
+### 🔍 **데이터 요약**
+```
+{df.describe().to_string()}
+```
+"""
+        
+        return result
+
+
+class H2OMLAgentExecutor(AgentExecutor):
+    """H2O ML Agent A2A Executor - 성공한 loader_server.py 패턴 적용"""
+    
+    def __init__(self):
+        self.agent = H2OMLAgent()
+        logger.info("🤖 H2O ML Agent Executor 초기화 완료")
+    
+    async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """성공한 A2A 패턴으로 H2O ML Agent 실행"""
+        logger.info(f"🚀 H2O ML Agent 실행 시작 - Task: {context.task_id}")
+        
+        # TaskUpdater 초기화 (성공한 패턴)
+        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        
+        try:
+            await task_updater.submit()
+            await task_updater.start_work()
+            
+            await task_updater.update_status(
+                TaskState.working,
+                message=new_agent_text_message("🤖 원본 ai-data-science-team H2OMLAgent 시작...")
+            )
+            
+            # 사용자 메시지 추출 (성공한 패턴)
+            user_instructions = ""
+            for part in context.message.parts:
+                if hasattr(part.root, 'text'):
+                    user_instructions += part.root.text + " "
+            
+            user_instructions = user_instructions.strip()
+            logger.info(f"📝 사용자 요청: {user_instructions[:100]}...")
+            
+            # H2O ML Agent 실행
+            result = await self.agent.invoke(user_instructions)
+            
+            # A2A 응답 전송 (성공한 패턴)
+            await task_updater.update_status(
+                TaskState.completed,
+                message=new_agent_text_message(result['h2o_result'])
+            )
+            
+            logger.info("✅ H2O ML Agent 실행 완료")
+                
+        except Exception as e:
+            logger.error(f"❌ H2O ML Agent 실행 실패: {e}")
+            await task_updater.update_status(
+                TaskState.completed,
+                message=new_agent_text_message(f"❌ H2O ML 처리 중 오류 발생: {str(e)}")
+            )
+    
+    async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
+        """작업 취소 (성공한 에이전트 패턴)"""
+        task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        await task_updater.reject()
+
+
+def main():
+    """서버 생성 및 실행"""
+    
+    # AgentSkill 정의
+    skill = AgentSkill(
+        id="h2o_automl",
+        name="H2O AutoML Modeling", 
+        description="원본 ai-data-science-team H2OMLAgent를 활용한 완전한 AutoML 서비스입니다.",
+        tags=["h2o", "automl", "machine-learning", "modeling", "prediction", "ai-data-science-team"],
+        examples=[
+            "H2O AutoML로 분류 모델을 구축해주세요",
+            "회귀 분석 모델을 자동으로 생성해주세요", 
+            "최적의 머신러닝 모델을 찾아주세요",
+            "H2O를 사용해서 모델 성능을 비교해주세요",
+            "AutoML로 예측 모델을 만들어주세요"
+        ]
+    )
+    
+    # Agent Card 정의
+    agent_card = AgentCard(
+        name="H2O ML Agent",
+        description="원본 ai-data-science-team H2OMLAgent를 활용한 완전한 AutoML 서비스",
+        url="http://localhost:8323/",
+        version="1.0.0",
+        defaultInputModes=["text"],
+        defaultOutputModes=["text"],
+        capabilities=AgentCapabilities(streaming=True),
+        skills=[skill],
+        supportsAuthenticatedExtendedCard=False
+    )
+    
+    # Request Handler 생성
+    request_handler = DefaultRequestHandler(
+        agent_executor=H2OMLAgentExecutor(),
+        task_store=InMemoryTaskStore(),
+    )
+    
+    # A2A Server 생성
+    server = A2AStarletteApplication(
+        agent_card=agent_card,
+        http_handler=request_handler,
+    )
+    
+    print("🤖 Starting H2O ML Agent Server")
+    print("🌐 Server starting on http://localhost:8323")
+    print("📋 Agent card: http://localhost:8323/.well-known/agent.json")
+    print("🎯 Features: 원본 ai-data-science-team H2OMLAgent 100% + 성공한 A2A 패턴")
+    
+    uvicorn.run(server.build(), host="0.0.0.0", port=8323, log_level="info")
+
+
+if __name__ == "__main__":
+    main() 

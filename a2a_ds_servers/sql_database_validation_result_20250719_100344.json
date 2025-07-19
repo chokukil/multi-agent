@@ -1,0 +1,20 @@
+{
+  "success_count": 5,
+  "total_count": 6,
+  "success_rate": 83.33333333333334,
+  "results": {
+    "기본 연결": true,
+    "SQL 쿼리 실행": true,
+    "데이터 분석 쿼리": false,
+    "복잡한 JOIN 쿼리": true,
+    "서브쿼리 분석": true,
+    "윈도우 함수": true
+  },
+  "performance_metrics": {
+    "basic_connection_time": 0.3010540008544922,
+    "sql_query_execution_time": 0.02805781364440918,
+    "complex_join_query_time": 0.015600204467773438,
+    "subquery_analysis_time": 28.284483909606934,
+    "window_function_time": 0.004530191421508789
+  }
+}

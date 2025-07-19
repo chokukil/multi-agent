@@ -1,5 +1,14 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 #!/usr/bin/env python
 """
+
 Report Generator Agent for A2A Data Analysis Platform
 A2A SDK v0.2.9 compliant implementation
 

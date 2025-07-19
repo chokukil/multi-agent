@@ -1,5 +1,14 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 #!/usr/bin/env python3
 """
+
 Report Generator Server - A2A Compatible 
 🎯 보고서 생성 기능 구현 (성공 패턴 적용)
 포트: 8326

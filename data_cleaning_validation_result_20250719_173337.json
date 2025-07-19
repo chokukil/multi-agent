@@ -1,0 +1,14 @@
+{
+  "success_count": 0,
+  "total_count": 6,
+  "success_rate": 0.0,
+  "results": {
+    "기본 연결": false,
+    "데이터 클리닝 기능": false,
+    "결측값 처리": false,
+    "중복 제거": false,
+    "이상치 탐지": false,
+    "오류 처리": false
+  },
+  "performance_metrics": {}
+}

@@ -1,5 +1,14 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 #!/usr/bin/env python3
 """
+
 Enhanced Report Generator Server - A2A Compatible
 pandas_agent 패턴 + UnifiedDataInterface 적용한 종합 보고서 생성 에이전트
 """

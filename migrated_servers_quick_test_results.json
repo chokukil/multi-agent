@@ -1,0 +1,96 @@
+{
+  "test_date": "2025-07-19T09:31:55.370508",
+  "total_servers": 13,
+  "online_count": 10,
+  "offline_count": 3,
+  "results": [
+    {
+      "server": "data_cleaning_server",
+      "port": 8316,
+      "status": "ONLINE",
+      "agent_name": "AI DataCleaningAgent (Enhanced)",
+      "skills": 1
+    },
+    {
+      "server": "pandas_analyst_server",
+      "port": 8317,
+      "status": "ONLINE",
+      "agent_name": "Pandas Data Analyst",
+      "skills": 1
+    },
+    {
+      "server": "visualization_server",
+      "port": 8318,
+      "status": "ONLINE",
+      "agent_name": "AI Data Science Team Plotly Visualization Agent",
+      "skills": 1
+    },
+    {
+      "server": "wrangling_server",
+      "port": 8319,
+      "status": "OFFLINE",
+      "error": "HTTP 500"
+    },
+    {
+      "server": "eda_server",
+      "port": 8320,
+      "status": "ONLINE",
+      "agent_name": "EDA Analysis Agent",
+      "skills": 1
+    },
+    {
+      "server": "feature_server",
+      "port": 8321,
+      "status": "ONLINE",
+      "agent_name": "Feature Engineering Agent",
+      "skills": 1
+    },
+    {
+      "server": "loader_server",
+      "port": 8322,
+      "status": "ONLINE",
+      "agent_name": "Data Loader Agent",
+      "skills": 1
+    },
+    {
+      "server": "h2o_ml_server",
+      "port": 8313,
+      "status": "ONLINE",
+      "agent_name": "AI_DS_Team H2OMLAgent",
+      "skills": 1
+    },
+    {
+      "server": "mlflow_server",
+      "port": 8323,
+      "status": "ONLINE",
+      "agent_name": "AI_DS_Team MLflowToolsAgent",
+      "skills": 1
+    },
+    {
+      "server": "sql_server",
+      "port": 8324,
+      "status": "ONLINE",
+      "agent_name": "AI_DS_Team SQLDatabaseAgent",
+      "skills": 1
+    },
+    {
+      "server": "knowledge_bank_server",
+      "port": 8325,
+      "status": "OFFLINE",
+      "error": "All connection attempts failed"
+    },
+    {
+      "server": "report_server",
+      "port": 8326,
+      "status": "OFFLINE",
+      "error": "All connection attempts failed"
+    },
+    {
+      "server": "orchestrator_server",
+      "port": 8327,
+      "status": "ONLINE",
+      "agent_name": "Universal AI Orchestrator",
+      "skills": 1
+    }
+  ]
+}

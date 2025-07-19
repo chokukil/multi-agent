@@ -1,0 +1,11 @@
+id,name,age,salary,city
+1,John,25.0,50000.0,New York
+2,Jane,29.666666666666668,60000.0,Los Angeles
+3,Bob,30.0,55000.0,New York
+4,Alice,28.0,65555.55555555556,Chicago
+5,John,25.0,50000.0,New York
+6,Charlie,42.41666666666667,120000.0,San Francisco
+7,Diana,22.0,45000.0,Boston
+8,Eve,35.0,75000.0,Seattle
+9,Frank,28.0,65000.0,Denver
+10,Grace,29.0,70000.0,Austin

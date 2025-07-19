@@ -1,5 +1,21 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import common utilities
+from a2a_ds_servers.common.import_utils import setup_project_paths, log_import_status
+
+# Setup paths and log status
+setup_project_paths()
+log_import_status()
+
 from a2a.utils import new_agent_text_message#!/usr/bin/env python3
 """
+
 AI_DS_Team SQLDatabaseAgent A2A Server
 Port: 8311
 

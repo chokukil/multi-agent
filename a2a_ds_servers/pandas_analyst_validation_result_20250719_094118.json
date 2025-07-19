@@ -1,0 +1,21 @@
+{
+  "success_count": 6,
+  "total_count": 6,
+  "success_rate": 100.0,
+  "results": {
+    "기본 연결": true,
+    "기본 통계 분석": true,
+    "데이터 필터링": true,
+    "집계 함수": true,
+    "데이터 요약": true,
+    "복합 분석": true
+  },
+  "performance_metrics": {
+    "basic_connection_time": 0.10541796684265137,
+    "basic_statistics_time": 0.01481771469116211,
+    "data_filtering_time": 0.0067861080169677734,
+    "aggregation_functions_time": 0.016311168670654297,
+    "data_summary_time": 0.009439945220947266,
+    "complex_analysis_time": 0.006087064743041992
+  }
+}

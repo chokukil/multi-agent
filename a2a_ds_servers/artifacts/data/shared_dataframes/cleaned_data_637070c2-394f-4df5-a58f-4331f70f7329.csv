@@ -1,0 +1,11 @@
+id,name,age,salary,department
+1,John,25.642857142857146,50000.0,Engineering
+2,Jane,28.142857142857142,60000.0,Marketing
+3,Bob,30.0,65000.0,Sales
+4,Alice,28.0,55000.0,Engineering
+5,Charlie,28.142857142857142,65000.0,Engineering
+6,Diana,25.642857142857146,65000.0,Marketing
+7,Eve,31.14285714285714,75000.0,Sales
+8,Frank,28.0,65000.0,Engineering
+9,Grace,29.0,70000.0,Engineering
+10,Henry,28.142857142857142,80000.0,Marketing

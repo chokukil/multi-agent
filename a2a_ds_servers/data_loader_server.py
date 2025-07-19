@@ -1,11 +1,26 @@
-import uvicorn
+import sys
+import os
+from pathlib import Path
 
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import common utilities
+from a2a_ds_servers.common.import_utils import setup_project_paths, log_import_status
+
+# Setup paths and log status
+setup_project_paths()
+log_import_status()
+
+import uvicorn
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import (
+
     AgentCapabilities,
     AgentCard,
     AgentSkill,
