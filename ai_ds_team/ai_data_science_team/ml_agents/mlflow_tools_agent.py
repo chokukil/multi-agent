@@ -13,9 +13,9 @@ from langgraph.prebuilt.chat_agent_executor import AgentState
 from langgraph.types import Checkpointer
 from langgraph.graph import START, END, StateGraph
 
-from ai_data_science_team.templates import BaseAgent
-from ai_data_science_team.utils.regex import format_agent_name
-from ai_data_science_team.tools.mlflow import (
+from ...templates import BaseAgent
+from ...utils.regex import format_agent_name
+from ...tools.mlflow import (
     mlflow_search_experiments, 
     mlflow_search_runs,
     mlflow_create_experiment, 
@@ -28,7 +28,7 @@ from ai_data_science_team.tools.mlflow import (
     mlflow_search_registered_models,
     mlflow_get_model_version_details,
 )
-from ai_data_science_team.utils.messages import get_tool_call_names
+from ...utils.messages import get_tool_call_names
 
 AGENT_NAME = "mlflow_tools_agent"
 

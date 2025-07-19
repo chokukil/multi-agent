@@ -16,9 +16,9 @@ from langgraph.prebuilt.chat_agent_executor import AgentState
 from langgraph.types import Checkpointer
 from langgraph.graph import START, END, StateGraph
 
-from ai_data_science_team.templates import BaseAgent
-from ai_data_science_team.utils.regex import format_agent_name
-from ai_data_science_team.tools.data_loader import (
+from ...templates import BaseAgent
+from ...utils.regex import format_agent_name
+from ...tools.data_loader import (
     load_directory,
     load_file,
     list_directory_contents,
@@ -26,7 +26,7 @@ from ai_data_science_team.tools.data_loader import (
     get_file_info,
     search_files_by_pattern,
 )
-from ai_data_science_team.utils.messages import get_tool_call_names
+from ...utils.messages import get_tool_call_names
 
 AGENT_NAME = "data_loader_tools_agent"
 

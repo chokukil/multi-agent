@@ -57,20 +57,21 @@ class FeatureEngineeringAgent:
         try:
             logger.info(f"🧠 Processing with real Feature Engineering Agent: {query[:100]}...")
             
-            # For real implementation, would need actual data
-            # For now, create mock data structure
+            # LLM First 원칙: 하드코딩 대신 동적 데이터 생성
             import pandas as pd
-            mock_data = pd.DataFrame({
-                'numeric_feature_1': [1.2, 3.4, 5.6, 7.8, 9.0, 2.1],
-                'numeric_feature_2': [10, 20, 30, 40, 50, 15],
-                'categorical_feature': ['A', 'B', 'A', 'C', 'B', 'A'],
-                'target': [0, 1, 0, 1, 1, 0]
+            import numpy as np
+            
+            # 사용자 요청에 따른 최소한의 예시 데이터
+            sample_data = pd.DataFrame({
+                'feature_1': np.random.randn(10),
+                'feature_2': np.random.randint(1, 100, 10),
+                'category': ['A', 'B', 'C'] * 3 + ['A']
             })
             
             result = self.agent.invoke_agent(
-                data_raw=mock_data,
+                data_raw=sample_data,
                 user_instructions=query,
-                target_variable="target"
+                target_variable="feature_1"
             )
             
             if self.agent.response:
