@@ -7,7 +7,7 @@ from langchain.tools import tool
 
 from langgraph.prebuilt import InjectedState
 
-from ai_data_science_team.tools.dataframe import get_dataframe_summary
+from ..tools.dataframe import get_dataframe_summary
 
 
 @tool(response_format="content")

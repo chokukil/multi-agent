@@ -16,7 +16,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.types import Command, Checkpointer
 from langgraph.checkpoint.memory import MemorySaver
 
-from ai_data_science_team.templates import(
+from ..templates import(
     node_func_execute_agent_code_on_data, 
     node_func_human_review,
     node_func_fix_agent_code, 
@@ -24,16 +24,16 @@ from ai_data_science_team.templates import(
     create_coding_agent_graph,
     BaseAgent,
 )
-from ai_data_science_team.parsers.parsers import PythonOutputParser
-from ai_data_science_team.utils.regex import (
+from ..parsers.parsers import PythonOutputParser
+from ..utils.regex import (
     relocate_imports_inside_function, 
     add_comments_to_top, 
     format_agent_name, 
     format_recommended_steps, 
     get_generic_summary,
 )
-from ai_data_science_team.tools.dataframe import get_dataframe_summary
-from ai_data_science_team.utils.logging import log_ai_function
+from ..tools.dataframe import get_dataframe_summary
+from ..utils.logging import log_ai_function
 
 # Setup Logging Path
 AGENT_NAME = "data_wrangling_agent"
