@@ -414,3 +414,23 @@ def suggest_ollama_setup() -> Dict[str, Any]:
         suggestions["commands"].append(f"ollama pull {recommended['name']}")
     
     return suggestions
+
+
+# Universal Engine과의 호환성을 위한 LLMFactory 클래스 추가
+class LLMFactory:
+    """Universal Engine 호환성을 위한 LLM Factory 클래스"""
+    
+    @staticmethod
+    def create_llm(**kwargs):
+        """LLM 인스턴스 생성 (Universal Engine 호환)"""
+        return create_llm_instance(**kwargs)
+    
+    @staticmethod
+    def get_capabilities(llm):
+        """LLM 능력 정보 반환"""
+        return get_llm_capabilities(llm)
+    
+    @staticmethod
+    def validate_config():
+        """LLM 설정 검증"""
+        return validate_llm_config()

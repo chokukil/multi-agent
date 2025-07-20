@@ -1,0 +1,754 @@
+{
+  "analysis_id": "gap_analysis_1753002480",
+  "timestamp": "2025-07-20T18:08:00.024632",
+  "design_expectations": {
+    "universal_engine_components": {
+      "UniversalQueryProcessor": {
+        "expected_methods": [
+          "process_query",
+          "initialize",
+          "get_status"
+        ],
+        "expected_file": "core/universal_engine/universal_query_processor.py",
+        "design_description": "완전 범용 쿼리 처리기 - 어떤 도메인 가정도 하지 않음"
+      },
+      "MetaReasoningEngine": {
+        "expected_methods": [
+          "analyze_request",
+          "perform_meta_reasoning",
+          "assess_analysis_quality"
+        ],
+        "expected_file": "core/universal_engine/meta_reasoning_engine.py",
+        "design_description": "DeepSeek-R1 기반 4단계 추론 시스템"
+      },
+      "DynamicContextDiscovery": {
+        "expected_methods": [
+          "discover_context",
+          "analyze_data_characteristics",
+          "detect_domain"
+        ],
+        "expected_file": "core/universal_engine/dynamic_context_discovery.py",
+        "design_description": "제로 하드코딩 도메인 자동 발견"
+      },
+      "AdaptiveUserUnderstanding": {
+        "expected_methods": [
+          "estimate_user_level",
+          "adapt_response",
+          "update_user_profile"
+        ],
+        "expected_file": "core/universal_engine/adaptive_user_understanding.py",
+        "design_description": "사용자 전문성 수준 자동 감지"
+      },
+      "UniversalIntentDetection": {
+        "expected_methods": [
+          "detect_intent",
+          "analyze_semantic_space",
+          "clarify_ambiguity"
+        ],
+        "expected_file": "core/universal_engine/universal_intent_detection.py",
+        "design_description": "의미 기반 라우팅 (사전 정의 카테고리 없음)"
+      }
+    },
+    "a2a_integration": {
+      "A2AAgentDiscoverySystem": {
+        "expected_methods": [
+          "discover_available_agents",
+          "validate_agent_endpoint",
+          "monitor_agent_health"
+        ],
+        "expected_file": "core/universal_engine/a2a_integration/a2a_agent_discovery.py",
+        "design_description": "A2A 에이전트 자동 발견 및 상태 모니터링"
+      },
+      "A2AWorkflowOrchestrator": {
+        "expected_methods": [
+          "execute_agent_workflow",
+          "coordinate_agents",
+          "manage_dependencies"
+        ],
+        "expected_file": "core/universal_engine/a2a_integration/a2a_workflow_orchestrator.py",
+        "design_description": "A2A 에이전트 워크플로우 동적 실행"
+      }
+    },
+    "cherry_ai_integration": {
+      "CherryAIUniversalEngineUI": {
+        "expected_methods": [
+          "render_enhanced_header",
+          "render_enhanced_chat_interface",
+          "render_sidebar"
+        ],
+        "expected_file": "core/universal_engine/cherry_ai_integration/cherry_ai_universal_engine_ui.py",
+        "design_description": "기존 ChatGPT 스타일 인터페이스 유지하며 Universal Engine 통합"
+      }
+    }
+  },
+  "actual_implementation": {
+    "existing_files": {
+      "UniversalQueryProcessor": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/universal_query_processor.py",
+        "size": 8603,
+        "last_modified": "2025-07-20T14:24:07.332793",
+        "classes_found": [
+          "UniversalQueryProcessor"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "_initialize_llm",
+          "get_system_status"
+        ],
+        "all_functions": [],
+        "imports": [
+          "asyncio",
+          "logging",
+          "typing.Any",
+          "typing.Dict",
+          "typing.List",
+          "typing.Optional",
+          "datetime.datetime",
+          "llm_factory.LLMFactory",
+          "meta_reasoning_engine.MetaReasoningEngine",
+          "dynamic_knowledge_orchestrator.DynamicKnowledgeOrchestrator"
+        ]
+      },
+      "MetaReasoningEngine": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/meta_reasoning_engine.py",
+        "size": 16935,
+        "last_modified": "2025-07-20T14:25:49.355607",
+        "classes_found": [
+          "MetaReasoningEngine"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "_load_self_reflection_pattern",
+          "_load_meta_rewarding_pattern",
+          "_load_chain_of_thought_pattern",
+          "_load_zero_shot_pattern",
+          "_analyze_data_characteristics",
+          "_get_data_size",
+          "_get_data_structure",
+          "_parse_json_response"
+        ],
+        "all_functions": [],
+        "imports": [
+          "asyncio",
+          "logging",
+          "typing.Any",
+          "typing.Dict",
+          "typing.List",
+          "typing.Optional",
+          "datetime.datetime",
+          "json",
+          "llm_factory.LLMFactory"
+        ]
+      },
+      "DynamicContextDiscovery": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/dynamic_context_discovery.py",
+        "size": 18222,
+        "last_modified": "2025-07-20T14:31:14.121221",
+        "classes_found": [
+          "DynamicContextDiscovery"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "_analyze_dict_structure",
+          "_parse_json_response"
+        ],
+        "all_functions": [],
+        "imports": [
+          "logging",
+          "typing.Any",
+          "typing.Dict",
+          "typing.List",
+          "typing.Optional",
+          "datetime.datetime",
+          "pandas",
+          "numpy",
+          "llm_factory.LLMFactory",
+          "json"
+        ]
+      },
+      "AdaptiveUserUnderstanding": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/adaptive_user_understanding.py",
+        "size": 18132,
+        "last_modified": "2025-07-20T14:32:56.426482",
+        "classes_found": [
+          "AdaptiveUserUnderstanding"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "_count_technical_indicators",
+          "_assess_formality",
+          "_analyze_complexity_progression",
+          "_analyze_topic_consistency",
+          "_identify_learning_indicators",
+          "_is_profile_stable",
+          "_parse_json_response"
+        ],
+        "all_functions": [],
+        "imports": [
+          "logging",
+          "typing.Any",
+          "typing.Dict",
+          "typing.List",
+          "typing.Optional",
+          "datetime.datetime",
+          "re",
+          "llm_factory.LLMFactory",
+          "json"
+        ]
+      },
+      "UniversalIntentDetection": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/universal_intent_detection.py",
+        "size": 16281,
+        "last_modified": "2025-07-20T14:34:28.284345",
+        "classes_found": [
+          "UniversalIntentDetection"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "_calculate_intent_confidence",
+          "get_intent_statistics",
+          "_calculate_clarity_distribution",
+          "_calculate_action_distribution",
+          "_get_common_implicit_needs",
+          "_parse_json_response"
+        ],
+        "all_functions": [],
+        "imports": [
+          "logging",
+          "typing.Any",
+          "typing.Dict",
+          "typing.List",
+          "typing.Optional",
+          "typing.Tuple",
+          "datetime.datetime",
+          "numpy",
+          "llm_factory.LLMFactory",
+          "json"
+        ]
+      },
+      "A2AAgentDiscoverySystem": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_agent_discovery.py",
+        "size": 13402,
+        "last_modified": "2025-07-20T15:45:17.780562",
+        "classes_found": [
+          "A2AAgentInfo",
+          "A2AAgentDiscoverySystem"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "get_available_agents",
+          "get_agents_by_capability",
+          "get_agent_statistics",
+          "remove_agent"
+        ],
+        "all_functions": [],
+        "imports": [
+          "asyncio",
+          "aiohttp",
+          "logging",
+          "typing.Dict",
+          "typing.List",
+          "typing.Optional",
+          "typing.Set",
+          "datetime.datetime",
+          "datetime.timedelta",
+          "json"
+        ]
+      },
+      "A2AWorkflowOrchestrator": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_workflow_orchestrator.py",
+        "size": 22848,
+        "last_modified": "2025-07-20T15:47:40.622742",
+        "classes_found": [
+          "WorkflowStatus",
+          "TaskStatus",
+          "WorkflowTask",
+          "WorkflowExecution",
+          "A2AWorkflowOrchestrator"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "_get_execution_groups",
+          "get_workflow_status",
+          "get_workflow_statistics",
+          "_get_most_used_agents"
+        ],
+        "all_functions": [],
+        "imports": [
+          "asyncio",
+          "logging",
+          "typing.Dict",
+          "typing.List",
+          "typing.Optional",
+          "typing.AsyncGenerator",
+          "typing.Any",
+          "typing.Callable",
+          "datetime.datetime",
+          "datetime.timedelta"
+        ]
+      },
+      "CherryAIUniversalEngineUI": {
+        "exists": true,
+        "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/cherry_ai_universal_engine_ui.py",
+        "size": 28895,
+        "last_modified": "2025-07-20T15:53:35.248140",
+        "classes_found": [
+          "CherryAIUniversalEngineUI"
+        ],
+        "target_class_exists": true,
+        "target_class_methods": [
+          "__init__",
+          "_initialize_session_state",
+          "render_header",
+          "render_sidebar",
+          "render_chat_interface",
+          "_render_meta_reasoning",
+          "_render_agent_contributions",
+          "_update_progress_display",
+          "_display_final_response",
+          "_convert_to_a2a_responses",
+          "_get_session_context",
+          "_get_data_info",
+          "_get_user_preferences",
+          "_update_session_statistics",
+          "_show_performance_report",
+          "_restart_system"
+        ],
+        "all_functions": [],
+        "imports": [
+          "streamlit",
+          "asyncio",
+          "logging",
+          "typing.Dict",
+          "typing.List",
+          "typing.Any",
+          "typing.Optional",
+          "datetime.datetime",
+          "json",
+          "universal_query_processor.UniversalQueryProcessor"
+        ]
+      }
+    },
+    "component_analysis": {
+      "UniversalQueryProcessor": {
+        "class_exists": true,
+        "actual_methods": [
+          "get_system_status",
+          "handle_clarification",
+          "process_query",
+          "process_with_streaming"
+        ],
+        "expected_methods": [
+          "process_query",
+          "initialize",
+          "get_status"
+        ],
+        "missing_methods": [
+          "initialize",
+          "get_status"
+        ],
+        "extra_methods": [
+          "handle_clarification",
+          "get_system_status",
+          "process_with_streaming"
+        ],
+        "method_coverage": 1,
+        "coverage_percentage": 33.33333333333333
+      },
+      "MetaReasoningEngine": {
+        "class_exists": true,
+        "actual_methods": [
+          "analyze_request"
+        ],
+        "expected_methods": [
+          "analyze_request",
+          "perform_meta_reasoning",
+          "assess_analysis_quality"
+        ],
+        "missing_methods": [
+          "perform_meta_reasoning",
+          "assess_analysis_quality"
+        ],
+        "extra_methods": [],
+        "method_coverage": 1,
+        "coverage_percentage": 33.33333333333333
+      },
+      "DynamicContextDiscovery": {
+        "class_exists": true,
+        "actual_methods": [
+          "discover_context",
+          "refine_context_with_feedback"
+        ],
+        "expected_methods": [
+          "discover_context",
+          "analyze_data_characteristics",
+          "detect_domain"
+        ],
+        "missing_methods": [
+          "analyze_data_characteristics",
+          "detect_domain"
+        ],
+        "extra_methods": [
+          "refine_context_with_feedback"
+        ],
+        "method_coverage": 1,
+        "coverage_percentage": 33.33333333333333
+      },
+      "AdaptiveUserUnderstanding": {
+        "class_exists": true,
+        "actual_methods": [
+          "adapt_communication_style",
+          "analyze_user_expertise",
+          "update_user_model"
+        ],
+        "expected_methods": [
+          "estimate_user_level",
+          "adapt_response",
+          "update_user_profile"
+        ],
+        "missing_methods": [
+          "adapt_response",
+          "update_user_profile",
+          "estimate_user_level"
+        ],
+        "extra_methods": [
+          "adapt_communication_style",
+          "analyze_user_expertise",
+          "update_user_model"
+        ],
+        "method_coverage": 0,
+        "coverage_percentage": 0.0
+      },
+      "UniversalIntentDetection": {
+        "class_exists": true,
+        "actual_methods": [
+          "analyze_intent_patterns",
+          "detect_intent",
+          "get_intent_statistics",
+          "refine_intent_with_clarification"
+        ],
+        "expected_methods": [
+          "detect_intent",
+          "analyze_semantic_space",
+          "clarify_ambiguity"
+        ],
+        "missing_methods": [
+          "analyze_semantic_space",
+          "clarify_ambiguity"
+        ],
+        "extra_methods": [
+          "analyze_intent_patterns",
+          "get_intent_statistics",
+          "refine_intent_with_clarification"
+        ],
+        "method_coverage": 1,
+        "coverage_percentage": 33.33333333333333
+      },
+      "A2AAgentDiscoverySystem": {
+        "class_exists": true,
+        "actual_methods": [
+          "discover_agents",
+          "get_agent_statistics",
+          "get_agents_by_capability",
+          "get_available_agents",
+          "health_check_agent",
+          "rediscover_agents",
+          "register_manual_agent",
+          "remove_agent",
+          "start_discovery",
+          "stop_discovery"
+        ],
+        "expected_methods": [
+          "discover_available_agents",
+          "validate_agent_endpoint",
+          "monitor_agent_health"
+        ],
+        "missing_methods": [
+          "discover_available_agents",
+          "validate_agent_endpoint",
+          "monitor_agent_health"
+        ],
+        "extra_methods": [
+          "discover_agents",
+          "rediscover_agents",
+          "health_check_agent",
+          "register_manual_agent",
+          "remove_agent",
+          "get_available_agents",
+          "get_agents_by_capability",
+          "start_discovery",
+          "get_agent_statistics",
+          "stop_discovery"
+        ],
+        "method_coverage": 0,
+        "coverage_percentage": 0.0
+      },
+      "A2AWorkflowOrchestrator": {
+        "class_exists": true,
+        "actual_methods": [
+          "execute_workflow",
+          "execute_workflow_with_streaming",
+          "get_workflow_statistics",
+          "get_workflow_status"
+        ],
+        "expected_methods": [
+          "execute_agent_workflow",
+          "coordinate_agents",
+          "manage_dependencies"
+        ],
+        "missing_methods": [
+          "manage_dependencies",
+          "execute_agent_workflow",
+          "coordinate_agents"
+        ],
+        "extra_methods": [
+          "get_workflow_statistics",
+          "execute_workflow_with_streaming",
+          "execute_workflow",
+          "get_workflow_status"
+        ],
+        "method_coverage": 0,
+        "coverage_percentage": 0.0
+      },
+      "CherryAIUniversalEngineUI": {
+        "class_exists": true,
+        "actual_methods": [
+          "initialize_system",
+          "render_chat_interface",
+          "render_header",
+          "render_sidebar"
+        ],
+        "expected_methods": [
+          "render_enhanced_header",
+          "render_enhanced_chat_interface",
+          "render_sidebar"
+        ],
+        "missing_methods": [
+          "render_enhanced_header",
+          "render_enhanced_chat_interface"
+        ],
+        "extra_methods": [
+          "render_chat_interface",
+          "render_header",
+          "initialize_system"
+        ],
+        "method_coverage": 1,
+        "coverage_percentage": 33.33333333333333
+      }
+    },
+    "method_coverage": {},
+    "architecture_patterns": {}
+  },
+  "gaps": {
+    "missing_files": [],
+    "missing_classes": [],
+    "missing_methods": {
+      "UniversalQueryProcessor": {
+        "missing": [
+          "initialize",
+          "get_status"
+        ],
+        "coverage_percentage": 33.33333333333333,
+        "impact": "High - Interface incomplete"
+      },
+      "MetaReasoningEngine": {
+        "missing": [
+          "perform_meta_reasoning",
+          "assess_analysis_quality"
+        ],
+        "coverage_percentage": 33.33333333333333,
+        "impact": "High - Interface incomplete"
+      },
+      "DynamicContextDiscovery": {
+        "missing": [
+          "analyze_data_characteristics",
+          "detect_domain"
+        ],
+        "coverage_percentage": 33.33333333333333,
+        "impact": "High - Interface incomplete"
+      },
+      "AdaptiveUserUnderstanding": {
+        "missing": [
+          "adapt_response",
+          "update_user_profile",
+          "estimate_user_level"
+        ],
+        "coverage_percentage": 0.0,
+        "impact": "High - Interface incomplete"
+      },
+      "UniversalIntentDetection": {
+        "missing": [
+          "analyze_semantic_space",
+          "clarify_ambiguity"
+        ],
+        "coverage_percentage": 33.33333333333333,
+        "impact": "High - Interface incomplete"
+      },
+      "A2AAgentDiscoverySystem": {
+        "missing": [
+          "discover_available_agents",
+          "validate_agent_endpoint",
+          "monitor_agent_health"
+        ],
+        "coverage_percentage": 0.0,
+        "impact": "High - Interface incomplete"
+      },
+      "A2AWorkflowOrchestrator": {
+        "missing": [
+          "manage_dependencies",
+          "execute_agent_workflow",
+          "coordinate_agents"
+        ],
+        "coverage_percentage": 0.0,
+        "impact": "High - Interface incomplete"
+      },
+      "CherryAIUniversalEngineUI": {
+        "missing": [
+          "render_enhanced_header",
+          "render_enhanced_chat_interface"
+        ],
+        "coverage_percentage": 33.33333333333333,
+        "impact": "High - Interface incomplete"
+      }
+    },
+    "method_coverage_gaps": {
+      "UniversalQueryProcessor": {
+        "current_coverage": 33.33333333333333,
+        "expected_coverage": 100,
+        "gap": 66.66666666666667,
+        "impact": "Medium - Partial implementation"
+      },
+      "MetaReasoningEngine": {
+        "current_coverage": 33.33333333333333,
+        "expected_coverage": 100,
+        "gap": 66.66666666666667,
+        "impact": "Medium - Partial implementation"
+      },
+      "DynamicContextDiscovery": {
+        "current_coverage": 33.33333333333333,
+        "expected_coverage": 100,
+        "gap": 66.66666666666667,
+        "impact": "Medium - Partial implementation"
+      },
+      "AdaptiveUserUnderstanding": {
+        "current_coverage": 0.0,
+        "expected_coverage": 100,
+        "gap": 100.0,
+        "impact": "Medium - Partial implementation"
+      },
+      "UniversalIntentDetection": {
+        "current_coverage": 33.33333333333333,
+        "expected_coverage": 100,
+        "gap": 66.66666666666667,
+        "impact": "Medium - Partial implementation"
+      },
+      "A2AAgentDiscoverySystem": {
+        "current_coverage": 0.0,
+        "expected_coverage": 100,
+        "gap": 100.0,
+        "impact": "Medium - Partial implementation"
+      },
+      "A2AWorkflowOrchestrator": {
+        "current_coverage": 0.0,
+        "expected_coverage": 100,
+        "gap": 100.0,
+        "impact": "Medium - Partial implementation"
+      },
+      "CherryAIUniversalEngineUI": {
+        "current_coverage": 33.33333333333333,
+        "expected_coverage": 100,
+        "gap": 66.66666666666667,
+        "impact": "Medium - Partial implementation"
+      }
+    },
+    "architectural_gaps": [
+      {
+        "issue": "Legacy hardcoding patterns",
+        "description": "31 critical hardcoding violations found in legacy files",
+        "files_affected": [
+          "cherry_ai_legacy.py",
+          "core/query_processing/domain_extractor.py"
+        ],
+        "impact": "Critical - Violates zero-hardcoding architecture"
+      },
+      {
+        "issue": "Missing LLM factory dependency",
+        "description": "Several components reference missing llm_factory module",
+        "components_affected": [
+          "ChainOfThoughtSelfConsistency",
+          "ZeroShotAdaptiveReasoning"
+        ],
+        "impact": "High - Components cannot initialize properly"
+      }
+    ],
+    "implementation_quality_issues": []
+  },
+  "recommendations": [
+    {
+      "priority": "High",
+      "category": "Interface",
+      "title": "Complete Method Interfaces",
+      "description": "Implement missing methods to fulfill design contracts",
+      "action_items": [
+        "Implement missing methods for 8 components",
+        "Add proper method signatures and documentation",
+        "Implement basic functionality for each method",
+        "Add unit tests for new methods"
+      ],
+      "estimated_effort": "3-5 days"
+    },
+    {
+      "priority": "Critical",
+      "category": "Architecture",
+      "title": "Fix Architectural Violations",
+      "description": "Remove hardcoding patterns and fix dependency issues",
+      "action_items": [
+        "Remove 31 critical hardcoding violations from legacy files",
+        "Implement missing llm_factory module",
+        "Refactor hardcoded domain logic to LLM-based dynamic logic",
+        "Update component dependencies"
+      ],
+      "estimated_effort": "4-6 days"
+    },
+    {
+      "priority": "Medium",
+      "category": "Quality",
+      "title": "Improve Implementation Quality",
+      "description": "Enhance code quality and add comprehensive testing",
+      "action_items": [
+        "Add comprehensive unit tests for all components",
+        "Improve error handling and logging",
+        "Add performance monitoring and metrics",
+        "Create integration tests"
+      ],
+      "estimated_effort": "5-7 days"
+    },
+    {
+      "priority": "Low",
+      "category": "Documentation",
+      "title": "Update Documentation",
+      "description": "Align documentation with actual implementation",
+      "action_items": [
+        "Update design documents to reflect current implementation",
+        "Add API documentation for all components",
+        "Create implementation guides",
+        "Update README and setup instructions"
+      ],
+      "estimated_effort": "2-3 days"
+    }
+  ]
+}

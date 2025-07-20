@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "playwright-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@microsoft/playwright-mcp",
+        "--key",
+        "4b330216-bab6-4ad4-8a4f-c03b89d05eea",
+        "--profile",
+        "tense-parrot-p1v3Tb"
+      ]
+    }
+  }
+}

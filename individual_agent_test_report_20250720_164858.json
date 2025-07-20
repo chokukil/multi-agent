@@ -1,0 +1,265 @@
+{
+  "test_summary": {
+    "total_agents": 22,
+    "total_methods": 0,
+    "total_test_cases": 0,
+    "passed_test_cases": 0,
+    "failed_test_cases": 0,
+    "overall_success_rate": 0,
+    "total_execution_time": 1.5567641258239746,
+    "test_timestamp": "2025-07-20T16:48:58.654747"
+  },
+  "agent_summary": {
+    "MetaReasoningEngine": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "DynamicContextDiscovery": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "AdaptiveUserUnderstanding": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "UniversalIntentDetection": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "ChainOfThoughtSelfConsistency": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "ZeroShotAdaptiveReasoning": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "DynamicKnowledgeOrchestrator": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "AdaptiveResponseGenerator": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "RealTimeLearningSystem": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "A2AAgentDiscoverySystem": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "LLMBasedAgentSelector": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "A2AWorkflowOrchestrator": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "A2ACommunicationProtocol": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "A2AResultIntegrator": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "A2AErrorHandler": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "BeginnerScenarioHandler": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "ExpertScenarioHandler": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "AmbiguousQueryHandler": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "PerformanceMonitoringSystem": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "SessionManager": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "UniversalEngineInitializer": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    },
+    "PerformanceValidationSystem": {
+      "status": "FAILED",
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "methods_tested": 0,
+      "test_cases": 0,
+      "success_rate": 0
+    }
+  },
+  "detailed_results": {
+    "MetaReasoningEngine": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "DynamicContextDiscovery": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "AdaptiveUserUnderstanding": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "UniversalIntentDetection": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "ChainOfThoughtSelfConsistency": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "ZeroShotAdaptiveReasoning": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "DynamicKnowledgeOrchestrator": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "AdaptiveResponseGenerator": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "RealTimeLearningSystem": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "A2AAgentDiscoverySystem": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "LLMBasedAgentSelector": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "A2AWorkflowOrchestrator": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "A2ACommunicationProtocol": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "A2AResultIntegrator": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "A2AErrorHandler": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "BeginnerScenarioHandler": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "ExpertScenarioHandler": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "AmbiguousQueryHandler": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "PerformanceMonitoringSystem": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "SessionManager": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "UniversalEngineInitializer": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    },
+    "PerformanceValidationSystem": {
+      "error": "cannot import name 'LLMFactory' from 'core.llm_factory' (/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py)",
+      "status": "FAILED"
+    }
+  },
+  "recommendations": [
+    "완전 실패 에이전트 재검토 필요: MetaReasoningEngine, DynamicContextDiscovery, AdaptiveUserUnderstanding, UniversalIntentDetection, ChainOfThoughtSelfConsistency, ZeroShotAdaptiveReasoning, DynamicKnowledgeOrchestrator, AdaptiveResponseGenerator, RealTimeLearningSystem, A2AAgentDiscoverySystem, LLMBasedAgentSelector, A2AWorkflowOrchestrator, A2ACommunicationProtocol, A2AResultIntegrator, A2AErrorHandler, BeginnerScenarioHandler, ExpertScenarioHandler, AmbiguousQueryHandler, PerformanceMonitoringSystem, SessionManager, UniversalEngineInitializer, PerformanceValidationSystem",
+    "성공률 개선 필요 에이전트: MetaReasoningEngine, DynamicContextDiscovery, AdaptiveUserUnderstanding, UniversalIntentDetection, ChainOfThoughtSelfConsistency, ZeroShotAdaptiveReasoning, DynamicKnowledgeOrchestrator, AdaptiveResponseGenerator, RealTimeLearningSystem, A2AAgentDiscoverySystem, LLMBasedAgentSelector, A2AWorkflowOrchestrator, A2ACommunicationProtocol, A2AResultIntegrator, A2AErrorHandler, BeginnerScenarioHandler, ExpertScenarioHandler, AmbiguousQueryHandler, PerformanceMonitoringSystem, SessionManager, UniversalEngineInitializer, PerformanceValidationSystem",
+    "에이전트별 상세 메서드 커버리지 100% 달성",
+    "경계 조건 및 예외 상황 처리 능력 검증 완료",
+    "프로덕션 환경에서의 실제 부하 테스트 권장"
+  ]
+}

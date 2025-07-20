@@ -1,0 +1,108 @@
+{
+  "test_summary": {
+    "total_tests": 19,
+    "passed_tests": 1,
+    "failed_tests": 18,
+    "success_rate": 5.263157894736842,
+    "total_execution_time": 33.6593279838562,
+    "test_timestamp": "2025-07-20T16:51:18.591524"
+  },
+  "detailed_results": {
+    "core_components": {
+      "meta_reasoning_engine": {
+        "status": "FAILED",
+        "error": "'str' object has no attribute 'content'"
+      },
+      "dynamic_context_discovery": {
+        "status": "FAILED",
+        "error": "DynamicContextDiscovery.discover_context() got an unexpected keyword argument 'user_query'"
+      },
+      "adaptive_user_understanding": {
+        "status": "FAILED",
+        "error": "'AdaptiveUserUnderstanding' object has no attribute 'analyze_user_level'"
+      },
+      "universal_intent_detection": {
+        "status": "FAILED",
+        "error": "UniversalIntentDetection.detect_intent() got an unexpected keyword argument 'available_data'"
+      },
+      "chain_of_thought_self_consistency": {
+        "status": "FAILED",
+        "error": "No module named 'core.universal_engine.llm_factory'"
+      },
+      "zero_shot_adaptive_reasoning": {
+        "status": "FAILED",
+        "error": "No module named 'core.universal_engine.llm_factory'"
+      }
+    },
+    "a2a_integration": {
+      "agent_discovery": {
+        "status": "FAILED",
+        "error": "Agents should be a list"
+      },
+      "agent_selector": {
+        "status": "FAILED",
+        "error": "'LLMBasedAgentSelector' object has no attribute 'select_agents'"
+      },
+      "workflow_orchestrator": {
+        "status": "FAILED",
+        "error": "A2AWorkflowOrchestrator.execute_workflow() missing 1 required positional argument: 'data'"
+      },
+      "error_handler": {
+        "status": "FAILED",
+        "error": "'A2AErrorHandler' object has no attribute 'handle_error'"
+      }
+    },
+    "scenario_handlers": {
+      "beginner_handler": {
+        "status": "FAILED",
+        "error": "No module named 'core.universal_engine.llm_factory'"
+      },
+      "expert_handler": {
+        "status": "FAILED",
+        "error": "No module named 'core.universal_engine.llm_factory'"
+      },
+      "ambiguous_handler": {
+        "status": "FAILED",
+        "error": "No module named 'core.universal_engine.llm_factory'"
+      }
+    },
+    "performance_tests": {
+      "monitoring_system": {
+        "status": "FAILED",
+        "error": "META_REASONING_ENGINE"
+      },
+      "session_management": {
+        "status": "FAILED",
+        "error": "SessionManager.update_session_context() got an unexpected keyword argument 'interaction_data'"
+      },
+      "system_initialization": {
+        "status": "PASSED",
+        "execution_time": 0.3222179412841797,
+        "overall_status": "healthy",
+        "ready_components": 12,
+        "failed_components": 0
+      },
+      "validation_system": {
+        "status": "FAILED",
+        "error": "Results should contain overall score"
+      }
+    },
+    "e2e_tests": {
+      "full_integration": {
+        "status": "FAILED",
+        "error": "Result should contain analysis results"
+      }
+    },
+    "cherry_ai_integration": {
+      "universal_integration": {
+        "status": "FAILED",
+        "error": "'CherryAIUniversalA2AIntegration' object has no attribute 'execute_universal_analysis'"
+      }
+    }
+  },
+  "recommendations": [
+    "실패한 컴포넌트 재검토 필요: core_components.meta_reasoning_engine, core_components.dynamic_context_discovery, core_components.adaptive_user_understanding, core_components.universal_intent_detection, core_components.chain_of_thought_self_consistency, core_components.zero_shot_adaptive_reasoning, a2a_integration.agent_discovery, a2a_integration.agent_selector, a2a_integration.workflow_orchestrator, a2a_integration.error_handler, scenario_handlers.beginner_handler, scenario_handlers.expert_handler, scenario_handlers.ambiguous_handler, performance_tests.monitoring_system, performance_tests.session_management, performance_tests.validation_system, e2e_tests.full_integration, cherry_ai_integration.universal_integration",
+    "정기적인 성능 모니터링 및 회귀 테스트 실행 권장",
+    "실제 A2A 에이전트 환경에서의 통합 테스트 수행 권장"
+  ]
+}

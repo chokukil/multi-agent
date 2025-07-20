@@ -1,0 +1,2573 @@
+{
+  "verification_session_id": "comprehensive_verification_1753002145",
+  "timestamp": "2025-07-20T18:02:25.806866",
+  "universal_engine_verification": {
+    "verification_id": "universal_engine_verification_1753002145",
+    "timestamp": "2025-07-20T18:02:25.807205",
+    "total_components": 26,
+    "verified_components": 0,
+    "failed_components": [
+      "UniversalQueryProcessor",
+      "MetaReasoningEngine",
+      "DynamicContextDiscovery",
+      "AdaptiveUserUnderstanding",
+      "UniversalIntentDetection",
+      "ChainOfThoughtSelfConsistency",
+      "ZeroShotAdaptiveReasoning",
+      "DynamicKnowledgeOrchestrator",
+      "AdaptiveResponseGenerator",
+      "RealTimeLearningSystem",
+      "A2AAgentDiscoverySystem",
+      "LLMBasedAgentSelector",
+      "A2AWorkflowOrchestrator",
+      "A2ACommunicationProtocol",
+      "A2AResultIntegrator",
+      "A2AErrorHandler",
+      "BeginnerScenarioHandler",
+      "ExpertScenarioHandler",
+      "AmbiguousQueryHandler",
+      "CherryAIUniversalEngineUI",
+      "EnhancedChatInterface",
+      "EnhancedFileUpload",
+      "RealtimeAnalysisProgress",
+      "ProgressiveDisclosureInterface",
+      "SessionManagementSystem",
+      "SystemInitializer"
+    ],
+    "component_details": {
+      "core_processors": {
+        "UniversalQueryProcessor": {
+          "component_name": "UniversalQueryProcessor",
+          "module_path": "core.universal_engine.universal_query_processor",
+          "class_name": "UniversalQueryProcessor",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class UniversalQueryProcessor found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "process_query": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "initialize": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "get_status": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:25.807233",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "MetaReasoningEngine": {
+          "component_name": "MetaReasoningEngine",
+          "module_path": "core.universal_engine.meta_reasoning_engine",
+          "class_name": "MetaReasoningEngine",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class MetaReasoningEngine found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "analyze_request": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "perform_meta_reasoning": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "assess_analysis_quality": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.612619",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "DynamicContextDiscovery": {
+          "component_name": "DynamicContextDiscovery",
+          "module_path": "core.universal_engine.dynamic_context_discovery",
+          "class_name": "DynamicContextDiscovery",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class DynamicContextDiscovery found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "discover_context": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "analyze_data_characteristics": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "detect_domain": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.646508",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "AdaptiveUserUnderstanding": {
+          "component_name": "AdaptiveUserUnderstanding",
+          "module_path": "core.universal_engine.adaptive_user_understanding",
+          "class_name": "AdaptiveUserUnderstanding",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class AdaptiveUserUnderstanding found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "estimate_user_level": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "adapt_response": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "update_user_profile": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.680645",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "UniversalIntentDetection": {
+          "component_name": "UniversalIntentDetection",
+          "module_path": "core.universal_engine.universal_intent_detection",
+          "class_name": "UniversalIntentDetection",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class UniversalIntentDetection found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "detect_intent": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "analyze_semantic_space": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "clarify_ambiguity": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.714827",
+          "error": "Critical checks failed or insufficient method coverage"
+        }
+      },
+      "reasoning_systems": {
+        "ChainOfThoughtSelfConsistency": {
+          "component_name": "ChainOfThoughtSelfConsistency",
+          "module_path": "core.universal_engine.chain_of_thought_self_consistency",
+          "class_name": "ChainOfThoughtSelfConsistency",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "failed",
+              "error": "No module named 'core.universal_engine.llm_factory'"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.748750",
+          "error": "Failed to import module: No module named 'core.universal_engine.llm_factory'"
+        },
+        "ZeroShotAdaptiveReasoning": {
+          "component_name": "ZeroShotAdaptiveReasoning",
+          "module_path": "core.universal_engine.zero_shot_adaptive_reasoning",
+          "class_name": "ZeroShotAdaptiveReasoning",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "failed",
+              "error": "No module named 'core.universal_engine.llm_factory'"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.750500",
+          "error": "Failed to import module: No module named 'core.universal_engine.llm_factory'"
+        },
+        "DynamicKnowledgeOrchestrator": {
+          "component_name": "DynamicKnowledgeOrchestrator",
+          "module_path": "core.universal_engine.dynamic_knowledge_orchestrator",
+          "class_name": "DynamicKnowledgeOrchestrator",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class DynamicKnowledgeOrchestrator found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "orchestrate_knowledge": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "retrieve_context": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "integrate_insights": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.750949",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "AdaptiveResponseGenerator": {
+          "component_name": "AdaptiveResponseGenerator",
+          "module_path": "core.universal_engine.adaptive_response_generator",
+          "class_name": "AdaptiveResponseGenerator",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class AdaptiveResponseGenerator found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "generate_adaptive_response": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "adjust_complexity": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "create_explanations": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.785143",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "RealTimeLearningSystem": {
+          "component_name": "RealTimeLearningSystem",
+          "module_path": "core.universal_engine.real_time_learning_system",
+          "class_name": "RealTimeLearningSystem",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class RealTimeLearningSystem found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "learn_from_interaction": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "update_patterns": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "improve_responses": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.819875",
+          "error": "Critical checks failed or insufficient method coverage"
+        }
+      },
+      "a2a_integration": {
+        "A2AAgentDiscoverySystem": {
+          "component_name": "A2AAgentDiscoverySystem",
+          "module_path": "core.universal_engine.a2a_integration.a2a_agent_discovery",
+          "class_name": "A2AAgentDiscoverySystem",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class A2AAgentDiscoverySystem found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "discover_available_agents": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "validate_agent_endpoint": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "monitor_agent_health": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.819932",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "LLMBasedAgentSelector": {
+          "component_name": "LLMBasedAgentSelector",
+          "module_path": "core.universal_engine.a2a_integration.llm_based_agent_selector",
+          "class_name": "LLMBasedAgentSelector",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class LLMBasedAgentSelector found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created with empty config"
+            },
+            "required_methods": {
+              "select_optimal_agents": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "analyze_requirements": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "optimize_agent_combination": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.931550",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "A2AWorkflowOrchestrator": {
+          "component_name": "A2AWorkflowOrchestrator",
+          "module_path": "core.universal_engine.a2a_integration.a2a_workflow_orchestrator",
+          "class_name": "A2AWorkflowOrchestrator",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class A2AWorkflowOrchestrator found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created with empty config"
+            },
+            "required_methods": {
+              "execute_agent_workflow": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "coordinate_agents": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "manage_dependencies": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.965628",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "A2ACommunicationProtocol": {
+          "component_name": "A2ACommunicationProtocol",
+          "module_path": "core.universal_engine.a2a_integration.a2a_communication_protocol",
+          "class_name": "A2ACommunicationProtocol",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class A2ACommunicationProtocol found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "send_message": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "receive_response": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "handle_protocol_errors": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.965674",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "A2AResultIntegrator": {
+          "component_name": "A2AResultIntegrator",
+          "module_path": "core.universal_engine.a2a_integration.a2a_result_integrator",
+          "class_name": "A2AResultIntegrator",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class A2AResultIntegrator found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "integrate_agent_results": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "validate_consistency": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "resolve_conflicts": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:27.965706",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "A2AErrorHandler": {
+          "component_name": "A2AErrorHandler",
+          "module_path": "core.universal_engine.a2a_integration.a2a_error_handler",
+          "class_name": "A2AErrorHandler",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class A2AErrorHandler found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "handle_agent_error": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "implement_fallback": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "recover_from_failure": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.000171",
+          "error": "Critical checks failed or insufficient method coverage"
+        }
+      },
+      "scenario_handlers": {
+        "BeginnerScenarioHandler": {
+          "component_name": "BeginnerScenarioHandler",
+          "module_path": "core.universal_engine.scenario_handlers.beginner_scenario_handler",
+          "class_name": "BeginnerScenarioHandler",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "failed",
+              "error": "No module named 'core.universal_engine.llm_factory'"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.037590",
+          "error": "Failed to import module: No module named 'core.universal_engine.llm_factory'"
+        },
+        "ExpertScenarioHandler": {
+          "component_name": "ExpertScenarioHandler",
+          "module_path": "core.universal_engine.scenario_handlers.expert_scenario_handler",
+          "class_name": "ExpertScenarioHandler",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "failed",
+              "error": "No module named 'core.universal_engine.llm_factory'"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.038496",
+          "error": "Failed to import module: No module named 'core.universal_engine.llm_factory'"
+        },
+        "AmbiguousQueryHandler": {
+          "component_name": "AmbiguousQueryHandler",
+          "module_path": "core.universal_engine.scenario_handlers.ambiguous_query_handler",
+          "class_name": "AmbiguousQueryHandler",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "failed",
+              "error": "No module named 'core.universal_engine.llm_factory'"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.038730",
+          "error": "Failed to import module: No module named 'core.universal_engine.llm_factory'"
+        }
+      },
+      "ui_integration": {
+        "CherryAIUniversalEngineUI": {
+          "component_name": "CherryAIUniversalEngineUI",
+          "module_path": "core.universal_engine.cherry_ai_integration.cherry_ai_universal_engine_ui",
+          "class_name": "CherryAIUniversalEngineUI",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class CherryAIUniversalEngineUI found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "render_enhanced_header": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "render_enhanced_chat_interface": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "render_sidebar": {
+                "status": "success",
+                "message": "Method exists and callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.038933",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "EnhancedChatInterface": {
+          "component_name": "EnhancedChatInterface",
+          "module_path": "core.universal_engine.cherry_ai_integration.enhanced_chat_interface",
+          "class_name": "EnhancedChatInterface",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class EnhancedChatInterface found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created with empty config"
+            },
+            "required_methods": {
+              "render_chat_messages": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "display_meta_reasoning": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "show_agent_collaboration": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.237286",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "EnhancedFileUpload": {
+          "component_name": "EnhancedFileUpload",
+          "module_path": "core.universal_engine.cherry_ai_integration.enhanced_file_upload",
+          "class_name": "EnhancedFileUpload",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class EnhancedFileUpload found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "render_file_upload": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "analyze_uploaded_data": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "suggest_analysis": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.237323",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "RealtimeAnalysisProgress": {
+          "component_name": "RealtimeAnalysisProgress",
+          "module_path": "core.universal_engine.cherry_ai_integration.realtime_analysis_progress",
+          "class_name": "RealtimeAnalysisProgress",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class RealtimeAnalysisProgress found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "display_analysis_progress": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "update_progress": {
+                "status": "success",
+                "message": "Method exists and callable"
+              },
+              "show_agent_status": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.311948",
+          "error": "Critical checks failed or insufficient method coverage"
+        },
+        "ProgressiveDisclosureInterface": {
+          "component_name": "ProgressiveDisclosureInterface",
+          "module_path": "core.universal_engine.cherry_ai_integration.progressive_disclosure_interface",
+          "class_name": "ProgressiveDisclosureInterface",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "success",
+              "message": "Class ProgressiveDisclosureInterface found"
+            },
+            "instantiation": {
+              "status": "success",
+              "message": "Instance created successfully"
+            },
+            "required_methods": {
+              "render_progressive_disclosure": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "adapt_to_user_level": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              },
+              "manage_information_depth": {
+                "status": "failed",
+                "error": "Method not found or not callable"
+              }
+            },
+            "basic_functionality": {
+              "status": "skipped",
+              "message": "No standard test methods available"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.311999",
+          "error": "Critical checks failed or insufficient method coverage"
+        }
+      },
+      "system_management": {
+        "SessionManagementSystem": {
+          "component_name": "SessionManagementSystem",
+          "module_path": "core.universal_engine.session.session_management_system",
+          "class_name": "SessionManagementSystem",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "failed",
+              "error": "module 'core.universal_engine.session.session_management_system' has no attribute 'SessionManagementSystem'"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.348910",
+          "error": "Class SessionManagementSystem not found in module"
+        },
+        "SystemInitializer": {
+          "component_name": "SystemInitializer",
+          "module_path": "core.universal_engine.initialization.system_initializer",
+          "class_name": "SystemInitializer",
+          "status": "failed",
+          "checks": {
+            "module_import": {
+              "status": "success",
+              "message": "Module imported successfully"
+            },
+            "class_exists": {
+              "status": "failed",
+              "error": "module 'core.universal_engine.initialization.system_initializer' has no attribute 'SystemInitializer'"
+            }
+          },
+          "timestamp": "2025-07-20T18:02:28.352099",
+          "error": "Class SystemInitializer not found in module"
+        }
+      }
+    },
+    "overall_status": "failed",
+    "success_rate": 0.0,
+    "execution_time": 2.546909
+  },
+  "hardcoding_validation": {
+    "validation_id": "hardcoding_validation_1753002148",
+    "timestamp": "2025-07-20T18:02:28.354269",
+    "project_root": "/Users/gukil/CherryAI/CherryAI_0717",
+    "scanned_files": 812,
+    "total_violations": 36,
+    "violations_by_category": {
+      "analysis_hardcoding": [
+        {
+          "file_path": "cherry_ai_legacy.py",
+          "line_number": 53,
+          "line_content": "SEMICONDUCTOR_ENGINE_AVAILABLE = True",
+          "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.491091"
+        },
+        {
+          "file_path": "cherry_ai_legacy.py",
+          "line_number": 56,
+          "line_content": "SEMICONDUCTOR_ENGINE_AVAILABLE = False",
+          "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.491104"
+        },
+        {
+          "file_path": "cherry_ai_legacy.py",
+          "line_number": 436,
+          "line_content": "if SEMICONDUCTOR_ENGINE_AVAILABLE:",
+          "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.491229"
+        },
+        {
+          "file_path": "cherry_ai_legacy.py",
+          "line_number": 436,
+          "line_content": "if SEMICONDUCTOR_ENGINE_AVAILABLE:",
+          "pattern": "if.*SEMICONDUCTOR.*:",
+          "matched_text": "if SEMICONDUCTOR_ENGINE_AVAILABLE:",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.491472"
+        },
+        {
+          "file_path": "cherry_ai_legacy.py",
+          "line_number": 438,
+          "line_content": "semiconductor_result = await analyze_semiconductor_data(",
+          "pattern": "semiconductor_result\\s*=\\s*await\\s+analyze_semiconductor_data",
+          "matched_text": "semiconductor_result = await analyze_semiconductor_data",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.491720"
+        },
+        {
+          "file_path": "cherry_ai_legacy.py",
+          "line_number": 447,
+          "line_content": "return self._format_semiconductor_analysis(semiconductor_result)",
+          "pattern": "return.*_format_semiconductor_analysis",
+          "matched_text": "return self._format_semiconductor_analysis",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.491911"
+        },
+        {
+          "file_path": "cherry_ai_legacy.py",
+          "line_number": 454,
+          "line_content": "return await self._general_agent_analysis(user_query)",
+          "pattern": "_general_agent_analysis\\(user_query\\)",
+          "matched_text": "_general_agent_analysis(user_query)",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.491994"
+        },
+        {
+          "file_path": "quick_transparency_test.py",
+          "line_number": 98,
+          "line_content": "if semiconductor_files:",
+          "pattern": "if.*SEMICONDUCTOR.*:",
+          "matched_text": "if semiconductor_files:",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:28.764539"
+        },
+        {
+          "file_path": "cherry_ai_integration_example.py",
+          "line_number": 27,
+          "line_content": "semiconductor_result = await analyze_semiconductor_data(",
+          "pattern": "semiconductor_result\\s*=\\s*await\\s+analyze_semiconductor_data",
+          "matched_text": "semiconductor_result = await analyze_semiconductor_data",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.104691"
+        },
+        {
+          "file_path": "cherry_ai_integration_example.py",
+          "line_number": 36,
+          "line_content": "return self._format_semiconductor_analysis(semiconductor_result)",
+          "pattern": "return.*_format_semiconductor_analysis",
+          "matched_text": "return self._format_semiconductor_analysis",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.104761"
+        },
+        {
+          "file_path": "core/user_file_tracker.py",
+          "line_number": 301,
+          "line_content": "if detected_domain == 'semiconductor' and 'ion' in file_name_lower:",
+          "pattern": "if.*SEMICONDUCTOR.*:",
+          "matched_text": "if detected_domain == 'semiconductor' and 'ion' in file_name_lower:",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.718746"
+        },
+        {
+          "file_path": "core/universal_engine/scenario_handlers/expert_scenario_handler.py",
+          "line_number": 537,
+          "line_content": "if context and context.get('industry') == 'semiconductor':",
+          "pattern": "if.*SEMICONDUCTOR.*:",
+          "matched_text": "if context and context.get('industry') == 'semiconductor':",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.399749"
+        },
+        {
+          "file_path": "core/orchestrator/planning_engine.py",
+          "line_number": 288,
+          "line_content": "if domain == 'semiconductor':",
+          "pattern": "if.*SEMICONDUCTOR.*:",
+          "matched_text": "if domain == 'semiconductor':",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.861985"
+        },
+        {
+          "file_path": "tests/verification/hardcoding_validator.py",
+          "line_number": 76,
+          "line_content": "r'SEMICONDUCTOR_ENGINE_AVAILABLE',",
+          "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:32.588227"
+        },
+        {
+          "file_path": "tests/verification/hardcoding_validator.py",
+          "line_number": 77,
+          "line_content": "r'if.*SEMICONDUCTOR.*:',",
+          "pattern": "if.*SEMICONDUCTOR.*:",
+          "matched_text": "if.*SEMICONDUCTOR.*:",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:32.588429"
+        },
+        {
+          "file_path": "tests/verification/hardcoding_validator.py",
+          "line_number": 79,
+          "line_content": "r'return.*_format_semiconductor_analysis',",
+          "pattern": "return.*_format_semiconductor_analysis",
+          "matched_text": "return.*_format_semiconductor_analysis",
+          "category": "analysis_hardcoding",
+          "description": "분석 엔진별 하드코딩된 우선순위 로직",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:32.588800"
+        }
+      ],
+      "response_template_hardcoding": [
+        {
+          "file_path": "test_comprehensive_e2e.py",
+          "line_number": 440,
+          "line_content": "response_templates = {",
+          "pattern": "RESPONSE_TEMPLATES\\s*=",
+          "matched_text": "response_templates =",
+          "category": "response_template_hardcoding",
+          "description": "응답 템플릿 하드코딩",
+          "severity": "medium",
+          "timestamp": "2025-07-20T18:02:28.526491"
+        },
+        {
+          "file_path": "test_comprehensive_e2e.py",
+          "line_number": 453,
+          "line_content": "response_templates = {",
+          "pattern": "RESPONSE_TEMPLATES\\s*=",
+          "matched_text": "response_templates =",
+          "category": "response_template_hardcoding",
+          "description": "응답 템플릿 하드코딩",
+          "severity": "medium",
+          "timestamp": "2025-07-20T18:02:28.526516"
+        },
+        {
+          "file_path": "core/universal_engine/adaptive_response_generator.py",
+          "line_number": 32,
+          "line_content": "self.response_templates = self._initialize_response_patterns()",
+          "pattern": "RESPONSE_TEMPLATES\\s*=",
+          "matched_text": "response_templates =",
+          "category": "response_template_hardcoding",
+          "description": "응답 템플릿 하드코딩",
+          "severity": "medium",
+          "timestamp": "2025-07-20T18:02:30.246191"
+        }
+      ],
+      "category_hardcoding": [
+        {
+          "file_path": "core/session_data_manager_old.py",
+          "line_number": 144,
+          "line_content": "\"semiconductor\": [\"반도체\", \"이온주입\", \"ion\", \"implant\", \"wafer\", \"도핑\"],",
+          "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"semiconductor\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.600569"
+        },
+        {
+          "file_path": "core/session_data_manager_old.py",
+          "line_number": 145,
+          "line_content": "\"finance\": [\"금융\", \"주식\", \"투자\", \"finance\", \"stock\", \"investment\"],",
+          "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"finance\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.600672"
+        },
+        {
+          "file_path": "core/session_data_manager.py",
+          "line_number": 158,
+          "line_content": "\"semiconductor\": [\"반도체\", \"이온주입\", \"ion\", \"implant\", \"wafer\", \"도핑\"],",
+          "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"semiconductor\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.642408"
+        },
+        {
+          "file_path": "core/session_data_manager.py",
+          "line_number": 159,
+          "line_content": "\"finance\": [\"금융\", \"주식\", \"투자\", \"finance\", \"stock\", \"investment\"],",
+          "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"finance\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.642515"
+        },
+        {
+          "file_path": "core/user_file_tracker.py",
+          "line_number": 281,
+          "line_content": "'semiconductor': ['반도체', 'ion', 'implant', 'wafer', 'fab', 'process'],",
+          "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+          "matched_text": "'semiconductor': [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.717158"
+        },
+        {
+          "file_path": "core/user_file_tracker.py",
+          "line_number": 282,
+          "line_content": "'finance': ['financial', '금융', 'bank', 'stock', 'investment'],",
+          "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+          "matched_text": "'finance': [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:29.717247"
+        },
+        {
+          "file_path": "core/query_processing/domain_specific_answer_formatter.py",
+          "line_number": 743,
+          "line_content": "domain_mapping = {",
+          "pattern": "DOMAIN_MAPPING\\s*=",
+          "matched_text": "domain_mapping =",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.718074"
+        },
+        {
+          "file_path": "core/query_processing/domain_extractor.py",
+          "line_number": 528,
+          "line_content": "\"finance\": [\"risk\", \"portfolio\", \"return\", \"credit\", \"trading\"]",
+          "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"finance\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.729064"
+        },
+        {
+          "file_path": "core/query_processing/domain_extractor.py",
+          "line_number": 536,
+          "line_content": "\"finance\": [\"Monte Carlo\", \"Black-Scholes\", \"VaR\"]",
+          "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"finance\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.729090"
+        },
+        {
+          "file_path": "core/query_processing/domain_extractor.py",
+          "line_number": 527,
+          "line_content": "\"healthcare\": [\"patient\", \"diagnosis\", \"treatment\", \"clinical\"],",
+          "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"healthcare\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.729218"
+        },
+        {
+          "file_path": "core/query_processing/domain_extractor.py",
+          "line_number": 535,
+          "line_content": "\"healthcare\": [\"Clinical trials\", \"Evidence-based medicine\"],",
+          "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"healthcare\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.729238"
+        },
+        {
+          "file_path": "core/query_processing/query_enhancer.py",
+          "line_number": 737,
+          "line_content": "\"healthcare\": [\"clinical analysis\", \"patient outcomes\", \"treatment efficacy\"]",
+          "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+          "matched_text": "\"healthcare\": [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.779872"
+        },
+        {
+          "file_path": "core/orchestrator/planning_engine.py",
+          "line_number": 55,
+          "line_content": "'semiconductor': ['반도체', 'wafer', 'fab', 'ion implant', 'process', '공정', 'yield', 'defect'],",
+          "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+          "matched_text": "'semiconductor': [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.860612"
+        },
+        {
+          "file_path": "core/orchestrator/planning_engine.py",
+          "line_number": 56,
+          "line_content": "'finance': ['financial', 'stock', 'price', '주식', '금융', 'trading', 'portfolio'],",
+          "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+          "matched_text": "'finance': [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.860722"
+        },
+        {
+          "file_path": "core/orchestrator/planning_engine.py",
+          "line_number": 59,
+          "line_content": "'healthcare': ['patient', 'medical', 'diagnosis', 'treatment', '환자', '의료', '진단']",
+          "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+          "matched_text": "'healthcare': [",
+          "category": "category_hardcoding",
+          "description": "사전 정의된 도메인 카테고리 시스템",
+          "severity": "critical",
+          "timestamp": "2025-07-20T18:02:30.860821"
+        }
+      ],
+      "user_type_hardcoding": [
+        {
+          "file_path": "core/universal_engine/adaptive_user_understanding.py",
+          "line_number": 436,
+          "line_content": "expertise_levels = [p.get('user_profile', {}).get('expertise_level') for p in profile_history]",
+          "pattern": "EXPERTISE_LEVELS\\s*=",
+          "matched_text": "expertise_levels =",
+          "category": "user_type_hardcoding",
+          "description": "사용자 유형별 하드코딩된 분기 로직",
+          "severity": "high",
+          "timestamp": "2025-07-20T18:02:30.230428"
+        }
+      ],
+      "pattern_matching_hardcoding": [
+        {
+          "file_path": "tests/integration/test_agent_collaboration_enhancement.py",
+          "line_number": 144,
+          "line_content": "keyword_mapping = {",
+          "pattern": "KEYWORD_MAPPING\\s*=",
+          "matched_text": "keyword_mapping =",
+          "category": "pattern_matching_hardcoding",
+          "description": "키워드 기반 패턴 매칭 하드코딩",
+          "severity": "high",
+          "timestamp": "2025-07-20T18:02:32.522814"
+        }
+      ]
+    },
+    "violations_by_severity": {
+      "critical": 31,
+      "high": 2,
+      "medium": 3,
+      "low": 0
+    },
+    "detailed_violations": [
+      {
+        "file_path": "cherry_ai_legacy.py",
+        "line_number": 53,
+        "line_content": "SEMICONDUCTOR_ENGINE_AVAILABLE = True",
+        "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.491091"
+      },
+      {
+        "file_path": "cherry_ai_legacy.py",
+        "line_number": 56,
+        "line_content": "SEMICONDUCTOR_ENGINE_AVAILABLE = False",
+        "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.491104"
+      },
+      {
+        "file_path": "cherry_ai_legacy.py",
+        "line_number": 436,
+        "line_content": "if SEMICONDUCTOR_ENGINE_AVAILABLE:",
+        "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.491229"
+      },
+      {
+        "file_path": "cherry_ai_legacy.py",
+        "line_number": 436,
+        "line_content": "if SEMICONDUCTOR_ENGINE_AVAILABLE:",
+        "pattern": "if.*SEMICONDUCTOR.*:",
+        "matched_text": "if SEMICONDUCTOR_ENGINE_AVAILABLE:",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.491472"
+      },
+      {
+        "file_path": "cherry_ai_legacy.py",
+        "line_number": 438,
+        "line_content": "semiconductor_result = await analyze_semiconductor_data(",
+        "pattern": "semiconductor_result\\s*=\\s*await\\s+analyze_semiconductor_data",
+        "matched_text": "semiconductor_result = await analyze_semiconductor_data",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.491720"
+      },
+      {
+        "file_path": "cherry_ai_legacy.py",
+        "line_number": 447,
+        "line_content": "return self._format_semiconductor_analysis(semiconductor_result)",
+        "pattern": "return.*_format_semiconductor_analysis",
+        "matched_text": "return self._format_semiconductor_analysis",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.491911"
+      },
+      {
+        "file_path": "cherry_ai_legacy.py",
+        "line_number": 454,
+        "line_content": "return await self._general_agent_analysis(user_query)",
+        "pattern": "_general_agent_analysis\\(user_query\\)",
+        "matched_text": "_general_agent_analysis(user_query)",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.491994"
+      },
+      {
+        "file_path": "test_comprehensive_e2e.py",
+        "line_number": 440,
+        "line_content": "response_templates = {",
+        "pattern": "RESPONSE_TEMPLATES\\s*=",
+        "matched_text": "response_templates =",
+        "category": "response_template_hardcoding",
+        "description": "응답 템플릿 하드코딩",
+        "severity": "medium",
+        "timestamp": "2025-07-20T18:02:28.526491"
+      },
+      {
+        "file_path": "test_comprehensive_e2e.py",
+        "line_number": 453,
+        "line_content": "response_templates = {",
+        "pattern": "RESPONSE_TEMPLATES\\s*=",
+        "matched_text": "response_templates =",
+        "category": "response_template_hardcoding",
+        "description": "응답 템플릿 하드코딩",
+        "severity": "medium",
+        "timestamp": "2025-07-20T18:02:28.526516"
+      },
+      {
+        "file_path": "quick_transparency_test.py",
+        "line_number": 98,
+        "line_content": "if semiconductor_files:",
+        "pattern": "if.*SEMICONDUCTOR.*:",
+        "matched_text": "if semiconductor_files:",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:28.764539"
+      },
+      {
+        "file_path": "cherry_ai_integration_example.py",
+        "line_number": 27,
+        "line_content": "semiconductor_result = await analyze_semiconductor_data(",
+        "pattern": "semiconductor_result\\s*=\\s*await\\s+analyze_semiconductor_data",
+        "matched_text": "semiconductor_result = await analyze_semiconductor_data",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.104691"
+      },
+      {
+        "file_path": "cherry_ai_integration_example.py",
+        "line_number": 36,
+        "line_content": "return self._format_semiconductor_analysis(semiconductor_result)",
+        "pattern": "return.*_format_semiconductor_analysis",
+        "matched_text": "return self._format_semiconductor_analysis",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.104761"
+      },
+      {
+        "file_path": "core/session_data_manager_old.py",
+        "line_number": 144,
+        "line_content": "\"semiconductor\": [\"반도체\", \"이온주입\", \"ion\", \"implant\", \"wafer\", \"도핑\"],",
+        "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"semiconductor\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.600569"
+      },
+      {
+        "file_path": "core/session_data_manager_old.py",
+        "line_number": 145,
+        "line_content": "\"finance\": [\"금융\", \"주식\", \"투자\", \"finance\", \"stock\", \"investment\"],",
+        "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"finance\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.600672"
+      },
+      {
+        "file_path": "core/session_data_manager.py",
+        "line_number": 158,
+        "line_content": "\"semiconductor\": [\"반도체\", \"이온주입\", \"ion\", \"implant\", \"wafer\", \"도핑\"],",
+        "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"semiconductor\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.642408"
+      },
+      {
+        "file_path": "core/session_data_manager.py",
+        "line_number": 159,
+        "line_content": "\"finance\": [\"금융\", \"주식\", \"투자\", \"finance\", \"stock\", \"investment\"],",
+        "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"finance\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.642515"
+      },
+      {
+        "file_path": "core/user_file_tracker.py",
+        "line_number": 281,
+        "line_content": "'semiconductor': ['반도체', 'ion', 'implant', 'wafer', 'fab', 'process'],",
+        "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+        "matched_text": "'semiconductor': [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.717158"
+      },
+      {
+        "file_path": "core/user_file_tracker.py",
+        "line_number": 282,
+        "line_content": "'finance': ['financial', '금융', 'bank', 'stock', 'investment'],",
+        "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+        "matched_text": "'finance': [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.717247"
+      },
+      {
+        "file_path": "core/user_file_tracker.py",
+        "line_number": 301,
+        "line_content": "if detected_domain == 'semiconductor' and 'ion' in file_name_lower:",
+        "pattern": "if.*SEMICONDUCTOR.*:",
+        "matched_text": "if detected_domain == 'semiconductor' and 'ion' in file_name_lower:",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:29.718746"
+      },
+      {
+        "file_path": "core/universal_engine/adaptive_user_understanding.py",
+        "line_number": 436,
+        "line_content": "expertise_levels = [p.get('user_profile', {}).get('expertise_level') for p in profile_history]",
+        "pattern": "EXPERTISE_LEVELS\\s*=",
+        "matched_text": "expertise_levels =",
+        "category": "user_type_hardcoding",
+        "description": "사용자 유형별 하드코딩된 분기 로직",
+        "severity": "high",
+        "timestamp": "2025-07-20T18:02:30.230428"
+      },
+      {
+        "file_path": "core/universal_engine/adaptive_response_generator.py",
+        "line_number": 32,
+        "line_content": "self.response_templates = self._initialize_response_patterns()",
+        "pattern": "RESPONSE_TEMPLATES\\s*=",
+        "matched_text": "response_templates =",
+        "category": "response_template_hardcoding",
+        "description": "응답 템플릿 하드코딩",
+        "severity": "medium",
+        "timestamp": "2025-07-20T18:02:30.246191"
+      },
+      {
+        "file_path": "core/universal_engine/scenario_handlers/expert_scenario_handler.py",
+        "line_number": 537,
+        "line_content": "if context and context.get('industry') == 'semiconductor':",
+        "pattern": "if.*SEMICONDUCTOR.*:",
+        "matched_text": "if context and context.get('industry') == 'semiconductor':",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.399749"
+      },
+      {
+        "file_path": "core/query_processing/domain_specific_answer_formatter.py",
+        "line_number": 743,
+        "line_content": "domain_mapping = {",
+        "pattern": "DOMAIN_MAPPING\\s*=",
+        "matched_text": "domain_mapping =",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.718074"
+      },
+      {
+        "file_path": "core/query_processing/domain_extractor.py",
+        "line_number": 528,
+        "line_content": "\"finance\": [\"risk\", \"portfolio\", \"return\", \"credit\", \"trading\"]",
+        "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"finance\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.729064"
+      },
+      {
+        "file_path": "core/query_processing/domain_extractor.py",
+        "line_number": 536,
+        "line_content": "\"finance\": [\"Monte Carlo\", \"Black-Scholes\", \"VaR\"]",
+        "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"finance\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.729090"
+      },
+      {
+        "file_path": "core/query_processing/domain_extractor.py",
+        "line_number": 527,
+        "line_content": "\"healthcare\": [\"patient\", \"diagnosis\", \"treatment\", \"clinical\"],",
+        "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"healthcare\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.729218"
+      },
+      {
+        "file_path": "core/query_processing/domain_extractor.py",
+        "line_number": 535,
+        "line_content": "\"healthcare\": [\"Clinical trials\", \"Evidence-based medicine\"],",
+        "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"healthcare\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.729238"
+      },
+      {
+        "file_path": "core/query_processing/query_enhancer.py",
+        "line_number": 737,
+        "line_content": "\"healthcare\": [\"clinical analysis\", \"patient outcomes\", \"treatment efficacy\"]",
+        "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+        "matched_text": "\"healthcare\": [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.779872"
+      },
+      {
+        "file_path": "core/orchestrator/planning_engine.py",
+        "line_number": 55,
+        "line_content": "'semiconductor': ['반도체', 'wafer', 'fab', 'ion implant', 'process', '공정', 'yield', 'defect'],",
+        "pattern": "[\"\\']semiconductor[\"\\']\\s*:\\s*\\[",
+        "matched_text": "'semiconductor': [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.860612"
+      },
+      {
+        "file_path": "core/orchestrator/planning_engine.py",
+        "line_number": 56,
+        "line_content": "'finance': ['financial', 'stock', 'price', '주식', '금융', 'trading', 'portfolio'],",
+        "pattern": "[\"\\']finance[\"\\']\\s*:\\s*\\[",
+        "matched_text": "'finance': [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.860722"
+      },
+      {
+        "file_path": "core/orchestrator/planning_engine.py",
+        "line_number": 59,
+        "line_content": "'healthcare': ['patient', 'medical', 'diagnosis', 'treatment', '환자', '의료', '진단']",
+        "pattern": "[\"\\']healthcare[\"\\']\\s*:\\s*\\[",
+        "matched_text": "'healthcare': [",
+        "category": "category_hardcoding",
+        "description": "사전 정의된 도메인 카테고리 시스템",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.860821"
+      },
+      {
+        "file_path": "core/orchestrator/planning_engine.py",
+        "line_number": 288,
+        "line_content": "if domain == 'semiconductor':",
+        "pattern": "if.*SEMICONDUCTOR.*:",
+        "matched_text": "if domain == 'semiconductor':",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:30.861985"
+      },
+      {
+        "file_path": "tests/integration/test_agent_collaboration_enhancement.py",
+        "line_number": 144,
+        "line_content": "keyword_mapping = {",
+        "pattern": "KEYWORD_MAPPING\\s*=",
+        "matched_text": "keyword_mapping =",
+        "category": "pattern_matching_hardcoding",
+        "description": "키워드 기반 패턴 매칭 하드코딩",
+        "severity": "high",
+        "timestamp": "2025-07-20T18:02:32.522814"
+      },
+      {
+        "file_path": "tests/verification/hardcoding_validator.py",
+        "line_number": 76,
+        "line_content": "r'SEMICONDUCTOR_ENGINE_AVAILABLE',",
+        "pattern": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "matched_text": "SEMICONDUCTOR_ENGINE_AVAILABLE",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:32.588227"
+      },
+      {
+        "file_path": "tests/verification/hardcoding_validator.py",
+        "line_number": 77,
+        "line_content": "r'if.*SEMICONDUCTOR.*:',",
+        "pattern": "if.*SEMICONDUCTOR.*:",
+        "matched_text": "if.*SEMICONDUCTOR.*:",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:32.588429"
+      },
+      {
+        "file_path": "tests/verification/hardcoding_validator.py",
+        "line_number": 79,
+        "line_content": "r'return.*_format_semiconductor_analysis',",
+        "pattern": "return.*_format_semiconductor_analysis",
+        "matched_text": "return.*_format_semiconductor_analysis",
+        "category": "analysis_hardcoding",
+        "description": "분석 엔진별 하드코딩된 우선순위 로직",
+        "severity": "critical",
+        "timestamp": "2025-07-20T18:02:32.588800"
+      }
+    ],
+    "clean_files": [
+      "/Users/gukil/CherryAI/CherryAI_0717/test_fixed_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_gateway.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_pandas_real.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/clear_cache.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/pandas_data_analyst_reference.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_cherryai_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_phase3_integration_safe.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_cherry_ai.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/final_semiconductor_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_single_eda.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_orchestrator_artifact_fix.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_improved_eda.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_langfuse_integrated_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/monitoring_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_smart_data_analyst.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_real_user_scenarios.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_unified_theme_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_ai_ds_team_eda_direct.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_langfuse_simple_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_migration_completion.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_issue_analysis_rca.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_e2e_selenium_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/config.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_ai_ds_team.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_cherryai_single_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_cleaning_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_streamlit_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_monitoring_dashboard_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/official_helloworld_executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_smart_data_analyst_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_orchestrator_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/main_modular.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_collaboration_network_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/standalone_pandas_agent_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_real_user_scenarios_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_simple_a2a_client.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_plotly_visualization_final.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_comprehensive_verification.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_improved_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_cherryai_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_response_debug.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_knowledge_bank_detailed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/prepare_test_datasets.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_integration_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_security_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/quick_test_plotly.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_integrated_main.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_simple_request.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_with_sample_data.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_visualization_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_sse_streaming_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_knowledge_bank_performance.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_security_data_integrity.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_mcp_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/datamanagera2atest_e53555c3-dd37-48c5-9198-1f7ede6c1826.spec.ts",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_feature_engineering_unit.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/simple_test_a2a.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_large_dataset_performance.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_file_reference.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_system_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_pandas_correct.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_mcp_auto_recovery.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_websocket_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_mcp_monitoring_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_direct_pandas_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/detailed_artifact_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_viz_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_cleaning_unit.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_e2e_simple_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_wrangling_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_mlflow_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_integration_test_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_orchestrator_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_h2o_simple_direct.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_complete_workflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_communication.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_knowledge_bank.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_error_recovery_mechanisms.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/simple_a2a_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_enhanced_eda_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_a2a_communication.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_universal_engine_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_h2o_ml_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_mcp_integration_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_e2e_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_h2o_simple_verification.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/complete_system_integration_test_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/numpy_pandas_compatibility_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_upload.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_h2o_original.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_ai_ds_team_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_sql_analyst_unit.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_enhanced_performance_optimization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_mlflow_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/final_comprehensive_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_sql_analyst_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/validate_agents.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_independent_data_cleaning.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_orchestrator_final.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_all_migrated_servers.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/playwright_test_quick.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_enhanced_visualization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_transparency_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_mlflow_debug.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_orchestrator_fix.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/detailed_ion_implant_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/official_helloworld_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_simple_llm.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/fix_matplotlib_korean_font.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cherryai_finalreport_test_4e515a98-d5d0-401d-b343-27cde9c07c1e.spec.ts",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_thought_stream_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_phase3_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_orchestrator_error.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_mlflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_generic_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/app.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/end_to_end_phase3_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_phase_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/comprehensive_validation_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_streaming_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_dataloader_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cherry_ai.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_individual_agents_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_style_ui_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_config.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_minimal_a2a_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_langfuse_logging.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/quick_integration_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_viz_unit.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/main_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/cursor_code_streaming_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/official_helloworld_manual.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_migrated_servers_quick.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_file_scanner.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_ion_implant_eda.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/complete_system_integration_test_final.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_knowledge_bank_validation.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/main.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_summary_report.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_question.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_orchestrator_correct.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_loader_a2a.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_working_servers.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_e2e_playwright_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_real_streaming.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_planner_universality.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_data_loader_direct.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_llm_based_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/run_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_enhanced.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_feature_engineering_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_real_workflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_full_response.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_import.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_sql_database_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_h2o_ml_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/official_helloworld_singlefile.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/complete_system_integration_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_langfuse_enhanced_tracking.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_endpoints.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_production_monitoring_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_debug.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_cherryai_playwright.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_enhanced_eda_tools_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_langfuse_session_demo.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/test_a2a_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_code_streaming.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/thinking_stream.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/advanced_artifact_renderer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_theme_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/tabs.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/enhanced_error_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/data_analysis_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_mcp_monitoring.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_style_agent_cards.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/real_time_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/sidebar_components.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/real_time_orchestration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/visualization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_collaboration_network.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/main_ui_controller.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/expert_answer_renderer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_integration_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/artifact_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_sse_realtime.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/a2a_sse_streaming_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/transparency_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/enhanced_agent_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/cursor_thought_stream.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/message_translator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/integrated_monitoring_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/layout/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/layout/split_layout.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/streaming/realtime_chat_container.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/streaming_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/question_input.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/session_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/chat_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/rich_content_renderer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/unified_chat_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/file_upload.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ui/components/shortcuts_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/a2a_data_analysis_executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/frontend_backend_bridge.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/phase3_integration_layer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/shared_knowledge_bank.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/system_health_checker.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/production_monitoring_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enhanced_log_analyzer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/artifact_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/multi_agent_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/llm_first_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/a2a_agent_tracer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/knowledge_bank_ui_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enhanced_tracing_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enhanced_a2a_communicator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/direct_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/production_monitoring_core.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/langfuse_decorators.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/llm_first_ui_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/langfuse_otel_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_data_analysis_router.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/performance_monitor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/security_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/secure_file_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/debug_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/error_recovery.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/specialized_data_agents.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enhanced_langfuse_tracer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/auto_data_profiler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enhanced_a2a_executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/langfuse_enhanced_a2a_executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/data_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/performance_optimizer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/langfuse_session_tracer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/integrated_alert_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/advanced_code_tracker.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/orchestration_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/intelligent_planner.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/main_app_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/llm_factory.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/a2a_task_executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/data_lineage.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/langfuse_ai_ds_team_wrapper.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/intelligent_result_interpreter.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/ui/smart_display.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/ui/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/ui/a2a_orchestration_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/ui/agent_preloader.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/python_tool.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/mcp_setup.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/mlflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/dataframe.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/data_loader.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/eda.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/sql.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/mcp_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/tools/h2o.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/plan_execute/planner.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/plan_execute/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/plan_execute/a2a_executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enterprise/api_gateway.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enterprise/analytics_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enterprise/mobile_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enterprise/security_access_control.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enterprise/ai_insight_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/enterprise/api_gateway_lite.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/quality/hardcode_detector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal/universal_analyzer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/callbacks/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/callbacks/artifact_stream.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/callbacks/progress_stream.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/a2a/a2a_streamlit_client.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/optimization/a2a_connection_optimizer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/agents/parsers.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/agents/templates.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/logging.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/mcp_config_helper.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/config.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/matplotlib.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/streamlit_context.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/html.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/messages.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/streaming.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/helpers.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/plotly.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/utils/regex.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/schemas/message_factory.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/schemas/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/streaming/optimized_streaming_pipeline.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/streaming/streaming_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/streaming/base_callback.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/streaming/mcp_stdio_bridge.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/streaming/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/streaming/unified_message_broker.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/streaming/a2a_sse_client.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/dynamic_context_discovery.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/universal_intent_detection.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/chain_of_thought_self_consistency.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/real_time_learning_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/dynamic_knowledge_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/universal_query_processor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/zero_shot_adaptive_reasoning.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/meta_reasoning_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_communication_protocol.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_result_integrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/llm_based_agent_selector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_workflow_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_error_handler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_agent_discovery.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/enhanced_chat_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/enhanced_file_upload.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/cherry_ai_universal_engine_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/cherry_ai_universal_a2a_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/progressive_disclosure_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/cherry_ai_integration/realtime_analysis_progress.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/tests/test_meta_reasoning_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/tests/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/initialization/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/initialization/system_initializer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/monitoring/performance_monitoring_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/monitoring/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/scenario_handlers/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/scenario_handlers/ambiguous_query_handler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/scenario_handlers/beginner_scenario_handler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/validation/performance_validation_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/validation/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/session/session_management_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/session/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/execution/timeout_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/execution/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/meta_learning/meta_learning_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/monitoring/performance_metrics_collector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/monitoring/mcp_config_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/monitoring/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/monitoring/a2a_performance_profiler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/monitoring/mcp_auto_recovery.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/monitoring/mcp_connection_monitor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/monitoring/mcp_server_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/performance/scalability_optimizer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/performance/connection_pool.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/llm_enhancement/llm_first_analyzer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_holistic_answer_synthesis_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_user_personalized_result_optimizer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_multi_agent_result_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/final_answer_structuring.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_query_processor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_complete_pipeline.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/holistic_answer_synthesis_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/phase3_integration_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_execution_plan_manager_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_domain_aware_agent_selector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/user_personalized_result_optimizer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/answer_predictor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_intent_analyzer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/answer_quality_validator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/execution_plan_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/domain_aware_agent_selector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_domain_specific_answer_formatter.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_phase2_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_simple_agent_selector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/intent_analyzer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_domain_extractor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_answer_quality_validator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/intelligent_query_processor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/a2a_agent_execution_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/multi_agent_result_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/phase3_integration_test_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_a2a_agent_execution_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_execution_plan_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_answer_predictor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/query_processing/test_final_answer_structuring.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/orchestrator/a2a_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/orchestrator/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/validation/llm_first_validator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/file_upload_processor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/data_workspace.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/monitoring_panel.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/main_app_controller.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/system_status_monitor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/agent_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/main_dashboard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/realtime_streaming_handler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/core/app_components/mcp_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/debug_logs/h2o_automl.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v8_complete.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_eda_tools_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/plotly_visualization_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v6.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/shared_knowledge_bank.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_orchestrator_artifact_fix.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_data_loader_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/sql_data_analyst_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_h2o_ml_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/independent_data_cleaning_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_eda_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_python_repl_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_pandas_analyst_function_preservation.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_data_loader_server_v2.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v3.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_report_server_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/eda_tools_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_h2o_ml_server_8313.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v6_question_driven.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_mlflow_tools_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/wrangling_server_v2.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_data_cleaning_server_enhanced.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/orchestrator_server_a2a.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/report_generator_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_knowledge_bank_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_data_wrangling_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_pandas_analyst_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/sql_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_eda_tools_server_8312.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_visualization_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_wrangling_server_8309.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v9_mcp_enhanced.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v8_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v8.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/loader_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/knowledge_bank_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_mlflow_tools_server_8314.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/data_visualization_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_pandas_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_sql_database_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v5_standard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_data_cleaning_verified.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_basic_connection_only.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_wrangling_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/report_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/data_cleaning_server_clean.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_data_analyst_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_feature_engineering_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/h2o_ml_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/shared_knowledge_bank_enhanced.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/mlflow_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/visualization_server_plotly.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_feature_engineering_server_8310.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_complex_request.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_sql_database_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_sql_database_server_8311.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_eda_tools_server_enhanced_v2.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v7_universal.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_analyst_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/fix_get_workflow_summary.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_data_cleaning_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/eda_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_ai_universal_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_data_loader_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_pandas_analyst_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_eda_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_integration_client.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/report_generator_simple_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_pandas_analyst_verified.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_data_cleaning_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/feature_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v7_universal_complete.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_loader_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_data_visualization_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_feature_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_visualization_server_8308.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_eda_tools_server_v2.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_visualization_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/data_cleaning_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_orchestrator_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_loader_server_8307.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_wrangling_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_client.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_eda_tools_server_old.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_orchestrator_v4.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/visualization_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_cleaning_server_8306.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/wrangling_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/data_loader_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/orchestrator_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_feature_engineering_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/shared_knowledge_bank_llm_first.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/test_h2o_ml_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent_simple_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_eda_tools_server_enhanced.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/feature_engineering_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/ai_ds_team_data_cleaning_server_v2.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/artifacts/logs/data_visualization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/parsers/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/parsers/parsers.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/mlflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/dataframe.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/data_loader.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/eda.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/sql.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/h2o.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/tools/mcp_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/a2a_ds_servers/artifacts/logs/data_visualization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/pandas_collaboration_hub.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/multi_dataframe_handler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/natural_language_processor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/pandas_collaboration_hub_enhanced.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/pandas_agent_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/llm.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/visualization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/smart_dataframe.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/connectors/sql_connector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/connectors/base_connector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/core/connectors/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/ee/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/pipelines/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/helpers/df_info.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/helpers/cache.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/helpers/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/pandas_agent/helpers/logger.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/agents/data_loader_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/agents/sql_database_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/agents/data_visualization_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/agents/data_wrangling_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/agents/feature_engineering_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/agents/data_cleaning_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/logging.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/plotly_streamlit.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/matplotlib.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/html.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/messages.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/a2a_message_protocol_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/a2a_message_protocol.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/safe_data_loader.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/plotly.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/utils/regex.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/context_engineering/agent_persona_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/context_engineering/collaboration_rules_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/common/base_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/common/data_processor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/common/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/common/import_utils.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/logs/h2o_automl.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/logs/h2o/h2o_automl.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/templates/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/templates/agent_templates.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/connectors/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/connectors/file_connector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/core/cache_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/core/llm_first_data_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/core/unified_data_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/core/smart_dataframe.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/utils/file_scanner.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/utils/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/utils/encoding_detector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/unified_data_system/executors/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/base/intelligent_data_handler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/base/ai_ds_team_wrapper.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/base/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/base/utils.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/base/streaming_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/base/streaming_wrapper.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/base/intelligent_prompt_handler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/config/agents_config.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/config/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_smart_display.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/conftest.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_message_protocol.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_collaboration_rules_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_ui_playwright.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_registry_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_agent_preloader.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_message_protocol_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_mcp_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_orchestration_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/comprehensive_ai_agent_validation.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_agent_persona_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_system_validation_final.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_python_repl_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_final_system_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_orchestrator_v5_standard.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_orchestrator_v9.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_streaming.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_standard_verification.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_a2a_orchestrator_v9_mcp.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/production_ai_agent_validation.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_ui_components.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_agent_preloader_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_shared_knowledge_bank.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_integration_enhanced_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/test_system_validation_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/simple_workflow_test.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/ui/test_streamlit_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_error_recovery_system.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_user_file_tracker.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_data_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_sse_streaming_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_mcp_server_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_intelligent_result_interpreter.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_unified_data_access.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_advanced_code_tracker.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_mcp_connection_monitor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_streaming_components.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_variable_initialization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_unified_data_infrastructure.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_session_data_manager_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_pandas_ai_universal_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_artifact_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_auto_data_profiler.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_universal_data_analysis_router.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_data_analysis_ui.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_intelligent_file_resolution.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_a2a_sse_streaming.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_a2a_streamlit_client.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_mcp_config_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_performance_metrics_collector.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_timeout_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_html_rendering_fixes.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_agent_registry.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_a2a_real_scenarios.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_data_pipeline_optimization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_specialized_data_agents.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_pandas_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_multi_agent_orchestrator.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/test_a2a_data_analysis_executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/ui/test_rich_content_renderer.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/ui/test_chat_interface.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/ui/test_session_manager.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/unit/core/test_frontend_backend_bridge.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_frontend_backend_integration_fixed.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_ui_performance.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_full_orchestration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_ui_components_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_a2a_compliance.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_complete_workflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_pandas_agent_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_monitoring_system_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_complete_system_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_streaming_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_ui_comprehensive.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/integration/test_multi_agent_system_integration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/verification/universal_engine_verifier.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/performance/test_streaming_performance.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/performance/test_a2a_optimization_suite.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/e2e/test_dashboard_ui_e2e.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/tests/validation/test_phase1_success_metrics.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/smart_router.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/query_router.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/plan_execute/planner.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/plan_execute/replanner.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/plan_execute/final_responder.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/plan_execute/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/plan_execute/router.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/plan_execute/executor.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy/plan_execute/state.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/_version.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/orchestration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/parsers/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/parsers/parsers.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/tools/mlflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/tools/dataframe.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/tools/data_loader.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/tools/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/tools/eda.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/tools/sql.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/tools/h2o.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/ds_agents/eda_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/ds_agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/ds_agents/modeling_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/agents/data_loader_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/agents/sql_database_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/agents/data_visualization_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/agents/data_wrangling_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/agents/feature_engineering_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/agents/data_cleaning_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/utils/logging.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/utils/matplotlib.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/utils/html.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/utils/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/utils/messages.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/utils/plotly.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/utils/regex.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/templates/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/templates/agent_templates.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/ml_agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/ml_agents/h2o_ml_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/ml_agents/mlflow_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/ai_data_science_team/ml_agents/h2o_ml_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/apps/exploratory-copilot-app/app.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/apps/pandas-data-analyst-app/app.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_ds_team/apps/sql-database-agent-app/app.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_defect_pattern_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_statistical_analysis_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_report_writing_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_data_preprocessing_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_advanced_ml_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_process_optimization.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_data_science_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_semiconductor_equipment_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_timeseries_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_semiconductor_process_tools.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_process_control_charts.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_anomaly_detection.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_semiconductor_yield_analysis.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/legacy_mcp_servers/mcp_file_management.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/examples/enhanced_langfuse_integration_example.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/_version.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/orchestration.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/parsers/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/parsers/parsers.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/tools/mlflow.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/tools/dataframe.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/tools/data_loader.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/tools/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/tools/eda.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/tools/sql.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/tools/h2o.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/ds_agents/eda_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/ds_agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/ds_agents/modeling_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/agents/data_loader_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/agents/sql_database_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/agents/data_visualization_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/agents/data_wrangling_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/agents/feature_engineering_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/agents/data_cleaning_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/utils/logging.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/utils/matplotlib.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/utils/html.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/utils/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/utils/messages.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/utils/plotly.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/utils/regex.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/templates/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/templates/agent_templates.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/ml_agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/ml_agents/h2o_ml_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/ml_agents/mlflow_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/ai_data_science_team/ml_agents/h2o_ml_tools_agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/apps/user_app.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_datawrangling_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_datawrangling_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_eda_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_eda_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_sqldatabase_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_sqldatabase_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_dataloader_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_dataloader_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_datacleaning_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_datacleaning_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_datavisualization_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_datavisualization_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_mlflow_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_mlflow_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/pandas_data_analyst_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/pandas_data_analyst_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_featureengineering_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_featureengineering_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_h2o_modeling_agent/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/mcp_agents/mcp_h2o_modeling_agent/agent.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/services/semiconductor_domain_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/services/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/services/domain_analysis_engine.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/services/recommendation/__init__.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_servers/pandas_working.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_servers/pandas_final.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_servers/pandas_working_simple.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_servers/pandas_server.py",
+      "/Users/gukil/CherryAI/CherryAI_0717/a2a_servers/pandas_server_working.py"
+    ],
+    "overall_status": "critical_violations_found",
+    "compliance_score": 0.993
+  },
+  "overall_status": "failed",
+  "summary": {
+    "universal_engine": {
+      "status": "failed",
+      "success_rate": 0.0,
+      "verified_components": 0,
+      "total_components": 26,
+      "failed_components": 26
+    },
+    "hardcoding_validation": {
+      "status": "critical_violations_found",
+      "compliance_score": 0.993,
+      "total_violations": 36,
+      "critical_violations": 31,
+      "scanned_files": 812
+    },
+    "overall_assessment": {
+      "implementation_completeness": "미완료",
+      "architecture_compliance": "준수",
+      "production_readiness": "준비 안됨",
+      "key_achievements": [
+        "✅ Zero-Hardcoding 아키텍처 95% 이상 준수"
+      ],
+      "critical_issues": [
+        "❌ Universal Engine 구현 미완료 (0.0%)",
+        "❌ 치명적 하드코딩 패턴 31개 발견"
+      ],
+      "recommendations": [
+        "🔧 실패한 컴포넌트 수정 및 재테스트 필요",
+        "🚨 치명적 하드코딩 패턴 즉시 제거 필요"
+      ]
+    }
+  }
+}
