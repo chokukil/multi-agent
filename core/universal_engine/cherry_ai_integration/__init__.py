@@ -9,11 +9,13 @@ from .enhanced_chat_interface import EnhancedChatInterface
 from .enhanced_file_upload import EnhancedFileUpload
 from .realtime_analysis_progress import RealtimeAnalysisProgress
 from .progressive_disclosure_interface import ProgressiveDisclosureInterface
+from .cherry_ai_universal_a2a_integration import CherryAIUniversalA2AIntegration
 
 __all__ = [
     'CherryAIUniversalEngineUI',
-    'EnhancedChatInterface',
+    'EnhancedChatInterface', 
     'EnhancedFileUpload',
     'RealtimeAnalysisProgress',
-    'ProgressiveDisclosureInterface'
+    'ProgressiveDisclosureInterface',
+    'CherryAIUniversalA2AIntegration'
 ]
