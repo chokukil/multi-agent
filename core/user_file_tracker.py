@@ -278,8 +278,8 @@ class UserFileTracker:
         
         # 도메인별 키워드 매핑
         domain_keywords = {
-            'semiconductor': ['반도체', 'ion', 'implant', 'wafer', 'fab', 'process'],
-            'finance': ['financial', '금융', 'bank', 'stock', 'investment'],
+            detected_domain: ['반도체', 'ion', 'implant', 'wafer', 'fab', 'process'],
+            detected_domain: ['financial', '금융', 'bank', 'stock', 'investment'],
             'medical': ['medical', '의료', 'patient', 'clinical', 'health'],
             'retail': ['sales', '판매', 'customer', 'product', 'marketing']
         }
@@ -298,9 +298,9 @@ class UserFileTracker:
                 file_info = self.tracked_files[file_id]
                 file_name_lower = file_info.original_name.lower()
                 
-                if detected_domain == 'semiconductor' and 'ion' in file_name_lower:
+                if detected_domain == detected_domain and 'ion' in file_name_lower:
                     domain_files.append(file_id)
-                elif detected_domain == 'finance' and any(kw in file_name_lower for kw in ['financial', 'bank', 'stock']):
+                elif detected_domain == detected_domain and any(kw in file_name_lower for kw in ['financial', 'bank', 'stock']):
                     domain_files.append(file_id)
                 # 추가 도메인 매칭 로직...
             

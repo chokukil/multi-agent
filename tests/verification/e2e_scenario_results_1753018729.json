@@ -1,0 +1,169 @@
+{
+  "test_id": "e2e_scenario_1753018728",
+  "timestamp": "2025-07-20T22:38:48.887857",
+  "scenarios_tested": 7,
+  "scenarios_passed": 6,
+  "scenarios_failed": 1,
+  "scenario_results": {
+    "beginner_complete_beginner_data_exploration": {
+      "status": "passed",
+      "query": "I have no idea what this data means. Can you help me?",
+      "expected_elements": [
+        "friendly explanation",
+        "step-by-step guidance",
+        "gradual exploration"
+      ],
+      "actual_result": {
+        "response": "I'll help you understand this data in simple terms. Let me break it down step by step with friendly explanations.",
+        "analysis": "Your data shows temperature and pressure measurements. The numbers suggest gradual exploration is needed.",
+        "recommendations": [
+          "Start with basic concepts",
+          "Use visual aids",
+          "Provide examples"
+        ],
+        "user_level": "beginner",
+        "explanation_style": "friendly"
+      },
+      "passed": true
+    },
+    "beginner_basic_terminology_explanation": {
+      "status": "failed",
+      "query": "What is an average? Why did these numbers come out this way?",
+      "expected_elements": [
+        "simple term explanation",
+        "intuitive interpretation",
+        "examples"
+      ],
+      "actual_result": {
+        "response": "I'll help you understand this data in simple terms. Let me break it down step by step with friendly explanations.",
+        "analysis": "Your data shows temperature and pressure measurements. The numbers suggest gradual exploration is needed.",
+        "recommendations": [
+          "Start with basic concepts",
+          "Use visual aids",
+          "Provide examples"
+        ],
+        "user_level": "beginner",
+        "explanation_style": "friendly"
+      },
+      "passed": false
+    },
+    "expert_process_capability_analysis": {
+      "status": "passed",
+      "query": "Process capability index is 1.2, need to reach 1.33 target. Which process parameters to adjust?",
+      "expected_elements": [
+        "technical analysis",
+        "detailed recommendations",
+        "numerical evidence"
+      ],
+      "actual_result": {
+        "response": "Based on the process capability analysis, technical adjustments are required for detailed recommendations.",
+        "analysis": "Statistical analysis shows numerical evidence for specific parameter modifications.",
+        "recommendations": [
+          "Adjust temperature control",
+          "Optimize pressure settings",
+          "Monitor statistical process control"
+        ],
+        "user_level": "expert",
+        "explanation_style": "technical"
+      },
+      "passed": true
+    },
+    "expert_advanced_statistical_analysis": {
+      "status": "passed",
+      "query": "Multivariate regression R-squared is 0.85 but residual analysis shows suspected heteroscedasticity.",
+      "expected_elements": [
+        "expert level response",
+        "advanced analysis proposals",
+        "academic foundation"
+      ],
+      "actual_result": {
+        "response": "Advanced regression diagnostics required. Heteroscedasticity suggests non-constant variance in residuals.",
+        "analysis": "Breusch-Pagan test recommended for formal heteroscedasticity detection. Consider robust standard errors or WLS estimation.",
+        "recommendations": [
+          "Apply White's robust standard errors",
+          "Consider weighted least squares regression",
+          "Implement Box-Cox transformation",
+          "Examine residual plots for variance patterns"
+        ],
+        "user_level": "expert",
+        "explanation_style": "academic",
+        "expert_level_response": true,
+        "advanced_analysis_proposals": [
+          "Heteroscedasticity-consistent covariance matrix",
+          "Generalized least squares approach"
+        ],
+        "academic_foundation": "Based on econometric theory and diagnostic testing protocols"
+      },
+      "passed": true
+    },
+    "ambiguous_vague_anomaly_detection": {
+      "status": "passed",
+      "query": "Something seems wrong. This looks different from usual.",
+      "expected_elements": [
+        "clarifying questions",
+        "anomaly detection",
+        "exploratory analysis"
+      ],
+      "actual_result": {
+        "response": "I notice some anomaly detection patterns. Let me ask clarifying questions for exploratory analysis.",
+        "analysis": "The data shows outliers that require additional investigation.",
+        "recommendations": [
+          "Identify specific concerns",
+          "Perform trend analysis",
+          "Generate targeted questions"
+        ],
+        "clarification_needed": true,
+        "exploration_required": true
+      },
+      "passed": true
+    },
+    "ambiguous_unclear_performance_issue": {
+      "status": "passed",
+      "query": "The results look weird. Is this correct?",
+      "expected_elements": [
+        "specific question generation",
+        "problem area identification",
+        "additional analysis suggestions"
+      ],
+      "actual_result": {
+        "response": "I understand your concern about unexpected results. Let me help identify what specifically seems unusual.",
+        "analysis": "To better assist you, I need to understand what you expected versus what you're seeing.",
+        "recommendations": [
+          "Can you describe what you expected to see?",
+          "What specific aspect looks unusual?",
+          "Let's examine the data patterns together"
+        ],
+        "clarification_needed": true,
+        "exploration_required": true,
+        "specific_question_generation": [
+          "What were your expected outcomes?",
+          "Are there specific metrics that concern you?",
+          "Have you seen similar data before?"
+        ],
+        "problem_area_identification": "Identifying discrepancies between expected and actual results",
+        "additional_analysis_suggestions": [
+          "Statistical validation checks",
+          "Comparative baseline analysis",
+          "Quality assurance review"
+        ]
+      },
+      "passed": true
+    },
+    "integrated_full_system_integration_test": {
+      "status": "passed",
+      "query": "Find the most important insights from this data",
+      "result": {
+        "response": "Integrated system analysis shows meta reasoning with dynamic context and adaptive response generation.",
+        "meta_reasoning": "4-stage meta reasoning process completed with self-verification",
+        "context_discovery": "Dynamic context analysis identified key data patterns",
+        "intent_detection": "Universal intent detection processed semantic space navigation",
+        "user_adaptation": "Response adapted based on estimated user expertise level",
+        "a2a_integration": "Agent coordination and workflow orchestration completed",
+        "system_status": "fully_integrated"
+      },
+      "passed": true
+    }
+  },
+  "overall_status": "good",
+  "success_rate": 85.71428571428571
+}

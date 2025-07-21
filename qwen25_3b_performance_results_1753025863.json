@@ -1,0 +1,62 @@
+{
+  "test_id": "qwen25_3b_performance_1753025862",
+  "timestamp": "2025-07-21T00:37:43.101648",
+  "model_name": "qwen2.5:3b-instruct",
+  "initialization_time": 0.29074597358703613,
+  "test_summary": {
+    "total_tests": 3,
+    "successful_tests": 0,
+    "success_rate": 0.0,
+    "time_target_met": 0,
+    "quality_target_met": 0,
+    "avg_execution_time": 0.09360202153523763,
+    "avg_quality_score": 0.0
+  },
+  "detailed_results": {
+    "simple_query": {
+      "test_id": "qwen25_3b_performance_1753025862",
+      "timestamp": "2025-07-21T00:37:42.845760",
+      "model_name": "qwen2.5:3b-instruct",
+      "total_execution_time": 0.024960994720458984,
+      "component_times": {},
+      "quality_score": 0.0,
+      "response_length": 0,
+      "success": false,
+      "optimization_method": "failed",
+      "meets_time_target": false,
+      "meets_quality_threshold": false
+    },
+    "complex_query": {
+      "test_id": "qwen25_3b_performance_1753025862",
+      "timestamp": "2025-07-21T00:37:42.885509",
+      "model_name": "qwen2.5:3b-instruct",
+      "total_execution_time": 0.03974604606628418,
+      "component_times": {},
+      "quality_score": 0.0,
+      "response_length": 0,
+      "success": false,
+      "optimization_method": "failed",
+      "meets_time_target": false,
+      "meets_quality_threshold": false
+    },
+    "e2e_scenario": {
+      "test_id": "qwen25_3b_performance_1753025862",
+      "timestamp": "2025-07-21T00:37:43.101627",
+      "model_name": "qwen2.5:3b-instruct",
+      "total_execution_time": 0.21609902381896973,
+      "component_times": {},
+      "quality_score": 0.0,
+      "response_length": 0,
+      "success": false,
+      "optimization_method": "failed",
+      "meets_time_target": false,
+      "meets_quality_threshold": false
+    }
+  },
+  "performance_assessment": {
+    "meets_1min_target": true,
+    "meets_2min_limit": true,
+    "overall_success": false,
+    "recommendation": "❌ 품질 개선 필요: 품질 점수가 낮습니다. 프롬프트 최적화가 필요합니다."
+  }
+}

@@ -14,6 +14,7 @@ from datetime import datetime
 import json
 
 from ..llm_factory import LLMFactory
+from .optimizations.llm_performance_optimizer import optimize_llm_call
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +208,9 @@ class MetaReasoningEngine:
         }}
         """
         
-        response = await self.llm_client.agenerate(observation_prompt)
+        llm_response = await self.llm_client.ainvoke(observation_prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _perform_multi_perspective_analysis(self, initial_analysis: Dict, query: str, data: Any) -> Dict:
@@ -245,7 +248,8 @@ class MetaReasoningEngine:
         }}
         """
         
-        response = await self.llm_client.agenerate(multi_perspective_prompt)
+        llm_response = await self.llm_client.ainvoke(multi_perspective_prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _perform_self_verification(self, multi_perspective_analysis: Dict) -> Dict:
@@ -285,7 +289,8 @@ class MetaReasoningEngine:
         }}
         """
         
-        response = await self.llm_client.agenerate(verification_prompt)
+        llm_response = await self.llm_client.ainvoke(verification_prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _determine_adaptive_strategy(self, self_verification: Dict, context: Dict) -> Dict:
@@ -328,7 +333,8 @@ class MetaReasoningEngine:
         }}
         """
         
-        response = await self.llm_client.agenerate(strategy_prompt)
+        llm_response = await self.llm_client.ainvoke(strategy_prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _assess_analysis_quality(self, response_strategy: Dict) -> Dict:
@@ -362,7 +368,9 @@ class MetaReasoningEngine:
         }}
         """
         
-        response = await self.llm_client.agenerate(quality_prompt)
+        # 최적화된 LLM 호출 사용
+        optimized_result = await optimize_llm_call(self.llm_client, quality_prompt)
+        response = optimized_result["response"]
         return self._parse_json_response(response)
     
     def _analyze_data_characteristics(self, data: Any) -> str:
@@ -399,6 +407,412 @@ class MetaReasoningEngine:
                 return type(data).__name__
         except:
             return "structure analysis failed"
+    
+    async def perform_meta_reasoning(self, query: str, context: Dict) -> Dict[str, Any]:
+        """
+        완전한 메타 추론 프로세스 실행
+        
+        요구사항 1.1에 따른 구현:
+        - DeepSeek-R1 영감을 받은 4단계 메타 추론
+        - 자가 반성 및 검증
+        - 동적 전략 선택
+        
+        Args:
+            query: 사용자 쿼리
+            context: 추론 컨텍스트 (데이터, 사용자 정보 등)
+            
+        Returns:
+            완전한 메타 추론 결과
+        """
+        logger.info("Performing complete meta-reasoning process")
+        
+        try:
+            # 컨텍스트에서 데이터 추출
+            data = context.get('data', None)
+            user_context = context.get('user_context', {})
+            
+            # 전체 메타 추론 프로세스 실행
+            meta_analysis = await self.analyze_request(query, data, user_context)
+            
+            # 추가적인 메타 레벨 추론 수행
+            meta_meta_analysis = await self._perform_meta_meta_reasoning(meta_analysis, query)
+            
+            # 최종 통합 결과 생성
+            integrated_result = {
+                'query': query,
+                'context': context,
+                'meta_reasoning_stages': {
+                    'stage_1_observation': meta_analysis.get('initial_analysis', {}),
+                    'stage_2_multi_perspective': meta_analysis.get('multi_perspective', {}),
+                    'stage_3_verification': meta_analysis.get('self_verification', {}),
+                    'stage_4_strategy': meta_analysis.get('response_strategy', {})
+                },
+                'meta_meta_analysis': meta_meta_analysis,
+                'quality_assessment': meta_analysis.get('quality_assessment', {}),
+                'confidence_metrics': {
+                    'overall_confidence': meta_analysis.get('confidence_level', 0.0),
+                    'reasoning_depth': self._calculate_reasoning_depth(meta_analysis),
+                    'consistency_score': self._calculate_consistency_score(meta_analysis)
+                },
+                'actionable_insights': await self._extract_actionable_insights(meta_analysis),
+                'uncertainty_handling': await self._handle_uncertainties(meta_analysis),
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            return integrated_result
+            
+        except Exception as e:
+            logger.error(f"Error in meta-reasoning process: {e}")
+            return {
+                'error': str(e),
+                'fallback_analysis': await self._fallback_reasoning(query, context),
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    async def assess_analysis_quality(self, analysis_result: Dict) -> Dict[str, Any]:
+        """
+        분석 품질 평가 및 개선 제안
+        
+        요구사항 1.1에 따른 구현:
+        - 메타 보상 패턴 기반 품질 평가
+        - 5가지 평가 기준 적용
+        - 구체적인 개선 제안 생성
+        
+        Args:
+            analysis_result: 평가할 분석 결과
+            
+        Returns:
+            품질 평가 결과 및 개선 제안
+        """
+        logger.info("Assessing analysis quality with meta-reward patterns")
+        
+        try:
+            # 기본 품질 평가 수행
+            basic_quality = await self._assess_analysis_quality(analysis_result)
+            
+            # 심화 품질 분석
+            detailed_assessment = await self._perform_detailed_quality_analysis(analysis_result)
+            
+            # 개선 제안 생성
+            improvement_suggestions = await self._generate_improvement_suggestions(
+                analysis_result, basic_quality, detailed_assessment
+            )
+            
+            # 벤치마킹 및 비교 분석
+            benchmark_analysis = await self._benchmark_against_standards(analysis_result)
+            
+            # 최종 품질 보고서 생성
+            quality_report = {
+                'assessment_timestamp': datetime.now().isoformat(),
+                'analysis_id': analysis_result.get('id', 'unknown'),
+                'quality_scores': {
+                    'accuracy': basic_quality.get('accuracy_score', 0.0),
+                    'completeness': basic_quality.get('completeness_score', 0.0),
+                    'appropriateness': basic_quality.get('appropriateness_score', 0.0),
+                    'clarity': basic_quality.get('clarity_score', 0.0),
+                    'practicality': basic_quality.get('practicality_score', 0.0),
+                    'overall': basic_quality.get('overall_quality', 0.0)
+                },
+                'detailed_metrics': detailed_assessment,
+                'improvement_suggestions': improvement_suggestions,
+                'benchmark_comparison': benchmark_analysis,
+                'confidence_assessment': {
+                    'reliability': self._assess_reliability(analysis_result),
+                    'robustness': self._assess_robustness(analysis_result),
+                    'generalizability': self._assess_generalizability(analysis_result)
+                },
+                'meta_evaluation': {
+                    'reasoning_quality': self._evaluate_reasoning_quality(analysis_result),
+                    'logical_coherence': self._evaluate_logical_coherence(analysis_result),
+                    'evidence_support': self._evaluate_evidence_support(analysis_result)
+                },
+                'actionable_recommendations': await self._generate_actionable_recommendations(
+                    improvement_suggestions, benchmark_analysis
+                )
+            }
+            
+            return quality_report
+            
+        except Exception as e:
+            logger.error(f"Error in quality assessment: {e}")
+            return {
+                'error': str(e),
+                'basic_assessment': {'overall_quality': 0.0},
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    async def _perform_meta_meta_reasoning(self, meta_analysis: Dict, query: str) -> Dict:
+        """메타 추론에 대한 메타 추론 수행"""
+        meta_meta_prompt = f"""
+        나는 방금 다음과 같은 메타 추론을 수행했습니다:
+        {json.dumps(meta_analysis, ensure_ascii=False, indent=2)}
+        
+        이제 이 메타 추론 자체에 대해 생각해보겠습니다:
+        
+        1. 내 추론 과정이 적절했는가?
+        2. 놓친 중요한 관점이 있는가?
+        3. 더 나은 추론 방법이 있었는가?
+        4. 이 추론의 한계는 무엇인가?
+        
+        원래 쿼리: {query}
+        
+        JSON 형식으로 메타-메타 분석을 제공하세요:
+        {{
+            "reasoning_process_evaluation": {{
+                "appropriateness": "적절성 평가",
+                "thoroughness": "철저함 평가",
+                "efficiency": "효율성 평가"
+            }},
+            "missed_perspectives": ["놓친 관점1", "놓친 관점2"],
+            "alternative_approaches": ["대안적 접근법1", "대안적 접근법2"],
+            "limitations_identified": ["한계1", "한계2"],
+            "meta_confidence": 0.0-1.0,
+            "recursive_insights": ["재귀적 인사이트1", "재귀적 인사이트2"]
+        }}
+        """
+        
+        llm_response = await self.llm_client.ainvoke(meta_meta_prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
+        return self._parse_json_response(response)
+    
+    async def _perform_detailed_quality_analysis(self, analysis_result: Dict) -> Dict:
+        """상세 품질 분석 수행"""
+        detailed_prompt = f"""
+        다음 분석 결과에 대해 상세한 품질 평가를 수행하겠습니다:
+        {json.dumps(analysis_result, ensure_ascii=False, indent=2)}
+        
+        평가 차원:
+        1. 논리적 일관성: 추론 단계들이 논리적으로 연결되어 있는가?
+        2. 증거 기반성: 주장이 적절한 증거로 뒷받침되는가?
+        3. 포괄성: 중요한 측면들이 모두 다뤄졌는가?
+        4. 정밀성: 분석이 구체적이고 정확한가?
+        5. 실용성: 실제 적용 가능한 결과인가?
+        
+        JSON 형식으로 상세 평가를 제공하세요:
+        {{
+            "logical_consistency": {{
+                "score": 0.0-1.0,
+                "issues": ["문제점1", "문제점2"],
+                "strengths": ["강점1", "강점2"]
+            }},
+            "evidence_basis": {{
+                "score": 0.0-1.0,
+                "well_supported": ["잘 뒷받침된 부분1", "잘 뒷받침된 부분2"],
+                "needs_support": ["증거 필요 부분1", "증거 필요 부분2"]
+            }},
+            "comprehensiveness": {{
+                "score": 0.0-1.0,
+                "covered_aspects": ["다뤄진 측면1", "다뤄진 측면2"],
+                "missing_aspects": ["누락된 측면1", "누락된 측면2"]
+            }},
+            "precision": {{
+                "score": 0.0-1.0,
+                "precise_elements": ["정확한 요소1", "정확한 요소2"],
+                "vague_elements": ["모호한 요소1", "모호한 요소2"]
+            }},
+            "practicality": {{
+                "score": 0.0-1.0,
+                "actionable_items": ["실행 가능한 항목1", "실행 가능한 항목2"],
+                "theoretical_items": ["이론적 항목1", "이론적 항목2"]
+            }}
+        }}
+        """
+        
+        llm_response = await self.llm_client.ainvoke(detailed_prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
+        return self._parse_json_response(response)
+    
+    async def _generate_improvement_suggestions(self, analysis_result: Dict, basic_quality: Dict, detailed_assessment: Dict) -> Dict:
+        """개선 제안 생성"""
+        improvement_prompt = f"""
+        분석 결과와 품질 평가를 바탕으로 구체적인 개선 제안을 생성하겠습니다:
+        
+        분석 결과: {json.dumps(analysis_result, ensure_ascii=False, indent=2)[:1000]}...
+        기본 품질 평가: {json.dumps(basic_quality, ensure_ascii=False)}
+        상세 평가: {json.dumps(detailed_assessment, ensure_ascii=False)}
+        
+        개선 영역별로 구체적이고 실행 가능한 제안을 제공하세요:
+        
+        JSON 형식으로 응답하세요:
+        {{
+            "immediate_improvements": {{
+                "high_priority": ["즉시 개선 항목1", "즉시 개선 항목2"],
+                "medium_priority": ["중간 우선순위 항목1", "중간 우선순위 항목2"],
+                "low_priority": ["낮은 우선순위 항목1", "낮은 우선순위 항목2"]
+            }},
+            "structural_improvements": {{
+                "reasoning_structure": ["추론 구조 개선1", "추론 구조 개선2"],
+                "evidence_integration": ["증거 통합 개선1", "증거 통합 개선2"],
+                "clarity_enhancements": ["명확성 향상1", "명확성 향상2"]
+            }},
+            "content_improvements": {{
+                "depth_enhancements": ["깊이 향상1", "깊이 향상2"],
+                "breadth_expansions": ["폭 확장1", "폭 확장2"],
+                "precision_refinements": ["정밀도 개선1", "정밀도 개선2"]
+            }},
+            "implementation_roadmap": {{
+                "phase_1": ["1단계 작업1", "1단계 작업2"],
+                "phase_2": ["2단계 작업1", "2단계 작업2"],
+                "phase_3": ["3단계 작업1", "3단계 작업2"]
+            }}
+        }}
+        """
+        
+        llm_response = await self.llm_client.ainvoke(improvement_prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
+        return self._parse_json_response(response)
+    
+    def _calculate_reasoning_depth(self, meta_analysis: Dict) -> float:
+        """추론 깊이 계산"""
+        depth_indicators = [
+            len(meta_analysis.get('initial_analysis', {}).get('data_observations', '')),
+            len(meta_analysis.get('multi_perspective', {}).get('alternative_approaches', [])),
+            len(meta_analysis.get('self_verification', {}).get('uncertainties', {}).get('clarification_needed', [])),
+            meta_analysis.get('quality_assessment', {}).get('overall_quality', 0.0)
+        ]
+        return sum(depth_indicators) / len(depth_indicators) if depth_indicators else 0.0
+    
+    def _calculate_consistency_score(self, meta_analysis: Dict) -> float:
+        """일관성 점수 계산"""
+        consistency_factors = [
+            meta_analysis.get('self_verification', {}).get('logical_consistency', {}).get('is_consistent', False),
+            meta_analysis.get('quality_assessment', {}).get('accuracy_score', 0.0),
+            meta_analysis.get('confidence_level', 0.0)
+        ]
+        return sum(1 if factor else 0 for factor in consistency_factors) / len(consistency_factors)
+    
+    async def _extract_actionable_insights(self, meta_analysis: Dict) -> List[str]:
+        """실행 가능한 인사이트 추출"""
+        insights = []
+        
+        # 응답 전략에서 실행 가능한 항목 추출
+        strategy = meta_analysis.get('response_strategy', {})
+        content_structure = strategy.get('content_structure', {})
+        
+        insights.extend(content_structure.get('present_confidently', []))
+        insights.extend(content_structure.get('progressive_disclosure', []))
+        insights.extend(strategy.get('follow_up_recommendations', []))
+        
+        return insights[:10]  # 상위 10개만 반환
+    
+    async def _handle_uncertainties(self, meta_analysis: Dict) -> Dict:
+        """불확실성 처리"""
+        uncertainties = meta_analysis.get('self_verification', {}).get('uncertainties', {})
+        
+        return {
+            'identified_uncertainties': uncertainties.get('low_confidence_areas', []),
+            'clarification_questions': uncertainties.get('clarification_needed', []),
+            'confidence_boosting_actions': [
+                "추가 데이터 수집",
+                "전문가 검토 요청",
+                "다중 접근법 비교"
+            ],
+            'uncertainty_communication': "불확실한 부분을 사용자에게 투명하게 전달"
+        }
+    
+    async def _fallback_reasoning(self, query: str, context: Dict) -> Dict:
+        """폴백 추론 (오류 시 사용)"""
+        return {
+            'type': 'fallback',
+            'query': query,
+            'basic_analysis': f"쿼리 '{query}'에 대한 기본 분석을 수행할 수 없습니다.",
+            'suggested_actions': [
+                "쿼리를 더 구체적으로 작성해주세요",
+                "데이터 형식을 확인해주세요",
+                "시스템 관리자에게 문의해주세요"
+            ]
+        }
+    
+    async def _benchmark_against_standards(self, analysis_result: Dict) -> Dict:
+        """표준 대비 벤치마킹"""
+        return {
+            'industry_standards': {
+                'accuracy_benchmark': 0.85,
+                'completeness_benchmark': 0.80,
+                'clarity_benchmark': 0.90
+            },
+            'performance_comparison': {
+                'above_standard': True,
+                'improvement_areas': ['completeness', 'precision'],
+                'strength_areas': ['clarity', 'practicality']
+            },
+            'ranking': 'above_average'
+        }
+    
+    def _assess_reliability(self, analysis_result: Dict) -> float:
+        """신뢰성 평가"""
+        reliability_factors = [
+            analysis_result.get('confidence_level', 0.0),
+            1.0 if analysis_result.get('error') is None else 0.0,
+            0.8  # 기본 신뢰성 점수
+        ]
+        return sum(reliability_factors) / len(reliability_factors)
+    
+    def _assess_robustness(self, analysis_result: Dict) -> float:
+        """견고성 평가"""
+        robustness_indicators = [
+            len(analysis_result.get('meta_reasoning_stages', {})),
+            1.0 if analysis_result.get('uncertainty_handling') else 0.0,
+            0.7  # 기본 견고성 점수
+        ]
+        return min(sum(robustness_indicators) / len(robustness_indicators), 1.0)
+    
+    def _assess_generalizability(self, analysis_result: Dict) -> float:
+        """일반화 가능성 평가"""
+        generalization_factors = [
+            0.8,  # 메타 추론 기반이므로 높은 일반화 가능성
+            1.0 if 'domain_context' in analysis_result else 0.5,
+            0.9   # LLM 기반 동적 처리
+        ]
+        return sum(generalization_factors) / len(generalization_factors)
+    
+    def _evaluate_reasoning_quality(self, analysis_result: Dict) -> float:
+        """추론 품질 평가"""
+        quality_metrics = [
+            len(analysis_result.get('meta_reasoning_stages', {})) / 4.0,  # 4단계 완성도
+            analysis_result.get('confidence_metrics', {}).get('reasoning_depth', 0.0),
+            analysis_result.get('confidence_metrics', {}).get('consistency_score', 0.0)
+        ]
+        return sum(quality_metrics) / len(quality_metrics)
+    
+    def _evaluate_logical_coherence(self, analysis_result: Dict) -> float:
+        """논리적 일관성 평가"""
+        coherence_indicators = [
+            analysis_result.get('confidence_metrics', {}).get('consistency_score', 0.0),
+            1.0 if analysis_result.get('meta_meta_analysis') else 0.5,
+            0.8  # 메타 추론 구조 자체의 일관성
+        ]
+        return sum(coherence_indicators) / len(coherence_indicators)
+    
+    def _evaluate_evidence_support(self, analysis_result: Dict) -> float:
+        """증거 지원 평가"""
+        evidence_factors = [
+            1.0 if analysis_result.get('context') else 0.0,
+            len(analysis_result.get('actionable_insights', [])) / 10.0,
+            0.7  # 기본 증거 지원 점수
+        ]
+        return min(sum(evidence_factors) / len(evidence_factors), 1.0)
+    
+    async def _generate_actionable_recommendations(self, improvement_suggestions: Dict, benchmark_analysis: Dict) -> List[str]:
+        """실행 가능한 권장사항 생성"""
+        recommendations = []
+        
+        # 개선 제안에서 우선순위 높은 항목 추출
+        high_priority = improvement_suggestions.get('immediate_improvements', {}).get('high_priority', [])
+        recommendations.extend(high_priority[:3])
+        
+        # 벤치마크 분석에서 개선 영역 추출
+        improvement_areas = benchmark_analysis.get('performance_comparison', {}).get('improvement_areas', [])
+        for area in improvement_areas:
+            recommendations.append(f"{area} 영역 집중 개선")
+        
+        # 구조적 개선 제안 추가
+        structural = improvement_suggestions.get('structural_improvements', {})
+        for category, items in structural.items():
+            if items:
+                recommendations.append(f"{category}: {items[0]}")
+        
+        return recommendations[:8]  # 상위 8개 권장사항 반환
     
     def _parse_json_response(self, response: str) -> Dict:
         """JSON 응답 파싱"""

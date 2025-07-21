@@ -237,8 +237,11 @@ class SemiconductorDomainEngine:
             
         except Exception as e:
             logger.error(f"반도체 컨텍스트 분석 실패: {e}")
+            # LLM 기반 동적 프로세스 타입 결정
+            process_type = await self._determine_process_type_dynamically(data, query)
+            
             return SemiconductorContext(
-                process_type="general_semiconductor",
+                process_type=process_type,
                 analysis_category="basic_analysis", 
                 data_characteristics={"measurement_type": "unknown"},
                 confidence_score=0.5,
@@ -429,6 +432,41 @@ class SemiconductorDomainEngine:
                     estimated_complexity="medium"
                 )
             ]
+    
+    async def _determine_process_type_dynamically(self, data: Any, query: str) -> str:
+        """LLM 기반 동적 프로세스 타입 결정"""
+        try:
+            prompt = f"""
+            Based on the data characteristics and user query, determine the most appropriate semiconductor process type.
+            
+            Data info: {str(data)[:500]}
+            User query: {query}
+            
+            Analyze and return the most suitable process type from these categories:
+            - ion_implantation
+            - lithography  
+            - etching
+            - deposition
+            - metrology
+            - yield_analysis
+            - general_process
+            
+            Return only the process type name.
+            """
+            
+            response = await self._call_llm(prompt)
+            process_type = response.strip().lower()
+            
+            # 유효한 프로세스 타입인지 확인
+            valid_types = ["ion_implantation", "lithography", "etching", "deposition", "metrology", "yield_analysis", "general_process"]
+            if process_type in valid_types:
+                return process_type
+            else:
+                return "general_process"
+                
+        except Exception as e:
+            logger.warning(f"Dynamic process type determination failed: {e}")
+            return "general_process"
     
     def _get_defect_analysis_prompt(self) -> str:
         """불량 분석 전문 프롬프트"""

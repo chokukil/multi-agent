@@ -1,0 +1,95 @@
+{
+  "test_id": "practical_llm_first_e2e_1753021153",
+  "timestamp": "2025-07-20T23:19:13.938057",
+  "approach": "Practical LLM-First Verification (Architecture + Sampling)",
+  "verification_areas": {
+    "llm_first_architecture": {
+      "tested": true,
+      "passed": true,
+      "details": [
+        {
+          "component": "LLMFactory",
+          "check": "LLM client creation",
+          "result": "passed",
+          "time": 0.03853487968444824,
+          "details": "Successfully created ChatOllama"
+        },
+        {
+          "component": "UniversalQueryProcessor",
+          "check": "LLM client integration",
+          "result": "passed",
+          "time": 0.1388859748840332,
+          "details": "LLM client: Yes"
+        },
+        {
+          "component": "MetaReasoningEngine",
+          "check": "LLM client integration",
+          "result": "passed",
+          "time": 0.037344932556152344,
+          "details": "LLM client: Yes"
+        },
+        {
+          "component": "AdaptiveUserUnderstanding",
+          "check": "LLM client integration",
+          "result": "passed",
+          "time": 0.03301405906677246,
+          "details": "LLM client: Yes"
+        }
+      ]
+    },
+    "zero_hardcoding_compliance": {
+      "tested": true,
+      "passed": true,
+      "details": {
+        "compliance_score": 100.0,
+        "violations_found": 0,
+        "source_file": "tests/verification/hardcoding_compliance_results_1753019185.json",
+        "timestamp": "2025-07-20T22:46:23.572933"
+      }
+    },
+    "component_integration": {
+      "tested": true,
+      "passed": true,
+      "details": [
+        {
+          "component": "UniversalQueryProcessor",
+          "check": "initialization",
+          "result": "passed",
+          "time": 0.12640786170959473,
+          "details": "ready"
+        },
+        {
+          "component": "UniversalQueryProcessor",
+          "check": "status_check",
+          "result": "passed",
+          "time": 6.914138793945312e-05,
+          "details": "operational"
+        }
+      ]
+    },
+    "llm_based_processing": {
+      "tested": true,
+      "passed": false,
+      "error": "LLM processing timeout"
+    },
+    "dynamic_response_capability": {
+      "tested": true,
+      "passed": true,
+      "details": {
+        "response_time": 1.0696539878845215,
+        "response_length": 37,
+        "dynamic_indicators_found": 3,
+        "response_preview": "Okay, I can process dynamic requests."
+      }
+    }
+  },
+  "sample_scenarios": {
+    "tested": 0,
+    "passed": 0,
+    "failed": 0,
+    "results": {}
+  },
+  "performance_metrics": {},
+  "overall_score": 0.7999999999999999,
+  "overall_status": "acceptable"
+}

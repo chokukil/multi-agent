@@ -110,9 +110,18 @@
   - _Requirements: 10.9_
   - _구현 위치: /core/universal_engine/a2a_integration/a2a_error_handler.py_
 
-### Phase 3: Cherry AI UI/UX 통합 구현
+### Phase 3: LLM Factory 및 Cherry AI UI/UX 통합 구현
 
-- [x] 3. Cherry AI UI 컴포넌트 강화 구현 ✅ 2025-07-20 완료
+- [x] 3. LLM Factory 환경 변수 처리 개선 ✅ 2025-07-19 완료
+  - ✅ LLM_PROVIDER=OLLAMA 환경 변수 우선 처리 로직 구현
+  - ✅ OLLAMA_MODEL 환경 변수 동적 사용 (기본값: okamototk/gemma3-tools:4b)
+  - ✅ 의존성 제거를 위한 내부 헬퍼 함수 직접 구현
+  - ✅ 시스템 추천 로직에서 환경 변수 기반 모델 우선 추천
+  - ✅ 폴백 로직 개선 (OLLAMA 서버 미동작 시 OpenAI 사용)
+  - _Requirements: 5.1_
+  - _구현 위치: /core/universal_engine/llm_factory.py_
+
+- [x] 3.1 Cherry AI UI 컴포넌트 강화 구현 ✅ 2025-07-20 완료
   - ✅ CherryAIUniversalEngineUI 클래스 생성
   - ✅ 기존 ChatGPT 스타일 인터페이스 유지하면서 Universal Engine 기능 추가
   - ✅ 헤더에 Universal Engine 상태 및 A2A 에이전트 수 표시

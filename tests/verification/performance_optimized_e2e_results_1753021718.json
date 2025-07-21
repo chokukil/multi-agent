@@ -1,0 +1,84 @@
+{
+  "test_id": "performance_optimized_e2e_1753021671",
+  "timestamp": "2025-07-20T23:27:51.892694",
+  "approach": "Performance Optimized LLM-First with Advanced Optimization",
+  "optimization_config": {
+    "prompt_compression": true,
+    "caching": true,
+    "batch_processing": true,
+    "timeout_seconds": 8,
+    "parallel_workers": 4
+  },
+  "scenarios_tested": 3,
+  "scenarios_passed": 0,
+  "scenarios_failed": 3,
+  "scenario_results": {
+    "simple_question": {
+      "status": "timeout",
+      "execution_time": 6.002320289611816,
+      "timeout_limit": 6,
+      "scenario": {
+        "name": "simple_question",
+        "query": "What is AI?",
+        "context": "Basic AI question",
+        "timeout": 6,
+        "success_criteria": [
+          "clear explanation",
+          "appropriate length"
+        ]
+      }
+    },
+    "technical_analysis": {
+      "status": "timeout",
+      "execution_time": 8.002324104309082,
+      "timeout_limit": 8,
+      "scenario": {
+        "name": "technical_analysis",
+        "query": "Compare supervised vs unsupervised learning",
+        "context": "Technical comparison request",
+        "timeout": 8,
+        "success_criteria": [
+          "technical accuracy",
+          "clear comparison",
+          "examples"
+        ]
+      }
+    },
+    "complex_reasoning": {
+      "status": "timeout",
+      "execution_time": 10.001899003982544,
+      "timeout_limit": 10,
+      "scenario": {
+        "name": "complex_reasoning",
+        "query": "Design a machine learning pipeline for customer churn prediction",
+        "context": "Complex ML design task",
+        "timeout": 10,
+        "success_criteria": [
+          "systematic approach",
+          "technical depth",
+          "practical steps"
+        ]
+      }
+    }
+  },
+  "performance_metrics": {
+    "warmup_time": 22.123162746429443,
+    "avg_scenario_time": 8.002181132634481,
+    "max_scenario_time": 10.001899003982544,
+    "min_scenario_time": 6.002320289611816,
+    "total_execution_time": 24.006543397903442
+  },
+  "optimization_metrics": {
+    "total_requests": 3,
+    "cache_hits": 0,
+    "compression_savings": 0.19047619047619047,
+    "avg_response_time": 6.086307048797607,
+    "total_response_time": 6.086307048797607,
+    "cache_hit_rate_percent": 0.0,
+    "avg_compression_saving_percent": 6.349206349206349,
+    "cache_size": 1,
+    "compression_cache_size": 3
+  },
+  "overall_status": "needs_improvement",
+  "success_rate": 0.0
+}

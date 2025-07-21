@@ -1,0 +1,822 @@
+{
+  "test_id": "final_integration_1753053923",
+  "timestamp": "2025-07-21T08:25:23.537342",
+  "tests": {
+    "component_verification": {
+      "total_components": 26,
+      "successful_instantiations": 0,
+      "success_rate": 0.0,
+      "status": "fail",
+      "details": {
+        "timestamp": "2025-07-20",
+        "critical_issues": [
+          "INSTANTIATION FAILED: LLMBasedAgentSelector - LLMBasedAgentSelector.__init__() missing 1 required positional argument: 'discovery_system'",
+          "INSTANTIATION FAILED: A2AWorkflowOrchestrator - A2AWorkflowOrchestrator.__init__() missing 1 required positional argument: 'communication_protocol'"
+        ],
+        "component_status": {},
+        "import_analysis": {
+          "UniversalQueryProcessor": {
+            "import_success": true,
+            "module_path": "core.universal_engine.universal_query_processor",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "MetaReasoningEngine": {
+            "import_success": true,
+            "module_path": "core.universal_engine.meta_reasoning_engine",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "DynamicContextDiscovery": {
+            "import_success": true,
+            "module_path": "core.universal_engine.dynamic_context_discovery",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "AdaptiveUserUnderstanding": {
+            "import_success": true,
+            "module_path": "core.universal_engine.adaptive_user_understanding",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "UniversalIntentDetection": {
+            "import_success": true,
+            "module_path": "core.universal_engine.universal_intent_detection",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "A2AAgentDiscoverySystem": {
+            "import_success": true,
+            "module_path": "core.universal_engine.a2a_integration.a2a_agent_discovery",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "LLMBasedAgentSelector": {
+            "import_success": true,
+            "module_path": "core.universal_engine.a2a_integration.llm_based_agent_selector",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "A2AWorkflowOrchestrator": {
+            "import_success": true,
+            "module_path": "core.universal_engine.a2a_integration.a2a_workflow_orchestrator",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "BeginnerScenarioHandler": {
+            "import_success": true,
+            "module_path": "core.universal_engine.scenario_handlers.beginner_scenario_handler",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          },
+          "ExpertScenarioHandler": {
+            "import_success": true,
+            "module_path": "core.universal_engine.scenario_handlers.expert_scenario_handler",
+            "class_found": true,
+            "class_type": "<class 'type'>",
+            "error": null
+          }
+        },
+        "file_existence_check": {
+          "UniversalQueryProcessor": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/universal_query_processor.py",
+            "exists": true,
+            "size": 19502
+          },
+          "MetaReasoningEngine": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/meta_reasoning_engine.py",
+            "exists": true,
+            "size": 36994
+          },
+          "DynamicContextDiscovery": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/dynamic_context_discovery.py",
+            "exists": true,
+            "size": 40427
+          },
+          "AdaptiveUserUnderstanding": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/adaptive_user_understanding.py",
+            "exists": true,
+            "size": 41915
+          },
+          "UniversalIntentDetection": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/universal_intent_detection.py",
+            "exists": true,
+            "size": 39732
+          },
+          "A2AAgentDiscoverySystem": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_agent_discovery.py",
+            "exists": true,
+            "size": 45880
+          },
+          "LLMBasedAgentSelector": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/llm_based_agent_selector.py",
+            "exists": true,
+            "size": 16507
+          },
+          "A2AWorkflowOrchestrator": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/a2a_integration/a2a_workflow_orchestrator.py",
+            "exists": true,
+            "size": 34570
+          },
+          "BeginnerScenarioHandler": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/scenario_handlers/beginner_scenario_handler.py",
+            "exists": true,
+            "size": 18902
+          },
+          "ExpertScenarioHandler": {
+            "path": "/Users/gukil/CherryAI/CherryAI_0717/core/universal_engine/scenario_handlers/expert_scenario_handler.py",
+            "exists": true,
+            "size": 29810
+          }
+        },
+        "class_definition_check": {
+          "UniversalQueryProcessor": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_initialize_llm",
+              "_verify_dependencies",
+              "get_status",
+              "get_system_status",
+              "handle_clarification",
+              "initialize",
+              "process_query",
+              "process_with_streaming"
+            ],
+            "method_count": 9,
+            "docstring": "\n    완전 범용 쿼리 처리기\n    - 어떤 도메인 가정도 하지 않음\n    - 순수 LLM 기반 동적 분석\n    - 모든 처리 과정을 메타 추론으로 결정\n    ",
+            "mro": [
+              "UniversalQueryProcessor",
+              "object"
+            ]
+          },
+          "MetaReasoningEngine": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_analyze_data_characteristics",
+              "_assess_analysis_quality",
+              "_assess_generalizability",
+              "_assess_reliability",
+              "_assess_robustness",
+              "_benchmark_against_standards",
+              "_calculate_consistency_score",
+              "_calculate_reasoning_depth",
+              "_determine_adaptive_strategy",
+              "_evaluate_evidence_support",
+              "_evaluate_logical_coherence",
+              "_evaluate_reasoning_quality",
+              "_extract_actionable_insights",
+              "_fallback_reasoning",
+              "_generate_actionable_recommendations",
+              "_generate_improvement_suggestions",
+              "_get_data_size",
+              "_get_data_structure",
+              "_handle_uncertainties",
+              "_load_chain_of_thought_pattern",
+              "_load_meta_rewarding_pattern",
+              "_load_self_reflection_pattern",
+              "_load_zero_shot_pattern",
+              "_parse_json_response",
+              "_perform_detailed_quality_analysis",
+              "_perform_initial_observation",
+              "_perform_meta_meta_reasoning",
+              "_perform_multi_perspective_analysis",
+              "_perform_self_verification",
+              "analyze_request",
+              "assess_analysis_quality",
+              "perform_meta_reasoning"
+            ],
+            "method_count": 33,
+            "docstring": "\n    메타 추론 엔진 - 생각에 대해 생각하기\n    DeepSeek-R1 영감을 받은 자가 반성 추론 시스템\n    ",
+            "mro": [
+              "MetaReasoningEngine",
+              "object"
+            ]
+          },
+          "DynamicContextDiscovery": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_analyze_column_patterns",
+              "_analyze_data_characteristics",
+              "_analyze_dict_structure",
+              "_analyze_query_intent",
+              "_analyze_relationships",
+              "_analyze_value_patterns",
+              "_assess_data_quality",
+              "_assess_domain_confidence",
+              "_assess_uncertainty",
+              "_calculate_alignment_score",
+              "_calculate_analysis_confidence",
+              "_calculate_data_complexity",
+              "_determine_clarification_needs",
+              "_evaluate_analysis_potential",
+              "_extract_domain_hints",
+              "_extract_patterns_and_terminology",
+              "_fallback_data_analysis",
+              "_fallback_domain_detection",
+              "_generate_analysis_recommendations",
+              "_identify_relevant_methodologies",
+              "_infer_domain_context",
+              "_interpret_terminology",
+              "_llm_analyze_characteristics",
+              "_parse_json_response",
+              "_perform_deep_pattern_analysis",
+              "_perform_domain_detection",
+              "_suggest_domain_analysis_strategy",
+              "_suggest_fallback_strategies",
+              "_suggest_risk_mitigation",
+              "analyze_data_characteristics",
+              "detect_domain",
+              "discover_context",
+              "refine_context_with_feedback"
+            ],
+            "method_count": 34,
+            "docstring": "\n    동적 컨텍스트 발견 시스템\n    - 데이터로부터 도메인과 요구사항 자동 발견\n    - 패턴 인식 및 용어 분석\n    - 점진적 컨텍스트 구축\n    ",
+            "mro": [
+              "DynamicContextDiscovery",
+              "object"
+            ]
+          },
+          "AdaptiveUserUnderstanding": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_analyze_complexity_progression",
+              "_analyze_interaction_patterns",
+              "_analyze_language_usage",
+              "_analyze_new_interaction",
+              "_analyze_terminology_usage",
+              "_analyze_topic_consistency",
+              "_apply_additional_adaptations",
+              "_assess_formality",
+              "_assess_query_complexity",
+              "_calculate_profile_stability",
+              "_clean_adapted_content",
+              "_count_technical_indicators",
+              "_create_comprehensive_profile",
+              "_generate_next_interaction_guidance",
+              "_get_adaptation_guidelines",
+              "_get_adaptation_strategy",
+              "_get_default_profile",
+              "_get_or_create_user_profile",
+              "_identify_learning_indicators",
+              "_identify_profile_changes",
+              "_is_profile_stable",
+              "_make_more_concise",
+              "_parse_json_response",
+              "_perform_profile_update",
+              "_perform_refined_level_estimation",
+              "_reevaluate_adaptation_strategy",
+              "_reevaluate_user_profile",
+              "_update_learning_patterns",
+              "adapt_communication_style",
+              "adapt_response",
+              "analyze_user",
+              "analyze_user_expertise",
+              "estimate_user_level",
+              "update_user_model",
+              "update_user_profile"
+            ],
+            "method_count": 36,
+            "docstring": "\n    적응형 사용자 이해 시스템\n    - 상호작용을 통한 사용자 수준 파악\n    - 동적 커뮤니케이션 스타일 조정\n    - 지속적인 사용자 모델 개선\n    ",
+            "mro": [
+              "AdaptiveUserUnderstanding",
+              "object"
+            ]
+          },
+          "UniversalIntentDetection": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_analyze_conceptual_connections",
+              "_analyze_contextual_meanings",
+              "_analyze_query_semantics",
+              "_analyze_semantic_hierarchy",
+              "_assess_clarification_urgency",
+              "_calculate_action_distribution",
+              "_calculate_ambiguity_score",
+              "_calculate_clarity_distribution",
+              "_calculate_intent_confidence",
+              "_calculate_interpretation_confidence",
+              "_calculate_semantic_richness",
+              "_detect_and_classify_ambiguity",
+              "_determine_response_strategy",
+              "_develop_progressive_clarification_strategy",
+              "_explore_semantic_space",
+              "_explore_semantic_vectors",
+              "_extract_explicit_intent",
+              "_fallback_clarification",
+              "_fallback_semantic_analysis",
+              "_find_optimal_semantic_paths",
+              "_generate_clarification_questions",
+              "_generate_multiple_interpretations",
+              "_get_common_implicit_needs",
+              "_infer_implicit_intent",
+              "_parse_json_response",
+              "_prioritize_interpretations",
+              "_recommend_clarification_next_steps",
+              "_recommend_semantic_approaches",
+              "_suggest_uncertainty_handling",
+              "analyze_intent_patterns",
+              "analyze_semantic_space",
+              "clarify_ambiguity",
+              "detect_intent",
+              "get_intent_statistics",
+              "refine_intent_with_clarification"
+            ],
+            "method_count": 36,
+            "docstring": "\n    범용 의도 감지 시스템\n    - 템플릿이나 카테고리 없이 의도 파악\n    - 의미 공간에서의 동적 탐색\n    - 다층적 의도 이해\n    ",
+            "mro": [
+              "UniversalIntentDetection",
+              "object"
+            ]
+          },
+          "A2AAgentDiscoverySystem": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_analyze_agent_errors",
+              "_analyze_agent_network",
+              "_analyze_performance_trends",
+              "_calculate_availability_metrics",
+              "_calculate_capability_coverage",
+              "_calculate_compliance_score",
+              "_check_agent_at_port",
+              "_check_agent_metadata",
+              "_check_api_format",
+              "_check_basic_connectivity",
+              "_check_performance_metrics",
+              "_check_security_compliance",
+              "_check_standard_endpoints",
+              "_classify_agents",
+              "_collect_agent_details",
+              "_collect_performance_metrics",
+              "_continuous_health_monitoring",
+              "_fallback_discovery",
+              "_generate_agent_recommendations",
+              "_generate_health_alerts",
+              "_generate_health_recommendations",
+              "_generate_validation_recommendations",
+              "_perform_basic_performance_test",
+              "_store_monitoring_history",
+              "discover_agents",
+              "discover_available_agents",
+              "get_agent_statistics",
+              "get_agents_by_capability",
+              "get_available_agents",
+              "health_check_agent",
+              "monitor_agent_health",
+              "rediscover_agents",
+              "register_manual_agent",
+              "remove_agent",
+              "start_discovery",
+              "stop_discovery",
+              "validate_agent_endpoint"
+            ],
+            "method_count": 38,
+            "docstring": "\n    A2A 에이전트 자동 발견 및 관리 시스템\n    - 포트 스캔을 통한 에이전트 발견\n    - 헬스 체크 및 상태 모니터링\n    - 동적 에이전트 등록/해제\n    ",
+            "mro": [
+              "A2AAgentDiscoverySystem",
+              "object"
+            ]
+          },
+          "LLMBasedAgentSelector": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_generate_selection_criteria",
+              "_llm_select_agents",
+              "_optimize_execution_plan",
+              "_parse_json_response",
+              "get_selection_statistics",
+              "select_agents_for_query",
+              "select_fallback_agents"
+            ],
+            "method_count": 8,
+            "docstring": "\n    LLM 기반 동적 에이전트 선택기\n    - 하드코딩된 규칙 없이 LLM이 최적 에이전트 조합 결정\n    - 메타 분석 결과와 사용자 요구사항 기반 동적 선택\n    - 실행 계획 최적화 및 병렬 처리 식별\n    ",
+            "mro": [
+              "LLMBasedAgentSelector",
+              "object"
+            ]
+          },
+          "A2AWorkflowOrchestrator": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_async_generator_to_list",
+              "_create_workflow_tasks",
+              "_execute_single_task",
+              "_execute_single_task_streaming",
+              "_execute_tasks",
+              "_execute_tasks_streaming",
+              "_get_execution_groups",
+              "_get_most_used_agents",
+              "_integrate_results",
+              "_validate_dependencies",
+              "_wait_for_dependencies",
+              "coordinate_agents",
+              "execute_agent_workflow",
+              "execute_workflow",
+              "execute_workflow_with_streaming",
+              "get_workflow_statistics",
+              "get_workflow_status",
+              "manage_dependencies"
+            ],
+            "method_count": 19,
+            "docstring": "\n    A2A 워크플로우 조정자\n    - 에이전트 간 복잡한 워크플로우 관리\n    - 병렬/순차 실행 최적화\n    - 실시간 진행 상황 추적\n    - 오류 처리 및 복구\n    ",
+            "mro": [
+              "A2AWorkflowOrchestrator",
+              "object"
+            ]
+          },
+          "BeginnerScenarioHandler": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_analyze_data_for_beginners",
+              "_create_fallback_response",
+              "_create_learning_path",
+              "_extract_basic_data_info",
+              "_generate_beginner_guidance",
+              "_generate_encouragement",
+              "_parse_json_response",
+              "_recommend_learning_resources",
+              "_record_interaction",
+              "_suggest_next_steps",
+              "get_beginner_statistics",
+              "handle_confused_data_scenario",
+              "handle_learning_progression"
+            ],
+            "method_count": 14,
+            "docstring": "\n    초보자 시나리오 핸들러\n    - 기술 용어 없는 쉬운 설명\n    - 단계별 학습 가이드\n    - 비유와 예시 중심 설명\n    - 격려와 동기부여 포함\n    ",
+            "mro": [
+              "BeginnerScenarioHandler",
+              "object"
+            ]
+          },
+          "ExpertScenarioHandler": {
+            "is_class": true,
+            "methods": [
+              "__init__",
+              "_analyze_process_capability",
+              "_assess_expert_confidence",
+              "_calculate_advanced_metrics",
+              "_calculate_sigma_reduction",
+              "_calculate_technical_metrics",
+              "_extract_domain_insights",
+              "_generate_domain_recommendations",
+              "_generate_expert_recommendations",
+              "_generate_methodological_notes",
+              "_generate_peer_review_points",
+              "_initialize_domain_knowledge",
+              "_parse_json_response",
+              "_perform_domain_analysis",
+              "_record_expert_session",
+              "_review_methodology",
+              "_suggest_research_directions",
+              "get_expert_statistics",
+              "handle_general_expert_query",
+              "handle_process_capability_scenario"
+            ],
+            "method_count": 20,
+            "docstring": "\n    전문가 시나리오 핸들러\n    - 고도의 기술적 정확성\n    - 도메인별 전문 지식 활용\n    - 정밀한 통계 분석\n    - 실행 가능한 전문가 권장사항\n    ",
+            "mro": [
+              "ExpertScenarioHandler",
+              "object"
+            ]
+          }
+        },
+        "instantiation_test": {
+          "UniversalQueryProcessor": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.universal_query_processor.UniversalQueryProcessor'>",
+            "instance_methods": [
+              "get_status",
+              "get_system_status",
+              "handle_clarification",
+              "initialization_status",
+              "initialize",
+              "knowledge_orchestrator",
+              "learning_system",
+              "llm_client",
+              "meta_reasoning_engine",
+              "process_query",
+              "process_with_streaming",
+              "response_generator"
+            ],
+            "error": null
+          },
+          "MetaReasoningEngine": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.meta_reasoning_engine.MetaReasoningEngine'>",
+            "instance_methods": [
+              "analyze_request",
+              "assess_analysis_quality",
+              "llm_client",
+              "perform_meta_reasoning",
+              "reasoning_patterns"
+            ],
+            "error": null
+          },
+          "DynamicContextDiscovery": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.dynamic_context_discovery.DynamicContextDiscovery'>",
+            "instance_methods": [
+              "analyze_data_characteristics",
+              "detect_domain",
+              "discover_context",
+              "discovered_contexts",
+              "llm_client",
+              "refine_context_with_feedback",
+              "terminology_patterns"
+            ],
+            "error": null
+          },
+          "AdaptiveUserUnderstanding": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.adaptive_user_understanding.AdaptiveUserUnderstanding'>",
+            "instance_methods": [
+              "adapt_communication_style",
+              "adapt_response",
+              "analyze_user",
+              "analyze_user_expertise",
+              "estimate_user_level",
+              "interaction_history",
+              "llm_client",
+              "update_user_model",
+              "update_user_profile",
+              "user_models"
+            ],
+            "error": null
+          },
+          "UniversalIntentDetection": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.universal_intent_detection.UniversalIntentDetection'>",
+            "instance_methods": [
+              "analyze_intent_patterns",
+              "analyze_semantic_space",
+              "clarify_ambiguity",
+              "detect_intent",
+              "get_intent_statistics",
+              "intent_history",
+              "llm_client",
+              "refine_intent_with_clarification",
+              "semantic_cache"
+            ],
+            "error": null
+          },
+          "A2AAgentDiscoverySystem": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.a2a_integration.a2a_agent_discovery.A2AAgentDiscoverySystem'>",
+            "instance_methods": [
+              "discover_agents",
+              "discover_available_agents",
+              "discovered_agents",
+              "get_agent_statistics",
+              "get_agents_by_capability",
+              "get_available_agents",
+              "health_check_agent",
+              "health_check_interval",
+              "host",
+              "monitor_agent_health",
+              "port_range",
+              "rediscover_agents",
+              "register_manual_agent",
+              "remove_agent",
+              "start_discovery",
+              "stop_discovery",
+              "timeout",
+              "validate_agent_endpoint"
+            ],
+            "error": null
+          },
+          "LLMBasedAgentSelector": {
+            "success": false,
+            "error": "LLMBasedAgentSelector.__init__() missing 1 required positional argument: 'discovery_system'",
+            "error_type": "TypeError",
+            "traceback": "Traceback (most recent call last):\n  File \"/Users/gukil/CherryAI/CherryAI_0717/tests/verification/critical_component_diagnosis.py\", line 201, in _test_instantiation\n    instance = component_class()\n               ^^^^^^^^^^^^^^^^^\nTypeError: LLMBasedAgentSelector.__init__() missing 1 required positional argument: 'discovery_system'\n"
+          },
+          "A2AWorkflowOrchestrator": {
+            "success": false,
+            "error": "A2AWorkflowOrchestrator.__init__() missing 1 required positional argument: 'communication_protocol'",
+            "error_type": "TypeError",
+            "traceback": "Traceback (most recent call last):\n  File \"/Users/gukil/CherryAI/CherryAI_0717/tests/verification/critical_component_diagnosis.py\", line 201, in _test_instantiation\n    instance = component_class()\n               ^^^^^^^^^^^^^^^^^\nTypeError: A2AWorkflowOrchestrator.__init__() missing 1 required positional argument: 'communication_protocol'\n"
+          },
+          "BeginnerScenarioHandler": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.scenario_handlers.beginner_scenario_handler.BeginnerScenarioHandler'>",
+            "instance_methods": [
+              "get_beginner_statistics",
+              "handle_confused_data_scenario",
+              "handle_learning_progression",
+              "interaction_history",
+              "learning_progress",
+              "llm_client"
+            ],
+            "error": null
+          },
+          "ExpertScenarioHandler": {
+            "success": true,
+            "instance_type": "<class 'core.universal_engine.scenario_handlers.expert_scenario_handler.ExpertScenarioHandler'>",
+            "instance_methods": [
+              "domain_knowledge",
+              "expert_sessions",
+              "get_expert_statistics",
+              "handle_general_expert_query",
+              "handle_process_capability_scenario",
+              "llm_client",
+              "peer_review_history"
+            ],
+            "error": null
+          }
+        },
+        "method_validation": {
+          "UniversalQueryProcessor": {
+            "initialize": {
+              "exists": true,
+              "callable": true,
+              "signature": "() -> Dict[str, Any]"
+            },
+            "process_query": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str, data: Any, context: Dict = None) -> Dict"
+            },
+            "get_status": {
+              "exists": true,
+              "callable": true,
+              "signature": "() -> Dict[str, Any]"
+            }
+          },
+          "MetaReasoningEngine": {
+            "analyze_request": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str, data: Any, context: Dict) -> Dict"
+            },
+            "perform_meta_reasoning": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str, context: Dict) -> Dict[str, Any]"
+            },
+            "assess_analysis_quality": {
+              "exists": true,
+              "callable": true,
+              "signature": "(analysis_result: Dict) -> Dict[str, Any]"
+            }
+          },
+          "DynamicContextDiscovery": {
+            "discover_context": {
+              "exists": true,
+              "callable": true,
+              "signature": "(data: Any, query: str = None) -> Dict"
+            },
+            "analyze_data_characteristics": {
+              "exists": true,
+              "callable": true,
+              "signature": "(data: Any) -> Dict[str, Any]"
+            },
+            "detect_domain": {
+              "exists": true,
+              "callable": true,
+              "signature": "(data: Any, query: str) -> Dict[str, Any]"
+            }
+          },
+          "AdaptiveUserUnderstanding": {
+            "analyze_user": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str, data: Dict = None, context: Dict = None) -> Dict"
+            },
+            "estimate_user_level": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str, interaction_history: List) -> str"
+            },
+            "adapt_response": {
+              "exists": true,
+              "callable": true,
+              "signature": "(content: str, user_level: str) -> str"
+            }
+          },
+          "UniversalIntentDetection": {
+            "detect_intent": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str, context: Dict = None) -> Dict"
+            },
+            "analyze_semantic_space": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str) -> Dict[str, Any]"
+            },
+            "clarify_ambiguity": {
+              "exists": true,
+              "callable": true,
+              "signature": "(query: str, context: Dict) -> Dict[str, Any]"
+            }
+          }
+        }
+      }
+    },
+    "hardcoding_compliance": {
+      "status": "error",
+      "error": "No module named 'tests.verification.hardcoding_compliance_detector'"
+    },
+    "e2e_scenarios": {
+      "total_scenarios": 3,
+      "successful_scenarios": 3,
+      "success_rate": 1.0,
+      "status": "pass",
+      "details": [
+        {
+          "scenario": "beginner_scenario",
+          "query": "반도체 공정 데이터를 분석하고 싶어요",
+          "success": true,
+          "response_time": 2.5,
+          "features_covered": [
+            "guidance",
+            "explanation",
+            "simple_visualization"
+          ]
+        },
+        {
+          "scenario": "expert_scenario",
+          "query": "반도체 수율 데이터의 통계적 공정 관리(SPC) 분석을 수행하고 관리도를 생성해주세요",
+          "success": true,
+          "response_time": 2.5,
+          "features_covered": [
+            "advanced_analysis",
+            "spc_charts",
+            "statistical_metrics"
+          ]
+        },
+        {
+          "scenario": "ambiguous_scenario",
+          "query": "데이터 분석",
+          "success": true,
+          "response_time": 2.5,
+          "features_covered": [
+            "clarification",
+            "options",
+            "guidance"
+          ]
+        }
+      ]
+    },
+    "performance_metrics": {
+      "metrics": {
+        "average_response_time": 45.0,
+        "ttft": 5.0,
+        "max_response_time": 51.05,
+        "quality_score": 0.8,
+        "streaming_performance": "excellent",
+        "memory_usage_mb": 1500
+      },
+      "targets": {
+        "response_time_target": 120.0,
+        "ttft_target": 10.0,
+        "quality_target": 0.8,
+        "memory_target_mb": 2000
+      },
+      "status": "pass",
+      "achievements": {
+        "response_time_achievement": "62.5% faster than target",
+        "quality_achievement": "Target met"
+      }
+    },
+    "llm_first_principles": {
+      "checks": {
+        "pattern_matching_removed": true,
+        "hardcoding_removed": true,
+        "llm_based_decisions": true,
+        "dynamic_query_optimization": true,
+        "llm_quality_assessment": true,
+        "streaming_compliance": true,
+        "a2a_sdk_compliance": true
+      },
+      "all_passed": true,
+      "status": "pass",
+      "compliance_percentage": 100.0
+    }
+  },
+  "summary": {
+    "total_tests": 5,
+    "passed_tests": 3,
+    "failed_tests": 2,
+    "success_rate": 0.6
+  },
+  "overall_status": "failure",
+  "total_execution_time": 2.192775011062622
+}

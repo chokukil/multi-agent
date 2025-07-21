@@ -1,0 +1,62 @@
+{
+  "test_id": "qwen3_4b_fast_performance_1753028876",
+  "timestamp": "2025-07-21T03:16:44.155651",
+  "model_name": "qwen3-4b-fast",
+  "initialization_time": 0.2903327941894531,
+  "test_summary": {
+    "total_tests": 3,
+    "successful_tests": 0,
+    "success_rate": 0.0,
+    "time_target_met": 0,
+    "quality_target_met": 0,
+    "avg_execution_time": 2175.6590786774955,
+    "avg_quality_score": 0.0
+  },
+  "detailed_results": {
+    "simple_query": {
+      "test_id": "qwen3_4b_fast_performance_1753028876",
+      "timestamp": "2025-07-21T02:16:27.944424",
+      "model_name": "qwen3-4b-fast",
+      "total_execution_time": 2910.768121957779,
+      "component_times": {},
+      "quality_score": 0.0,
+      "response_length": 0,
+      "success": false,
+      "optimization_method": "failed",
+      "meets_time_target": false,
+      "meets_quality_threshold": false
+    },
+    "complex_query": {
+      "test_id": "qwen3_4b_fast_performance_1753028876",
+      "timestamp": "2025-07-21T02:40:44.015641",
+      "model_name": "qwen3-4b-fast",
+      "total_execution_time": 1456.0698590278625,
+      "component_times": {},
+      "quality_score": 0.0,
+      "response_length": 0,
+      "success": false,
+      "optimization_method": "failed",
+      "meets_time_target": false,
+      "meets_quality_threshold": false
+    },
+    "e2e_scenario": {
+      "test_id": "qwen3_4b_fast_performance_1753028876",
+      "timestamp": "2025-07-21T03:16:44.155028",
+      "model_name": "qwen3-4b-fast",
+      "total_execution_time": 2160.1392550468445,
+      "component_times": {},
+      "quality_score": 0.0,
+      "response_length": 0,
+      "success": false,
+      "optimization_method": "failed",
+      "meets_time_target": false,
+      "meets_quality_threshold": false
+    }
+  },
+  "performance_assessment": {
+    "meets_1min_target": false,
+    "meets_2min_limit": false,
+    "overall_success": false,
+    "recommendation": "❌ 성능 개선 필요: 2분 제한을 초과했습니다. 모델 최적화가 필요합니다."
+  }
+}

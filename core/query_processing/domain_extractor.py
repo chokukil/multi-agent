@@ -92,11 +92,18 @@ class DomainKnowledgeExtractor:
     def __init__(self):
         self.llm = create_llm_instance()
         
-        # Pre-loaded domain patterns and taxonomies
-        self.domain_patterns = self._initialize_domain_patterns()
-        self.methodology_database = self._initialize_methodology_database()
-        
-        logger.info("🧠 DomainKnowledgeExtractor initialized")
+        # Universal Engine 통합 - 하드코딩 제거
+        try:
+            from core.universal_engine.dynamic_context_discovery import DynamicContextDiscovery
+            from core.universal_engine.meta_reasoning_engine import MetaReasoningEngine
+            self.dynamic_context_discovery = DynamicContextDiscovery()
+            self.meta_reasoning_engine = MetaReasoningEngine()
+            self.universal_engine_available = True
+            logger.info("🧠 DomainKnowledgeExtractor initialized with Universal Engine integration")
+        except ImportError as e:
+            self.universal_engine_available = False
+            logger.warning(f"⚠️ Universal Engine not available, using fallback mode: {e}")
+            logger.info("🧠 DomainKnowledgeExtractor initialized in fallback mode")
     
     async def extract_comprehensive_domain_knowledge(self, query: str, intent_analysis: Optional[Dict] = None, data_context: Optional[Dict] = None) -> EnhancedDomainKnowledge:
         """
@@ -520,21 +527,7 @@ class DomainKnowledgeExtractor:
         
         return response_text.strip()
     
-    def _initialize_domain_patterns(self) -> Dict:
-        """Initialize domain-specific patterns (can be expanded)"""
-        return {
-            "manufacturing": ["LOT", "process", "quality", "defect", "yield"],
-            "healthcare": ["patient", "diagnosis", "treatment", "clinical"],
-            "finance": ["risk", "portfolio", "return", "credit", "trading"]
-        }
-    
-    def _initialize_methodology_database(self) -> Dict:
-        """Initialize methodology database (can be expanded)"""
-        return {
-            "manufacturing": ["Six Sigma", "Lean", "SPC", "FMEA"],
-            "healthcare": ["Clinical trials", "Evidence-based medicine"],
-            "finance": ["Monte Carlo", "Black-Scholes", "VaR"]
-        }
+
     
     def _create_fallback_domain_knowledge(self, query: str) -> EnhancedDomainKnowledge:
         """Create fallback domain knowledge when extraction fails"""

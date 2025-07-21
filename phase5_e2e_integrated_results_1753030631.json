@@ -1,0 +1,154 @@
+{
+  "test_id": "phase5_e2e_integrated_1753030493",
+  "timestamp": "2025-07-21T01:57:11.827422",
+  "model_name": "qwen3-4b-fast",
+  "total_execution_time": 138.13439226150513,
+  "test_summary": {
+    "total_scenarios": 5,
+    "successful_scenarios": 5,
+    "success_rate": 1.0,
+    "time_target_met": 5,
+    "quality_target_met": 5,
+    "avg_execution_time": 27.62669062614441,
+    "avg_quality_score": 0.82
+  },
+  "detailed_results": [
+    {
+      "scenario_id": "beginner_01",
+      "user_level": "beginner",
+      "query": "데이터 분석이 뭔가요?",
+      "execution_time": 35.740511894226074,
+      "response_length": 193,
+      "success": true,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정",
+        "최종 분석",
+        "품질 평가"
+      ],
+      "step_times": {
+        "integrated_analysis": 5.879320859909058,
+        "method_selection": 13.865962982177734,
+        "response_level": 0.6716599464416504,
+        "final_analysis": 13.494063138961792,
+        "quality_assessment": 1.8284087181091309
+      },
+      "quality_score": 0.9,
+      "meets_time_target": true,
+      "meets_quality_threshold": true,
+      "error_message": null
+    },
+    {
+      "scenario_id": "beginner_02",
+      "user_level": "beginner",
+      "query": "엑셀 파일을 어떻게 분석하나요?",
+      "execution_time": 26.31103825569153,
+      "response_length": 179,
+      "success": true,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정",
+        "최종 분석",
+        "품질 평가"
+      ],
+      "step_times": {
+        "integrated_analysis": 4.071743965148926,
+        "method_selection": 11.447987079620361,
+        "response_level": 0.7775743007659912,
+        "final_analysis": 8.81314206123352,
+        "quality_assessment": 1.1999962329864502
+      },
+      "quality_score": 0.8,
+      "meets_time_target": true,
+      "meets_quality_threshold": true,
+      "error_message": null
+    },
+    {
+      "scenario_id": "intermediate_01",
+      "user_level": "intermediate",
+      "query": "고객 데이터로 마케팅 인사이트를 찾고 싶습니다",
+      "execution_time": 25.75970697402954,
+      "response_length": 153,
+      "success": true,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정",
+        "최종 분석",
+        "품질 평가"
+      ],
+      "step_times": {
+        "integrated_analysis": 3.1901261806488037,
+        "method_selection": 12.533221960067749,
+        "response_level": 0.45209193229675293,
+        "final_analysis": 8.228068113327026,
+        "quality_assessment": 1.3559091091156006
+      },
+      "quality_score": 0.8,
+      "meets_time_target": true,
+      "meets_quality_threshold": true,
+      "error_message": null
+    },
+    {
+      "scenario_id": "intermediate_02",
+      "user_level": "intermediate",
+      "query": "데이터 품질 문제를 어떻게 해결하나요?",
+      "execution_time": 19.821460008621216,
+      "response_length": 138,
+      "success": true,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정",
+        "최종 분석",
+        "품질 평가"
+      ],
+      "step_times": {
+        "integrated_analysis": 3.006699800491333,
+        "method_selection": 8.721066951751709,
+        "response_level": 0.5234377384185791,
+        "final_analysis": 6.490027904510498,
+        "quality_assessment": 1.0798730850219727
+      },
+      "quality_score": 0.8,
+      "meets_time_target": true,
+      "meets_quality_threshold": true,
+      "error_message": null
+    },
+    {
+      "scenario_id": "expert_01",
+      "user_level": "expert",
+      "query": "반도체 제조 공정의 품질 관리 데이터를 분석하여 불량률을 예측하는 모델을 구축하고 싶습니다",
+      "execution_time": 30.500735998153687,
+      "response_length": 214,
+      "success": true,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정",
+        "최종 분석",
+        "품질 평가"
+      ],
+      "step_times": {
+        "integrated_analysis": 3.7785987854003906,
+        "method_selection": 13.45835280418396,
+        "response_level": 0.5902860164642334,
+        "final_analysis": 11.31318187713623,
+        "quality_assessment": 1.359497308731079
+      },
+      "quality_score": 0.8,
+      "meets_time_target": true,
+      "meets_quality_threshold": true,
+      "error_message": null
+    }
+  ],
+  "performance_assessment": {
+    "meets_1min_target": true,
+    "meets_2min_limit": true,
+    "overall_success": true,
+    "llm_first_compliance": true,
+    "integration_applied": true
+  }
+}

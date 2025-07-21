@@ -1,0 +1,138 @@
+{
+  "test_id": "balanced_quality_speed_1753022214",
+  "timestamp": "2025-07-20T23:36:54.451934",
+  "approach": "Balanced Quality-Speed Optimization",
+  "test_categories": {
+    "quality_level_tests": {
+      "minimum": {
+        "execution_time": 6.17448091506958,
+        "success": false,
+        "quality_score": 0,
+        "response_length": 0,
+        "compression_ratio": 1.0,
+        "optimization_method": "failed",
+        "meets_quality_threshold": false
+      },
+      "balanced": {
+        "execution_time": 9.068758726119995,
+        "success": false,
+        "quality_score": 0,
+        "response_length": 0,
+        "compression_ratio": 1.0,
+        "optimization_method": "failed",
+        "meets_quality_threshold": false
+      },
+      "high": {
+        "execution_time": 13.045927047729492,
+        "success": false,
+        "quality_score": 0,
+        "response_length": 0,
+        "compression_ratio": 1.0,
+        "optimization_method": "failed",
+        "meets_quality_threshold": false
+      },
+      "premium": {
+        "execution_time": 18.071868896484375,
+        "success": false,
+        "quality_score": 0,
+        "response_length": 0,
+        "compression_ratio": 1.0,
+        "optimization_method": "failed",
+        "meets_quality_threshold": false
+      }
+    },
+    "complexity_tests": {
+      "simple_queries": [
+        {
+          "scenario": "basic_definition",
+          "execution_time": 6.0668628215789795,
+          "expected_time": 6.0,
+          "meets_expectations": false,
+          "success": false,
+          "timeout": true
+        },
+        {
+          "scenario": "simple_comparison",
+          "execution_time": 6.058252811431885,
+          "expected_time": 6.0,
+          "meets_expectations": false,
+          "success": false,
+          "timeout": true
+        }
+      ],
+      "technical_queries": [
+        {
+          "scenario": "algorithm_explanation",
+          "execution_time": 9.05864405632019,
+          "expected_time": 10.0,
+          "actual_quality": 0,
+          "expected_quality": 0.8,
+          "meets_expectations": false,
+          "success": false,
+          "optimization_method": "failed",
+          "response_length": 0
+        },
+        {
+          "scenario": "architecture_design",
+          "execution_time": 9.115275144577026,
+          "expected_time": 12.0,
+          "actual_quality": 0,
+          "expected_quality": 0.8,
+          "meets_expectations": false,
+          "success": false,
+          "optimization_method": "failed",
+          "response_length": 0
+        }
+      ],
+      "complex_queries": [
+        {
+          "scenario": "multi_step_analysis",
+          "execution_time": 9.114145040512085,
+          "expected_time": 15.0,
+          "actual_quality": 0,
+          "expected_quality": 0.85,
+          "meets_expectations": false,
+          "success": false,
+          "optimization_method": "failed",
+          "response_length": 0
+        }
+      ]
+    },
+    "e2e_scenarios": [
+      {
+        "scenario": "user_query_processing",
+        "total_e2e_time": 190.91807198524475,
+        "component_times": {
+          "user_analysis": 21.879048347473145,
+          "meta_reasoning": 155.83466410636902,
+          "final_response": 13.064718008041382
+        },
+        "final_quality": 0,
+        "final_response_length": 0,
+        "success": false,
+        "optimization_effective": false,
+        "quality_achieved": false
+      },
+      {
+        "scenario": "technical_troubleshooting",
+        "total_e2e_time": 208.7414357662201,
+        "component_times": {
+          "user_analysis": 20.968326330184937,
+          "meta_reasoning": 174.55758619308472,
+          "final_response": 13.071969032287598
+        },
+        "final_quality": 0,
+        "final_response_length": 0,
+        "success": false,
+        "optimization_effective": false,
+        "quality_achieved": false
+      }
+    ],
+    "adaptive_tests": [
+      {
+        "iteration": 1,
+        "execution_time": 9.00484299659729,
+        "quality_score": 0,
+        "optimization_method": "failed",
+        "adaptive_settings": {
+          "current_quality_level": 

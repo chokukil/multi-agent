@@ -631,3 +631,300 @@ class A2AWorkflowOrchestrator:
                 agent_usage[agent_name] = agent_usage.get(agent_name, 0) + 1
         
         return sorted(agent_usage.items(), key=lambda x: x[1], reverse=True)[:5]
+    
+    async def execute_agent_workflow(
+        self,
+        agents: List[A2AAgentInfo],
+        query: str,
+        data: Any,
+        execution_mode: str = "sequential"
+    ) -> Dict[str, Any]:
+        """
+        에이전트 워크플로우 실행
+        
+        Args:
+            agents: 실행할 에이전트 목록
+            query: 사용자 쿼리
+            data: 처리할 데이터
+            execution_mode: 실행 모드 ("sequential" 또는 "parallel")
+            
+        Returns:
+            워크플로우 실행 결과
+        """
+        workflow_id = f"agent_workflow_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        logger.info(f"Executing agent workflow: {workflow_id} with {len(agents)} agents")
+        
+        try:
+            # 워크플로우 태스크 생성
+            tasks = []
+            for i, agent in enumerate(agents):
+                task = WorkflowTask(
+                    id=f"task_{i}_{agent.id}",
+                    agent_id=agent.id,
+                    agent_info=agent,
+                    input_data={
+                        'query': query,
+                        'data': data,
+                        'context': {
+                            'workflow_id': workflow_id,
+                            'task_index': i,
+                            'execution_mode': execution_mode
+                        }
+                    },
+                    dependencies=[] if execution_mode == "parallel" else ([f"task_{i-1}_{agents[i-1].id}"] if i > 0 else [])
+                )
+                tasks.append(task)
+            
+            # 워크플로우 실행
+            workflow = WorkflowExecution(
+                id=workflow_id,
+                tasks=tasks,
+                total_steps=len(tasks),
+                start_time=datetime.now()
+            )
+            
+            self.active_workflows[workflow_id] = workflow
+            workflow.status = WorkflowStatus.RUNNING
+            
+            # 태스크 실행
+            await self._execute_tasks(workflow)
+            
+            # 결과 통합
+            workflow.results = await self._integrate_results(workflow)
+            
+            # 완료 처리
+            workflow.status = WorkflowStatus.COMPLETED
+            workflow.end_time = datetime.now()
+            workflow.progress = 100.0
+            
+            # 이력 저장
+            self.workflow_history.append(workflow)
+            del self.active_workflows[workflow_id]
+            
+            logger.info(f"Agent workflow {workflow_id} completed successfully")
+            return workflow.results
+            
+        except Exception as e:
+            logger.error(f"Agent workflow {workflow_id} failed: {e}")
+            if workflow_id in self.active_workflows:
+                workflow = self.active_workflows[workflow_id]
+                workflow.status = WorkflowStatus.FAILED
+                workflow.end_time = datetime.now()
+                workflow.errors.append(str(e))
+                self.workflow_history.append(workflow)
+                del self.active_workflows[workflow_id]
+            raise
+    
+    async def coordinate_agents(
+        self,
+        primary_agent: A2AAgentInfo,
+        supporting_agents: List[A2AAgentInfo],
+        query: str,
+        data: Any
+    ) -> Dict[str, Any]:
+        """
+        다중 에이전트 협업 조율
+        
+        Args:
+            primary_agent: 주 에이전트
+            supporting_agents: 지원 에이전트들
+            query: 사용자 쿼리
+            data: 처리할 데이터
+            
+        Returns:
+            협업 결과
+        """
+        coordination_id = f"coordination_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        logger.info(f"Coordinating agents: primary={primary_agent.name}, supporting={[a.name for a in supporting_agents]}")
+        
+        try:
+            # 1단계: 지원 에이전트들 병렬 실행
+            supporting_tasks = []
+            for i, agent in enumerate(supporting_agents):
+                task = WorkflowTask(
+                    id=f"support_{i}_{agent.id}",
+                    agent_id=agent.id,
+                    agent_info=agent,
+                    input_data={
+                        'query': query,
+                        'data': data,
+                        'context': {
+                            'coordination_id': coordination_id,
+                            'role': 'supporting',
+                            'primary_agent': primary_agent.name
+                        }
+                    }
+                )
+                supporting_tasks.append(task)
+            
+            # 지원 에이전트 실행
+            support_results = {}
+            for task in supporting_tasks:
+                try:
+                    task.status = TaskStatus.RUNNING
+                    task.start_time = datetime.now()
+                    
+                    result = await self.communication_protocol.send_request(
+                        task.agent_info,
+                        task.input_data
+                    )
+                    
+                    task.result = result
+                    task.status = TaskStatus.COMPLETED
+                    task.end_time = datetime.now()
+                    
+                    support_results[task.agent_info.name] = result
+                    
+                except Exception as e:
+                    logger.error(f"Supporting agent {task.agent_info.name} failed: {e}")
+                    task.error = str(e)
+                    task.status = TaskStatus.FAILED
+                    task.end_time = datetime.now()
+            
+            # 2단계: 주 에이전트 실행 (지원 결과 포함)
+            primary_task = WorkflowTask(
+                id=f"primary_{primary_agent.id}",
+                agent_id=primary_agent.id,
+                agent_info=primary_agent,
+                input_data={
+                    'query': query,
+                    'data': data,
+                    'supporting_results': support_results,
+                    'context': {
+                        'coordination_id': coordination_id,
+                        'role': 'primary',
+                        'supporting_agents': [a.name for a in supporting_agents]
+                    }
+                }
+            )
+            
+            primary_task.status = TaskStatus.RUNNING
+            primary_task.start_time = datetime.now()
+            
+            primary_result = await self.communication_protocol.send_request(
+                primary_agent,
+                primary_task.input_data
+            )
+            
+            primary_task.result = primary_result
+            primary_task.status = TaskStatus.COMPLETED
+            primary_task.end_time = datetime.now()
+            
+            # 결과 통합
+            coordination_result = {
+                'coordination_id': coordination_id,
+                'primary_result': primary_result,
+                'supporting_results': support_results,
+                'coordination_summary': {
+                    'primary_agent': primary_agent.name,
+                    'supporting_agents': [a.name for a in supporting_agents],
+                    'success_rate': (
+                        len([r for r in support_results.values() if r]) + (1 if primary_result else 0)
+                    ) / (len(supporting_agents) + 1),
+                    'execution_time': (datetime.now() - primary_task.start_time).total_seconds()
+                }
+            }
+            
+            logger.info(f"Agent coordination {coordination_id} completed successfully")
+            return coordination_result
+            
+        except Exception as e:
+            logger.error(f"Agent coordination {coordination_id} failed: {e}")
+            raise
+    
+    async def manage_dependencies(
+        self,
+        workflow_tasks: List[WorkflowTask]
+    ) -> Dict[str, List[str]]:
+        """
+        워크플로우 의존성 관리
+        
+        Args:
+            workflow_tasks: 워크플로우 태스크 목록
+            
+        Returns:
+            의존성 맵 {task_id: [dependency_task_ids]}
+        """
+        logger.info(f"Managing dependencies for {len(workflow_tasks)} tasks")
+        
+        dependency_map = {}
+        
+        # 각 태스크의 의존성 분석
+        for task in workflow_tasks:
+            task_dependencies = []
+            
+            # 에이전트 타입 기반 의존성 추론
+            if hasattr(task.agent_info, 'capabilities'):
+                capabilities = task.agent_info.capabilities
+                
+                # 데이터 로딩이 필요한 에이전트는 데이터 로더에 의존
+                if any(cap in ['analysis', 'visualization', 'modeling'] for cap in capabilities):
+                    data_loader_tasks = [
+                        t for t in workflow_tasks 
+                        if t != task and 'data_loading' in getattr(t.agent_info, 'capabilities', [])
+                    ]
+                    task_dependencies.extend([t.id for t in data_loader_tasks])
+                
+                # 시각화는 분석 결과에 의존
+                if 'visualization' in capabilities:
+                    analysis_tasks = [
+                        t for t in workflow_tasks 
+                        if t != task and any(cap in ['analysis', 'eda', 'statistics'] 
+                                           for cap in getattr(t.agent_info, 'capabilities', []))
+                    ]
+                    task_dependencies.extend([t.id for t in analysis_tasks])
+                
+                # 모델링은 특성 엔지니어링에 의존
+                if 'modeling' in capabilities:
+                    feature_tasks = [
+                        t for t in workflow_tasks 
+                        if t != task and 'feature_engineering' in getattr(t.agent_info, 'capabilities', [])
+                    ]
+                    task_dependencies.extend([t.id for t in feature_tasks])
+            
+            # 명시적 의존성 추가
+            task_dependencies.extend(task.dependencies)
+            
+            # 중복 제거
+            dependency_map[task.id] = list(set(task_dependencies))
+            
+            # 태스크 객체 업데이트
+            task.dependencies = dependency_map[task.id]
+        
+        # 순환 의존성 검사
+        self._validate_dependencies(dependency_map)
+        
+        logger.info(f"Dependency management completed: {len(dependency_map)} tasks with dependencies")
+        return dependency_map
+    
+    def _validate_dependencies(self, dependency_map: Dict[str, List[str]]) -> None:
+        """
+        의존성 순환 검사
+        
+        Args:
+            dependency_map: 의존성 맵
+            
+        Raises:
+            ValueError: 순환 의존성이 발견된 경우
+        """
+        def has_cycle(node: str, visited: set, rec_stack: set) -> bool:
+            visited.add(node)
+            rec_stack.add(node)
+            
+            for neighbor in dependency_map.get(node, []):
+                if neighbor not in visited:
+                    if has_cycle(neighbor, visited, rec_stack):
+                        return True
+                elif neighbor in rec_stack:
+                    return True
+            
+            rec_stack.remove(node)
+            return False
+        
+        visited = set()
+        for task_id in dependency_map:
+            if task_id not in visited:
+                if has_cycle(task_id, visited, set()):
+                    raise ValueError(f"Circular dependency detected involving task: {task_id}")
+        
+        logger.debug("Dependency validation passed - no circular dependencies found")

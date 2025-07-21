@@ -154,13 +154,7 @@ class SessionDataManager:
 
     def extract_domain_from_request(self, user_request: str) -> Optional[str]:
         """사용자 요청에서 도메인 컨텍스트 추출"""
-        domain_keywords = {
-            "semiconductor": ["반도체", "이온주입", "ion", "implant", "wafer", "도핑"],
-            "finance": ["금융", "주식", "투자", "finance", "stock", "investment"],
-            "medical": ["의료", "병원", "환자", "medical", "patient", "hospital"],
-            "retail": ["판매", "매출", "고객", "retail", "sales", "customer"],
-            "manufacturing": ["제조", "생산", "품질", "manufacturing", "production", "quality"]
-        }
+        domain_keywords = self._get_domain_configs_dynamically()
         
         user_request_lower = user_request.lower()
         

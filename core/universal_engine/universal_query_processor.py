@@ -36,6 +36,7 @@ class UniversalQueryProcessor:
         self.knowledge_orchestrator = DynamicKnowledgeOrchestrator()
         self.response_generator = AdaptiveResponseGenerator()
         self.learning_system = RealTimeLearningSystem()
+        self.initialization_status = {}
         
         logger.info("UniversalQueryProcessor initialized with zero hardcoding")
         
@@ -46,6 +47,258 @@ class UniversalQueryProcessor:
         except Exception as e:
             logger.error(f"Failed to initialize LLM: {e}")
             raise
+    
+    async def initialize(self) -> Dict[str, Any]:
+        """
+        시스템 초기화 및 의존성 검증
+        
+        요구사항 1.1에 따른 구현:
+        - 모든 하위 컴포넌트 초기화 검증
+        - 의존성 상태 확인
+        - 시스템 준비 상태 검증
+        
+        Returns:
+            초기화 결과 및 상태 정보
+        """
+        logger.info("Starting UniversalQueryProcessor initialization")
+        
+        initialization_results = {
+            'timestamp': datetime.now().isoformat(),
+            'components': {},
+            'dependencies': {},
+            'overall_status': 'initializing'
+        }
+        
+        try:
+            # 1. LLM 클라이언트 검증
+            logger.debug("Verifying LLM client")
+            if self.llm_client:
+                initialization_results['components']['llm_client'] = {
+                    'status': 'ready',
+                    'type': type(self.llm_client).__name__
+                }
+            else:
+                initialization_results['components']['llm_client'] = {
+                    'status': 'failed',
+                    'error': 'LLM client not initialized'
+                }
+            
+            # 2. 메타 추론 엔진 초기화 검증
+            logger.debug("Initializing MetaReasoningEngine")
+            if hasattr(self.meta_reasoning_engine, 'initialize'):
+                meta_init = await self.meta_reasoning_engine.initialize()
+                initialization_results['components']['meta_reasoning_engine'] = meta_init
+            else:
+                initialization_results['components']['meta_reasoning_engine'] = {
+                    'status': 'ready',
+                    'note': 'No explicit initialization required'
+                }
+            
+            # 3. 동적 지식 오케스트레이터 초기화 검증
+            logger.debug("Initializing DynamicKnowledgeOrchestrator")
+            if hasattr(self.knowledge_orchestrator, 'initialize'):
+                knowledge_init = await self.knowledge_orchestrator.initialize()
+                initialization_results['components']['knowledge_orchestrator'] = knowledge_init
+            else:
+                initialization_results['components']['knowledge_orchestrator'] = {
+                    'status': 'ready',
+                    'note': 'No explicit initialization required'
+                }
+            
+            # 4. 적응형 응답 생성기 초기화 검증
+            logger.debug("Initializing AdaptiveResponseGenerator")
+            if hasattr(self.response_generator, 'initialize'):
+                response_init = await self.response_generator.initialize()
+                initialization_results['components']['response_generator'] = response_init
+            else:
+                initialization_results['components']['response_generator'] = {
+                    'status': 'ready',
+                    'note': 'No explicit initialization required'
+                }
+            
+            # 5. 실시간 학습 시스템 초기화 검증
+            logger.debug("Initializing RealTimeLearningSystem")
+            if hasattr(self.learning_system, 'initialize'):
+                learning_init = await self.learning_system.initialize()
+                initialization_results['components']['learning_system'] = learning_init
+            else:
+                initialization_results['components']['learning_system'] = {
+                    'status': 'ready',
+                    'note': 'No explicit initialization required'
+                }
+            
+            # 6. 의존성 검증
+            logger.debug("Verifying system dependencies")
+            dependencies_check = await self._verify_dependencies()
+            initialization_results['dependencies'] = dependencies_check
+            
+            # 7. 전체 상태 결정
+            all_components_ready = all(
+                comp.get('status') == 'ready' 
+                for comp in initialization_results['components'].values()
+            )
+            dependencies_ready = dependencies_check.get('all_satisfied', False)
+            
+            if all_components_ready and dependencies_ready:
+                initialization_results['overall_status'] = 'ready'
+                self.initialization_status = initialization_results
+                logger.info("UniversalQueryProcessor initialization completed successfully")
+            else:
+                initialization_results['overall_status'] = 'partial'
+                logger.warning("UniversalQueryProcessor initialization completed with warnings")
+            
+            return initialization_results
+            
+        except Exception as e:
+            logger.error(f"Error during initialization: {e}")
+            initialization_results['overall_status'] = 'failed'
+            initialization_results['error'] = str(e)
+            return initialization_results
+    
+    async def _verify_dependencies(self) -> Dict[str, Any]:
+        """의존성 검증"""
+        dependencies = {
+            'llm_factory': False,
+            'meta_reasoning_engine': False,
+            'knowledge_orchestrator': False,
+            'response_generator': False,
+            'learning_system': False
+        }
+        
+        try:
+            # LLM Factory 검증
+            dependencies['llm_factory'] = hasattr(LLMFactory, 'create_llm')
+            
+            # 각 컴포넌트 검증
+            dependencies['meta_reasoning_engine'] = self.meta_reasoning_engine is not None
+            dependencies['knowledge_orchestrator'] = self.knowledge_orchestrator is not None
+            dependencies['response_generator'] = self.response_generator is not None
+            dependencies['learning_system'] = self.learning_system is not None
+            
+        except Exception as e:
+            logger.error(f"Error verifying dependencies: {e}")
+        
+        return {
+            'details': dependencies,
+            'all_satisfied': all(dependencies.values()),
+            'satisfied_count': sum(dependencies.values()),
+            'total_count': len(dependencies)
+        }
+    
+    async def get_status(self) -> Dict[str, Any]:
+        """
+        현재 시스템 상태 반환
+        
+        요구사항 1.1에 따른 구현:
+        - 실시간 시스템 상태 조회
+        - 컴포넌트별 상태 정보
+        - 성능 메트릭 포함
+        
+        Returns:
+            현재 시스템 상태 정보
+        """
+        logger.debug("Getting system status")
+        
+        try:
+            status_info = {
+                'timestamp': datetime.now().isoformat(),
+                'overall_status': 'operational',
+                'initialization': self.initialization_status,
+                'components': {},
+                'performance': {},
+                'health_check': {}
+            }
+            
+            # 1. 컴포넌트 상태 확인
+            status_info['components'] = {
+                'llm_client': {
+                    'status': 'active' if self.llm_client else 'inactive',
+                    'type': type(self.llm_client).__name__ if self.llm_client else 'None'
+                },
+                'meta_reasoning_engine': {
+                    'status': 'active' if self.meta_reasoning_engine else 'inactive',
+                    'type': type(self.meta_reasoning_engine).__name__
+                },
+                'knowledge_orchestrator': {
+                    'status': 'active' if self.knowledge_orchestrator else 'inactive',
+                    'type': type(self.knowledge_orchestrator).__name__
+                },
+                'response_generator': {
+                    'status': 'active' if self.response_generator else 'inactive',
+                    'type': type(self.response_generator).__name__
+                },
+                'learning_system': {
+                    'status': 'active' if self.learning_system else 'inactive',
+                    'type': type(self.learning_system).__name__
+                }
+            }
+            
+            # 2. 성능 메트릭 (기본값)
+            status_info['performance'] = {
+                'memory_usage': 'N/A',
+                'cpu_usage': 'N/A',
+                'response_time_avg': 'N/A',
+                'requests_processed': 'N/A'
+            }
+            
+            # 3. 헬스 체크
+            health_checks = []
+            
+            # LLM 클라이언트 헬스 체크
+            if self.llm_client:
+                health_checks.append({'component': 'llm_client', 'status': 'healthy'})
+            else:
+                health_checks.append({'component': 'llm_client', 'status': 'unhealthy'})
+            
+            # 각 컴포넌트 헬스 체크
+            for comp_name, comp_obj in [
+                ('meta_reasoning_engine', self.meta_reasoning_engine),
+                ('knowledge_orchestrator', self.knowledge_orchestrator),
+                ('response_generator', self.response_generator),
+                ('learning_system', self.learning_system)
+            ]:
+                if comp_obj:
+                    if hasattr(comp_obj, 'get_health_status'):
+                        try:
+                            health = await comp_obj.get_health_status()
+                            health_checks.append({'component': comp_name, 'status': health})
+                        except Exception as e:
+                            health_checks.append({
+                                'component': comp_name, 
+                                'status': 'error', 
+                                'error': str(e)
+                            })
+                    else:
+                        health_checks.append({'component': comp_name, 'status': 'healthy'})
+                else:
+                    health_checks.append({'component': comp_name, 'status': 'missing'})
+            
+            status_info['health_check'] = {
+                'checks': health_checks,
+                'overall_health': 'healthy' if all(
+                    check['status'] in ['healthy', 'N/A'] 
+                    for check in health_checks
+                ) else 'degraded'
+            }
+            
+            # 4. 전체 상태 결정
+            if status_info['health_check']['overall_health'] == 'healthy':
+                status_info['overall_status'] = 'operational'
+            else:
+                status_info['overall_status'] = 'degraded'
+            
+            return status_info
+            
+        except Exception as e:
+            logger.error(f"Error getting system status: {e}")
+            return {
+                'timestamp': datetime.now().isoformat(),
+                'overall_status': 'error',
+                'error': str(e),
+                'components': {},
+                'performance': {},
+                'health_check': {}
+            }
     
     async def process_query(self, query: str, data: Any, context: Dict = None) -> Dict:
         """

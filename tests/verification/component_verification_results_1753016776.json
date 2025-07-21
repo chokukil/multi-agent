@@ -1,0 +1,344 @@
+{
+  "test_id": "component_verification_1753016775",
+  "timestamp": "2025-07-20T22:06:15.129315",
+  "total_components": 26,
+  "target_methods": 19,
+  "component_results": {
+    "UniversalQueryProcessor": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "MetaReasoningEngine": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "DynamicContextDiscovery": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "AdaptiveUserUnderstanding": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "UniversalIntentDetection": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "A2AAgentDiscoverySystem": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "A2AWorkflowOrchestrator": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "A2AUniversalEngineIntegration": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "CherryAIUniversalEngineUI": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "CherryAIUniversalA2AIntegration": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "ChainOfThoughtSelfConsistency": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "ZeroShotAdaptiveReasoning": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "MetaRewardPatternEngine": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "BeginnerScenarioHandler": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "ExpertScenarioHandler": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "AmbiguousQueryHandler": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "UniversalDomainAdapter": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "SelfDiscoveringCapabilityEngine": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "ProgressiveDisclosureInterface": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "AdaptiveComplexityManager": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "UniversalKnowledgeIntegrator": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "DynamicWorkflowGenerator": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "IntelligentErrorRecovery": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "UniversalPerformanceOptimizer": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "SelfImprovingFeedbackLoop": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    },
+    "UniversalEngineOrchestrator": {
+      "status": "failed",
+      "instantiated": false,
+      "class_found": false,
+      "error": "Component class not found"
+    }
+  },
+  "method_results": {
+    "UniversalQueryProcessor.initialize": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "UniversalQueryProcessor.get_status": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "MetaReasoningEngine.perform_meta_reasoning": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "MetaReasoningEngine.assess_analysis_quality": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "DynamicContextDiscovery.analyze_data_characteristics": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "DynamicContextDiscovery.detect_domain": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "AdaptiveUserUnderstanding.estimate_user_level": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "AdaptiveUserUnderstanding.adapt_response": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "AdaptiveUserUnderstanding.update_user_profile": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "UniversalIntentDetection.analyze_semantic_space": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "UniversalIntentDetection.clarify_ambiguity": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "A2AAgentDiscoverySystem.discover_available_agents": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "A2AAgentDiscoverySystem.validate_agent_endpoint": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "A2AAgentDiscoverySystem.monitor_agent_health": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "A2AWorkflowOrchestrator.execute_agent_workflow": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "A2AWorkflowOrchestrator.coordinate_agents": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "A2AWorkflowOrchestrator.manage_dependencies": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "CherryAIUniversalEngineUI.render_enhanced_chat_interface": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    },
+    "CherryAIUniversalEngineUI.render_sidebar": {
+      "status": "failed",
+      "implemented": false,
+      "callable": false,
+      "error": "Component class not found"
+    }
+  },
+  "dependency_results": {
+    "core.universal_engine.llm_factory": {
+      "status": "error",
+      "resolved": false,
+      "error": "unindent does not match any outer indentation level (universal_intent_detection.py, line 845)"
+    },
+    "core.universal_engine.universal_query_processor": {
+      "status": "success",
+      "resolved": true,
+      "error": null
+    },
+    "core.universal_engine.meta_reasoning_engine": {
+      "status": "success",
+      "resolved": true,
+      "error": null
+    },
+    "core.universal_engine.dynamic_context_discovery": {
+      "status": "success",
+      "resolved": true,
+      "error": null
+    },
+    "core.universal_engine.adaptive_user_understanding": {
+      "status": "success",
+      "resolved": true,
+      "error": null
+    },
+    "core.universal_engine.universal_intent_detection": {
+      "status": "error",
+      "resolved": false,
+      "error": "unindent does not match any outer indentation level (universal_intent_detection.py, line 845)"
+    }
+  },
+  "integration_results": {
+    "UniversalQueryProcessor.initialize": {
+      "status": "failed",
+      "integrated": false,
+      "response_time": 0,
+      "error": "Component not found"
+    },
+    "MetaReasoningEngine.perform_meta_reasoning": {
+      "status": "failed",
+      "integrated": false,
+      "response_time": 0,
+      "error": "Component not found"
+    },
+    "DynamicContextDiscovery.detect_domain": {
+      "status": "failed",
+      "integrated": false,
+      "response_time": 0,
+      "error": "Component not found"
+    },
+    "A2AAgentDiscoverySystem.discover_available_agents": {
+      "status": "failed",
+      "integrated": false,
+      "response_time": 0,
+      "error": "Component not found"
+    }
+  },
+  "overall_status": "needs_improvement",
+  "completion_percentage": 13.333333333333332,
+  "component_instantiation_rate": 0.0,
+  "method_implementation_rate": 0.0,
+  "dependency_resolution_rate": 66.66666666666666,
+  "integration_behavior_rate": 0.0
+}

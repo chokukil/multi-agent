@@ -162,10 +162,10 @@
    - 응답 전략: 적응형 생성
 
 3. WHEN analyzing legacy files THEN the system SHALL refactor:
-   - `cherry_ai_legacy.py`: 7개 하드코딩 패턴 제거
-   - `core/query_processing/domain_extractor.py`: 4개 패턴 제거
-   - `core/orchestrator/planning_engine.py`: 4개 패턴 제거
-   - 기타 파일들: 나머지 16개 패턴 제거
+   - `cherry_ai_legacy.py`: Legacy 파일로 이동 (실제 사용되지 않음)
+   - `core/query_processing/domain_extractor.py`: 4개 패턴 제거 ✅ 실제 사용됨
+   - `core/orchestrator/planning_engine.py`: 4개 패턴 제거 ✅ 실제 사용됨
+   - 추가 검색으로 발견된 파일들: 나머지 패턴 제거
 
 ### Requirement 5: 누락된 의존성 구현
 

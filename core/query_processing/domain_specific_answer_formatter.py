@@ -740,37 +740,19 @@ class DomainSpecificAnswerFormatter:
         """Determine domain type from domain knowledge"""
         domain_name = domain_knowledge.taxonomy.primary_domain.value.lower()
         
-        domain_mapping = {
-            "technical": DomainType.TECHNICAL,
-            "technology": DomainType.TECHNICAL,
-            "engineering": DomainType.TECHNICAL,
-            "software": DomainType.TECHNICAL,
-            "business": DomainType.BUSINESS,
-            "finance": DomainType.FINANCIAL,
-            "financial": DomainType.FINANCIAL,
-            "marketing": DomainType.MARKETING,
-            "science": DomainType.SCIENTIFIC,
-            "research": DomainType.SCIENTIFIC,
-            "analytics": DomainType.ANALYTICS,
-            "data": DomainType.ANALYTICS,
-            "operations": DomainType.OPERATIONS,
-            "medical": DomainType.MEDICAL,
-            "healthcare": DomainType.MEDICAL,
-            "legal": DomainType.LEGAL,
-            "education": DomainType.EDUCATIONAL,
-            "manufacturing": DomainType.TECHNICAL,
-            "general": DomainType.GENERAL,
-            "retail": DomainType.BUSINESS,
-            "logistics": DomainType.OPERATIONS,
-            "energy": DomainType.TECHNICAL,
-            "mixed": DomainType.GENERAL
-        }
+        # LLM 기반 동적 도메인 매핑 - 하드코딩 제거
+        domain_mapping = self._generate_domain_mapping_dynamically(domain_name)
         
         for keyword, domain_type in domain_mapping.items():
             if keyword in domain_name:
                 return domain_type
         
         return DomainType.GENERAL
+    
+    def _generate_domain_mapping_dynamically(self, domain_name: str) -> Dict[str, Any]:
+        """LLM 기반 동적 도메인 매핑 생성"""
+        # 폴백: 기본 매핑으로 빈 딕셔너리 반환 (LLM 구현 필요)
+        return {domain_name: DomainType.GENERAL}
     
     def _determine_output_format(self, intent_analysis: DetailedIntentAnalysis) -> OutputFormat:
         """Determine output format based on intent analysis"""

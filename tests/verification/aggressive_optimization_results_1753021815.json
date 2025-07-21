@@ -1,0 +1,55 @@
+{
+  "test_id": "aggressive_optimization_1753021799",
+  "timestamp": "2025-07-20T23:29:59.712633",
+  "approach": "Aggressive LLM Performance Optimization",
+  "optimization_level": "extreme",
+  "tests_run": 3,
+  "successes": 0,
+  "failures": 3,
+  "test_results": {
+    "micro_test_1": {
+      "status": "timeout",
+      "execution_time": 2.0545082092285156,
+      "timeout_limit": 2
+    },
+    "micro_test_2": {
+      "status": "timeout",
+      "execution_time": 3.0687060356140137,
+      "timeout_limit": 3
+    },
+    "micro_test_3": {
+      "status": "failed",
+      "execution_time": 3.06547212600708,
+      "response_length": 0,
+      "prompt": "Data pipeline steps",
+      "optimization_used": "failed",
+      "cache_hit": false
+    }
+  },
+  "performance_metrics": {
+    "precache_time": 3.0387558937072754,
+    "precache_success_rate": 0.0,
+    "batch_test": {
+      "execution_time": 3.0677430629730225,
+      "success_rate": 0.0,
+      "cache_hit_rate": 0.0,
+      "calls_per_second": 1.6298627027631125
+    },
+    "avg_test_time": 2.7295621236165366,
+    "fastest_test": 2.0545082092285156,
+    "slowest_test": 3.0687060356140137
+  },
+  "overall_status": "needs_improvement",
+  "success_rate": 0.0,
+  "optimization_effectiveness": {
+    "total_requests": 17,
+    "cache_hits": 0,
+    "compression_savings": 0.10526315789473684,
+    "avg_response_time": 0.0,
+    "total_response_time": 0.0,
+    "cache_hit_rate_percent": 0.0,
+    "avg_compression_saving_percent": 0.6191950464396284,
+    "cache_size": 0,
+    "compression_cache_size": 12
+  }
+}

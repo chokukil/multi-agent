@@ -1,0 +1,66 @@
+{
+  "test_id": "performance_quality_1753019185",
+  "timestamp": "2025-07-20T22:46:25.133609",
+  "performance_targets": {
+    "avg_response_time_target": 3.0,
+    "percentile_95_target": 5.0,
+    "memory_usage_target": 2048,
+    "availability_target": 99.9
+  },
+  "actual_metrics": {
+    "avg_response_time": 0.4824682092666626,
+    "median_response_time": 0.5187591314315796,
+    "percentile_95": 0.8245229721069336,
+    "percentile_99": 0.8941819667816162,
+    "max_response_time": 0.8941819667816162,
+    "avg_memory_usage": 301.6521008080818,
+    "max_memory_usage": 485.34614007043353,
+    "min_memory_usage": 107.92191061596816,
+    "availability": 100.0,
+    "successful_checks": 100,
+    "total_checks": 100
+  },
+  "test_results": {
+    "avg_response_time": {
+      "target": 3.0,
+      "actual": 0.4824682092666626,
+      "passed": true
+    },
+    "percentile_95": {
+      "target": 5.0,
+      "actual": 0.8245229721069336,
+      "passed": true
+    },
+    "memory_usage": {
+      "target": 2048,
+      "actual": 485.34614007043353,
+      "passed": true
+    },
+    "availability": {
+      "target": 99.9,
+      "actual": 100.0,
+      "passed": true
+    }
+  },
+  "overall_status": "excellent",
+  "load_test_results": {
+    "concurrent_requests": 10,
+    "response_times": [
+      0.2879159450531006,
+      0.40276479721069336,
+      0.3245203495025635,
+      0.5275609493255615,
+      0.4031870365142822,
+      0.27666711807250977,
+      0.4859740734100342,
+      0.44019317626953125,
+      0.2980501651763916,
+      0.40049028396606445
+    ],
+    "avg_response_time": 0.38473238945007326,
+    "max_response_time": 0.5275609493255615
+  },
+  "passed_tests": 4,
+  "total_tests": 4,
+  "success_rate": 100.0
+}

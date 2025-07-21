@@ -1,0 +1,52 @@
+{
+  "test_id": "optimized_llm_first_e2e_1753021012",
+  "timestamp": "2025-07-20T23:16:52.267775",
+  "approach": "Optimized LLM-First with Progressive Testing",
+  "scenarios_tested": 2,
+  "scenarios_passed": 0,
+  "scenarios_failed": 2,
+  "scenario_results": {
+    "beginner_simple_query": {
+      "status": "timeout",
+      "execution_time": 20.004146814346313,
+      "timeout_limit": 20,
+      "scenario": {
+        "name": "beginner_simple_query",
+        "query": "What is the average?",
+        "context": "Basic beginner question",
+        "timeout": 20,
+        "success_criteria": [
+          "simple explanation",
+          "beginner friendly",
+          "clear answer"
+        ]
+      }
+    },
+    "expert_technical_query": {
+      "status": "timeout",
+      "execution_time": 25.00179409980774,
+      "timeout_limit": 25,
+      "scenario": {
+        "name": "expert_technical_query",
+        "query": "Analyze heteroscedasticity in regression residuals",
+        "context": "Expert statistical analysis",
+        "timeout": 25,
+        "success_criteria": [
+          "technical analysis",
+          "statistical methods",
+          "expert recommendations"
+        ]
+      }
+    }
+  },
+  "performance_metrics": {
+    "llm_preparation": 0.03293490409851074,
+    "user_understanding_preparation": 0.03232932090759277,
+    "meta_reasoning_preparation": 0.03157806396484375,
+    "avg_scenario_time": 22.502970457077026,
+    "max_scenario_time": 25.00179409980774,
+    "min_scenario_time": 20.004146814346313
+  },
+  "overall_status": "needs_improvement",
+  "success_rate": 0.0
+}

@@ -1,0 +1,41 @@
+{
+  "test_id": "qwen3_4b_fast_basic_1753029074",
+  "timestamp": "2025-07-21T01:31:14.768811",
+  "model_name": "qwen3-4b-fast",
+  "initialization_time": 0.0876626968383789,
+  "test_summary": {
+    "total_tests": 3,
+    "successful_tests": 3,
+    "success_rate": 1.0,
+    "avg_execution_time": 28.794591585795086,
+    "avg_response_length": 228.0
+  },
+  "detailed_results": [
+    {
+      "query": "안녕하세요",
+      "execution_time": 51.21385192871094,
+      "response_length": 18,
+      "success": true,
+      "response_preview": "안녕하세요! 무엇을 도와드릴까요?"
+    },
+    {
+      "query": "데이터 분석이란 무엇인가요?",
+      "execution_time": 3.512725830078125,
+      "response_length": 64,
+      "success": true,
+      "response_preview": "데이터 분석은 데이터를 수집, 정리, 분석하여 의미 있는 정보를 추출하고, 이를 통해 의사 결정을 돕는 과정입니다."
+    },
+    {
+      "query": "반도체 제조 공정에서 품질 관리 데이터를 분석하는 방법을 설명해주세요.",
+      "execution_time": 31.65719699859619,
+      "response_length": 602,
+      "success": true,
+      "response_preview": "반도체 제조 공정에서 품질 관리 데이터를 분석하는 방법은 다음과 같습니다.\n\n1.  **데이터 수집:** 공정 단계별 (예: 웨이퍼 식각, 도핑, 박막 형성 등) 측정 데이터를 수..."
+    }
+  ],
+  "performance_assessment": {
+    "meets_1min_target": true,
+    "meets_2min_limit": true,
+    "overall_success": true
+  }
+}

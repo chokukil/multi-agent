@@ -1,0 +1,12 @@
+{
+  "test_id": "hardcoding_compliance_1753055108",
+  "timestamp": "2025-07-21T08:45:08.832113",
+  "target_violations": 31,
+  "violations_found": [],
+  "compliance_score": 100.0,
+  "files_scanned": 193,
+  "lines_scanned": 99606,
+  "overall_status": "excellent",
+  "total_violations_found": 0,
+  "weighted_violations": 0
+}

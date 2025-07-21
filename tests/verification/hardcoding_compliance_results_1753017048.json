@@ -1,0 +1,202 @@
+{
+  "test_id": "hardcoding_compliance_1753017046",
+  "timestamp": "2025-07-20T22:10:46.542026",
+  "target_violations": 31,
+  "violations_found": [
+    {
+      "file_path": "core/universal_engine/adaptive_user_understanding.py",
+      "line_number": 723,
+      "line_content": "if user_level == 'beginner':",
+      "violation_type": "user_type_hardcoding",
+      "severity": "high",
+      "description": "사용자 유형별 하드코딩 분기",
+      "pattern_matched": "if\\s+user_level\\s*==\\s*[\"\\']beginner[\"\\']"
+    },
+    {
+      "file_path": "services/semiconductor_domain_engine.py",
+      "line_number": 241,
+      "line_content": "process_type=\"general_semiconductor\",",
+      "violation_type": "hardcoded_process_types",
+      "severity": "high",
+      "description": "하드코딩된 프로세스 타입",
+      "pattern_matched": "PROCESS_TYPE\\s*=\\s*[\"\\'].*[\"\\']"
+    },
+    {
+      "file_path": "core/session_data_manager_old.py",
+      "line_number": 143,
+      "line_content": "Hardcoded dictionary key 'semiconductor'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'semiconductor'"
+    },
+    {
+      "file_path": "core/session_data_manager_old.py",
+      "line_number": 143,
+      "line_content": "Hardcoded dictionary key 'finance'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'finance'"
+    },
+    {
+      "file_path": "core/session_data_manager_old.py",
+      "line_number": 143,
+      "line_content": "Hardcoded dictionary key 'manufacturing'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'manufacturing'"
+    },
+    {
+      "file_path": "core/session_data_manager.py",
+      "line_number": 157,
+      "line_content": "Hardcoded dictionary key 'semiconductor'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'semiconductor'"
+    },
+    {
+      "file_path": "core/session_data_manager.py",
+      "line_number": 157,
+      "line_content": "Hardcoded dictionary key 'finance'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'finance'"
+    },
+    {
+      "file_path": "core/session_data_manager.py",
+      "line_number": 157,
+      "line_content": "Hardcoded dictionary key 'manufacturing'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'manufacturing'"
+    },
+    {
+      "file_path": "core/user_file_tracker.py",
+      "line_number": 280,
+      "line_content": "Hardcoded dictionary key 'semiconductor'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'semiconductor'"
+    },
+    {
+      "file_path": "core/user_file_tracker.py",
+      "line_number": 280,
+      "line_content": "Hardcoded dictionary key 'finance'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'finance'"
+    },
+    {
+      "file_path": "core/query_processing/domain_specific_answer_formatter.py",
+      "line_number": 743,
+      "line_content": "Hardcoded dictionary key 'finance'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'finance'"
+    },
+    {
+      "file_path": "core/query_processing/domain_specific_answer_formatter.py",
+      "line_number": 743,
+      "line_content": "Hardcoded dictionary key 'healthcare'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'healthcare'"
+    },
+    {
+      "file_path": "core/query_processing/domain_specific_answer_formatter.py",
+      "line_number": 743,
+      "line_content": "Hardcoded dictionary key 'manufacturing'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'manufacturing'"
+    },
+    {
+      "file_path": "core/orchestrator/planning_engine.py",
+      "line_number": 54,
+      "line_content": "Hardcoded dictionary key 'semiconductor'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'semiconductor'"
+    },
+    {
+      "file_path": "core/orchestrator/planning_engine.py",
+      "line_number": 54,
+      "line_content": "Hardcoded dictionary key 'finance'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'finance'"
+    },
+    {
+      "file_path": "core/orchestrator/planning_engine.py",
+      "line_number": 54,
+      "line_content": "Hardcoded dictionary key 'manufacturing'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'manufacturing'"
+    },
+    {
+      "file_path": "core/orchestrator/planning_engine.py",
+      "line_number": 54,
+      "line_content": "Hardcoded dictionary key 'healthcare'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'healthcare'"
+    },
+    {
+      "file_path": "services/domain_analysis_engine.py",
+      "line_number": 64,
+      "line_content": "Hardcoded dictionary key 'semiconductor'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'semiconductor'"
+    },
+    {
+      "file_path": "services/domain_analysis_engine.py",
+      "line_number": 64,
+      "line_content": "Hardcoded dictionary key 'finance'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'finance'"
+    },
+    {
+      "file_path": "services/domain_analysis_engine.py",
+      "line_number": 64,
+      "line_content": "Hardcoded dictionary key 'manufacturing'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'manufacturing'"
+    },
+    {
+      "file_path": "services/domain_analysis_engine.py",
+      "line_number": 64,
+      "line_content": "Hardcoded dictionary key 'healthcare'",
+      "violation_type": "ast_hardcoded_dict",
+      "severity": "medium",
+      "description": "AST에서 발견된 하드코딩된 딕셔너리 키",
+      "pattern_matched": "dict key 'healthcare'"
+    }
+  ],
+  "compliance_score": 64.19354838709678,
+  "files_scanned": 187,
+  "lines_scanned": 97165,
+  "overall_status": "needs_improvement",
+  "total_violations_found": 21,
+  "weighted_violations": 11.1
+}

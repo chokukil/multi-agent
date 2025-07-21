@@ -47,14 +47,24 @@ except ImportError as e:
     CORE_AVAILABLE = False
     logger.error(f"❌ Cherry AI 핵심 컴포넌트 로드 실패: {e}")
 
-# 반도체 도메인 엔진 임포트
+# Universal Engine 통합 임포트
+try:
+    from core.universal_engine.universal_query_processor import UniversalQueryProcessor
+    from core.universal_engine.dynamic_context_discovery import DynamicContextDiscovery
+    UNIVERSAL_ENGINE_AVAILABLE = True
+    logger.info("✅ Universal Engine 로드 성공")
+except ImportError as e:
+    UNIVERSAL_ENGINE_AVAILABLE = False
+    logger.warning(f"⚠️ Universal Engine 로드 실패: {e}")
+
+# 레거시 반도체 엔진 (폐기 예정)
 try:
     from services.semiconductor_domain_engine import analyze_semiconductor_data
-    SEMICONDUCTOR_ENGINE_AVAILABLE = True
-    logger.info("✅ 반도체 도메인 엔진 로드 성공")
+    LEGACY_SEMICONDUCTOR_ENGINE_AVAILABLE = True
+    logger.info("✅ 레거시 반도체 도메인 엔진 로드 성공 (폐기 예정)")
 except ImportError as e:
-    SEMICONDUCTOR_ENGINE_AVAILABLE = False
-    logger.warning(f"⚠️ 반도체 도메인 엔진 로드 실패: {e}")
+    LEGACY_SEMICONDUCTOR_ENGINE_AVAILABLE = False
+    logger.warning(f"⚠️ 레거시 반도체 도메인 엔진 로드 실패: {e}")
 
 # 기존 UI 컴포넌트 재활용
 try:

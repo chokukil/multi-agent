@@ -597,29 +597,39 @@ class LLMFactory:
 ```python
 # 제거 대상 파일별 전략
 
-# 1. cherry_ai_legacy.py (7개 위반)
+# 실제 사용되는 파일들만 대상으로 선별
 LEGACY_PATTERNS_TO_REMOVE = {
-    "cherry_ai_legacy.py": [
+    "core/query_processing/domain_extractor.py": [
         {
-            "pattern": 'if "도즈" in query',
-            "replacement": "await self.universal_intent_detection.detect_intent(query)",
-            "description": "도메인별 키워드 매칭을 LLM 기반 의도 감지로 대체"
+            "pattern": '_initialize_domain_patterns()',
+            "replacement": "await self.dynamic_context_discovery.detect_domain(data, query)",
+            "description": "하드코딩된 도메인 패턴을 LLM 기반 동적 감지로 대체"
         },
         {
-            "pattern": 'SEMICONDUCTOR_ENGINE_AVAILABLE',
-            "replacement": "await self.a2a_discovery.discover_available_agents()",
-            "description": "하드코딩된 엔진 우선순위를 동적 에이전트 발견으로 대체"
+            "pattern": '_initialize_methodology_database()',
+            "replacement": "await self.meta_reasoning_engine.perform_meta_reasoning(query, context)",
+            "description": "하드코딩된 방법론 DB를 LLM 기반 메타 추론으로 대체"
         }
     ],
     
-    "core/query_processing/domain_extractor.py": [
+    "core/orchestrator/planning_engine.py": [
         {
-            "pattern": 'domain_categories = {',
-            "replacement": "await self.dynamic_context_discovery.detect_domain(data, query)",
-            "description": "사전 정의된 도메인 카테고리를 동적 도메인 감지로 대체"
+            "pattern": "if domain == 'semiconductor':",
+            "replacement": "domain_analysis = await self.universal_engine.detect_domain(data, query)",
+            "description": "하드코딩된 도메인 분기를 동적 도메인 감지로 대체"
+        },
+        {
+            "pattern": "data_loader = next((agent for agent in available_agents if agent.id == 'data_loader'), None)",
+            "replacement": "selected_agents = await self.a2a_discovery.discover_available_agents()",
+            "description": "하드코딩된 에이전트 선택을 동적 에이전트 발견으로 대체"
         }
     ]
 }
+
+# Legacy 파일 처리
+LEGACY_FILES_TO_MOVE = [
+    "cherry_ai_legacy.py"  # 실제 사용되지 않으므로 legacy/ 폴더로 이동
+]
 ```
 
 ## 🎯 구현 우선순위

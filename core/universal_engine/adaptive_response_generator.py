@@ -146,7 +146,8 @@ class AdaptiveResponseGenerator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
+        llm_response = await self.llm_client.ainvoke(prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _generate_core_response(self, knowledge_result: Dict, strategy: Dict) -> Dict:
@@ -193,7 +194,8 @@ class AdaptiveResponseGenerator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
+        llm_response = await self.llm_client.ainvoke(prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _create_progressive_disclosure_options(self, core_response: Dict, user_profile: Dict) -> Dict:
@@ -242,7 +244,8 @@ class AdaptiveResponseGenerator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
+        llm_response = await self.llm_client.ainvoke(prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _add_interactive_elements(self, core_response: Dict, knowledge_result: Dict, user_profile: Dict) -> Dict:
@@ -291,7 +294,8 @@ class AdaptiveResponseGenerator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
+        llm_response = await self.llm_client.ainvoke(prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     async def _generate_follow_up_recommendations(self, knowledge_result: Dict, interaction_context: Dict) -> Dict:
@@ -341,7 +345,8 @@ class AdaptiveResponseGenerator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
+        llm_response = await self.llm_client.ainvoke(prompt)
+        response = llm_response.content if hasattr(llm_response, 'content') else str(llm_response)
         return self._parse_json_response(response)
     
     def _assess_knowledge_complexity(self, knowledge_result: Dict) -> str:

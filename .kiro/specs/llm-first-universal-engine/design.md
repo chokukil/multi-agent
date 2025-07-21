@@ -12,6 +12,87 @@
 
 ## 🏗️ 전체 시스템 아키텍처
 
+### 0. LLM Factory 환경 변수 기반 제공자 선택 시스템
+
+```python
+class LLMFactory:
+    """
+    환경 변수 기반 동적 LLM 제공자 선택 시스템
+    - LLM_PROVIDER=OLLAMA 시 우선적으로 Ollama 사용
+    - OLLAMA_MODEL 환경 변수로 모델 동적 선택
+    - 폴백 메커니즘: Ollama 실패 시 OpenAI 자동 전환
+    """
+    
+    # 기본 설정 (환경 변수 기반)
+    DEFAULT_CONFIGS = {
+        "openai": {
+            "model": "gpt-4o-mini",
+            "temperature": 0.7,
+            "max_tokens": 4000
+        },
+        "ollama": {
+            "model": "okamototk/gemma3-tools:4b",  # 도구 호출 지원 모델
+            "temperature": 0.7,
+            "base_url": "http://localhost:11434"
+        },
+        "anthropic": {
+            "model": "claude-3-haiku-20240307",
+            "temperature": 0.7,
+            "max_tokens": 4000
+        }
+    }
+    
+    @staticmethod
+    def create_llm_client(provider=None, model=None, config=None, **kwargs):
+        """
+        환경 변수 기반 LLM 클라이언트 생성
+        
+        동작 방식:
+        1. LLM_PROVIDER=OLLAMA인 경우 → 처음부터 Ollama 사용
+        2. 그렇지 않은 경우 → OpenAI 사용하다가 실패 시 Ollama 폴백
+        3. OLLAMA_MODEL 환경 변수로 모델 동적 선택
+        """
+        # 환경 변수 기반 제공자 결정
+        env_provider = os.getenv("LLM_PROVIDER", "").upper()
+        if env_provider == "OLLAMA":
+            provider = provider or "ollama"
+        else:
+            provider = provider or os.getenv("LLM_PROVIDER", "openai").lower()
+        
+        # 환경 변수 기반 모델 선택
+        if provider == "ollama":
+            env_model = os.getenv("OLLAMA_MODEL", "okamototk/gemma3-tools:4b")
+            model = model or env_model
+        
+        return cls._create_provider_client(provider, model, config, **kwargs)
+    
+    @staticmethod
+    def get_system_recommendations():
+        """
+        시스템 환경에 맞는 LLM 추천
+        - LLM_PROVIDER=OLLAMA 설정 시 Ollama 우선 추천
+        - Ollama 서버 상태 확인 후 폴백 전략 제시
+        """
+        env_provider = os.getenv("LLM_PROVIDER", "").upper()
+        env_model = os.getenv("OLLAMA_MODEL", "okamototk/gemma3-tools:4b")
+        
+        if env_provider == "OLLAMA":
+            if ollama_server_available():
+                return {
+                    "primary": {"provider": "ollama", "model": env_model},
+                    "reason": "LLM_PROVIDER=OLLAMA 설정 - 구성된 Ollama 모델 사용"
+                }
+            else:
+                return {
+                    "primary": {"provider": "openai", "model": "gpt-4o-mini"},
+                    "reason": "Ollama 서버 접근 불가 - OpenAI 폴백 사용",
+                    "instructions": [
+                        "Ollama 사용을 위해: 'ollama serve' 실행 후 모델 설치",
+                        f"모델 설치: 'ollama pull {env_model}'"
+                    ]
+                }
+```
+
 ### 1. 시스템 구조 다이어그램
 
 ```mermaid

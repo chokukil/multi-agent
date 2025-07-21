@@ -1,0 +1,129 @@
+{
+  "test_id": "phase5_e2e_integrated_1753030084",
+  "timestamp": "2025-07-21T01:51:38.661339",
+  "model_name": "qwen3-4b-fast",
+  "total_execution_time": 214.19376826286316,
+  "test_summary": {
+    "total_scenarios": 5,
+    "successful_scenarios": 0,
+    "success_rate": 0.0,
+    "time_target_met": 0,
+    "quality_target_met": 0,
+    "avg_execution_time": 42.83388352394104,
+    "avg_quality_score": 0.0
+  },
+  "detailed_results": [
+    {
+      "scenario_id": "beginner_01",
+      "user_level": "beginner",
+      "query": "데이터 분석이 뭔가요?",
+      "execution_time": 38.22828483581543,
+      "response_length": 0,
+      "success": false,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정"
+      ],
+      "step_times": {
+        "integrated_analysis": 10.318963050842285,
+        "method_selection": 12.87898302078247
+      },
+      "quality_score": 0.0,
+      "meets_time_target": false,
+      "meets_quality_threshold": false,
+      "error_message": "LLM 호출 타임아웃 (15초)"
+    },
+    {
+      "scenario_id": "beginner_02",
+      "user_level": "beginner",
+      "query": "엑셀 파일을 어떻게 분석하나요?",
+      "execution_time": 31.79194688796997,
+      "response_length": 0,
+      "success": false,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정"
+      ],
+      "step_times": {
+        "integrated_analysis": 4.457025051116943,
+        "method_selection": 12.327208280563354
+      },
+      "quality_score": 0.0,
+      "meets_time_target": false,
+      "meets_quality_threshold": false,
+      "error_message": "LLM 호출 타임아웃 (15초)"
+    },
+    {
+      "scenario_id": "intermediate_01",
+      "user_level": "intermediate",
+      "query": "고객 데이터로 마케팅 인사이트를 찾고 싶습니다",
+      "execution_time": 38.23897910118103,
+      "response_length": 0,
+      "success": false,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정"
+      ],
+      "step_times": {
+        "integrated_analysis": 4.7901999950408936,
+        "method_selection": 18.443836212158203
+      },
+      "quality_score": 0.0,
+      "meets_time_target": false,
+      "meets_quality_threshold": false,
+      "error_message": "LLM 호출 타임아웃 (15초)"
+    },
+    {
+      "scenario_id": "intermediate_02",
+      "user_level": "intermediate",
+      "query": "데이터 품질 문제를 어떻게 해결하나요?",
+      "execution_time": 41.846136808395386,
+      "response_length": 0,
+      "success": false,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정"
+      ],
+      "step_times": {
+        "integrated_analysis": 4.41944694519043,
+        "method_selection": 22.422417879104614
+      },
+      "quality_score": 0.0,
+      "meets_time_target": false,
+      "meets_quality_threshold": false,
+      "error_message": "LLM 호출 타임아웃 (15초)"
+    },
+    {
+      "scenario_id": "expert_01",
+      "user_level": "expert",
+      "query": "반도체 제조 공정의 품질 관리 데이터를 분석하여 불량률을 예측하는 모델을 구축하고 싶습니다",
+      "execution_time": 64.06406998634338,
+      "response_length": 0,
+      "success": false,
+      "llm_decision_points": [
+        "통합 분석",
+        "분석 방법 선택",
+        "응답 수준 조정"
+      ],
+      "step_times": {
+        "integrated_analysis": 8.494118213653564,
+        "method_selection": 40.55765390396118
+      },
+      "quality_score": 0.0,
+      "meets_time_target": false,
+      "meets_quality_threshold": false,
+      "error_message": "LLM 호출 타임아웃 (15초)"
+    }
+  ],
+  "performance_assessment": {
+    "meets_1min_target": true,
+    "meets_2min_limit": true,
+    "overall_success": false,
+    "llm_first_compliance": true,
+    "integration_applied": true
+  }
+}

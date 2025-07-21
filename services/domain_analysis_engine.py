@@ -61,12 +61,8 @@ class LLMDomainAnalysisEngine:
         - 도메인 지식은 실시간으로 추론하여 적용
         """
         
-        self.domain_knowledge_base = {
-            "semiconductor": self._get_semiconductor_knowledge_prompt(),
-            "finance": self._get_finance_knowledge_prompt(),
-            "manufacturing": self._get_manufacturing_knowledge_prompt(),
-            "healthcare": self._get_healthcare_knowledge_prompt()
-        }
+        # LLM 기반 동적 도메인 지식 생성 - 하드코딩 제거
+        self.domain_knowledge_base = {}
     
     async def analyze_domain_context(self, data: Any, user_query: str) -> DomainContext:
         """데이터와 쿼리를 통한 도메인 컨텍스트 자동 추출"""

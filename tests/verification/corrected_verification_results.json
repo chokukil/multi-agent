@@ -1,0 +1,215 @@
+{
+  "timestamp": "2025-07-20T22:25:59.067831",
+  "total_components": 10,
+  "successful_instantiations": 8,
+  "failed_instantiations": 0,
+  "component_status": {
+    "UniversalQueryProcessor": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.universal_query_processor.UniversalQueryProcessor'>",
+      "methods": [
+        "get_status",
+        "get_system_status",
+        "handle_clarification",
+        "initialization_status",
+        "initialize",
+        "knowledge_orchestrator",
+        "learning_system",
+        "llm_client",
+        "meta_reasoning_engine",
+        "process_query",
+        "process_with_streaming",
+        "response_generator"
+      ]
+    },
+    "MetaReasoningEngine": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.meta_reasoning_engine.MetaReasoningEngine'>",
+      "methods": [
+        "analyze_request",
+        "assess_analysis_quality",
+        "llm_client",
+        "perform_meta_reasoning",
+        "reasoning_patterns"
+      ]
+    },
+    "DynamicContextDiscovery": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.dynamic_context_discovery.DynamicContextDiscovery'>",
+      "methods": [
+        "analyze_data_characteristics",
+        "detect_domain",
+        "discover_context",
+        "discovered_contexts",
+        "llm_client",
+        "refine_context_with_feedback",
+        "terminology_patterns"
+      ]
+    },
+    "AdaptiveUserUnderstanding": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.adaptive_user_understanding.AdaptiveUserUnderstanding'>",
+      "methods": [
+        "adapt_communication_style",
+        "adapt_response",
+        "analyze_user",
+        "analyze_user_expertise",
+        "estimate_user_level",
+        "interaction_history",
+        "llm_client",
+        "update_user_model",
+        "update_user_profile",
+        "user_models"
+      ]
+    },
+    "UniversalIntentDetection": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.universal_intent_detection.UniversalIntentDetection'>",
+      "methods": [
+        "analyze_intent_patterns",
+        "analyze_semantic_space",
+        "clarify_ambiguity",
+        "detect_intent",
+        "get_intent_statistics",
+        "intent_history",
+        "llm_client",
+        "refine_intent_with_clarification",
+        "semantic_cache"
+      ]
+    },
+    "A2AAgentDiscoverySystem": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.a2a_integration.a2a_agent_discovery.A2AAgentDiscoverySystem'>",
+      "methods": [
+        "discover_agents",
+        "discover_available_agents",
+        "discovered_agents",
+        "get_agent_statistics",
+        "get_agents_by_capability",
+        "get_available_agents",
+        "health_check_agent",
+        "health_check_interval",
+        "host",
+        "monitor_agent_health",
+        "port_range",
+        "rediscover_agents",
+        "register_manual_agent",
+        "remove_agent",
+        "start_discovery",
+        "stop_discovery",
+        "timeout",
+        "validate_agent_endpoint"
+      ]
+    },
+    "LLMBasedAgentSelector": {
+      "instantiation": "SKIPPED",
+      "reason": "Requires dependency injection",
+      "class_valid": true
+    },
+    "A2AWorkflowOrchestrator": {
+      "instantiation": "SKIPPED",
+      "reason": "Requires dependency injection",
+      "class_valid": true
+    },
+    "BeginnerScenarioHandler": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.scenario_handlers.beginner_scenario_handler.BeginnerScenarioHandler'>",
+      "methods": [
+        "get_beginner_statistics",
+        "handle_confused_data_scenario",
+        "handle_learning_progression",
+        "interaction_history",
+        "learning_progress",
+        "llm_client"
+      ]
+    },
+    "ExpertScenarioHandler": {
+      "instantiation": "SUCCESS",
+      "instance": "<class 'core.universal_engine.scenario_handlers.expert_scenario_handler.ExpertScenarioHandler'>",
+      "methods": [
+        "domain_knowledge",
+        "expert_sessions",
+        "get_expert_statistics",
+        "handle_general_expert_query",
+        "handle_process_capability_scenario",
+        "llm_client",
+        "peer_review_history"
+      ]
+    }
+  },
+  "method_validation": {
+    "UniversalQueryProcessor": {
+      "initialize": {
+        "exists": true,
+        "callable": true
+      },
+      "process_query": {
+        "exists": true,
+        "callable": true
+      },
+      "get_status": {
+        "exists": true,
+        "callable": true
+      }
+    },
+    "MetaReasoningEngine": {
+      "analyze_request": {
+        "exists": true,
+        "callable": true
+      },
+      "perform_meta_reasoning": {
+        "exists": true,
+        "callable": true
+      },
+      "assess_analysis_quality": {
+        "exists": true,
+        "callable": true
+      }
+    },
+    "DynamicContextDiscovery": {
+      "discover_context": {
+        "exists": true,
+        "callable": true
+      },
+      "analyze_data_characteristics": {
+        "exists": true,
+        "callable": true
+      },
+      "detect_domain": {
+        "exists": true,
+        "callable": true
+      }
+    },
+    "AdaptiveUserUnderstanding": {
+      "analyze_user": {
+        "exists": true,
+        "callable": true
+      },
+      "estimate_user_level": {
+        "exists": true,
+        "callable": true
+      },
+      "adapt_response": {
+        "exists": true,
+        "callable": true
+      }
+    },
+    "UniversalIntentDetection": {
+      "detect_intent": {
+        "exists": true,
+        "callable": true
+      },
+      "analyze_semantic_space": {
+        "exists": true,
+        "callable": true
+      },
+      "clarify_ambiguity": {
+        "exists": true,
+        "callable": true
+      }
+    }
+  },
+  "success_rate": 100.0,
+  "effective_success": 10,
+  "effective_total": 10
+}
