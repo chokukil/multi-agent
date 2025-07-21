@@ -1,12 +1,12 @@
 {
   "mcpServers": {
-    "playwright-mcp": {
+    "playwright-mcp-server": {
       "command": "npx",
       "args": [
         "-y",
         "@smithery/cli@latest",
         "run",
-        "@microsoft/playwright-mcp",
+        "@executeautomation/playwright-mcp-server",
         "--key",
         "4b330216-bab6-4ad4-8a4f-c03b89d05eea",
         "--profile",

@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # 🍒 CherryAI - Unified A2A Agent System Stop Script
-# 🛑 World's First A2A + MCP Integrated Platform Shutdown
-# 📅 Version: 2025.07.19 - LLM First Architecture
+# 🛑 World's First A2A Platform with Universal Engine Shutdown
+# 📅 Version: 2025.07.21 - LLM First Universal Engine Architecture
 
 echo "🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒"
 echo "🍒                                                                      🍒"
 echo "🍒                        🍒 CherryAI System Stopping 🍒               🍒"
 echo "🍒                                                                      🍒"
-echo "🍒    🛑 Graceful Shutdown of A2A + MCP Integrated Platform 🛑         🍒"
-echo "🍒    🧠 LLM First Architecture with 11 Specialized Agents 🧠          🍒"
+echo "🍒    🛑 Graceful Shutdown of Universal Engine + A2A Platform 🛑      🍒"
+echo "🍒    🧠 Universal Engine + 11 Specialized A2A Agents 🧠              🍒"
 echo "🍒    🔧 Safe System Cleanup and Resource Management 🔧                🍒"
 echo "🍒                                                                      🍒"
 echo "🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒"
@@ -30,39 +30,40 @@ PROJECT_ROOT="$SCRIPT_DIR"
 LOG_DIR="$PROJECT_ROOT/logs/cherryai"
 PID_DIR="$PROJECT_ROOT/logs/pids"
 
-# 🍒 CherryAI 포트 정의
-CHERRY_PORTS=(8100 8316 8317 8318 8319 8320 8321 8322 8323 8324 8325 8326)
+# 🍒 CherryAI 포트 정의 (Universal Engine 호환)
+CHERRY_PORTS=(8100 8306 8307 8308 8309 8310 8311 8312 8313 8314 8315 8316)
 
-# 🍒 CherryAI 서비스 이름 매핑
-declare -A CHERRY_SERVICES=(
-    [8100]="🎯 CherryAI Orchestrator"
-    [8316]="🧹 Data Cleaning Agent"
-    [8317]="📊 Pandas Analyst Agent"
-    [8318]="🎨 Visualization Agent"
-    [8319]="🛠️ Data Wrangling Agent"
-    [8320]="🔬 EDA Analysis Agent"
-    [8321]="⚙️ Feature Engineering Agent"
-    [8322]="📂 Data Loader Agent"
-    [8323]="🤖 H2O ML Agent"
-    [8324]="🗄️ SQL Database Agent"
-    [8325]="🧠 Knowledge Bank Agent"
-    [8326]="📋 Report Generator Agent"
+# 🍒 CherryAI 포트 및 서비스 정의 (Bash 3.2 호환)
+CHERRY_PORTS=(8100 8306 8307 8308 8309 8310 8311 8312 8313 8314 8315 8316)
+
+CHERRY_SERVICE_NAMES=(
+    "🎯 CherryAI Orchestrator"
+    "📂 Data Loader Agent"
+    "🧹 Data Cleaning Agent"
+    "📊 Pandas Analyst Agent"
+    "🎨 Visualization Agent"
+    "🛠️ Data Wrangling Agent"
+    "🔬 EDA Analysis Agent"
+    "⚙️ Feature Engineering Agent"
+    "🤖 H2O ML Agent"
+    "🗄️ SQL Database Agent"
+    "🧠 Knowledge Bank Agent"
+    "📋 Report Generator Agent"
 )
 
-# 🍒 CherryAI PID 파일 매핑
-declare -A CHERRY_PID_FILES=(
-    [8100]="orchestrator"
-    [8316]="data_cleaning"
-    [8317]="pandas_analyst"
-    [8318]="visualization"
-    [8319]="wrangling"
-    [8320]="eda"
-    [8321]="feature_engineering"
-    [8322]="data_loader"
-    [8323]="h2o_ml"
-    [8324]="sql_database"
-    [8325]="knowledge_bank"
-    [8326]="report"
+CHERRY_PID_NAMES=(
+    "orchestrator"
+    "data_loader"
+    "data_cleaning"
+    "pandas_analyst"
+    "visualization"
+    "wrangling"
+    "eda"
+    "feature_engineering"
+    "h2o_ml"
+    "sql_database"
+    "knowledge_bank"
+    "report"
 )
 
 # 🍒 포트로 프로세스 종료 함수
@@ -145,8 +146,8 @@ echo -e "${PURPLE}🤖 Stopping 11 CherryAI A2A Agents...${NC}"
 stopped_count=0
 total_agents=${#CHERRY_PORTS[@]}
 
-# 에이전트 종료 순서 (역순)
-agent_shutdown_order=(8326 8325 8324 8323 8322 8321 8320 8319 8318 8317 8316)
+# 에이전트 종료 순서 (역순, Universal Engine 호환 포트)
+agent_shutdown_order=(8316 8315 8314 8313 8312 8311 8310 8309 8308 8307 8306)
 
 for port in "${agent_shutdown_order[@]}"; do
     if [ $port -ne 8100 ]; then  # 오케스트레이터는 나중에
@@ -282,13 +283,13 @@ if [ $active_ports -eq 0 ]; then
     echo "🍒                                                                      🍒"
     echo "🍒    ✅ All 11 A2A Agents Successfully Terminated                     🍒"
     echo "🍒    ✅ LLM First Architecture Safely Shutdown                        🍒"
-    echo "🍒    ✅ World's First A2A + MCP Platform Gracefully Stopped          🍒"
+    echo "🍒    ✅ World's First Universal Engine + A2A Platform Stopped        🍒"
     echo "🍒                                                                      🍒"
     echo "🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒🍒"
 else
     echo -e "${YELLOW}⚠️  일부 CherryAI 서비스가 여전히 실행 중입니다.${NC}"
     echo -e "${YELLOW}💡 강제 종료가 필요하면 다음 명령을 실행하세요:${NC}"
-    echo "sudo lsof -ti :8100,:8316,:8317,:8318,:8319,:8320,:8321,:8322,:8323,:8324,:8325,:8326 | xargs sudo kill -9"
+    echo "sudo lsof -ti :8100,:8306,:8307,:8308,:8309,:8310,:8311,:8312,:8313,:8314,:8315,:8316 | xargs sudo kill -9"
 fi
 
 echo ""
@@ -302,9 +303,9 @@ echo ""
 echo -e "${BLUE}📖 추가 정보:${NC}"
 echo "   • 로그 파일: $LOG_DIR/"
 echo "   • PID 파일: $PID_DIR/"
-echo "   • A2A 에이전트: 11개 (포트 8316-8326)"
+echo "   • A2A 에이전트: 11개 (포트 8306-8316)"
 echo "   • 오케스트레이터: 1개 (포트 8100)"
-echo "   • 아키텍처: LLM First + A2A Protocol + MCP Integration"
+echo "   • 아키텍처: LLM First Universal Engine + A2A Protocol"
 echo ""
 echo -e "${CHERRY}🍒 Thank you for using CherryAI! 🍒${NC}"
-echo -e "${PURPLE}🌟 World's First A2A + MCP Integrated Platform 🌟${NC}"
+echo -e "${PURPLE}🌟 World's First Universal Engine + A2A Platform 🌟${NC}"
