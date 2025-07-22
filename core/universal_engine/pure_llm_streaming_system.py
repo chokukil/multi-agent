@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import json
 
-from .llm_factory import LLMFactory
+from ..llm_factory import LLMFactory
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

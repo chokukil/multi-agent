@@ -12,7 +12,7 @@ import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from ..llm_factory import LLMFactory
+from .llm_factory import LLMFactory
 
 logger = logging.getLogger(__name__)
 

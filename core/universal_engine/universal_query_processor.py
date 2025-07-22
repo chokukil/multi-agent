@@ -12,8 +12,8 @@ import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from ..llm_factory import LLMFactory
-from .meta_reasoning_engine import MetaReasoningEngine
+from .llm_factory import LLMFactory
+from .meta_reasoning_engine_fast import FastMetaReasoningEngine
 from .dynamic_knowledge_orchestrator import DynamicKnowledgeOrchestrator
 from .adaptive_response_generator import AdaptiveResponseGenerator
 from .real_time_learning_system import RealTimeLearningSystem
@@ -32,7 +32,7 @@ class UniversalQueryProcessor:
     def __init__(self):
         """UniversalQueryProcessor 초기화"""
         self.llm_client = self._initialize_llm()
-        self.meta_reasoning_engine = MetaReasoningEngine()
+        self.meta_reasoning_engine = FastMetaReasoningEngine()
         self.knowledge_orchestrator = DynamicKnowledgeOrchestrator()
         self.response_generator = AdaptiveResponseGenerator()
         self.learning_system = RealTimeLearningSystem()

@@ -18,7 +18,7 @@ from enum import Enum
 import statistics
 from collections import Counter
 
-from .llm_factory import LLMFactory
+from ..llm_factory import LLMFactory
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import math
 
-from ..llm_factory import LLMFactory
+from ...llm_factory import LLMFactory
 
 logger = logging.getLogger(__name__)
 

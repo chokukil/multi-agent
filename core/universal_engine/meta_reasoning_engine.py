@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 import json
 
-from ..llm_factory import LLMFactory
+from .llm_factory import LLMFactory
 from .optimizations.llm_performance_optimizer import optimize_llm_call
 
 logger = logging.getLogger(__name__)

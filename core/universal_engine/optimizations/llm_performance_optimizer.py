@@ -35,7 +35,7 @@ class OptimizationConfig:
     max_cache_size: int = 1000
     compression_ratio: float = 0.5
     batch_size: int = 5
-    timeout_seconds: int = 10
+    timeout_seconds: int = 120
     parallel_workers: int = 3
 
 class LLMPerformanceOptimizer:

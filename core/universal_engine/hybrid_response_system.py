@@ -22,7 +22,7 @@ import hashlib
 import re
 from pathlib import Path
 
-from .llm_factory import LLMFactory
+from ..llm_factory import LLMFactory
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
