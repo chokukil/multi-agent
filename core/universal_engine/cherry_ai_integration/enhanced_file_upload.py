@@ -17,6 +17,7 @@ from typing import Dict, Any, Optional, List, Union
 from datetime import datetime
 import json
 import io
+from langchain_core.messages import HumanMessage
 
 from ..dynamic_context_discovery import DynamicContextDiscovery
 from ...llm_factory import LLMFactory
@@ -337,8 +338,9 @@ class EnhancedFileUpload:
         """
         
         try:
-            response = await self.llm_client.agenerate(prompt)
-            return self._parse_json_response(response)
+            response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+            result_text = response.generations[0][0].text.strip()
+            return self._parse_json_response(result_text)
         except Exception as e:
             logger.error(f"LLM quality assessment failed: {e}")
             return {}
@@ -433,8 +435,9 @@ class EnhancedFileUpload:
         """
         
         try:
-            response = await self.llm_client.agenerate(prompt)
-            return self._parse_json_response(response)
+            response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+            result_text = response.generations[0][0].text.strip()
+            return self._parse_json_response(result_text)
         except Exception as e:
             logger.error(f"Failed to generate recommendations: {e}")
             return {}

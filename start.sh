@@ -74,7 +74,7 @@ echo -n "Starting orchestrator on port 8100... "
 if check_port 8100; then
     echo "❌ Port 8100 already in use"
 else  
-    nohup python core/orchestrator/a2a_orchestrator.py > logs/orchestrator.log 2>&1 &
+    nohup python a2a_ds_servers/a2a_orchestrator.py > logs/orchestrator.log 2>&1 &
     pid=$!
     echo $pid > pids/orchestrator.pid
     sleep 3

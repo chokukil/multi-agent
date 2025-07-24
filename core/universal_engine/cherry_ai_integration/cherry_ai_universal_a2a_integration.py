@@ -18,6 +18,8 @@ import json
 import pandas as pd
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 from ..universal_query_processor import UniversalQueryProcessor
 from ..smart_query_router import SmartQueryRouter
 from ..llm_first_optimized_orchestrator import LLMFirstOptimizedOrchestrator
@@ -31,8 +33,6 @@ from .enhanced_file_upload import EnhancedFileUpload
 from .enhanced_chat_interface import EnhancedChatInterface
 from .realtime_analysis_progress import RealtimeAnalysisProgress
 from .progressive_disclosure_interface import ProgressiveDisclosureInterface
-
-logger = logging.getLogger(__name__)
 
 
 class CherryAIUniversalA2AIntegration:

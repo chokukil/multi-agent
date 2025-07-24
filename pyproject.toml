@@ -69,6 +69,7 @@ dependencies = [
     "selenium>=4.34.2",
     "webdriver-manager>=4.0.2",
     "chardet>=5.2.0",
+    "superclaude>=3.0.0.2",
 ]
 
 [project.scripts]

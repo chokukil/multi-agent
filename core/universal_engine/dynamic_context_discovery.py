@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 import pandas as pd
 import numpy as np
+from langchain_core.messages import HumanMessage
 
 from ..llm_factory import LLMFactory
 
@@ -166,8 +167,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _extract_patterns_and_terminology(self, data: Any, characteristics: Dict) -> Dict:
         """
@@ -220,8 +222,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _analyze_value_patterns(self, values: np.ndarray) -> Dict:
         """값 패턴 분석"""
@@ -244,8 +247,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _analyze_relationships(self, data: pd.DataFrame) -> Dict:
         """데이터 내 관계 분석"""
@@ -294,8 +298,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _infer_domain_context(self, characteristics: Dict, patterns: Dict, query: str = None) -> Dict:
         """
@@ -326,8 +331,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _assess_uncertainty(self, domain_context: Dict) -> Dict:
         """
@@ -374,8 +380,9 @@ class DynamicContextDiscovery:
             }}
             """
             
-            response = await self.llm_client.agenerate(prompt)
-            uncertainty_details = self._parse_json_response(response)
+            response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+            result_text = response.generations[0][0].text.strip()
+            uncertainty_details = self._parse_json_response(result_text)
             
             uncertainty_assessment.update(uncertainty_details)
         
@@ -422,8 +429,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def refine_context_with_feedback(self, current_context: Dict, user_feedback: str) -> Dict:
         """
@@ -445,8 +453,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        refined = self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        refined = self._parse_json_response(result_text)
         
         # 개선된 컨텍스트를 기존 컨텍스트와 병합
         updated_context = {**current_context}
@@ -654,8 +663,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(pattern_prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=pattern_prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _assess_data_quality(self, data: Any, characteristics: Dict) -> Dict:
         """데이터 품질 평가"""
@@ -703,8 +713,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(quality_prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=quality_prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _extract_domain_hints(self, data: Any, characteristics: Dict, patterns: Dict) -> Dict:
         """도메인 힌트 추출"""
@@ -736,8 +747,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(hints_prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=hints_prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _analyze_query_intent(self, query: str) -> Dict:
         """쿼리 의도 분석"""
@@ -759,8 +771,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(intent_prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=intent_prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     async def _perform_domain_detection(self, data_characteristics: Dict, query_analysis: Dict, data: Any, query: str) -> Dict:
         """도메인 감지 수행"""
@@ -797,8 +810,9 @@ class DynamicContextDiscovery:
         }}
         """
         
-        response = await self.llm_client.agenerate(detection_prompt)
-        return self._parse_json_response(response)
+        response = await self.llm_client.agenerate([[HumanMessage(content=detection_prompt)]])
+        result_text = response.generations[0][0].text.strip()
+        return self._parse_json_response(result_text)
     
     def _calculate_data_complexity(self, characteristics: Dict) -> str:
         """데이터 복잡도 계산"""

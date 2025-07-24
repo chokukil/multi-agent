@@ -11,16 +11,16 @@ Requirements 6.1에 따른 구현:
 
 import asyncio
 import logging
-from typing import Dict, Any, Optional, List, Literal
+from typing import Dict, Any, Optional, List, Literal, AsyncGenerator
 from datetime import datetime
 import json
 
 from ..llm_factory import LLMFactory
 from .universal_query_processor import UniversalQueryProcessor
-from ..a2a_integration.a2a_agent_discovery import A2AAgentDiscoverySystem
-from ..a2a_integration.llm_based_agent_selector import LLMBasedAgentSelector
-from ..a2a_integration.a2a_workflow_orchestrator import A2AWorkflowOrchestrator
-from ..monitoring.performance_monitoring_system import PerformanceMonitor
+from .a2a_integration.a2a_agent_discovery import A2AAgentDiscoverySystem
+from .a2a_integration.llm_based_agent_selector import LLMBasedAgentSelector
+from .a2a_integration.a2a_workflow_orchestrator import A2AWorkflowOrchestrator
+from .monitoring.performance_monitoring_system import PerformanceMonitoringSystem as PerformanceMonitor
 from .langfuse_integration import SessionBasedTracer, LangfuseEnhancedA2AExecutor, get_global_tracer
 
 logger = logging.getLogger(__name__)

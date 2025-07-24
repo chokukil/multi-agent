@@ -15,11 +15,11 @@ from datetime import datetime
 import json
 
 from ..llm_factory import LLMFactory
-from ..a2a_integration.a2a_agent_discovery import A2AAgentDiscoverySystem
-from ..a2a_integration.a2a_communication_protocol import A2ACommunicationProtocol
-from ..a2a_integration.a2a_workflow_orchestrator import A2AWorkflowOrchestrator
-from ..a2a_integration.a2a_result_integrator import A2AResultIntegrator
-from ..monitoring.performance_monitoring_system import PerformanceMonitor
+from .a2a_integration.a2a_agent_discovery import A2AAgentDiscoverySystem
+from .a2a_integration.a2a_communication_protocol import A2ACommunicationProtocol
+from .a2a_integration.a2a_workflow_orchestrator import A2AWorkflowOrchestrator
+from .a2a_integration.a2a_result_integrator import A2AResultIntegrator
+from .monitoring.performance_monitoring_system import PerformanceMonitoringSystem as PerformanceMonitor
 
 logger = logging.getLogger(__name__)
 

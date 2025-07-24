@@ -20,6 +20,7 @@ from enum import Enum
 from collections import defaultdict, deque
 import statistics
 import threading
+from langchain_core.messages import HumanMessage
 
 from ...llm_factory import LLMFactory
 
@@ -427,8 +428,9 @@ class PerformanceMonitoringSystem:
         """
         
         try:
-            response = await self.llm_client.agenerate(prompt)
-            recommendations_data = self._parse_json_response(response)
+            response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+            result_text = response.generations[0][0].text.strip()
+            recommendations_data = self._parse_json_response(result_text)
             return recommendations_data.get('recommendations', [])
         except Exception as e:
             logger.error(f"Error generating performance recommendations: {e}")
@@ -661,8 +663,9 @@ class PerformanceMonitoringSystem:
         """
         
         try:
-            response = await self.llm_client.agenerate(prompt)
-            return self._parse_json_response(response)
+            response = await self.llm_client.agenerate([[HumanMessage(content=prompt)]])
+            result_text = response.generations[0][0].text.strip()
+            return self._parse_json_response(result_text)
         except Exception as e:
             logger.error(f"Error generating forecast: {e}")
             return {"error": "Forecast generation failed"}
