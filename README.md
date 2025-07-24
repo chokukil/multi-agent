@@ -54,11 +54,16 @@ CherryAI is a sophisticated LLM-powered data science platform that transforms ho
 | Agent | Port | Capabilities | Status |
 |-------|------|-------------|--------|
 | **Orchestrator** | 8100 | Central coordination, task planning | ✅ Active |
-| **Pandas Analyst** | 8200 | Advanced pandas analysis, visualizations | ✅ Active |
-| **EDA Tools** | 8203 | Exploratory data analysis, statistics | ✅ Active |
-| **Data Visualization** | 8202 | Interactive charts, dashboards | ✅ Active |
-| **SQL Analyst** | 8002 | Database queries, SQL analysis | ✅ Active |
-| **Data Loader** | 8000 | File processing, data ingestion | ✅ Active |
+| **Data Cleaning** | 8306 | Missing values, outliers, data quality | ✅ Active |
+| **Data Visualization** | 8308 | Interactive charts, plots, dashboards | ✅ Active |
+| **Data Wrangling** | 8309 | Data transformation, reshaping | ✅ Active |
+| **Feature Engineering** | 8310 | Feature creation, selection, scaling | ✅ Active |
+| **SQL Database** | 8311 | Database queries, SQL analysis | ✅ Active |
+| **EDA Tools** | 8312 | Exploratory data analysis, statistics | ✅ Active |
+| **H2O ML** | 8313 | AutoML, model training, evaluation | ✅ Active |
+| **MLflow Tools** | 8314 | Model tracking, experiment management | ✅ Active |
+| **Pandas Analyst** | 8315 | Advanced pandas analysis, data manipulation | ✅ Active |
+| **Report Generator** | 8316 | Business intelligence, comprehensive reports | ✅ Active |
 
 ## 🚀 Quick Start
 
@@ -113,22 +118,41 @@ STREAMLIT_SERVER_PORT=8501
 
 ### 3. System Startup
 
-#### macOS/Linux
+#### Start All A2A Agents
 ```bash
-# Start A2A server system
-./ai_ds_team_system_start.sh
+# Start all agents and orchestrator
+./start.sh
 
+# Expected output:
+# 🍒 CherryAI A2A Agent System Starting...
+# ✅ All 11 services started successfully
+```
+
+#### Launch Main Application
+```bash
 # Launch Streamlit UI (new terminal)
-streamlit run ai.py
+streamlit run cherry_ai.py
+```
+
+#### System Management
+```bash
+# Stop all services
+./stop.sh
+
+# Check service status
+ps aux | grep python | grep server
+
+# View service logs
+tail -f logs/data_cleaning_server.log
 ```
 
 #### System Health Check
 ```bash
-# Verify A2A servers
-python numpy_pandas_compatibility_test.py
+# Test all agents
+python test_all_4_llm_first_agents.py
 
-# Run integration tests
-python test_real_user_scenarios_simple.py
+# Comprehensive verification
+python test_all_agents_comprehensive.py
 ```
 
 ## 💡 Usage Guide

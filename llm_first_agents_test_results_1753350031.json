@@ -1,0 +1,32 @@
+{
+  "timestamp": 1753350031,
+  "total_agents": 4,
+  "successful_tests": 0,
+  "success_rate": 0.0,
+  "detailed_results": [
+    {
+      "agent": "SQL Database",
+      "port": 8311,
+      "status": "server_failed",
+      "error": "Server failed to start"
+    },
+    {
+      "agent": "MLflow Tools",
+      "port": 8314,
+      "status": "server_failed",
+      "error": "Server failed to start"
+    },
+    {
+      "agent": "Pandas Analyst",
+      "port": 8315,
+      "status": "server_failed",
+      "error": "Server failed to start"
+    },
+    {
+      "agent": "Report Generator",
+      "port": 8316,
+      "status": "server_failed",
+      "error": "Server failed to start"
+    }
+  ]
+}

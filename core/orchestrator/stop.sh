@@ -1,8 +1,5 @@
 #\!/bin/bash
 
-# CherryAI A2A Agent System Shutdown Script
-# This script stops all A2A agents and the orchestrator
-
 echo "🍒 CherryAI A2A Agent System Stopping..."
 echo "========================================="
 
@@ -19,7 +16,6 @@ stop_service() {
             kill $pid
             sleep 2
             
-            # Check if process is still running
             if ps -p $pid > /dev/null 2>&1; then
                 echo -n "Force killing... "
                 kill -9 $pid
@@ -35,12 +31,12 @@ stop_service() {
                 return 0
             fi
         else
-            echo "⚠️  Process not running"
+            echo "⚠️ Process not running"
             rm -f "$pid_file"
             return 0
         fi
     else
-        echo "⚠️  No PID file found for $service_name"
+        echo "⚠️ No PID file found for $service_name"
         return 0
     fi
 }
@@ -63,32 +59,31 @@ echo ""
 echo "🛑 Stopping A2A Agents..."
 echo "-------------------------"
 
-SUCCESS_COUNT=0
-TOTAL_COUNT=0
+success=0
+total=0
 
 # Stop all agents
 for agent in "${AGENTS[@]}"; do
-    ((TOTAL_COUNT++))
+    ((total++))
     if stop_service "$agent"; then
-        ((SUCCESS_COUNT++))
+        ((success++))
     fi
 done
 
 echo ""
-echo "🎛️  Stopping Orchestrator..."
+echo "🎛️ Stopping Orchestrator..."
 echo "----------------------------"
 
-# Stop orchestrator
-((TOTAL_COUNT++))
+((total++))
 if stop_service "orchestrator"; then
-    ((SUCCESS_COUNT++))
+    ((success++))
 fi
 
 echo ""
 echo "🧹 Cleanup..."
 echo "-------------"
 
-# Kill any remaining processes on the ports (safety measure)
+# Kill any remaining processes on the ports
 PORTS=(8100 8306 8308 8309 8310 8311 8312 8313 8314 8315 8316)
 
 for port in "${PORTS[@]}"; do
@@ -99,21 +94,15 @@ for port in "${PORTS[@]}"; do
     fi
 done
 
-# Clean up empty PID files
-find pids/ -name "*.pid" -empty -delete 2>/dev/null
-
 echo ""
 echo "========================================="
-echo "🎯 Summary: $SUCCESS_COUNT/$TOTAL_COUNT services stopped"
-echo ""
+echo "🎯 Summary: $success/$total services stopped"
 
-if [ $SUCCESS_COUNT -eq $TOTAL_COUNT ]; then
+if [ $success -eq $total ]; then
     echo "✅ All services stopped successfully\!"
 else
-    echo "⚠️  Some services may still be running"
-    echo "You can check with: ps aux | grep python"
+    echo "⚠️ Some services may still be running"
 fi
 
-echo ""
 echo "🔄 To start all services again, run: ./start.sh"
 echo "========================================="

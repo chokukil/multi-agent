@@ -1,11 +1,10 @@
-#!/bin/bash
+#\!/bin/bash
 
 echo "🍒 CherryAI A2A Agent System Starting..."
 echo "==========================================="
 
 mkdir -p pids logs
 
-# Define agents and ports
 agents=(
     "data_cleaning:8306"
     "data_visualization:8308"
@@ -34,8 +33,8 @@ start_agent() {
         return 1
     fi
     
-    nohup python a2a_ds_servers/${name}_server.py > logs/${name}_server.log 2>&1 &
-    local pid=$!
+    nohup python /Users/gukil/CherryAI/CherryAI_0717/a2a_ds_servers/${name}_server.py > logs/${name}_server.log 2>&1 &
+    local pid=$\!
     echo $pid > pids/${name}_server.pid
     sleep 3
     
@@ -65,37 +64,13 @@ for agent_info in "${agents[@]}"; do
 done
 
 echo ""
-echo "🎛️ Starting Orchestrator..."
-echo "---------------------------"
-
-echo -n "Starting orchestrator on port 8100... "
-((total++))
-
-if check_port 8100; then
-    echo "❌ Port 8100 already in use"
-else  
-    nohup python core/orchestrator/a2a_orchestrator.py > logs/orchestrator.log 2>&1 &
-    pid=$!
-    echo $pid > pids/orchestrator.pid
-    sleep 3
-    
-    if ps -p $pid > /dev/null 2>&1; then
-        echo "✅ Started (PID: $pid)"
-        ((success++))
-    else
-        echo "❌ Failed to start"
-    fi
-fi
-
-echo ""
 echo "==========================================="
 echo "🎯 Summary: $success/$total services started successfully"
 
 if [ $success -eq $total ]; then
-    echo "✅ All services are running!"
+    echo "✅ All agents are running\!"
     echo ""
     echo "📊 Agent Endpoints:"
-    echo "  • Orchestrator:        http://localhost:8100"
     echo "  • Data Cleaning:       http://localhost:8306"
     echo "  • Data Visualization:  http://localhost:8308"
     echo "  • Data Wrangling:      http://localhost:8309"
@@ -106,6 +81,9 @@ if [ $success -eq $total ]; then
     echo "  • MLflow Tools:        http://localhost:8314"
     echo "  • Pandas Analyst:      http://localhost:8315"
     echo "  • Report Generator:    http://localhost:8316"
+    echo ""
+    echo "🧪 Test all agents:"
+    echo "   python test_all_4_llm_first_agents.py"
 else
     echo "⚠️ Some services failed to start"
     echo "Check logs/ directory for details"
