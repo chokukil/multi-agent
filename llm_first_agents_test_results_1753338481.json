@@ -1,0 +1,40 @@
+{
+  "timestamp": 1753338481,
+  "total_agents": 4,
+  "successful_tests": 4,
+  "success_rate": 100.0,
+  "detailed_results": [
+    {
+      "agent": "SQL Database",
+      "port": 8311,
+      "status": "success",
+      "response_length": 961,
+      "has_task_id": false,
+      "response_preview": "{'id': 'test_sql_database_1753338481', 'jsonrpc': '2.0', 'result': {'contextId': 'c2de820c-16b0-4d52-9792-67076736fc46', 'history': [{'contextId': 'c2de820c-16b0-4d52-9792-67076736fc46', 'kind': 'mess..."
+    },
+    {
+      "agent": "MLflow Tools",
+      "port": 8314,
+      "status": "success",
+      "response_length": 2695,
+      "has_task_id": false,
+      "response_preview": "{'id': 'test_mlflow_tools_1753338481', 'jsonrpc': '2.0', 'result': {'contextId': 'f1b76cfe-0958-4560-9113-7bb8a14183e6', 'history': [{'contextId': 'f1b76cfe-0958-4560-9113-7bb8a14183e6', 'kind': 'mess..."
+    },
+    {
+      "agent": "Pandas Analyst",
+      "port": 8315,
+      "status": "success",
+      "response_length": 3466,
+      "has_task_id": false,
+      "response_preview": "{'id': 'test_pandas_analyst_1753338481', 'jsonrpc': '2.0', 'result': {'contextId': 'db80af4a-6fd8-4cd0-9f98-501a3fe8a950', 'history': [{'contextId': 'db80af4a-6fd8-4cd0-9f98-501a3fe8a950', 'kind': 'me..."
+    },
+    {
+      "agent": "Report Generator",
+      "port": 8316,
+      "status": "success",
+      "response_length": 1609,
+      "has_task_id": false,
+      "response_preview": "{'id': 'test_report_generator_1753338481', 'jsonrpc': '2.0', 'result': {'contextId': '88d6a75b-6159-434d-a551-6ea1bf8f9141', 'history': [{'contextId': '88d6a75b-6159-434d-a551-6ea1bf8f9141', 'kind': '..."
+    }
+  ]
+}

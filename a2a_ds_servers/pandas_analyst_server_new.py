@@ -467,24 +467,24 @@ def main():
     logger.info("🎯 Langfuse 통합 및 TaskUpdater 패턴 적용")
     logger.info("="*80)
     
-    # A2A application setup following standard pattern
-    task_store = InMemoryTaskStore()
+    # Agent Card 생성
+    agent_card = create_agent_card()
+    
+    # Request Handler 생성  
     request_handler = DefaultRequestHandler(
         agent_executor=PandasAnalystAgentExecutor(),
-        agent_card=create_agent_card()
+        task_store=InMemoryTaskStore(),
     )
     
-    # Create Starlette application
+    # A2A Server 생성
     server = A2AStarletteApplication(
-        request_handler=request_handler,
-        task_store=task_store
+        agent_card=agent_card,
+        http_handler=request_handler,
     )
     
-    # Build and run server
-    server.build()
-    
+    # Uvicorn 서버 실행
     uvicorn.run(
-        server.app,
+        server.build(),
         host="0.0.0.0",
         port=8315,
         log_level="info"

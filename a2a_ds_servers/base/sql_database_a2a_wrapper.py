@@ -62,12 +62,23 @@ class SQLDatabaseA2AWrapper(BaseA2AWrapper):
     def _create_original_agent(self):
         """원본 SQLDatabaseAgent 생성"""
         if self.original_agent_class:
-            return self.original_agent_class(
-                model=self.llm,
-                create_react_agent_kwargs={},
-                invoke_react_agent_kwargs={},
-                checkpointer=None
-            )
+            # SQLDatabaseAgent는 데이터베이스 연결이 필요함
+            # 임시로 메모리 SQLite 데이터베이스 사용
+            try:
+                import sqlalchemy as sql
+                sql_engine = sql.create_engine("sqlite:///:memory:")
+                conn = sql_engine.connect()
+                
+                return self.original_agent_class(
+                    model=self.llm,
+                    connection=conn,
+                    n_samples=1,
+                    log=False,
+                    checkpointer=None
+                )
+            except Exception as e:
+                logger.error(f"SQLDatabaseAgent 생성 실패: {e}")
+                return None
         return None
     
     async def _invoke_original_agent(self, df: pd.DataFrame, user_input: str, function_name: str = None) -> Dict[str, Any]:
@@ -80,35 +91,46 @@ class SQLDatabaseA2AWrapper(BaseA2AWrapper):
         # 원본 에이전트 호출
         if self.agent:
             try:
-                # SQL Database Agent는 다른 인터페이스를 가질 수 있음
+                # SQLDatabaseAgent는 user_instructions만 받음
                 if hasattr(self.agent, 'invoke_agent'):
-                    self.agent.invoke_agent(
-                        user_instructions=user_input,
-                        data_raw=df if df is not None else None
-                    )
+                    self.agent.invoke_agent(user_instructions=user_input)
                 elif hasattr(self.agent, 'run'):
                     # 대체 실행 메서드
                     self.agent.run(user_input)
                 
-                # 8개 기능 결과 수집
+                # SQLDatabaseAgent 결과 수집
                 results = {
                     "response": self.agent.response if hasattr(self.agent, 'response') else None,
-                    "internal_messages": self.agent.get_internal_messages() if hasattr(self.agent, 'get_internal_messages') else None,
-                    "artifacts": self.agent.get_artifacts() if hasattr(self.agent, 'get_artifacts') else None,
-                    "ai_message": self.agent.get_ai_message() if hasattr(self.agent, 'get_ai_message') else None,
-                    "tool_calls": self.agent.get_tool_calls() if hasattr(self.agent, 'get_tool_calls') else None,
+                    "internal_messages": None,  # SQLDatabaseAgent doesn't have this method
+                    "artifacts": None,  # SQLDatabaseAgent doesn't have this method
+                    "ai_message": None,  # SQLDatabaseAgent doesn't have this method  
+                    "tool_calls": None,  # SQLDatabaseAgent doesn't have this method
                     "sql_query": None,
                     "query_result": None,
                     "schema_info": None
                 }
                 
-                # SQL 특화 정보 추출
-                if hasattr(self.agent, 'get_sql_query'):
-                    results["sql_query"] = self.agent.get_sql_query()
-                if hasattr(self.agent, 'get_query_result'):
-                    results["query_result"] = self.agent.get_query_result()
-                if hasattr(self.agent, 'get_schema_info'):
-                    results["schema_info"] = self.agent.get_schema_info()
+                # SQLDatabaseAgent 특화 정보 추출
+                if hasattr(self.agent, 'get_sql_query_code'):
+                    results["sql_query"] = self.agent.get_sql_query_code()
+                if hasattr(self.agent, 'get_data_sql'):
+                    query_result = self.agent.get_data_sql()
+                    if query_result is not None:
+                        results["query_result"] = str(query_result)
+                if hasattr(self.agent, 'get_sql_database_function'):
+                    results["sql_database_function"] = self.agent.get_sql_database_function()
+                if hasattr(self.agent, 'get_recommended_sql_steps'):
+                    results["recommended_steps"] = self.agent.get_recommended_sql_steps()
+                
+                # AI 메시지 생성 (응답이 있으면 처리)
+                if results["response"]:
+                    if hasattr(results["response"], 'get') and results["response"].get("messages"):
+                        messages = results["response"]["messages"]
+                        if messages and hasattr(messages[-1], 'content'):
+                            results["ai_message"] = messages[-1].content
+                    elif results["sql_query"] or results["query_result"]:
+                        # SQL 쿼리나 결과가 있으면 요약 메시지 생성
+                        results["ai_message"] = self._generate_sql_summary(results, user_input)
                     
             except Exception as e:
                 logger.error(f"원본 에이전트 실행 실패: {e}")
@@ -246,6 +268,26 @@ class SQLDatabaseA2AWrapper(BaseA2AWrapper):
         """SQL 가이드 생성"""
         return self._generate_guidance(user_input)
     
+    def _generate_sql_summary(self, results: Dict[str, Any], user_input: str) -> str:
+        """SQLDatabaseAgent 실행 결과 요약 생성"""
+        summary_parts = [f"📊 **SQL Database Agent 실행 완료**\n\n**요청**: {user_input}\n"]
+        
+        if results.get("sql_query"):
+            summary_parts.append(f"**생성된 SQL 쿼리**:\n```sql\n{results['sql_query']}\n```\n")
+        
+        if results.get("query_result"):
+            summary_parts.append(f"**쿼리 실행 결과**:\n{results['query_result']}\n")
+        
+        if results.get("sql_database_function"):
+            summary_parts.append("**Python 함수**: SQL 실행을 위한 함수가 생성되었습니다.\n")
+        
+        if results.get("recommended_steps"):
+            summary_parts.append(f"**권장 단계**:\n{results['recommended_steps']}\n")
+        
+        summary_parts.append("✅ SQL 데이터베이스 작업이 완료되었습니다.")
+        
+        return "\n".join(summary_parts)
+    
     def _get_function_specific_instructions(self, function_name: str, user_input: str) -> str:
         """8개 기능별 특화된 지시사항 생성"""
         
@@ -364,6 +406,24 @@ Original user request: {}
 {result["query_result"]}
 """
         
+        # SQL 함수 정보
+        function_info = ""
+        if result.get("sql_database_function"):
+            function_info = f"""
+## 🐍 **생성된 Python 함수**
+```python
+{result["sql_database_function"]}
+```
+"""
+        
+        # 권장 단계 정보
+        steps_info = ""
+        if result.get("recommended_steps"):
+            steps_info = f"""
+## 📋 **권장 단계**
+{result["recommended_steps"]}
+"""
+        
         # 스키마 정보
         schema_info = ""
         if result.get("schema_info"):
@@ -388,6 +448,10 @@ Original user request: {}
 {sql_info}
 
 {result_info}
+
+{function_info}
+
+{steps_info}
 
 {schema_info}
 
@@ -513,30 +577,47 @@ customers 테이블의 데이터 품질을 프로파일링해주세요
             "handle_database_errors": "get_ai_message"  # 에러 처리 가이드
         }
 
-    # 🔥 원본 SQLDatabaseAgent 메서드들 구현
-    def get_internal_messages(self, markdown=False):
-        """원본 SQLDatabaseAgent.get_internal_messages() 100% 구현"""
-        if self.agent and hasattr(self.agent, 'get_internal_messages'):
-            return self.agent.get_internal_messages(markdown=markdown)
+    # 🔥 SQLDatabaseAgent 특화 메서드들 구현
+    def get_data_sql(self):
+        """SQLDatabaseAgent.get_data_sql() 구현"""
+        if self.agent and hasattr(self.agent, 'get_data_sql'):
+            return self.agent.get_data_sql()
         return None
+    
+    def get_sql_query_code(self, markdown=False):
+        """SQLDatabaseAgent.get_sql_query_code() 구현"""
+        if self.agent and hasattr(self.agent, 'get_sql_query_code'):
+            return self.agent.get_sql_query_code(markdown=markdown)
+        return None
+    
+    def get_sql_database_function(self, markdown=False):
+        """SQLDatabaseAgent.get_sql_database_function() 구현"""
+        if self.agent and hasattr(self.agent, 'get_sql_database_function'):
+            return self.agent.get_sql_database_function(markdown=markdown)
+        return None
+    
+    def get_recommended_sql_steps(self, markdown=False):
+        """SQLDatabaseAgent.get_recommended_sql_steps() 구현"""
+        if self.agent and hasattr(self.agent, 'get_recommended_sql_steps'):
+            return self.agent.get_recommended_sql_steps(markdown=markdown)
+        return None
+    
+    # 호환성을 위한 폴백 메서드들 (다른 에이전트와의 일관성)
+    def get_internal_messages(self, markdown=False):
+        """호환성을 위한 폴백 메서드"""
+        return None  # SQLDatabaseAgent doesn't have this method
     
     def get_artifacts(self, as_dataframe=False):
-        """원본 SQLDatabaseAgent.get_artifacts() 100% 구현"""
-        if self.agent and hasattr(self.agent, 'get_artifacts'):
-            return self.agent.get_artifacts(as_dataframe=as_dataframe)
-        return None
+        """호환성을 위한 폴백 메서드"""
+        return None  # SQLDatabaseAgent doesn't have this method
     
     def get_ai_message(self, markdown=False):
-        """원본 SQLDatabaseAgent.get_ai_message() 100% 구현"""
-        if self.agent and hasattr(self.agent, 'get_ai_message'):
-            return self.agent.get_ai_message(markdown=markdown)
-        return None
+        """호환성을 위한 폴백 메서드"""
+        return None  # SQLDatabaseAgent doesn't have this method
     
     def get_tool_calls(self):
-        """원본 SQLDatabaseAgent.get_tool_calls() 100% 구현"""
-        if self.agent and hasattr(self.agent, 'get_tool_calls'):
-            return self.agent.get_tool_calls()
-        return None
+        """호환성을 위한 폴백 메서드"""
+        return None  # SQLDatabaseAgent doesn't have this method
 
 
 class SQLDatabaseA2AExecutor(BaseA2AExecutor):

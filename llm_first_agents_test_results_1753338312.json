@@ -1,0 +1,38 @@
+{
+  "timestamp": 1753338312,
+  "total_agents": 4,
+  "successful_tests": 3,
+  "success_rate": 75.0,
+  "detailed_results": [
+    {
+      "agent": "SQL Database",
+      "port": 8311,
+      "status": "success",
+      "response_length": 961,
+      "has_task_id": false,
+      "response_preview": "{'id': 'test_sql_database_1753338282', 'jsonrpc': '2.0', 'result': {'contextId': '8a128891-bfc1-4f78-b54a-7d2c872c4864', 'history': [{'contextId': '8a128891-bfc1-4f78-b54a-7d2c872c4864', 'kind': 'mess..."
+    },
+    {
+      "agent": "MLflow Tools",
+      "port": 8314,
+      "status": "success",
+      "response_length": 2695,
+      "has_task_id": false,
+      "response_preview": "{'id': 'test_mlflow_tools_1753338282', 'jsonrpc': '2.0', 'result': {'contextId': '76f92c97-ac26-4d64-b709-80e64997b116', 'history': [{'contextId': '76f92c97-ac26-4d64-b709-80e64997b116', 'kind': 'mess..."
+    },
+    {
+      "agent": "Pandas Analyst",
+      "port": 8315,
+      "status": "success",
+      "response_length": 3466,
+      "has_task_id": false,
+      "response_preview": "{'id': 'test_pandas_analyst_1753338282', 'jsonrpc': '2.0', 'result': {'contextId': 'fd2f7ffb-41b1-4748-9bb2-95e76059cc26', 'history': [{'contextId': 'fd2f7ffb-41b1-4748-9bb2-95e76059cc26', 'kind': 'me..."
+    },
+    {
+      "agent": "Report Generator",
+      "port": 8316,
+      "status": "error",
+      "error": "HTTPConnectionPool(host='localhost', port=8316): Read timed out. (read timeout=30)"
+    }
+  ]
+}
