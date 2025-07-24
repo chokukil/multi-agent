@@ -15,7 +15,9 @@ import time
 from typing import Dict, List, Optional, Set, Any
 from datetime import datetime, timedelta
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import os
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ class A2AAgentInfo:
     capabilities: List[str]
     description: str
     version: str
+    functions: List[Dict[str, Any]] = field(default_factory=list)  # 에이전트의 상세 기능 목록
     status: str = "unknown"
     last_health_check: Optional[datetime] = None
     response_time: float = 0.0
@@ -149,6 +152,7 @@ class A2AAgentDiscoverySystem:
                         capabilities=agent_data.get('capabilities', []),
                         description=agent_data.get('description', ''),
                         version=agent_data.get('version', '1.0.0'),
+                        functions=agent_data.get('functions', []),
                         status="active",
                         last_health_check=datetime.now(),
                         response_time=response_time
@@ -369,6 +373,111 @@ class A2AAgentDiscoverySystem:
         else:
             logger.warning(f"Agent {agent_id} not found for removal")
             return False
+
+    async def discover_from_implementation(self, agent_file_path: str) -> List[Dict[str, Any]]:
+        """
+        구현 파일에서 직접 함수를 발견합니다.
+
+        Args:
+            agent_file_path: 에이전트 서버 파일의 전체 경로
+
+        Returns:
+            발견된 함수의 목록
+        """
+        if not os.path.exists(agent_file_path):
+            logger.warning(f"Agent file not found: {agent_file_path}")
+            return []
+
+        try:
+            with open(agent_file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except Exception as e:
+            logger.error(f"Error reading agent file {agent_file_path}: {e}")
+            return []
+
+        # 정규표현식: 'async def' 또는 'def'로 시작하고, '_'로 시작하지 않는 함수 이름을 찾습니다.
+        # 함수의 인자도 함께 추출합니다.
+        function_pattern = re.compile(r"^\s*(async\s+def|def)\s+([a-zA-Z][a-zA-Z0-9_]*)\s*\((.*?)\):", re.MULTILINE)
+        
+        found_functions = []
+        for match in function_pattern.finditer(content):
+            func_type, func_name, func_args = match.groups()
+            
+            # private 함수 제외
+            if func_name.startswith('_'):
+                continue
+
+            # docstring 추출
+            docstring_pattern = re.compile(rf"^\s*def\s+{func_name}\s*\(.*\):\s*\"\"\"(.*?)\"\"\"", re.DOTALL | re.MULTILINE)
+            docstring_match = docstring_pattern.search(content)
+            docstring = docstring_match.group(1).strip() if docstring_match else ""
+
+            found_functions.append({
+                "name": func_name,
+                "parameters": func_args.strip(),
+                "async": "async" in func_type,
+                "docstring": docstring,
+            })
+
+        return found_functions
+
+    async def discover_from_api_endpoints(self, agent_base_url: str) -> List[Dict[str, Any]]:
+        """
+        API 엔드포인트에서 직접 함수를 발견합니다.
+
+        Args:
+            agent_base_url: 에이전트의 기본 URL
+
+        Returns:
+            발견된 함수의 목록
+        """
+        openapi_url = f"{agent_base_url}/openapi.json"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(openapi_url) as response:
+                    if response.status != 200:
+                        logger.warning(f"Could not retrieve OpenAPI spec from {openapi_url}, status: {response.status}")
+                        return []
+                    openapi_spec = await response.json()
+        except Exception as e:
+            logger.error(f"Error retrieving OpenAPI spec from {openapi_url}: {e}")
+            return []
+
+        found_functions = []
+        paths = openapi_spec.get("paths", {})
+        for path, methods in paths.items():
+            for method, details in methods.items():
+                # '/health', '/openapi.json' 등 일반적인 엔드포인트는 제외
+                if path in ["/health", "/openapi.json", "/docs"]:
+                    continue
+
+                summary = details.get("summary", "")
+                description = details.get("description", "")
+                operation_id = details.get("operationId", "")
+                
+                # operationId에서 함수 이름 추출 (e.g., 'process_process_post')
+                func_name = operation_id.split('_')[0] if operation_id else path.replace('/', '_')
+
+                parameters = []
+                if "parameters" in details:
+                    for param in details["parameters"]:
+                        parameters.append({
+                            "name": param.get("name"),
+                            "in": param.get("in"),
+                            "required": param.get("required", False),
+                            "schema": param.get("schema", {})
+                        })
+
+                found_functions.append({
+                    "name": func_name,
+                    "path": path,
+                    "method": method.upper(),
+                    "summary": summary,
+                    "description": description,
+                    "parameters": parameters,
+                })
+                
+        return found_functions
     
     async def discover_available_agents(self) -> Dict[str, Any]:
         """

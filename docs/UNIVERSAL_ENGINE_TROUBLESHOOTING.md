@@ -137,6 +137,23 @@ Error: Timeout waiting for agent response on port 8307
 ```
 
 **해결 방법:**
+```bash
+# 1. 실제 에이전트 상태 확인
+curl -s http://localhost:8307/health || echo "Agent not responding"
+
+# 2. 에이전트 프로세스 확인
+ps aux | grep data_loader_server.py
+
+# 3. 에이전트 수동 재시작 (포트 8307 = 데이터 로더)
+python a2a_ds_servers/data_loader_server.py --port 8307 &
+
+# 4. 모든 에이전트 상태 확인
+for port in {8306..8315}; do
+    echo "Port $port: $(curl -s http://localhost:$port/health || echo 'Not responding')"
+done
+```
+
+**Python 코드로 확인:**
 ```python
 # 1. 에이전트 상태 확인
 from core.universal_engine.a2a_integration.a2a_agent_discovery import A2AAgentDiscoverySystem
@@ -155,9 +172,6 @@ context = {
     "a2a_timeout": 60,  # 기본 30초에서 60초로 증가
     "retry_count": 3    # 재시도 횟수 증가
 }
-
-# 3. 에이전트 재시작
-./scripts/restart_a2a_agents.sh
 ```
 
 #### 🔴 문제: Circuit breaker is open

@@ -35,7 +35,7 @@ from core.app_components.system_status_monitor import (
 )
 
 # 로깅 설정
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def apply_cherry_theme():

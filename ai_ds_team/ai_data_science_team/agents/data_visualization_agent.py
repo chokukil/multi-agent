@@ -21,7 +21,7 @@ import pandas as pd
 
 from IPython.display import Markdown
 
-from ...templates import (
+from ai_data_science_team.templates import (
     node_func_execute_agent_code_on_data,
     node_func_human_review,
     node_func_fix_agent_code,
@@ -29,17 +29,17 @@ from ...templates import (
     create_coding_agent_graph,
     BaseAgent,
 )
-from ...parsers.parsers import PythonOutputParser
-from ...utils.regex import (
+from ai_data_science_team.parsers.parsers import PythonOutputParser
+from ai_data_science_team.utils.regex import (
     relocate_imports_inside_function,
     add_comments_to_top,
     format_agent_name,
     format_recommended_steps,
     get_generic_summary,
 )
-from ...tools.dataframe import get_dataframe_summary
-from ...utils.logging import log_ai_function
-from ...utils.plotly import plotly_from_dict
+from ai_data_science_team.tools.dataframe import get_dataframe_summary
+from ai_data_science_team.utils.logging import log_ai_function
+from ai_data_science_team.utils.plotly import plotly_from_dict
 
 # Setup
 AGENT_NAME = "data_visualization_agent"

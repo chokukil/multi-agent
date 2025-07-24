@@ -13,6 +13,14 @@ import logging
 from typing import Optional, Dict, Any, List, Union
 from datetime import datetime
 
+# .env 파일 로드
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # python-dotenv가 없는 경우 무시
+    pass
+
 # 의존성 제거 - 필요한 함수들을 직접 구현
 
 logger = logging.getLogger(__name__)
@@ -29,25 +37,33 @@ class LLMFactory:
     # 지원되는 LLM 제공자
     SUPPORTED_PROVIDERS = ["openai", "ollama", "anthropic"]
     
-    # 기본 설정
-    DEFAULT_CONFIGS = {
-        "openai": {
-            "model": "gpt-4o-mini",
-            "temperature": 0.7,
-            "max_tokens": 4000,
-            "api_base": "https://api.openai.com/v1"
-        },
-        "ollama": {
-            "model": "okamototk/gemma3-tools:4b",
-            "temperature": 0.7,
-            "base_url": "http://localhost:11434"
-        },
-        "anthropic": {
-            "model": "claude-3-haiku-20240307",
-            "temperature": 0.7,
-            "max_tokens": 4000
+    # 기본 설정 - .env 환경 변수 우선 사용 (LLM First 원칙)
+    @classmethod
+    def get_default_configs(cls) -> Dict[str, Dict[str, Any]]:
+        """환경 변수를 우선하는 기본 설정 반환"""
+        return {
+            "openai": {
+                "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+                "temperature": float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
+                "max_tokens": int(os.getenv("OPENAI_MAX_TOKENS", "4000")),
+                "api_base": os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
+            },
+            "ollama": {
+                "model": os.getenv("OLLAMA_MODEL", "qwen3-4b-fast:latest"),
+                "temperature": float(os.getenv("OLLAMA_TEMPERATURE", "0.7")),
+                "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+            },
+            "anthropic": {
+                "model": os.getenv("ANTHROPIC_MODEL", "claude-3-haiku-20240307"),
+                "temperature": float(os.getenv("ANTHROPIC_TEMPERATURE", "0.7")),
+                "max_tokens": int(os.getenv("ANTHROPIC_MAX_TOKENS", "4000"))
+            }
         }
-    }
+    
+    # 하위 호환성을 위한 속성
+    @property
+    def DEFAULT_CONFIGS(self) -> Dict[str, Dict[str, Any]]:
+        return self.get_default_configs()
     
     @staticmethod
     def create_llm(**kwargs) -> Any:
@@ -83,18 +99,18 @@ class LLMFactory:
         logger.info(f"Creating LLM client: provider={provider}, model={model}")
         
         try:
-            # 기본값 설정 - LLM_PROVIDER=OLLAMA인 경우 처음부터 OLLAMA 사용
-            env_provider = os.getenv("LLM_PROVIDER", "").upper()
-            if env_provider == "OLLAMA":
-                provider = provider or "ollama"
-            else:
-                provider = provider or os.getenv("LLM_PROVIDER", "openai").lower()
+            # 기본값 설정 - 환경 변수 우선 (LLM First 원칙)
+            env_provider = os.getenv("LLM_PROVIDER", "openai").lower()
+            provider = provider or env_provider
+            
+            logger.info(f"Using provider: {provider} (from env: {env_provider})")
             
             if provider not in LLMFactory.SUPPORTED_PROVIDERS:
                 raise ValueError(f"Unsupported provider: {provider}. Supported: {LLMFactory.SUPPORTED_PROVIDERS}")
             
-            # 제공자별 기본 설정 적용
-            default_config = LLMFactory.DEFAULT_CONFIGS.get(provider, {}).copy()
+            # 제공자별 기본 설정 적용 - 환경 변수 우선 (LLM First 원칙)
+            default_configs = LLMFactory.get_default_configs()
+            default_config = default_configs.get(provider, {}).copy()
             if config:
                 default_config.update(config)
             default_config.update(kwargs)
@@ -141,8 +157,8 @@ class LLMFactory:
             # langchain_ollama 우선 사용 (도구 호출 지원)
             from langchain_ollama import ChatOllama
             
-            # 환경 변수에서 OLLAMA_MODEL 확인 (기본값: okamototk/gemma3-tools:4b)
-            env_model = os.getenv("OLLAMA_MODEL", "okamototk/gemma3-tools:4b")
+            # 환경 변수에서 OLLAMA_MODEL 확인 (LLM First 원칙)
+            env_model = os.getenv("OLLAMA_MODEL", "qwen3-4b-fast:latest")
             model = config.get("model", env_model)
             
             # 모델의 도구 호출 능력 확인
@@ -164,8 +180,8 @@ class LLMFactory:
                 from langchain_community.chat_models.ollama import ChatOllama
                 logger.warning("Using deprecated langchain_community.ChatOllama - Tool calling NOT supported")
                 
-                # 환경 변수에서 OLLAMA_MODEL 확인 (기본값: okamototk/gemma3-tools:4b)
-                env_model = os.getenv("OLLAMA_MODEL", "okamototk/gemma3-tools:4b")
+                # 환경 변수에서 OLLAMA_MODEL 확인 (LLM First 원칙)
+                env_model = os.getenv("OLLAMA_MODEL", "qwen3-4b-fast:latest")
                 return ChatOllama(
                     model=config.get("model", env_model),
                     temperature=config.get("temperature", 0.7),
@@ -468,13 +484,13 @@ class LLMFactory:
     
     @staticmethod
     def _get_default_model(provider: str) -> str:
-        """제공자별 기본 모델 반환"""
+        """제공자별 기본 모델 반환 - 환경 변수 우선 (LLM First 원칙)"""
         defaults = {
-            "openai": "gpt-4o-mini",
-            "ollama": os.getenv("OLLAMA_MODEL", "okamototk/gemma3-tools:4b"),
-            "anthropic": "claude-3-haiku-20240307"
+            "openai": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+            "ollama": os.getenv("OLLAMA_MODEL", "qwen3-4b-fast:latest"),
+            "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-3-haiku-20240307")
         }
-        return defaults.get(provider, "gpt-4o-mini")
+        return defaults.get(provider, os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
     
     @staticmethod
     def get_system_recommendations() -> Dict[str, Any]:
@@ -496,9 +512,9 @@ class LLMFactory:
             import psutil
             ram_gb = psutil.virtual_memory().total // (1024**3)
             
-            # 환경 변수 확인
+            # 환경 변수 확인 (LLM First 원칙)
             env_provider = os.getenv("LLM_PROVIDER", "").upper()
-            env_model = os.getenv("OLLAMA_MODEL", "okamototk/gemma3-tools:4b")
+            env_model = os.getenv("OLLAMA_MODEL", "qwen3-4b-fast:latest")
             
             # Ollama 상태 확인
             ollama_status = LLMFactory._get_ollama_status()
@@ -611,7 +627,7 @@ class LLMFactory:
         """
         Ollama 모델의 도구 호출 능력 확인
         """
-        # 도구 호출을 지원하는 것으로 알려진 모델들
+        # 도구 호출을 지원하는 것으로 알려진 모델들 (LLM First 원칙)
         tool_capable_models = [
             "okamototk/gemma3-tools:4b",
             "llama3.1:8b",
@@ -619,6 +635,7 @@ class LLMFactory:
             "llama3.2:3b",
             "mistral:7b",
             "qwen2.5:7b",
+            "qwen3-4b-fast:latest",  # .env에서 설정된 최적화 모델
             "gemma2:9b"
         ]
         
@@ -629,6 +646,11 @@ class LLMFactory:
         
         # 모델명에 "tools"가 포함되어 있으면 도구 호출 지원으로 간주
         if "tools" in model.lower():
+            return True
+        
+        # 환경 변수에서 도구 호출 지원 여부 확인 (LLM First 원칙)
+        env_tool_calling = os.getenv("OLLAMA_TOOL_CALLING_SUPPORTED", "false").lower()
+        if env_tool_calling in ["true", "1", "yes"]:
             return True
             
         return False

@@ -713,15 +713,19 @@ class PerformanceMonitoringSystem:
     def _start_background_tasks(self):
         """백그라운드 태스크 시작"""
         
-        def start_analysis_loop():
-            asyncio.create_task(self._analysis_loop())
+        def run_analysis_loop_in_thread():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self._analysis_loop())
         
-        def start_cleanup_loop():
-            asyncio.create_task(self._cleanup_loop())
+        def run_cleanup_loop_in_thread():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self._cleanup_loop())
         
         # 별도 스레드에서 이벤트 루프 실행
-        threading.Thread(target=start_analysis_loop, daemon=True).start()
-        threading.Thread(target=start_cleanup_loop, daemon=True).start()
+        threading.Thread(target=run_analysis_loop_in_thread, daemon=True).start()
+        threading.Thread(target=run_cleanup_loop_in_thread, daemon=True).start()
     
     async def _analysis_loop(self):
         """주기적 분석 루프"""

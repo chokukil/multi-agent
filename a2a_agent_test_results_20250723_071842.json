@@ -1,0 +1,109 @@
+{
+  "test_timestamp": "2025-07-23T07:18:42.169820",
+  "total_agents": 11,
+  "successful_agents": 0,
+  "success_rate": "0.0%",
+  "card_retrieval_rate": "63.6%",
+  "response_rate": "0.0%",
+  "detailed_results": [
+    {
+      "agent": "Data Cleaning",
+      "port": 8306,
+      "status": "failed",
+      "card_retrieved": true,
+      "response_received": false,
+      "error": "No text response in message",
+      "response_preview": null
+    },
+    {
+      "agent": "Data Loader",
+      "port": 8307,
+      "status": "failed",
+      "card_retrieved": true,
+      "response_received": false,
+      "error": "HTTP Error 503: Network communication error: ",
+      "response_preview": null
+    },
+    {
+      "agent": "Data Visualization",
+      "port": 8308,
+      "status": "failed",
+      "card_retrieved": true,
+      "response_received": false,
+      "error": "No text response in message",
+      "response_preview": null
+    },
+    {
+      "agent": "Data Wrangling",
+      "port": 8309,
+      "status": "failed",
+      "card_retrieved": true,
+      "response_received": false,
+      "error": "No text response in message",
+      "response_preview": null
+    },
+    {
+      "agent": "Feature Engineering",
+      "port": 8310,
+      "status": "failed",
+      "card_retrieved": true,
+      "response_received": false,
+      "error": "HTTP Error 503: Network communication error: All connection attempts failed",
+      "response_preview": null
+    },
+    {
+      "agent": "SQL Data Analyst",
+      "port": 8311,
+      "status": "failed",
+      "card_retrieved": false,
+      "response_received": false,
+      "error": "Card retrieval failed: HTTP Error 503: Network communication error fetching agent card from http://localhost:8311/.well-known/agent.json: All connection attempts failed",
+      "response_preview": null
+    },
+    {
+      "agent": "EDA Tools",
+      "port": 8312,
+      "status": "failed",
+      "card_retrieved": true,
+      "response_received": false,
+      "error": "HTTP Error 503: Network communication error: All connection attempts failed",
+      "response_preview": null
+    },
+    {
+      "agent": "H2O ML",
+      "port": 8313,
+      "status": "failed",
+      "card_retrieved": true,
+      "response_received": false,
+      "error": "No text response in message",
+      "response_preview": null
+    },
+    {
+      "agent": "MLflow Tools",
+      "port": 8314,
+      "status": "failed",
+      "card_retrieved": false,
+      "response_received": false,
+      "error": "Card retrieval failed: HTTP Error 503: Network communication error fetching agent card from http://localhost:8314/.well-known/agent.json: All connection attempts failed",
+      "response_preview": null
+    },
+    {
+      "agent": "Pandas Analyst",
+      "port": 8210,
+      "status": "failed",
+      "card_retrieved": false,
+      "response_received": false,
+      "error": "Card retrieval failed: HTTP Error 503: Network communication error fetching agent card from http://localhost:8210/.well-known/agent.json: All connection attempts failed",
+      "response_preview": null
+    },
+    {
+      "agent": "Report Generator",
+      "port": 8316,
+      "status": "failed",
+      "card_retrieved": false,
+      "response_received": false,
+      "error": "Card retrieval failed: HTTP Error 503: Network communication error fetching agent card from http://localhost:8316/.well-known/agent.json: All connection attempts failed",
+      "response_preview": null
+    }
+  ]
+}

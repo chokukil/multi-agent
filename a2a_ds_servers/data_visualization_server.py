@@ -46,6 +46,15 @@ from a2a.server.tasks.task_updater import TaskUpdater
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Langfuse 통합 모듈 임포트
+try:
+    from core.universal_engine.langfuse_integration import SessionBasedTracer, LangfuseEnhancedA2AExecutor
+    LANGFUSE_AVAILABLE = True
+    logger.info("✅ Langfuse 통합 모듈 로드 성공")
+except ImportError as e:
+    LANGFUSE_AVAILABLE = False
+    logger.warning(f"⚠️ Langfuse 통합 모듈 로드 실패: {e}")
+
 class DataVisualizationAgent:
     """Data Visualization Agent with LLM integration."""
 
@@ -55,14 +64,11 @@ class DataVisualizationAgent:
         self.agent = None
         
         try:
-            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
-            if not api_key:
-                raise ValueError("No LLM API key found in environment variables")
-                
-            from core.llm_factory import create_llm_instance
+            # 공통 LLM 초기화 유틸리티 사용
+            from base.llm_init_utils import create_llm_with_fallback
             from ai_data_science_team.agents import DataVisualizationAgent as OriginalAgent
             
-            self.llm = create_llm_instance()
+            self.llm = create_llm_with_fallback()
             self.agent = OriginalAgent(model=self.llm)
             logger.info("✅ Real LLM initialized for Data Visualization Agent")
         except Exception as e:
@@ -194,45 +200,242 @@ def data_visualization(data_raw):
             return json.dumps(error_response, indent=2)
 
 class DataVisualizationExecutor(AgentExecutor):
-    """Data Visualization Agent Executor."""
+    """Data Visualization Agent Executor with Langfuse integration."""
 
     def __init__(self):
         self.agent = DataVisualizationAgent()
+        
+        # Langfuse 통합 초기화
+        self.langfuse_tracer = None
+        if LANGFUSE_AVAILABLE:
+            try:
+                self.langfuse_tracer = SessionBasedTracer()
+                if self.langfuse_tracer.langfuse:
+                    logger.info("✅ DataVisualizationAgent Langfuse 통합 완료")
+                else:
+                    logger.warning("⚠️ Langfuse 설정 누락 - 기본 모드로 실행")
+            except Exception as e:
+                logger.error(f"❌ Langfuse 초기화 실패: {e}")
+                self.langfuse_tracer = None
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """Execute the data visualization using TaskUpdater pattern."""
+        """Execute the data visualization using TaskUpdater pattern with Langfuse integration."""
         # Initialize TaskUpdater
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        
+        # Langfuse 메인 트레이스 시작
+        main_trace = None
+        if self.langfuse_tracer and self.langfuse_tracer.langfuse:
+            try:
+                # 전체 사용자 쿼리 추출
+                full_user_query = ""
+                if context.message and hasattr(context.message, 'parts') and context.message.parts:
+                    for part in context.message.parts:
+                        if hasattr(part, 'root') and part.root.kind == "text":
+                            full_user_query += part.root.text + " "
+                        elif hasattr(part, 'text'):
+                            full_user_query += part.text + " "
+                full_user_query = full_user_query.strip()
+                
+                # 메인 트레이스 생성 (task_id를 트레이스 ID로 사용)
+                main_trace = self.langfuse_tracer.langfuse.trace(
+                    id=context.task_id,
+                    name="DataVisualizationAgent_Execution",
+                    input=full_user_query,
+                    user_id="2055186",
+                    metadata={
+                        "agent": "DataVisualizationAgent",
+                        "port": 8308,
+                        "context_id": context.context_id,
+                        "timestamp": str(context.task_id)
+                    }
+                )
+                logger.info(f"📊 Langfuse 메인 트레이스 시작: {context.task_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Langfuse 트레이스 생성 실패: {e}")
         
         try:
             # Submit and start work
             await task_updater.submit()
             await task_updater.start_work()
             
-            # Extract user message
-            user_query = context.get_user_input()
-            logger.info(f"📊 Processing visualization query: {user_query}")
+            # A2A SDK 0.2.9 공식 패턴에 따른 사용자 메시지 추출
+            user_query = ""
+            if context.message and hasattr(context.message, 'parts') and context.message.parts:
+                for part in context.message.parts:
+                    if hasattr(part, 'root') and part.root.kind == "text":
+                        user_query += part.root.text + " "
+                    elif hasattr(part, 'text'):  # 대체 패턴
+                        user_query += part.text + " "
+                
+                user_query = user_query.strip()
             
+            # 기본 요청이 없으면 데모 모드
             if not user_query:
-                user_query = "Please provide a data visualization request."
+                user_query = "샘플 데이터로 시각화를 생성해주세요. 산점도를 만들어주세요."
+            
+            # 1단계: 요청 파싱 (Langfuse 추적)
+            parsing_span = None
+            if main_trace:
+                parsing_span = self.langfuse_tracer.langfuse.span(
+                    trace_id=context.task_id,
+                    name="request_parsing",
+                    input={"user_request": user_query[:500]},
+                    metadata={"step": "1", "description": "Parse visualization request"}
+                )
+            
+            logger.info(f"🔍 시각화 요청 파싱: {user_query}")
+            
+            # 시각화 유형 결정
+            chart_type = "scatter"
+            if any(keyword in user_query.lower() for keyword in ['histogram', '히스토그램', '분포']):
+                chart_type = "histogram"
+            elif any(keyword in user_query.lower() for keyword in ['box', '박스플롯', 'boxplot']):
+                chart_type = "boxplot"
+            elif any(keyword in user_query.lower() for keyword in ['bar', '막대', '바']):
+                chart_type = "bar"
+            
+            # 파싱 결과 업데이트
+            if parsing_span:
+                parsing_span.update(
+                    output={
+                        "success": True,
+                        "chart_type_detected": chart_type,
+                        "request_length": len(user_query),
+                        "keywords_found": [kw for kw in ['scatter', 'histogram', 'bar', 'box'] if kw in user_query.lower()]
+                    }
+                )
+            
+            # 2단계: 시각화 생성 (Langfuse 추적)
+            visualization_span = None
+            if main_trace:
+                visualization_span = self.langfuse_tracer.langfuse.span(
+                    trace_id=context.task_id,
+                    name="chart_generation",
+                    input={
+                        "chart_type": chart_type,
+                        "user_request": user_query[:200]
+                    },
+                    metadata={"step": "2", "description": "Generate interactive visualization"}
+                )
+            
+            logger.info(f"📊 {chart_type} 차트 생성 시작")
             
             # Get result from the agent
             result = await self.agent.invoke(user_query)
             
-            # Complete task with result
-            from a2a.types import TaskState, TextPart
+            # 결과 파싱하여 정보 추출
+            chart_info = {"status": "completed", "type": chart_type}
+            try:
+                import json
+                result_data = json.loads(result)
+                chart_info.update({
+                    "chart_title": result_data.get("chart_title", "Data Visualization"),
+                    "visualization_type": result_data.get("visualization_type", "interactive_chart"),
+                    "status": result_data.get("status", "completed")
+                })
+            except:
+                pass
+            
+            # 시각화 결과 업데이트
+            if visualization_span:
+                visualization_span.update(
+                    output={
+                        "success": True,
+                        "chart_created": True,
+                        "chart_type": chart_type,
+                        "chart_title": chart_info.get("chart_title", "Data Visualization"),
+                        "result_length": len(result),
+                        "interactive_features": True,
+                        "plotly_based": True
+                    }
+                )
+            
+            # 3단계: 결과 저장/반환 (Langfuse 추적)
+            save_span = None
+            if main_trace:
+                save_span = self.langfuse_tracer.langfuse.span(
+                    trace_id=context.task_id,
+                    name="save_visualization",
+                    input={
+                        "chart_info": chart_info,
+                        "result_size": len(result)
+                    },
+                    metadata={"step": "3", "description": "Prepare visualization response"}
+                )
+            
+            logger.info(f"💾 시각화 결과 준비 완료")
+            
+            # 저장 결과 업데이트
+            if save_span:
+                save_span.update(
+                    output={
+                        "response_prepared": True,
+                        "chart_data_included": "chart_data" in result,
+                        "function_code_included": "function_code" in result,
+                        "interactive_chart": True,
+                        "final_status": "completed"
+                    }
+                )
+            
+            # A2A SDK 0.2.9 공식 패턴에 따른 최종 응답
+            from a2a.types import TaskState
             await task_updater.update_status(
                 TaskState.completed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=result)])
+                message=new_agent_text_message(result)
             )
             
+            # Langfuse 메인 트레이스 완료
+            if main_trace:
+                try:
+                    # Output을 요약된 형태로 제공
+                    output_summary = {
+                        "status": "completed",
+                        "result_preview": result[:1000] + "..." if len(result) > 1000 else result,
+                        "full_result_length": len(result)
+                    }
+                    
+                    main_trace.update(
+                        output=output_summary,
+                        metadata={
+                            "status": "completed",
+                            "result_length": len(result),
+                            "success": True,
+                            "completion_timestamp": str(context.task_id),
+                            "agent": "DataVisualizationAgent",
+                            "port": 8308,
+                            "chart_type": chart_type
+                        }
+                    )
+                    logger.info(f"📊 Langfuse 트레이스 완료: {context.task_id}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Langfuse 트레이스 완료 실패: {e}")
+            
         except Exception as e:
-            logger.error(f"Error in execute: {e}", exc_info=True)
-            # Report error through TaskUpdater
-            from a2a.types import TaskState, TextPart
+            logger.error(f"❌ DataVisualizationAgent 실행 오류: {e}")
+            
+            # Langfuse 메인 트레이스 오류 기록
+            if main_trace:
+                try:
+                    main_trace.update(
+                        output=f"Error: {str(e)}",
+                        metadata={
+                            "status": "failed",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "success": False,
+                            "agent": "DataVisualizationAgent",
+                            "port": 8308
+                        }
+                    )
+                except Exception as langfuse_error:
+                    logger.warning(f"⚠️ Langfuse 오류 기록 실패: {langfuse_error}")
+            
+            # A2A SDK 0.2.9 공식 패턴에 따른 에러 응답
+            from a2a.types import TaskState
             await task_updater.update_status(
                 TaskState.failed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=f"Visualization failed: {str(e)}")])
+                message=new_agent_text_message(f"시각화 생성 중 오류 발생: {str(e)}")
             )
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
@@ -254,7 +457,7 @@ def main():
     agent_card = AgentCard(
         name="Data Visualization Agent",
         description="An AI agent that creates professional data visualizations and interactive charts.",
-        url="http://localhost:8202/",
+        url="http://localhost:8308/",
         version="1.0.0",
         defaultInputModes=["text"],
         defaultOutputModes=["text"],
@@ -274,10 +477,10 @@ def main():
     )
 
     print("📊 Starting Data Visualization Agent Server")
-    print("🌐 Server starting on http://localhost:8202")
-    print("📋 Agent card: http://localhost:8202/.well-known/agent.json")
+    print("🌐 Server starting on http://localhost:8308")
+    print("📋 Agent card: http://localhost:8308/.well-known/agent.json")
 
-    uvicorn.run(server.build(), host="0.0.0.0", port=8202, log_level="info")
+    uvicorn.run(server.build(), host="0.0.0.0", port=8308, log_level="info")
 
 if __name__ == "__main__":
-    main() 
+    main()

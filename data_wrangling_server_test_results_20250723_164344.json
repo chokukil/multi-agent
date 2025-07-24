@@ -1,0 +1,74 @@
+{
+  "timestamp": "20250723_164344",
+  "tests": [
+    {
+      "test_name": "initialization",
+      "status": "PASS",
+      "details": {
+        "llm_initialized": true,
+        "has_original_agent": false,
+        "data_processor_ready": true
+      }
+    },
+    {
+      "test_name": "data_parsing_csv",
+      "status": "PASS",
+      "details": {
+        "shape": [
+          5,
+          5
+        ],
+        "columns": [
+          "id",
+          "name",
+          "category",
+          "sales",
+          "region"
+        ],
+        "numeric_cols": 2,
+        "categorical_cols": 3
+      }
+    },
+    {
+      "test_name": "data_wrangling_process",
+      "status": "PASS",
+      "details": {
+        "result_length": 1339,
+        "wrangling_keywords_found": [
+          "DataWranglingAgent",
+          "랭글링",
+          "그룹",
+          "Complete"
+        ],
+        "agg_keywords_found": [
+          "평균",
+          "category"
+        ]
+      }
+    },
+    {
+      "test_name": "merge_functionality",
+      "status": "PASS",
+      "details": {
+        "merge_keywords": [
+          "병합",
+          "customer",
+          "id"
+        ]
+      }
+    },
+    {
+      "test_name": "guidance_generation",
+      "status": "PASS",
+      "details": {
+        "guide_keywords": [
+          "랭글링",
+          "병합",
+          "집계",
+          "변환",
+          "인코딩"
+        ]
+      }
+    }
+  ]
+}

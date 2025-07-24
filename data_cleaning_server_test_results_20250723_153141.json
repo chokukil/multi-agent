@@ -1,0 +1,45 @@
+{
+  "timestamp": "20250723_153141",
+  "tests": [
+    {
+      "test_name": "initialization",
+      "status": "PASS",
+      "details": {
+        "llm_initialized": true,
+        "has_original_agent": false,
+        "data_processor_ready": true
+      }
+    },
+    {
+      "test_name": "data_parsing_csv",
+      "status": "PASS",
+      "details": {
+        "shape": [
+          3,
+          3
+        ],
+        "columns": [
+          "name",
+          "age",
+          "salary"
+        ]
+      }
+    },
+    {
+      "test_name": "data_cleaning_process",
+      "status": "PASS",
+      "details": {
+        "result_length": 870,
+        "keywords_found": [
+          "데이터",
+          "정리",
+          "Complete"
+        ]
+      }
+    },
+    {
+      "test_name": "guidance_generation",
+      "status": "PASS"
+    }
+  ]
+}

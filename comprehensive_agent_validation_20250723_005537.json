@@ -1,0 +1,966 @@
+{
+  "validation_summary": {
+    "total_agents": 10,
+    "agents_tested": 7,
+    "functions_tested": 56,
+    "functions_passed": 0,
+    "overall_success_rate": 0.0,
+    "detailed_results": {
+      "data_cleaning": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "data_loader": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "data_visualization": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "data_wrangling": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "feature_engineering": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "sql_data_analyst": {
+        "total_functions": 0,
+        "passed_functions": 0,
+        "failed_functions": 0,
+        "success_rate": 0.0
+      },
+      "eda_tools": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "h2o_ml": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "mlflow_server": {
+        "total_functions": 0,
+        "passed_functions": 0,
+        "failed_functions": 0,
+        "success_rate": 0.0
+      },
+      "report_generator": {
+        "total_functions": 0,
+        "passed_functions": 0,
+        "failed_functions": 0,
+        "success_rate": 0.0
+      }
+    },
+    "recommendations": [
+      "data_cleaning 에이전트 기능 개선 필요 (성공률: 0.0%)",
+      "data_loader 에이전트 기능 개선 필요 (성공률: 0.0%)",
+      "data_visualization 에이전트 기능 개선 필요 (성공률: 0.0%)",
+      "data_wrangling 에이전트 기능 개선 필요 (성공률: 0.0%)",
+      "feature_engineering 에이전트 기능 개선 필요 (성공률: 0.0%)",
+      "sql_data_analyst 에이전트 연결 문제 해결 필요",
+      "eda_tools 에이전트 기능 개선 필요 (성공률: 0.0%)",
+      "h2o_ml 에이전트 기능 개선 필요 (성공률: 0.0%)",
+      "mlflow_server 에이전트 연결 문제 해결 필요",
+      "report_generator 에이전트 연결 문제 해결 필요"
+    ]
+  },
+  "detailed_results": {
+    "data_cleaning": {
+      "agent_name": "data_cleaning",
+      "port": 8306,
+      "connection_status": "success",
+      "functions_tested": [
+        {
+          "function_name": "detect_missing_values",
+          "description": "결측값 감지",
+          "status": "failed",
+          "execution_time": 0.003334,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "handle_missing_values",
+          "description": "결측값 처리",
+          "status": "failed",
+          "execution_time": 0.002712,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "detect_outliers",
+          "description": "이상값 감지",
+          "status": "failed",
+          "execution_time": 0.002104,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "treat_outliers",
+          "description": "이상값 처리",
+          "status": "failed",
+          "execution_time": 0.002342,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "validate_data_types",
+          "description": "데이터 타입 검증",
+          "status": "failed",
+          "execution_time": 0.00205,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "detect_duplicates",
+          "description": "중복 데이터 감지",
+          "status": "failed",
+          "execution_time": 0.003373,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "standardize_data",
+          "description": "데이터 표준화",
+          "status": "failed",
+          "execution_time": 0.00365,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "apply_validation_rules",
+          "description": "검증 규칙 적용",
+          "status": "failed",
+          "execution_time": 0.002592,
+          "error": "HTTP 405",
+          "output": ""
+        }
+      ],
+      "summary": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "success",
+        "response_time": 0.001283,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8306/health",
+            "status_code": 404,
+            "response_time": 0.021492,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8306/",
+            "status_code": 405,
+            "response_time": 0.002575,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8306/.well-known/agent.json",
+            "status_code": 200,
+            "response_time": 0.001283,
+            "success": true,
+            "content": "{\"capabilities\":{\"streaming\":false},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"pandas-ai 패턴이 적용된 향상된 데이터 클리닝 전문가. 원본 ai-data-science-team 기반.\",\"name\":\"AI DataCleaningAgent (Enhanced)\",\"skills\":[{\"description\":\"pandas-ai 패턴이 적용된 전문 데이터 클리닝 서비스. 원본 ai-data-science-team DataCleaningAgent 기반으로 구현.\",\"examples\":[\"샘플 데이터로 테스트해주세요\",\"결측값을 처리해주세요\",\"이상값 제거 없이 데이터를 정리해주세요\",\"중복 데이터를 제거하고 품질을 개선해주세요\"],\"id\":\"enhanced_data_cleaning\",\"name\":\"Enhanced Data Cleaning with pandas-ai\",\"tags\":[\"data-cleaning\",\"pandas-ai\",\"preprocessing\",\"quality-improvement\"]}],\"supportsAuthenticatedExtendedCard\":false,\"url\":\"http://localhost:8316/\",\"version\":\"2.0.0\"}"
+          },
+          {
+            "url": "http://localhost:8306/status",
+            "status_code": 404,
+            "response_time": 0.001225,
+            "success": false
+          }
+        ],
+        "error": null
+      }
+    },
+    "data_loader": {
+      "agent_name": "data_loader",
+      "port": 8307,
+      "connection_status": "success",
+      "functions_tested": [
+        {
+          "function_name": "load_csv_files",
+          "description": "CSV 파일 로딩",
+          "status": "failed",
+          "execution_time": 0.003629,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "load_excel_files",
+          "description": "Excel 파일 로딩",
+          "status": "failed",
+          "execution_time": 0.00254,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "load_json_files",
+          "description": "JSON 파일 로딩",
+          "status": "failed",
+          "execution_time": 0.003423,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "connect_database",
+          "description": "데이터베이스 연결",
+          "status": "failed",
+          "execution_time": 0.002637,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "load_large_files",
+          "description": "대용량 파일 처리",
+          "status": "failed",
+          "execution_time": 0.002874,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "handle_parsing_errors",
+          "description": "파싱 오류 처리",
+          "status": "failed",
+          "execution_time": 0.003826,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "preview_data",
+          "description": "데이터 미리보기",
+          "status": "failed",
+          "execution_time": 0.002716,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "infer_schema",
+          "description": "스키마 추론",
+          "status": "failed",
+          "execution_time": 0.002027,
+          "error": "HTTP 405",
+          "output": ""
+        }
+      ],
+      "summary": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "success",
+        "response_time": 0.001651,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8307/health",
+            "status_code": 404,
+            "response_time": 0.002584,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8307/",
+            "status_code": 405,
+            "response_time": 0.001012,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8307/.well-known/agent.json",
+            "status_code": 200,
+            "response_time": 0.001651,
+            "success": true,
+            "content": "{\"capabilities\":{\"streaming\":true},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"Advanced data loading agent powered by LangGraph that can load data from various sources, inspect file systems, and provide comprehensive data loading capabilities\",\"name\":\"AI Data Loader Agent\",\"skills\":[{\"description\":\"Loads data from various file sources, inspects file systems, and provides data loading capabilities using advanced tools\",\"examples\":[\"load data from file.csv\",\"list directory contents\",\"read file information\",\"load all CSV files from directory\",\"inspect data structure\"],\"id\":\"data_loader\",\"name\":\"Load data from files and directories\",\"tags\":[\"data\",\"loader\",\"filesystem\",\"csv\",\"json\",\"parquet\"]}],\"url\":\"http://localhost:8001/\",\"version\":\"2.0.0\"}"
+          },
+          {
+            "url": "http://localhost:8307/status",
+            "status_code": 404,
+            "response_time": 0.002389,
+            "success": false
+          }
+        ],
+        "error": null
+      }
+    },
+    "data_visualization": {
+      "agent_name": "data_visualization",
+      "port": 8308,
+      "connection_status": "success",
+      "functions_tested": [
+        {
+          "function_name": "create_basic_plots",
+          "description": "기본 플롯 생성",
+          "status": "failed",
+          "execution_time": 0.002938,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "create_advanced_plots",
+          "description": "고급 플롯 생성",
+          "status": "failed",
+          "execution_time": 0.002182,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "create_interactive_plots",
+          "description": "인터랙티브 플롯",
+          "status": "failed",
+          "execution_time": 0.002105,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "create_statistical_plots",
+          "description": "통계 플롯",
+          "status": "failed",
+          "execution_time": 0.002182,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "create_timeseries_plots",
+          "description": "시계열 플롯",
+          "status": "failed",
+          "execution_time": 0.002241,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "create_multidimensional_plots",
+          "description": "다차원 플롯",
+          "status": "failed",
+          "execution_time": 0.002316,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "apply_custom_styling",
+          "description": "커스텀 스타일링",
+          "status": "failed",
+          "execution_time": 0.003974,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "export_plots",
+          "description": "플롯 내보내기",
+          "status": "failed",
+          "execution_time": 0.002853,
+          "error": "HTTP 405",
+          "output": ""
+        }
+      ],
+      "summary": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "success",
+        "response_time": 0.00145,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8308/health",
+            "status_code": 404,
+            "response_time": 0.002403,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8308/",
+            "status_code": 405,
+            "response_time": 0.000836,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8308/.well-known/agent.json",
+            "status_code": 200,
+            "response_time": 0.00145,
+            "success": true,
+            "content": "{\"capabilities\":{\"streaming\":true},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"An AI agent that creates professional data visualizations and interactive charts.\",\"name\":\"Data Visualization Agent\",\"skills\":[{\"description\":\"Creates interactive data visualizations and charts using advanced plotting libraries\",\"examples\":[\"create a bar chart\",\"visualize trends\",\"plot correlation matrix\"],\"id\":\"data_visualization\",\"name\":\"Data Visualization\",\"tags\":[\"visualization\",\"plotting\",\"charts\",\"graphs\"]}],\"supportsAuthenticatedExtendedCard\":false,\"url\":\"http://localhost:8202/\",\"version\":\"1.0.0\"}"
+          },
+          {
+            "url": "http://localhost:8308/status",
+            "status_code": 404,
+            "response_time": 0.001047,
+            "success": false
+          }
+        ],
+        "error": null
+      }
+    },
+    "data_wrangling": {
+      "agent_name": "data_wrangling",
+      "port": 8309,
+      "connection_status": "success",
+      "functions_tested": [
+        {
+          "function_name": "filter_data",
+          "description": "데이터 필터링",
+          "status": "failed",
+          "execution_time": 0.002934,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "sort_data",
+          "description": "데이터 정렬",
+          "status": "failed",
+          "execution_time": 0.002564,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "group_data",
+          "description": "데이터 그룹화",
+          "status": "failed",
+          "execution_time": 0.023344,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "aggregate_data",
+          "description": "데이터 집계",
+          "status": "failed",
+          "execution_time": 0.003688,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "merge_data",
+          "description": "데이터 병합",
+          "status": "failed",
+          "execution_time": 0.004883,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "reshape_data",
+          "description": "데이터 재구성",
+          "status": "failed",
+          "execution_time": 0.003868,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "sample_data",
+          "description": "데이터 샘플링",
+          "status": "failed",
+          "execution_time": 0.003025,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "split_data",
+          "description": "데이터 분할",
+          "status": "failed",
+          "execution_time": 0.004134,
+          "error": "HTTP 405",
+          "output": ""
+        }
+      ],
+      "summary": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "success",
+        "response_time": 0.001514,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8309/health",
+            "status_code": 404,
+            "response_time": 0.009848,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8309/",
+            "status_code": 405,
+            "response_time": 0.001459,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8309/.well-known/agent.json",
+            "status_code": 200,
+            "response_time": 0.001514,
+            "success": true,
+            "content": "{\"capabilities\":{\"streaming\":false},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"Enhanced Data Wrangling Agent with transformation capabilities\",\"name\":\"Data Wrangling Agent\",\"skills\":[{\"description\":\"데이터 변환, 정제, 구조화 작업\",\"examples\":[\"데이터를 변환해주세요\",\"컬럼을 정리해주세요\",\"데이터 구조를 개선해주세요\"],\"id\":\"data-wrangling\",\"name\":\"Data Wrangling Agent\",\"tags\":[\"data-wrangling\",\"transformation\",\"cleaning\",\"structuring\"]}],\"supportsAuthenticatedExtendedCard\":false,\"url\":\"http://localhost:8319/\",\"version\":\"1.0.0\"}"
+          },
+          {
+            "url": "http://localhost:8309/status",
+            "status_code": 404,
+            "response_time": 0.001018,
+            "success": false
+          }
+        ],
+        "error": null
+      }
+    },
+    "feature_engineering": {
+      "agent_name": "feature_engineering",
+      "port": 8310,
+      "connection_status": "success",
+      "functions_tested": [
+        {
+          "function_name": "create_numerical_features",
+          "description": "수치형 피처 생성",
+          "status": "failed",
+          "execution_time": 0.004464,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "encode_categorical_features",
+          "description": "범주형 피처 인코딩",
+          "status": "failed",
+          "execution_time": 0.002915,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "extract_text_features",
+          "description": "텍스트 피처 추출",
+          "status": "failed",
+          "execution_time": 0.002809,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "extract_datetime_features",
+          "description": "날짜시간 피처 추출",
+          "status": "failed",
+          "execution_time": 0.002801,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "scale_features",
+          "description": "피처 스케일링",
+          "status": "failed",
+          "execution_time": 0.002749,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "select_features",
+          "description": "피처 선택",
+          "status": "failed",
+          "execution_time": 0.002252,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "reduce_dimensionality",
+          "description": "차원 축소",
+          "status": "failed",
+          "execution_time": 0.002191,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "calculate_feature_importance",
+          "description": "피처 중요도 계산",
+          "status": "failed",
+          "execution_time": 0.003157,
+          "error": "HTTP 405",
+          "output": ""
+        }
+      ],
+      "summary": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "success",
+        "response_time": 0.003278,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8310/health",
+            "status_code": 404,
+            "response_time": 0.003977,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8310/",
+            "status_code": 405,
+            "response_time": 0.002565,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8310/.well-known/agent.json",
+            "status_code": 200,
+            "response_time": 0.003278,
+            "success": true,
+            "content": "{\"capabilities\":{\"streaming\":true},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"An AI agent that specializes in feature engineering and data transformation for machine learning.\",\"name\":\"Feature Engineering Agent\",\"skills\":[{\"description\":\"Creates and transforms features for machine learning through advanced feature engineering techniques\",\"examples\":[\"create new features\",\"transform variables\",\"engineer features for ML\"],\"id\":\"feature_engineering\",\"name\":\"Feature Engineering\",\"tags\":[\"features\",\"engineering\",\"preprocessing\",\"transformation\"]}],\"supportsAuthenticatedExtendedCard\":false,\"url\":\"http://localhost:8204/\",\"version\":\"1.0.0\"}"
+          },
+          {
+            "url": "http://localhost:8310/status",
+            "status_code": 404,
+            "response_time": 0.001259,
+            "success": false
+          }
+        ],
+        "error": null
+      }
+    },
+    "sql_data_analyst": {
+      "agent_name": "sql_data_analyst",
+      "port": 8311,
+      "connection_status": "failed",
+      "functions_tested": [],
+      "summary": {
+        "total_functions": 0,
+        "passed_functions": 0,
+        "failed_functions": 0,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "failed",
+        "response_time": 0.0,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8311/health",
+            "success": false,
+            "error": "Cannot connect to host localhost:8311 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8311, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8311)]"
+          },
+          {
+            "url": "http://localhost:8311/",
+            "success": false,
+            "error": "Cannot connect to host localhost:8311 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8311), [Errno 61] Connect call failed ('::1', 8311, 0, 0)]"
+          },
+          {
+            "url": "http://localhost:8311/.well-known/agent.json",
+            "success": false,
+            "error": "Cannot connect to host localhost:8311 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8311, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8311)]"
+          },
+          {
+            "url": "http://localhost:8311/status",
+            "success": false,
+            "error": "Cannot connect to host localhost:8311 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8311), [Errno 61] Connect call failed ('::1', 8311, 0, 0)]"
+          }
+        ],
+        "error": null
+      }
+    },
+    "eda_tools": {
+      "agent_name": "eda_tools",
+      "port": 8312,
+      "connection_status": "success",
+      "functions_tested": [
+        {
+          "function_name": "compute_descriptive_statistics",
+          "description": "기술 통계 계산",
+          "status": "failed",
+          "execution_time": 0.002132,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "analyze_correlations",
+          "description": "상관관계 분석",
+          "status": "failed",
+          "execution_time": 0.002305,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "analyze_distributions",
+          "description": "분포 분석",
+          "status": "failed",
+          "execution_time": 0.002146,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "analyze_categorical_data",
+          "description": "범주형 데이터 분석",
+          "status": "failed",
+          "execution_time": 0.002506,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "analyze_time_series",
+          "description": "시계열 분석",
+          "status": "failed",
+          "execution_time": 0.002823,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "detect_anomalies",
+          "description": "이상 감지",
+          "status": "failed",
+          "execution_time": 0.003088,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "assess_data_quality",
+          "description": "데이터 품질 평가",
+          "status": "failed",
+          "execution_time": 0.004883,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "generate_automated_insights",
+          "description": "자동 인사이트 생성",
+          "status": "failed",
+          "execution_time": 0.003875,
+          "error": "HTTP 405",
+          "output": ""
+        }
+      ],
+      "summary": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "success",
+        "response_time": 0.00144,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8312/health",
+            "status_code": 404,
+            "response_time": 0.004492,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8312/",
+            "status_code": 405,
+            "response_time": 0.001806,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8312/.well-known/agent.json",
+            "status_code": 200,
+            "response_time": 0.00144,
+            "success": true,
+            "content": "{\"capabilities\":{\"streaming\":true},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"An AI agent that specializes in exploratory data analysis and statistical exploration.\",\"name\":\"EDA Tools Agent\",\"skills\":[{\"description\":\"Performs comprehensive exploratory data analysis with statistical summaries and insights\",\"examples\":[\"explore my dataset\",\"analyze data distribution\",\"find correlations\"],\"id\":\"eda_analysis\",\"name\":\"Exploratory Data Analysis\",\"tags\":[\"eda\",\"exploration\",\"statistics\",\"analysis\"]}],\"supportsAuthenticatedExtendedCard\":false,\"url\":\"http://localhost:8203/\",\"version\":\"1.0.0\"}"
+          },
+          {
+            "url": "http://localhost:8312/status",
+            "status_code": 404,
+            "response_time": 0.00408,
+            "success": false
+          }
+        ],
+        "error": null
+      }
+    },
+    "h2o_ml": {
+      "agent_name": "h2o_ml",
+      "port": 8313,
+      "connection_status": "success",
+      "functions_tested": [
+        {
+          "function_name": "run_automl",
+          "description": "AutoML 실행",
+          "status": "failed",
+          "execution_time": 0.004478,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "train_classification_models",
+          "description": "분류 모델 훈련",
+          "status": "failed",
+          "execution_time": 0.004159,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "train_regression_models",
+          "description": "회귀 모델 훈련",
+          "status": "failed",
+          "execution_time": 0.003419,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "evaluate_models",
+          "description": "모델 평가",
+          "status": "failed",
+          "execution_time": 0.004571,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "tune_hyperparameters",
+          "description": "하이퍼파라미터 튜닝",
+          "status": "failed",
+          "execution_time": 0.004325,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "analyze_feature_importance",
+          "description": "피처 중요도 분석",
+          "status": "failed",
+          "execution_time": 0.004167,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "interpret_models",
+          "description": "모델 해석",
+          "status": "failed",
+          "execution_time": 0.002713,
+          "error": "HTTP 405",
+          "output": ""
+        },
+        {
+          "function_name": "deploy_models",
+          "description": "모델 배포",
+          "status": "failed",
+          "execution_time": 0.003219,
+          "error": "HTTP 405",
+          "output": ""
+        }
+      ],
+      "summary": {
+        "total_functions": 8,
+        "passed_functions": 0,
+        "failed_functions": 8,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "success",
+        "response_time": 0.001367,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8313/health",
+            "status_code": 404,
+            "response_time": 0.004579,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8313/",
+            "status_code": 405,
+            "response_time": 0.001495,
+            "success": false
+          },
+          {
+            "url": "http://localhost:8313/.well-known/agent.json",
+            "status_code": 200,
+            "response_time": 0.001367,
+            "success": true,
+            "content": "{\"capabilities\":{\"streaming\":false},\"defaultInputModes\":[\"text\"],\"defaultOutputModes\":[\"text\"],\"description\":\"원본 ai-data-science-team H2OMLAgent를 활용한 완전한 AutoML 서비스. H2O AutoML을 통해 자동으로 최적의 머신러닝 모델을 찾고 훈련하며, 모델 평가 및 저장을 지원합니다.\",\"name\":\"H2O ML Agent\",\"skills\":[{\"description\":\"원본 ai-data-science-team H2OMLAgent를 활용한 완전한 AutoML 서비스입니다. H2O AutoML을 통해 자동으로 최적의 머신러닝 모델을 찾고 훈련합니다.\",\"examples\":[\"H2O AutoML로 분류 모델을 구축해주세요\",\"회귀 분석 모델을 자동으로 생성해주세요\",\"최적의 머신러닝 모델을 찾아주세요\",\"H2O를 사용해서 모델 성능을 비교해주세요\",\"AutoML로 예측 모델을 만들어주세요\",\"고객 이탈 예측 모델을 생성해주세요\",\"매출 예측을 위한 회귀 모델을 만들어주세요\"],\"id\":\"h2o_automl\",\"name\":\"H2O AutoML Modeling\",\"tags\":[\"h2o\",\"automl\",\"machine-learning\",\"modeling\",\"prediction\",\"ai-data-science-team\",\"classification\",\"regression\"]}],\"supportsAuthenticatedExtendedCard\":false,\"url\":\"http://localhost:8323/\",\"version\":\"1.0.0\"}"
+          },
+          {
+            "url": "http://localhost:8313/status",
+            "status_code": 404,
+            "response_time": 0.001078,
+            "success": false
+          }
+        ],
+        "error": null
+      }
+    },
+    "mlflow_server": {
+      "agent_name": "mlflow_server",
+      "port": 8314,
+      "connection_status": "failed",
+      "functions_tested": [],
+      "summary": {
+        "total_functions": 0,
+        "passed_functions": 0,
+        "failed_functions": 0,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "failed",
+        "response_time": 0.0,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8314/health",
+            "success": false,
+            "error": "Cannot connect to host localhost:8314 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8314, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8314)]"
+          },
+          {
+            "url": "http://localhost:8314/",
+            "success": false,
+            "error": "Cannot connect to host localhost:8314 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8314), [Errno 61] Connect call failed ('::1', 8314, 0, 0)]"
+          },
+          {
+            "url": "http://localhost:8314/.well-known/agent.json",
+            "success": false,
+            "error": "Cannot connect to host localhost:8314 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8314, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8314)]"
+          },
+          {
+            "url": "http://localhost:8314/status",
+            "success": false,
+            "error": "Cannot connect to host localhost:8314 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8314), [Errno 61] Connect call failed ('::1', 8314, 0, 0)]"
+          }
+        ],
+        "error": null
+      }
+    },
+    "report_generator": {
+      "agent_name": "report_generator",
+      "port": 8315,
+      "connection_status": "failed",
+      "functions_tested": [],
+      "summary": {
+        "total_functions": 0,
+        "passed_functions": 0,
+        "failed_functions": 0,
+        "success_rate": 0.0
+      },
+      "connection_details": {
+        "status": "failed",
+        "response_time": 0.0,
+        "endpoints_tested": [
+          {
+            "url": "http://localhost:8315/health",
+            "success": false,
+            "error": "Cannot connect to host localhost:8315 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8315, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8315)]"
+          },
+          {
+            "url": "http://localhost:8315/",
+            "success": false,
+            "error": "Cannot connect to host localhost:8315 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8315), [Errno 61] Connect call failed ('::1', 8315, 0, 0)]"
+          },
+          {
+            "url": "http://localhost:8315/.well-known/agent.json",
+            "success": false,
+            "error": "Cannot connect to host localhost:8315 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8315, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8315)]"
+          },
+          {
+            "url": "http://localhost:8315/status",
+            "success": false,
+            "error": "Cannot connect to host localhost:8315 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8315), [Errno 61] Connect call failed ('::1', 8315, 0, 0)]"
+          }
+        ],
+        "error": null
+      }
+    }
+  },
+  "timestamp": "20250723_005537"
+}

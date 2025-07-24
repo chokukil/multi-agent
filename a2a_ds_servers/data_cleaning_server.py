@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI_DS_Team DataCleaningAgent A2A Server (New Implementation)
-Port: 8310
+Port: 8306
 
 원본 ai-data-science-team의 DataCleaningAgent를 참조하여 A2A 프로토콜에 맞게 구현
 데이터 부분에 pandas-ai 패턴 적용
@@ -16,6 +16,21 @@ import logging
 import pandas as pd
 import numpy as np
 import io
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv()
+
+# Langfuse 통합
+try:
+    from core.universal_engine.langfuse_integration import SessionBasedTracer, LangfuseEnhancedA2AExecutor
+    LANGFUSE_AVAILABLE = True
+    logger = logging.getLogger(__name__)
+    logger.info("✅ Langfuse 통합 모듈 로드 성공")
+except ImportError as e:
+    LANGFUSE_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning(f"⚠️ Langfuse 통합 모듈 로드 실패: {e}")
 
 # 프로젝트 루트 경로 추가 (단순화)
 project_root = Path(__file__).parent.parent
@@ -32,6 +47,9 @@ from a2a.server.events.event_queue import EventQueue
 from a2a.types import TextPart, TaskState, AgentCard, AgentSkill, AgentCapabilities
 from a2a.utils import new_agent_text_message
 import uvicorn
+
+# Logger 설정
+logger = logging.getLogger(__name__)
 
 # AI_DS_Team imports - 직접 모듈 import 방식
 try:
@@ -67,11 +85,9 @@ try:
     from pandasai import Agent as PandasAIAgent
     from pandasai import DataFrame as PandasAIDataFrame
     PANDASAI_AVAILABLE = True
-    logger = logging.getLogger(__name__)
     logger.info("✅ pandas-ai 사용 가능")
 except ImportError:
     PANDASAI_AVAILABLE = False
-    logger = logging.getLogger(__name__)
     logger.warning("⚠️ pandas-ai 미설치 - 기본 모드로 실행")
 
 # Core imports
@@ -182,6 +198,7 @@ class EnhancedDataCleaner:
         self.cleaned_data = None
         self.cleaning_report = []
         self.recommended_steps = []
+        self.current_data = None  # 현재 작업 중인 데이터
     
     def get_default_cleaning_steps(self) -> list:
         """원본 DataCleaningAgent의 기본 클리닝 단계들"""
@@ -316,23 +333,305 @@ class EnhancedDataCleaner:
         score += numeric_ratio * 10
         
         return max(0, min(100, score))
+    
+    # 1. 결측값 감지 기능
+    def detect_missing_values(self, df: pd.DataFrame) -> dict:
+        """결측값을 감지하고 상세 리포트 생성"""
+        logger.info("🔍 결측값 감지 시작...")
+        
+        missing_info = {}
+        total_missing = 0
+        
+        for col in df.columns:
+            missing_count = df[col].isnull().sum()
+            if missing_count > 0:
+                missing_ratio = missing_count / len(df)
+                missing_info[col] = {
+                    'count': missing_count,
+                    'ratio': missing_ratio,
+                    'percentage': f"{missing_ratio * 100:.2f}%"
+                }
+                total_missing += missing_count
+        
+        # 전체 통계
+        total_cells = df.shape[0] * df.shape[1]
+        overall_missing_ratio = total_missing / total_cells if total_cells > 0 else 0
+        
+        result = {
+            'total_missing': total_missing,
+            'overall_missing_ratio': overall_missing_ratio,
+            'overall_missing_percentage': f"{overall_missing_ratio * 100:.2f}%",
+            'columns_with_missing': missing_info,
+            'columns_without_missing': [col for col in df.columns if col not in missing_info],
+            'recommendation': self._get_missing_value_recommendation(missing_info)
+        }
+        
+        logger.info(f"✅ 결측값 감지 완료: 총 {total_missing}개 발견")
+        return result
+    
+    def _get_missing_value_recommendation(self, missing_info: dict) -> list:
+        """결측값 처리 권장사항 생성"""
+        recommendations = []
+        
+        for col, info in missing_info.items():
+            if info['ratio'] > 0.4:
+                recommendations.append(f"'{col}' 컬럼 제거 권장 (40% 이상 결측)")
+            elif info['ratio'] > 0.2:
+                recommendations.append(f"'{col}' 컬럼 신중한 대체 필요 (20-40% 결측)")
+            else:
+                recommendations.append(f"'{col}' 컬럼 평균/최빈값 대체 가능 (<20% 결측)")
+        
+        return recommendations
+    
+    # 2. 결측값 처리 기능
+    def handle_missing_values(self, df: pd.DataFrame, method: str = "auto", columns: list = None) -> dict:
+        """결측값 처리 - 다양한 방법 지원"""
+        logger.info(f"🔧 결측값 처리 시작 (방법: {method})...")
+        
+        self.current_data = df.copy()
+        processing_report = []
+        
+        # 처리할 컬럼 결정
+        if columns:
+            cols_to_process = columns
+        else:
+            cols_to_process = df.columns[df.isnull().any()].tolist()
+        
+        for col in cols_to_process:
+            if col not in df.columns:
+                continue
+                
+            missing_count = self.current_data[col].isnull().sum()
+            if missing_count == 0:
+                continue
+            
+            if method == "auto":
+                # 자동 처리: 데이터 타입에 따라 결정
+                if self.current_data[col].dtype in ['int64', 'float64']:
+                    fill_value = self.current_data[col].mean()
+                    self.current_data[col].fillna(fill_value, inplace=True)
+                    processing_report.append(f"'{col}': 평균값({fill_value:.2f})으로 대체")
+                else:
+                    mode_val = self.current_data[col].mode()
+                    if not mode_val.empty:
+                        fill_value = mode_val.iloc[0]
+                        self.current_data[col].fillna(fill_value, inplace=True)
+                        processing_report.append(f"'{col}': 최빈값('{fill_value}')으로 대체")
+            
+            elif method == "drop":
+                # 결측값이 있는 행 제거
+                before_shape = self.current_data.shape[0]
+                self.current_data = self.current_data.dropna(subset=[col])
+                after_shape = self.current_data.shape[0]
+                processing_report.append(f"'{col}': {before_shape - after_shape}개 행 제거")
+            
+            elif method == "forward_fill":
+                # 앞의 값으로 채우기
+                self.current_data[col].fillna(method='ffill', inplace=True)
+                processing_report.append(f"'{col}': 이전 값으로 대체 (forward fill)")
+            
+            elif method == "backward_fill":
+                # 뒤의 값으로 채우기
+                self.current_data[col].fillna(method='bfill', inplace=True)
+                processing_report.append(f"'{col}': 다음 값으로 대체 (backward fill)")
+            
+            elif method == "interpolate":
+                # 보간법 사용
+                if self.current_data[col].dtype in ['int64', 'float64']:
+                    self.current_data[col].interpolate(method='linear', inplace=True)
+                    processing_report.append(f"'{col}': 선형 보간으로 대체")
+        
+        return {
+            'processed_data': self.current_data,
+            'processing_report': processing_report,
+            'before_missing': df.isnull().sum().sum(),
+            'after_missing': self.current_data.isnull().sum().sum(),
+            'method_used': method
+        }
+    
+    # 3. 이상치 감지 기능
+    def detect_outliers(self, df: pd.DataFrame, method: str = "IQR", threshold: float = 1.5) -> dict:
+        """이상치 감지 - IQR, Z-score, Isolation Forest 등 다양한 방법 지원"""
+        logger.info(f"🔍 이상치 감지 시작 (방법: {method})...")
+        
+        outlier_info = {}
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        
+        for col in numeric_cols:
+            if method == "IQR":
+                Q1 = df[col].quantile(0.25)
+                Q3 = df[col].quantile(0.75)
+                IQR = Q3 - Q1
+                lower_bound = Q1 - threshold * IQR
+                upper_bound = Q3 + threshold * IQR
+                
+                outliers_mask = (df[col] < lower_bound) | (df[col] > upper_bound)
+                outliers = df[outliers_mask][col].tolist()
+                
+                outlier_info[col] = {
+                    'method': 'IQR',
+                    'lower_bound': lower_bound,
+                    'upper_bound': upper_bound,
+                    'outlier_count': len(outliers),
+                    'outlier_percentage': f"{(len(outliers) / len(df)) * 100:.2f}%",
+                    'outlier_values': outliers[:10]  # 최대 10개만 표시
+                }
+            
+            elif method == "Z-score":
+                from scipy import stats
+                z_scores = np.abs(stats.zscore(df[col].dropna()))
+                outliers_mask = z_scores > threshold
+                outliers = df[col].dropna()[outliers_mask].tolist()
+                
+                outlier_info[col] = {
+                    'method': 'Z-score',
+                    'threshold': threshold,
+                    'outlier_count': len(outliers),
+                    'outlier_percentage': f"{(len(outliers) / len(df)) * 100:.2f}%",
+                    'outlier_values': outliers[:10]
+                }
+        
+        return {
+            'outlier_summary': outlier_info,
+            'total_outliers': sum(info['outlier_count'] for info in outlier_info.values()),
+            'columns_with_outliers': [col for col, info in outlier_info.items() if info['outlier_count'] > 0],
+            'method': method,
+            'recommendation': self._get_outlier_recommendation(outlier_info)
+        }
+    
+    def _get_outlier_recommendation(self, outlier_info: dict) -> list:
+        """이상치 처리 권장사항 생성"""
+        recommendations = []
+        
+        for col, info in outlier_info.items():
+            outlier_ratio = info['outlier_count'] / 100  # 대략적인 비율
+            if outlier_ratio > 0.1:
+                recommendations.append(f"'{col}': 이상치가 많음 (10% 이상) - 도메인 지식 기반 검토 필요")
+            elif outlier_ratio > 0.05:
+                recommendations.append(f"'{col}': 중간 수준 이상치 (5-10%) - 캡핑 또는 변환 고려")
+            elif info['outlier_count'] > 0:
+                recommendations.append(f"'{col}': 소수 이상치 (<5%) - 제거 또는 대체 가능")
+        
+        return recommendations
+    
+    # 4. 이상치 처리 기능
+    def treat_outliers(self, df: pd.DataFrame, method: str = "cap", threshold: float = 1.5, columns: list = None) -> dict:
+        """이상치 처리 - 제거, 캡핑, 변환 등"""
+        logger.info(f"🔧 이상치 처리 시작 (방법: {method})...")
+        
+        self.current_data = df.copy()
+        processing_report = []
+        
+        # 처리할 컬럼 결정
+        if columns:
+            numeric_cols = [col for col in columns if col in df.select_dtypes(include=[np.number]).columns]
+        else:
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+        
+        for col in numeric_cols:
+            Q1 = self.current_data[col].quantile(0.25)
+            Q3 = self.current_data[col].quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - threshold * IQR
+            upper_bound = Q3 + threshold * IQR
+            
+            outliers_mask = (self.current_data[col] < lower_bound) | (self.current_data[col] > upper_bound)
+            outlier_count = outliers_mask.sum()
+            
+            if outlier_count == 0:
+                continue
+            
+            if method == "remove":
+                # 이상치가 있는 행 제거
+                before_shape = self.current_data.shape[0]
+                self.current_data = self.current_data[~outliers_mask]
+                after_shape = self.current_data.shape[0]
+                processing_report.append(f"'{col}': {before_shape - after_shape}개 이상치 행 제거")
+            
+            elif method == "cap":
+                # 이상치를 경계값으로 대체 (캡핑)
+                self.current_data.loc[self.current_data[col] < lower_bound, col] = lower_bound
+                self.current_data.loc[self.current_data[col] > upper_bound, col] = upper_bound
+                processing_report.append(f"'{col}': {outlier_count}개 이상치 캡핑 처리")
+            
+            elif method == "transform":
+                # 로그 변환
+                if (self.current_data[col] > 0).all():
+                    self.current_data[col] = np.log1p(self.current_data[col])
+                    processing_report.append(f"'{col}': 로그 변환 적용")
+                else:
+                    processing_report.append(f"'{col}': 음수값 존재로 로그 변환 불가")
+        
+        return {
+            'processed_data': self.current_data,
+            'processing_report': processing_report,
+            'method_used': method,
+            'threshold': threshold
+        }
 
 class DataCleaningAgentExecutor(AgentExecutor):
-    """A2A DataCleaningAgent Executor with pandas-ai pattern"""
+    """A2A DataCleaningAgent Executor with pandas-ai pattern and Langfuse integration"""
     
     def __init__(self):
         """초기화"""
         self.data_processor = PandasAIDataProcessor()
         self.data_cleaner = EnhancedDataCleaner()
+        
+        # Langfuse 통합 초기화
+        self.langfuse_tracer = None
+        if LANGFUSE_AVAILABLE:
+            try:
+                self.langfuse_tracer = SessionBasedTracer()
+                if self.langfuse_tracer.langfuse:
+                    logger.info("✅ DataCleaningAgent Langfuse 통합 완료")
+                else:
+                    logger.warning("⚠️ Langfuse 설정 누락 - 기본 모드로 실행")
+            except Exception as e:
+                logger.error(f"❌ Langfuse 초기화 실패: {e}")
+                self.langfuse_tracer = None
+        
         logger.info("🧹 DataCleaningAgent Executor 초기화 완료")
     
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         """pandas-ai 패턴이 적용된 데이터 클리닝 실행"""
         logger.info(f"🚀 DataCleaningAgent 실행 시작 - Task: {context.task_id}")
         
+        # Langfuse 트레이스 시작 (올바른 방식)
+        session_id = None
+        main_trace = None
+        if self.langfuse_tracer and self.langfuse_tracer.langfuse:
+            try:
+                # 전체 사용자 쿼리 추출
+                full_user_query = ""
+                if context.message and hasattr(context.message, 'parts') and context.message.parts:
+                    for part in context.message.parts:
+                        if hasattr(part, 'root') and part.root.kind == "text":
+                            full_user_query += part.root.text + " "
+                        elif hasattr(part, 'text'):
+                            full_user_query += part.text + " "
+                full_user_query = full_user_query.strip()
+                
+                # 메인 트레이스 생성 (task_id를 트레이스 ID로 사용)
+                main_trace = self.langfuse_tracer.langfuse.trace(
+                    id=context.task_id,
+                    name="DataCleaningAgent_Execution",
+                    input=full_user_query,
+                    user_id="2055186",
+                    metadata={
+                        "agent": "DataCleaningAgent",
+                        "port": 8306,
+                        "context_id": context.context_id,
+                        "timestamp": str(context.task_id)
+                    }
+                )
+                logger.info(f"📊 Langfuse 메인 트레이스 시작: {context.task_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Langfuse 트레이스 생성 실패: {e}")
+        
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
+            # A2A SDK 0.2.9 공식 패턴에 따른 태스크 라이프사이클
             await task_updater.submit()
             await task_updater.start_work()
             
@@ -341,27 +640,67 @@ class DataCleaningAgentExecutor(AgentExecutor):
                 message=new_agent_text_message("🧹 pandas-ai 패턴 DataCleaningAgent 시작...")
             )
             
-            # 사용자 메시지 추출
+            # A2A SDK 0.2.9 공식 패턴에 따른 사용자 메시지 추출
             user_instructions = ""
-            if context.message and context.message.parts:
+            if context.message and hasattr(context.message, 'parts') and context.message.parts:
                 for part in context.message.parts:
-                    if part.root.kind == "text":
+                    if hasattr(part, 'root') and part.root.kind == "text":
                         user_instructions += part.root.text + " "
+                    elif hasattr(part, 'text'):  # 대체 패턴
+                        user_instructions += part.text + " "
                 
                 user_instructions = user_instructions.strip()
                 logger.info(f"📝 사용자 요청: {user_instructions}")
+            
+            # 기본 요청이 없으면 데모 모드
+            if not user_instructions:
+                user_instructions = "샘플 데이터로 데이터 클리닝을 시연해주세요"
+                logger.info("📝 기본 데모 모드 실행")
                 
-                # pandas-ai 패턴으로 데이터 파싱
-                await task_updater.update_status(
-                    TaskState.working,
-                    message=new_agent_text_message("📊 pandas-ai 패턴으로 데이터 분석 중...")
+            # pandas-ai 패턴으로 데이터 파싱
+            await task_updater.update_status(
+                TaskState.working,
+                message=new_agent_text_message("📊 pandas-ai 패턴으로 데이터 분석 중...")
+            )
+            
+            # 1단계: 메시지에서 데이터 파싱 (Langfuse 추적)
+            parsing_span = None
+            if main_trace:
+                parsing_span = self.langfuse_tracer.langfuse.span(
+                    trace_id=context.task_id,
+                    name="data_parsing",
+                    input={"user_instructions": user_instructions[:500]},
+                    metadata={"step": "1", "description": "Parse data from user message"}
                 )
-                
-                # 1단계: 메시지에서 데이터 파싱
-                df = self.data_processor.parse_data_from_message(user_instructions)
-                
-                # 2단계: 데이터가 없으면 DataManager 폴백
-                if df is None:
+            
+            logger.info("🔍 데이터 파싱 시작")
+            df = self.data_processor.parse_data_from_message(user_instructions)
+            logger.info(f"✅ CSV 데이터 파싱 성공: {df.shape if df is not None else 'None'}")
+            
+            if parsing_span:
+                if df is not None:
+                    parsing_span.update(
+                        output={
+                            "success": True,
+                            "data_shape": list(df.shape),  # tuple을 list로 변환
+                            "columns": list(df.columns),
+                            "data_preview": df.head(3).to_dict('records'),  # 더 readable한 형태
+                            "total_rows": len(df),
+                            "total_columns": len(df.columns)
+                        }
+                    )
+                else:
+                    parsing_span.update(
+                        output={
+                            "success": False, 
+                            "reason": "No CSV data found in message",
+                            "fallback_needed": True
+                        }
+                    )
+            
+            # 2단계: 데이터가 없으면 DataManager 폴백
+            if df is None:
+                try:
                     available_data = data_manager.list_dataframes()
                     if available_data:
                         selected_id = available_data[0]
@@ -370,45 +709,143 @@ class DataCleaningAgentExecutor(AgentExecutor):
                     else:
                         # 샘플 데이터 생성
                         df = self.data_processor._create_sample_data()
+                        logger.info("✅ 샘플 데이터 생성")
+                except Exception as e:
+                    logger.warning(f"DataManager 폴백 실패: {e}")
+                    # 샘플 데이터로 대체
+                    df = self.data_processor._create_sample_data()
+                    logger.info("✅ 폴백 후 샘플 데이터 생성")
                 
-                if df is not None and not df.empty:
-                    # 3단계: pandas-ai DataFrame 생성
-                    self.data_processor.create_pandasai_dataframe(
-                        df, name="user_dataset", description=user_instructions[:100]
-                    )
-                    
-                    # 4단계: 데이터 클리닝 실행
-                    await task_updater.update_status(
-                        TaskState.working,
-                        message=new_agent_text_message("🧹 Enhanced 데이터 클리닝 실행 중...")
-                    )
-                    
-                    cleaning_results = self.data_cleaner.clean_data(df, user_instructions)
-                    
-                    # 5단계: 결과 저장
-                    output_path = f"a2a_ds_servers/artifacts/data/shared_dataframes/cleaned_data_{context.task_id}.csv"
-                    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                    cleaning_results['cleaned_data'].to_csv(output_path, index=False)
-                    
-                    # 6단계: 응답 생성
-                    result = self._generate_response(cleaning_results, user_instructions, output_path)
-                    
-                else:
-                    result = self._generate_no_data_response(user_instructions)
-                
-                # 최종 응답
-                await task_updater.update_status(
-                    TaskState.completed,
-                    message=new_agent_text_message(result)
+            if df is not None and not df.empty:
+                # 3단계: pandas-ai DataFrame 생성
+                self.data_processor.create_pandasai_dataframe(
+                    df, name="user_dataset", description=user_instructions[:100]
                 )
+                
+                # 4단계: 데이터 클리닝 실행 (Langfuse 추적)
+                await task_updater.update_status(
+                    TaskState.working,
+                    message=new_agent_text_message("🧹 Enhanced 데이터 클리닝 실행 중...")
+                )
+                
+                cleaning_span = None
+                if main_trace:
+                    cleaning_span = self.langfuse_tracer.langfuse.span(
+                        trace_id=context.task_id,
+                        name="data_cleaning",
+                        input={
+                            "original_data_shape": df.shape,
+                            "columns": list(df.columns),
+                            "user_instructions": user_instructions[:200]
+                        },
+                        metadata={"step": "2", "description": "Clean and process data"}
+                    )
+                
+                logger.info("🚀 데이터 정리 요청 처리: " + user_instructions[:100] + "...")
+                cleaning_results = self.data_cleaner.clean_data(df, user_instructions)
+                
+                if cleaning_span:
+                    cleaning_span.update(
+                        output={
+                            "success": True,
+                            "cleaned_data_shape": list(cleaning_results['cleaned_data'].shape),
+                            "original_shape": list(cleaning_results['original_shape']),
+                            "final_shape": list(cleaning_results['final_shape']),
+                            "memory_saved_mb": round(cleaning_results['memory_saved'], 4),
+                            "data_quality_score": cleaning_results['data_quality_score'],
+                            "cleaning_operations_performed": len(cleaning_results['cleaning_report']),
+                            "cleaning_report_summary": cleaning_results['cleaning_report'][:3],  # 처음 3개만
+                            "rows_removed": cleaning_results['original_shape'][0] - cleaning_results['final_shape'][0],  
+                            "columns_removed": cleaning_results['original_shape'][1] - cleaning_results['final_shape'][1]
+                        }
+                    )
+                
+                # 5단계: 결과 저장 (Langfuse 추적)
+                save_span = None
+                if main_trace:
+                    save_span = self.langfuse_tracer.langfuse.span(
+                        trace_id=context.task_id,
+                        name="save_results",
+                        input={
+                            "cleaned_data_shape": cleaning_results['cleaned_data'].shape,
+                            "data_quality_score": cleaning_results['data_quality_score'],
+                            "cleaning_operations": len(cleaning_results['cleaning_report'])
+                        },
+                        metadata={"step": "3", "description": "Save cleaned data to file"}
+                    )
+                
+                output_path = f"a2a_ds_servers/artifacts/data/shared_dataframes/cleaned_data_{context.task_id}.csv"
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                cleaning_results['cleaned_data'].to_csv(output_path, index=False)
+                logger.info(f"정리된 데이터 저장: {output_path}")
+                
+                if save_span:
+                    save_span.update(
+                        output={
+                            "file_path": output_path,
+                            "file_size_mb": os.path.getsize(output_path) / (1024*1024),
+                            "saved_rows": len(cleaning_results['cleaned_data']),
+                            "saved_successfully": True
+                        }
+                    )
+                
+                # 6단계: 응답 생성
+                result = self._generate_response(cleaning_results, user_instructions, output_path)
+                
             else:
-                await task_updater.update_status(
-                    TaskState.completed,
-                    message=new_agent_text_message("❌ 데이터 클리닝 요청이 비어있습니다.")
-                )
+                result = self._generate_no_data_response(user_instructions)
+            
+            # A2A SDK 0.2.9 공식 패턴에 따른 최종 응답
+            await task_updater.update_status(
+                TaskState.completed,
+                message=new_agent_text_message(result)
+            )
+            
+            # Langfuse 메인 트레이스 완료
+            if main_trace:
+                try:
+                    # Output을 요약된 형태로 제공 (너무 길면 Langfuse에서 문제가 될 수 있음)
+                    output_summary = {
+                        "status": "completed",
+                        "result_preview": result[:1000] + "..." if len(result) > 1000 else result,
+                        "full_result_length": len(result)
+                    }
+                    
+                    main_trace.update(
+                        output=output_summary,
+                        metadata={
+                            "status": "completed",
+                            "result_length": len(result),
+                            "success": True,
+                            "completion_timestamp": str(context.task_id),
+                            "agent": "DataCleaningAgent",
+                            "port": 8306
+                        }
+                    )
+                    logger.info(f"📊 Langfuse 트레이스 완료: {context.task_id}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Langfuse 트레이스 완료 실패: {e}")
                 
         except Exception as e:
             logger.error(f"❌ DataCleaningAgent 실행 오류: {e}")
+            
+            # Langfuse 메인 트레이스 오류 기록
+            if main_trace:
+                try:
+                    main_trace.update(
+                        output=f"Error: {str(e)}",
+                        metadata={
+                            "status": "failed",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "success": False,
+                            "agent": "DataCleaningAgent",
+                            "port": 8306
+                        }
+                    )
+                except Exception as langfuse_error:
+                    logger.warning(f"⚠️ Langfuse 오류 기록 실패: {langfuse_error}")
+            
             await task_updater.update_status(
                 TaskState.failed,
                 message=new_agent_text_message(f"데이터 클리닝 중 오류 발생: {str(e)}")
@@ -500,7 +937,7 @@ def main():
     agent_card = AgentCard(
         name="AI DataCleaningAgent (Enhanced)",
         description="pandas-ai 패턴이 적용된 향상된 데이터 클리닝 전문가. 원본 ai-data-science-team 기반.",
-        url="http://localhost:8316/",
+        url="http://localhost:8306/",
         version="2.0.0",
         defaultInputModes=["text"],
         defaultOutputModes=["text"],
@@ -522,11 +959,11 @@ def main():
     )
     
     print("🧹 Starting Enhanced AI DataCleaningAgent Server (pandas-ai pattern)")
-    print("🌐 Server starting on http://localhost:8316")
-    print("📋 Agent card: http://localhost:8316/.well-known/agent.json")
+    print("🌐 Server starting on http://localhost:8306")
+    print("📋 Agent card: http://localhost:8306/.well-known/agent.json")
     print("✨ Features: pandas-ai pattern + ai-data-science-team compatibility")
     
-    uvicorn.run(server.build(), host="0.0.0.0", port=8316, log_level="info")
+    uvicorn.run(server.build(), host="0.0.0.0", port=8306, log_level="info")
 
 if __name__ == "__main__":
-    main() 
+    main()

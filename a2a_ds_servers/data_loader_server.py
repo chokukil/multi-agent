@@ -85,15 +85,20 @@ class DataLoaderExecutor(AgentExecutor):
             await task_updater.submit()
             await task_updater.start_work()
             
-            # 사용자 메시지 추출
-            user_message = context.get_user_input() if context else "No message provided"
+            # A2A SDK 0.2.9 공식 패턴에 따른 사용자 메시지 추출
+            user_message = ""
+            if context.message and hasattr(context.message, 'parts') and context.message.parts:
+                for part in context.message.parts:
+                    if hasattr(part, 'root') and part.root.kind == "text":
+                        user_message += part.root.text + " "
+                    elif hasattr(part, 'text'):  # 대체 패턴
+                        user_message += part.text + " "
+                
+                user_message = user_message.strip()
             
+            # 기본 요청이 없으면 데모 모드
             if not user_message:
-                await task_updater.update_status(
-                    TaskState.failed,
-                    message=new_agent_text_message("❌ No valid message provided")
-                )
-                return
+                user_message = "데이터 로더 기능을 시연해주세요. CSV 파일 로딩 방법을 보여주세요."
             
             # 진행 상황 알림
             await task_updater.update_status(
@@ -148,7 +153,7 @@ if __name__ == '__main__':
     agent_card = AgentCard(
         name='AI Data Loader Agent',
         description='Advanced data loading agent powered by LangGraph that can load data from various sources, inspect file systems, and provide comprehensive data loading capabilities',
-        url='http://localhost:8001/',
+        url='http://localhost:8307/',
         version='2.0.0',
         defaultInputModes=['text'],
         defaultOutputModes=['text'],
@@ -169,4 +174,4 @@ if __name__ == '__main__':
     )
 
     # 서버 실행
-    uvicorn.run(server.build(), host='0.0.0.0', port=8001) 
+    uvicorn.run(server.build(), host='0.0.0.0', port=8307)

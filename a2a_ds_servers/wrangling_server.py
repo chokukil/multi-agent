@@ -217,17 +217,30 @@ class DataWranglingExecutor(AgentExecutor):
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
         
         try:
-            # 성공 패턴: 작업 시작 알림
+            # A2A SDK 0.2.9 공식 패턴에 따른 태스크 라이프사이클
+            await task_updater.submit()
+            await task_updater.start_work()
+            
+            # 작업 시작 알림
             await task_updater.update_status(
                 TaskState.working,
-                message=new_agent_text_message("Data Wrangling 작업을 시작합니다...")
+                message=new_agent_text_message("🔧 Data Wrangling 작업을 시작합니다...")
             )
             
-            # 성공 패턴: 메시지 추출
+            # A2A SDK 0.2.9 공식 패턴에 따른 사용자 메시지 추출
             user_message = ""
-            for part in context.message.parts:
-                if part.root.kind == "text":
-                    user_message += part.root.text
+            if context.message and hasattr(context.message, 'parts') and context.message.parts:
+                for part in context.message.parts:
+                    if hasattr(part, 'root') and part.root.kind == "text":
+                        user_message += part.root.text + " "
+                    elif hasattr(part, 'text'):  # 대체 패턴
+                        user_message += part.text + " "
+                
+                user_message = user_message.strip()
+            
+            # 기본 요청이 없으면 데모 모드
+            if not user_message:
+                user_message = "샘플 데이터를 이용해 데이터 래글링을 시연해주세요. 필터링과 정렬을 적용해주세요."
             
             logger.info(f"📥 Processing wrangling query: {user_message}")
             
@@ -346,7 +359,7 @@ def main():
     agent_card = AgentCard(
         name="Data Wrangling Agent",
         description="Enhanced Data Wrangling Agent with transformation capabilities",
-        url="http://localhost:8319/",
+        url="http://localhost:8309/",
         version="1.0.0",
         defaultInputModes=["text"],
         defaultOutputModes=["text"],
@@ -367,8 +380,8 @@ def main():
         http_handler=request_handler,
     )
     
-    print(f"🚀 Starting Data Wrangling Server on http://localhost:8319")
-    uvicorn.run(server.build(), host="0.0.0.0", port=8319, log_level="info")
+    print(f"🚀 Starting Data Wrangling Server on http://localhost:8309")
+    uvicorn.run(server.build(), host="0.0.0.0", port=8309, log_level="info")
 
 if __name__ == "__main__":
-    main() 
+    main()

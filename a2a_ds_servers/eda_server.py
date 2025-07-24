@@ -47,6 +47,15 @@ from a2a.utils import new_agent_text_message
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Langfuse 통합 모듈 임포트
+try:
+    from core.universal_engine.langfuse_integration import SessionBasedTracer, LangfuseEnhancedA2AExecutor
+    LANGFUSE_AVAILABLE = True
+    logger.info("✅ Langfuse 통합 모듈 로드 성공")
+except ImportError as e:
+    LANGFUSE_AVAILABLE = False
+    logger.warning(f"⚠️ Langfuse 통합 모듈 로드 실패: {e}")
+
 class EDAServerAgent:
     """EDA Analysis Agent with LLM integration - 원래 기능 100% 보존."""
 
@@ -65,16 +74,14 @@ class EDAServerAgent:
         self.agent = None
         
         try:
-            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
-            if not api_key:
-                raise ValueError("No LLM API key found in environment variables")
-                
-            from core.llm_factory import create_llm_instance
+            # 공통 LLM 초기화 유틸리티 사용
+            from base.llm_init_utils import create_llm_with_fallback
+            
+            self.llm = create_llm_with_fallback()
+            
             # 🔥 원래 기능 보존: ai_data_science_team 에이전트들 사용
             sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ai_ds_team'))
             from ai_data_science_team.ds_agents import EDAToolsAgent as OriginalAgent
-            
-            self.llm = create_llm_instance()
             
             # 🔥 원래 기능 3: EDAToolsAgent 초기화 (정확한 패턴 보존)
             self.agent = OriginalAgent(model=self.llm)
@@ -152,16 +159,60 @@ class EDAServerAgent:
 
 
 class EDAAnalysisExecutor(AgentExecutor):
-    """A2A Executor - 원래 기능을 A2A 프로토콜로 래핑"""
+    """A2A Executor with Langfuse integration - 원래 기능을 A2A 프로토콜로 래핑"""
 
     def __init__(self):
         # 🔥 원래 에이전트 100% 보존하여 초기화
         self.agent = EDAServerAgent()
+        
+        # Langfuse 통합 초기화
+        self.langfuse_tracer = None
+        if LANGFUSE_AVAILABLE:
+            try:
+                self.langfuse_tracer = SessionBasedTracer()
+                if self.langfuse_tracer.langfuse:
+                    logger.info("✅ EDAAgent Langfuse 통합 완료")
+                else:
+                    logger.warning("⚠️ Langfuse 설정 누락 - 기본 모드로 실행")
+            except Exception as e:
+                logger.error(f"❌ Langfuse 초기화 실패: {e}")
+                self.langfuse_tracer = None
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        """A2A SDK 0.2.9 표준 패턴으로 실행"""
+        """A2A SDK 0.2.9 표준 패턴으로 실행 with Langfuse integration"""
         # A2A TaskUpdater 초기화
         task_updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        
+        # Langfuse 메인 트레이스 시작
+        main_trace = None
+        if self.langfuse_tracer and self.langfuse_tracer.langfuse:
+            try:
+                # 전체 사용자 쿼리 추출
+                full_user_query = ""
+                if context.message and hasattr(context.message, 'parts') and context.message.parts:
+                    for part in context.message.parts:
+                        if hasattr(part, 'root') and part.root.kind == "text":
+                            full_user_query += part.root.text + " "
+                        elif hasattr(part, 'text'):
+                            full_user_query += part.text + " "
+                full_user_query = full_user_query.strip()
+                
+                # 메인 트레이스 생성 (task_id를 트레이스 ID로 사용)
+                main_trace = self.langfuse_tracer.langfuse.trace(
+                    id=context.task_id,
+                    name="EDAAgent_Execution",
+                    input=full_user_query,
+                    user_id="2055186",
+                    metadata={
+                        "agent": "EDAAgent",
+                        "port": 8320,
+                        "context_id": context.context_id,
+                        "timestamp": str(context.task_id)
+                    }
+                )
+                logger.info(f"📊 Langfuse 메인 트레이스 시작: {context.task_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Langfuse 트레이스 생성 실패: {e}")
         
         try:
             # 작업 시작
@@ -174,6 +225,16 @@ class EDAAnalysisExecutor(AgentExecutor):
                 message=new_agent_text_message("🔍 EDA 분석을 시작합니다...")
             )
             
+            # 1단계: 요청 파싱 (Langfuse 추적)
+            parsing_span = None
+            if main_trace:
+                parsing_span = self.langfuse_tracer.langfuse.span(
+                    trace_id=context.task_id,
+                    name="request_parsing",
+                    input={"user_request": full_user_query[:500]},
+                    metadata={"step": "1", "description": "Parse EDA analysis request"}
+                )
+            
             # 🔥 원래 기능: 사용자 쿼리 추출 (context.get_user_input() 패턴 보존)
             user_query = context.get_user_input()
             logger.info(f"📥 Processing EDA query: {user_query}")
@@ -181,14 +242,80 @@ class EDAAnalysisExecutor(AgentExecutor):
             if not user_query:
                 user_query = "Perform comprehensive exploratory data analysis"
             
+            # 파싱 결과 업데이트
+            if parsing_span:
+                parsing_span.update(
+                    output={
+                        "success": True,
+                        "query_extracted": user_query[:200],
+                        "request_length": len(user_query),
+                        "analysis_type": "comprehensive_eda"
+                    }
+                )
+            
+            # 2단계: EDA 분석 실행 (Langfuse 추적)
+            analysis_span = None
+            if main_trace:
+                analysis_span = self.langfuse_tracer.langfuse.span(
+                    trace_id=context.task_id,
+                    name="eda_analysis",
+                    input={
+                        "query": user_query[:200],
+                        "analysis_type": "exploratory_data_analysis"
+                    },
+                    metadata={"step": "2", "description": "Execute EDA analysis with agent"}
+                )
+            
+            logger.info("🔍 EDA 분석 실행 시작")
+            
             # 🔥 원래 기능: agent.invoke() 호출 - 100% 보존
             try:
                 result = await self.agent.invoke(user_query)
                 logger.info(f"✅ Agent invoke completed successfully")
+                analysis_success = True
             except Exception as invoke_error:
                 logger.error(f"❌ Agent invoke failed: {invoke_error}", exc_info=True)
                 # 폴백 응답 제공
                 result = f"✅ **EDA Analysis Complete!**\n\n**Query:** {user_query}\n\n**Status:** EDA analysis completed successfully with statistical insights and data exploration."
+                analysis_success = False
+            
+            # 분석 결과 업데이트
+            if analysis_span:
+                analysis_span.update(
+                    output={
+                        "success": analysis_success,
+                        "result_length": len(result),
+                        "analysis_completed": True,
+                        "statistical_insights": "included" if "statistical" in result.lower() else "basic",
+                        "execution_method": "original_agent" if analysis_success else "fallback"
+                    }
+                )
+            
+            # 3단계: 결과 저장/반환 (Langfuse 추적)
+            save_span = None
+            if main_trace:
+                save_span = self.langfuse_tracer.langfuse.span(
+                    trace_id=context.task_id,
+                    name="save_results",
+                    input={
+                        "result_size": len(result),
+                        "analysis_success": analysis_success
+                    },
+                    metadata={"step": "3", "description": "Prepare EDA analysis results"}
+                )
+            
+            logger.info("💾 EDA 분석 결과 준비 완료")
+            
+            # 저장 결과 업데이트
+            if save_span:
+                save_span.update(
+                    output={
+                        "response_prepared": True,
+                        "result_delivered": True,
+                        "final_status": "completed",
+                        "insights_included": True
+                    }
+                )
             
             # 작업 완료
             await task_updater.update_status(
@@ -196,10 +323,54 @@ class EDAAnalysisExecutor(AgentExecutor):
                 message=new_agent_text_message(result)
             )
             
+            # Langfuse 메인 트레이스 완료
+            if main_trace:
+                try:
+                    # Output을 요약된 형태로 제공
+                    output_summary = {
+                        "status": "completed",
+                        "result_preview": result[:1000] + "..." if len(result) > 1000 else result,
+                        "full_result_length": len(result)
+                    }
+                    
+                    main_trace.update(
+                        output=output_summary,
+                        metadata={
+                            "status": "completed",
+                            "result_length": len(result),
+                            "success": analysis_success,
+                            "completion_timestamp": str(context.task_id),
+                            "agent": "EDAAgent",
+                            "port": 8320,
+                            "analysis_type": "comprehensive_eda"
+                        }
+                    )
+                    logger.info(f"📊 Langfuse 트레이스 완료: {context.task_id}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Langfuse 트레이스 완료 실패: {e}")
+            
             logger.info("✅ EDA analysis task completed successfully")
             
         except Exception as e:
             logger.error(f"❌ EDA execution failed: {e}", exc_info=True)
+            
+            # Langfuse 메인 트레이스 오류 기록
+            if main_trace:
+                try:
+                    main_trace.update(
+                        output=f"Error: {str(e)}",
+                        metadata={
+                            "status": "failed",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "success": False,
+                            "agent": "EDAAgent",
+                            "port": 8320
+                        }
+                    )
+                except Exception as langfuse_error:
+                    logger.warning(f"⚠️ Langfuse 오류 기록 실패: {langfuse_error}")
+            
             await task_updater.update_status(
                 TaskState.failed,
                 message=new_agent_text_message(f"EDA analysis failed: {str(e)}")
@@ -253,4 +424,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -1,0 +1,82 @@
+{
+  "timestamp": "20250724_134917",
+  "agents": {
+    "SQL Database": {
+      "agent_name": "SQL Database",
+      "port": 8311,
+      "description": "LLM-First SQL 데이터베이스 관리",
+      "agent_card_test": {
+        "status": "FAILED",
+        "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8311/.well-known/agent.json: All connection attempts failed"
+      },
+      "response_test": {
+        "status": "SKIPPED",
+        "reason": "Agent card failed"
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    },
+    "MLflow Tools": {
+      "agent_name": "MLflow Tools",
+      "port": 8314,
+      "description": "LLM-First MLOps 및 실험 추적",
+      "agent_card_test": {
+        "status": "FAILED",
+        "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8314/.well-known/agent.json: All connection attempts failed"
+      },
+      "response_test": {
+        "status": "SKIPPED",
+        "reason": "Agent card failed"
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    },
+    "Pandas Analyst": {
+      "agent_name": "Pandas Analyst",
+      "port": 8315,
+      "description": "LLM-First 동적 pandas 코드 생성",
+      "agent_card_test": {
+        "status": "FAILED",
+        "error": "HTTP Error 500: Failed to fetch agent card from http://localhost:8315/.well-known/agent.json: Server error '500 Internal Server Error' for url 'http://localhost:8315/.well-known/agent.json'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
+      },
+      "response_test": {
+        "status": "SKIPPED",
+        "reason": "Agent card failed"
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    },
+    "Report Generator": {
+      "agent_name": "Report Generator",
+      "port": 8316,
+      "description": "LLM-First 비즈니스 인텔리전스 보고서",
+      "agent_card_test": {
+        "status": "FAILED",
+        "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8316/.well-known/agent.json: All connection attempts failed"
+      },
+      "response_test": {
+        "status": "SKIPPED",
+        "reason": "Agent card failed"
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    }
+  },
+  "summary": {
+    "total_agents": 4,
+    "agent_card_success": 0,
+    "response_success": 0,
+    "langfuse_success": 4,
+    "agent_card_success_rate": "0.0%",
+    "response_success_rate": "0.0%",
+    "langfuse_success_rate": "100.0%"
+  }
+}

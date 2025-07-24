@@ -1,0 +1,94 @@
+{
+  "timestamp": "20250723_160026",
+  "tests": [
+    {
+      "test_name": "initialization",
+      "status": "PASS",
+      "details": {
+        "llm_initialized": true,
+        "has_original_agent": false,
+        "data_processor_ready": true
+      }
+    },
+    {
+      "test_name": "data_parsing_csv",
+      "status": "PASS",
+      "details": {
+        "shape": [
+          5,
+          6
+        ],
+        "columns": [
+          "id",
+          "age",
+          "category",
+          "salary",
+          "is_married",
+          "target"
+        ],
+        "numeric_cols": 4,
+        "categorical_cols": 1,
+        "bool_cols": 1
+      }
+    },
+    {
+      "test_name": "feature_engineering_process",
+      "status": "PASS",
+      "details": {
+        "result_length": 1551,
+        "engineering_keywords_found": [
+          "FeatureEngineeringAgent",
+          "피처",
+          "엔지니어링",
+          "인코딩",
+          "Complete"
+        ],
+        "transform_keywords_found": [
+          "인코딩",
+          "변환",
+          "category"
+        ]
+      }
+    },
+    {
+      "test_name": "categorical_encoding",
+      "status": "PASS",
+      "details": {
+        "encoding_keywords": [
+          "원핫",
+          "범주형",
+          "category"
+        ]
+      }
+    },
+    {
+      "test_name": "target_detection_명시적 target 컬럼",
+      "status": "PASS",
+      "details": {
+        "detected_target": "target",
+        "expected_target": "target"
+      }
+    },
+    {
+      "test_name": "target_detection_churn 컬럼",
+      "status": "PASS",
+      "details": {
+        "detected_target": "churn",
+        "expected_target": "churn"
+      }
+    },
+    {
+      "test_name": "guidance_generation",
+      "status": "PASS",
+      "details": {
+        "guide_keywords": [
+          "피처",
+          "인코딩",
+          "스케일링",
+          "변환",
+          "엔지니어링"
+        ]
+      }
+    }
+  ]
+}

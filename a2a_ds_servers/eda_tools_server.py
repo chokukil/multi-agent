@@ -54,14 +54,11 @@ class EDAToolsAgent:
         self.agent = None
         
         try:
-            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
-            if not api_key:
-                raise ValueError("No LLM API key found in environment variables")
-                
-            from core.llm_factory import create_llm_instance
+            # 공통 LLM 초기화 유틸리티 사용
+            from base.llm_init_utils import create_llm_with_fallback
             from ai_data_science_team.ds_agents import EDAToolsAgent as OriginalAgent
             
-            self.llm = create_llm_instance()
+            self.llm = create_llm_with_fallback()
             self.agent = OriginalAgent(model=self.llm)
             logger.info("✅ Real LLM initialized for EDA Tools Agent")
         except Exception as e:
@@ -126,30 +123,40 @@ class EDAToolsExecutor(AgentExecutor):
             await task_updater.submit()
             await task_updater.start_work()
             
-            # Extract user message
-            user_query = context.get_user_input()
-            logger.info(f"🔍 Processing EDA query: {user_query}")
+            # A2A SDK 0.2.9 공식 패턴에 따른 사용자 메시지 추출
+            user_query = ""
+            if context.message and hasattr(context.message, 'parts') and context.message.parts:
+                for part in context.message.parts:
+                    if hasattr(part, 'root') and part.root.kind == "text":
+                        user_query += part.root.text + " "
+                    elif hasattr(part, 'text'):  # 대체 패턴
+                        user_query += part.text + " "
+                
+                user_query = user_query.strip()
             
+            # 기본 요청이 없으면 데모 모드
             if not user_query:
-                user_query = "Please provide an EDA analysis request."
+                user_query = "샘플 데이터로 탐색적 데이터 분석을 시연해주세요. 기술통계, 상관관계, 분포 분석을 포함해주세요."
+                
+            logger.info(f"🔍 Processing EDA query: {user_query}")
             
             # Get result from the agent
             result = await self.agent.invoke(user_query)
             
-            # Complete task with result
-            from a2a.types import TaskState, TextPart
+            # A2A SDK 0.2.9 공식 패턴에 따른 최종 응답
+            from a2a.types import TaskState
             await task_updater.update_status(
                 TaskState.completed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=result)])
+                message=new_agent_text_message(result)
             )
             
         except Exception as e:
             logger.error(f"Error in execute: {e}", exc_info=True)
-            # Report error through TaskUpdater
-            from a2a.types import TaskState, TextPart
+            # A2A SDK 0.2.9 공식 패턴에 따른 에러 응답
+            from a2a.types import TaskState
             await task_updater.update_status(
                 TaskState.failed,
-                message=task_updater.new_agent_message(parts=[TextPart(text=f"EDA analysis failed: {str(e)}")])
+                message=new_agent_text_message(f"EDA 분석 중 오류 발생: {str(e)}")
             )
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
@@ -171,7 +178,7 @@ def main():
     agent_card = AgentCard(
         name="EDA Tools Agent",
         description="An AI agent that specializes in exploratory data analysis and statistical exploration.",
-        url="http://localhost:8203/",
+        url="http://localhost:8312/",
         version="1.0.0",
         defaultInputModes=["text"],
         defaultOutputModes=["text"],
@@ -190,11 +197,11 @@ def main():
         http_handler=request_handler,
     )
 
-    print("🔍 Starting EDA Tools Agent Server")
-    print("🌐 Server starting on http://localhost:8203")
-    print("📋 Agent card: http://localhost:8203/.well-known/agent.json")
+    print("📊 Starting EDA Tools Agent Server")
+    print("🌐 Server starting on http://localhost:8312")
+    print("📋 Agent card: http://localhost:8312/.well-known/agent.json")
 
-    uvicorn.run(server.build(), host="0.0.0.0", port=8203, log_level="info")
+    uvicorn.run(server.build(), host="0.0.0.0", port=8312, log_level="info")
 
 if __name__ == "__main__":
-    main() 
+    main()

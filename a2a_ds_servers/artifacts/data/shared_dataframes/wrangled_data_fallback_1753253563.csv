@@ -1,0 +1,8 @@
+id,name,city
+1,Alice,Seoul
+2,Bob,Busan
+3,Charlie,Daegu
+customer_id,product,amount
+1,Laptop,1000
+2,Phone,800
+1,Tablet,600

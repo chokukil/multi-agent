@@ -63,15 +63,12 @@ class PandasDataAnalystAgent:
         self.agent = None
         
         try:
-            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
-            if not api_key:
-                raise ValueError("No LLM API key found in environment variables")
-                
-            from core.llm_factory import create_llm_instance
+            # 공통 LLM 초기화 유틸리티 사용
+            from base.llm_init_utils import create_llm_with_fallback
             from ai_data_science_team.multiagents import PandasDataAnalyst
             from ai_data_science_team.agents import DataWranglingAgent, DataVisualizationAgent
             
-            self.llm = create_llm_instance()
+            self.llm = create_llm_with_fallback()
             
             # Initialize sub-agents
             data_wrangling_agent = DataWranglingAgent(model=self.llm)
@@ -242,4 +239,4 @@ def main():
     uvicorn.run(server.build(), host="0.0.0.0", port=8200, log_level="info")
 
 if __name__ == "__main__":
-    main() 
+    main()

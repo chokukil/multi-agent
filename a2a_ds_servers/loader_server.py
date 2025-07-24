@@ -71,16 +71,14 @@ class LoaderAgent:
         self.agent = None
         
         try:
-            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
-            if not api_key:
-                raise ValueError("No LLM API key found in environment variables")
-                
-            from core.llm_factory import create_llm_instance
+            # 공통 LLM 초기화 유틸리티 사용
+            from base.llm_init_utils import create_llm_with_fallback
+            
+            self.llm = create_llm_with_fallback()
+            
             # 🔥 원래 기능 보존: ai_data_science_team 에이전트들 사용
             sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ai_ds_team'))
             from agents import DataLoaderToolsAgent as OriginalAgent
-            
-            self.llm = create_llm_instance()
             
             # 🔥 원래 기능 3: DataLoaderToolsAgent 초기화 (정확한 패턴 보존)
             self.agent = OriginalAgent(model=self.llm)
@@ -299,4 +297,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()

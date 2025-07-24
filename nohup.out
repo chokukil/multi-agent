@@ -1,0 +1,104 @@
+⚠️ AI DS Team 모듈 import 실패:  - No module named 'ai_data_science_team.'
+❌ AI DS Team 패키지 사용 불가
+INFO:root:📥 Loaded dataframe 'empty.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'no_tracker_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'a2a_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'persistence_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'fallback_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'context_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'session1_data.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_integration.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'first_file.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_data.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'sample_data.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'singleton_test' from shared storage
+INFO:root:📥 Loaded dataframe 'd2' from shared storage
+INFO:root:📥 Loaded dataframe 'test_improved_system.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'df1' from shared storage
+INFO:root:📥 Loaded dataframe 'd1' from shared storage
+INFO:root:📥 Loaded dataframe 'second_file.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'ion_implant_3lot_dataset.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'ion_implant_3lot_dataset.xlsx' from shared storage
+INFO:root:📥 Loaded dataframe 'test_data_sample.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'df2' from shared storage
+INFO:root:📥 Loaded dataframe 'session2_data.xlsx' from shared storage
+INFO:root:📥 Loaded dataframe 'test_tracker_fail.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_with_tracker.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_df_info' from shared storage
+INFO:root:📥 Loaded dataframe 'test_smart.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_data_comprehensive.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'env_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'session3_data.json' from shared storage
+INFO:root:📥 Loaded dataframe 'test_df_1' from shared storage
+INFO:root:DataManager initialized for multi-dataframe management with .
+INFO:root:🎨 Artifact Manager initialized: 100MB limit, 10 cache items, 0 existing artifacts
+INFO:core.llm_factory:✅ LLM Factory compatibility wrapper loaded - delegating to Universal Engine
+INFO:__main__:✅ Data Manager initialized
+INFO:core.universal_engine.llm_factory:Creating LLM client: provider=None, model=None
+INFO:core.universal_engine.llm_factory:Using provider: ollama (from env: ollama)
+INFO:__main__:✅ Real LLM initialized for EDA Analysis Agent
+INFO:     Started server process [39752]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8320 (Press CTRL+C to quit)
+🔍 Starting Enhanced EDA Analysis Server
+🌐 Server starting on http://localhost:8320
+📋 Agent card: http://localhost:8320/.well-known/agent.json
+INFO:     127.0.0.1:60464 - "GET /.well-known/agent.json HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [39752]
+⚠️ AI DS Team 모듈 import 실패:  - No module named 'ai_data_science_team.'
+❌ AI DS Team 패키지 사용 불가
+INFO:root:📥 Loaded dataframe 'empty.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'no_tracker_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'a2a_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'persistence_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'fallback_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'context_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'session1_data.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_integration.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'first_file.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_data.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'sample_data.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'singleton_test' from shared storage
+INFO:root:📥 Loaded dataframe 'd2' from shared storage
+INFO:root:📥 Loaded dataframe 'test_improved_system.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'df1' from shared storage
+INFO:root:📥 Loaded dataframe 'd1' from shared storage
+INFO:root:📥 Loaded dataframe 'second_file.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'ion_implant_3lot_dataset.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'ion_implant_3lot_dataset.xlsx' from shared storage
+INFO:root:📥 Loaded dataframe 'test_data_sample.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'df2' from shared storage
+INFO:root:📥 Loaded dataframe 'session2_data.xlsx' from shared storage
+INFO:root:📥 Loaded dataframe 'test_tracker_fail.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_with_tracker.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_df_info' from shared storage
+INFO:root:📥 Loaded dataframe 'test_smart.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'test_data_comprehensive.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'env_test.csv' from shared storage
+INFO:root:📥 Loaded dataframe 'session3_data.json' from shared storage
+INFO:root:📥 Loaded dataframe 'test_df_1' from shared storage
+INFO:root:DataManager initialized for multi-dataframe management with .
+INFO:root:🎨 Artifact Manager initialized: 100MB limit, 10 cache items, 0 existing artifacts
+INFO:core.llm_factory:✅ LLM Factory compatibility wrapper loaded - delegating to Universal Engine
+INFO:__main__:✅ Data Manager initialized
+INFO:base.llm_init_utils:🔍 LLM Provider: ollama
+INFO:base.llm_init_utils:✅ Ollama 사용 - API 키 체크 건너뛰기
+INFO:core.universal_engine.llm_factory:Creating LLM client: provider=None, model=None
+INFO:core.universal_engine.llm_factory:Using provider: ollama (from env: ollama)
+INFO:base.llm_init_utils:✅ LLM 클라이언트 초기화 성공
+INFO:__main__:✅ Real LLM initialized for EDA Analysis Agent
+INFO:     Started server process [50450]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8320 (Press CTRL+C to quit)
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [50450]
+🔍 Starting Enhanced EDA Analysis Server
+🌐 Server starting on http://localhost:8320
+📋 Agent card: http://localhost:8320/.well-known/agent.json

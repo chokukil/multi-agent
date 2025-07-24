@@ -1,0 +1,64 @@
+{
+  "timestamp": "20250723_182411",
+  "agents": [
+    {
+      "name": "DataCleaningAgent",
+      "port": 8306,
+      "phase": "Phase 0",
+      "card_test": "FAIL",
+      "card_name": "Error: HTTP Error 503: Network communication error fetching agent card from http://localhost:8306/.well-known/agent.json: All connection attempts failed",
+      "message_test": "SKIP",
+      "response": null,
+      "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8306/.well-known/agent.json: All connection attempts failed"
+    },
+    {
+      "name": "DataVisualizationAgent",
+      "port": 8308,
+      "phase": "Phase 1",
+      "card_test": "FAIL",
+      "card_name": "Error: HTTP Error 503: Network communication error fetching agent card from http://localhost:8308/.well-known/agent.json: All connection attempts failed",
+      "message_test": "SKIP",
+      "response": null,
+      "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8308/.well-known/agent.json: All connection attempts failed"
+    },
+    {
+      "name": "DataWranglingAgent",
+      "port": 8309,
+      "phase": "Phase 1",
+      "card_test": "FAIL",
+      "card_name": "Error: HTTP Error 503: Network communication error fetching agent card from http://localhost:8309/.well-known/agent.json: All connection attempts failed",
+      "message_test": "SKIP",
+      "response": null,
+      "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8309/.well-known/agent.json: All connection attempts failed"
+    },
+    {
+      "name": "FeatureEngineeringAgent",
+      "port": 8310,
+      "phase": "Phase 2",
+      "card_test": "FAIL",
+      "card_name": "Error: HTTP Error 503: Network communication error fetching agent card from http://localhost:8310/.well-known/agent.json: All connection attempts failed",
+      "message_test": "SKIP",
+      "response": null,
+      "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8310/.well-known/agent.json: All connection attempts failed"
+    },
+    {
+      "name": "EDAToolsAgent",
+      "port": 8312,
+      "phase": "Phase 3",
+      "card_test": "FAIL",
+      "card_name": "Error: HTTP Error 503: Network communication error fetching agent card from http://localhost:8312/.well-known/agent.json: All connection attempts failed",
+      "message_test": "SKIP",
+      "response": null,
+      "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8312/.well-known/agent.json: All connection attempts failed"
+    }
+  ],
+  "summary": {
+    "total_agents": 5,
+    "card_pass": 0,
+    "message_pass": 0,
+    "full_pass": 0,
+    "card_success_rate": 0.0,
+    "message_success_rate": 0.0,
+    "overall_success_rate": 0.0
+  }
+}

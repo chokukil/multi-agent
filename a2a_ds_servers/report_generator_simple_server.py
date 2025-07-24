@@ -542,11 +542,11 @@ def main():
     )
     
     print("📋 Starting Report Generator Server")
-    print("🌐 Server starting on http://localhost:8316")
-    print("📋 Agent card: http://localhost:8316/.well-known/agent.json")
+    print("🌐 Server starting on http://localhost:8315")
+    print("📋 Agent card: http://localhost:8315/.well-known/agent.json")
     
     # Run server
-    uvicorn.run(server.build(), host="0.0.0.0", port=8316, log_level="info")
+    uvicorn.run(server.build(), host="0.0.0.0", port=8315, log_level="info")
 
 if __name__ == "__main__":
-    main() 
+    main()

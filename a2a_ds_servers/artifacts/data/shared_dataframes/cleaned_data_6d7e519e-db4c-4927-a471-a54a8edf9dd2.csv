@@ -1,0 +1,7 @@
+customer_id,name,age,email,purchase_amount,status
+1,Alice Smith,25,alice@email.com,150.5,active
+2,Bob Johnson,25,bob@invalid,772.367,active
+3,Charlie Brown,35,charlie@email.com,315.248,pending
+4,Diana Prince,999,diana@email.com,75.25,active
+5,Eve Adams,28,eve@email.com,200.0,inactive
+결측값 처리,중복 제거,이상치 수정을 포함한 전체 데이터 클리닝을 수행해주세요.,alice@email.com,315.248,active

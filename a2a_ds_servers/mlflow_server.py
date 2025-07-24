@@ -347,11 +347,11 @@ def main():
     )
     
     print("🔬 Starting MLflow Tools Agent Server")
-    print("🌐 Server starting on http://localhost:8323")
-    print("📋 Agent card: http://localhost:8323/.well-known/agent.json")
+    print("🌐 Server starting on http://localhost:8314")
+    print("📋 Agent card: http://localhost:8314/.well-known/agent.json")
     print("🎯 Features: MLflow 실험 추적, 모델 레지스트리, 성능 비교")
     
-    uvicorn.run(server.build(), host="0.0.0.0", port=8323, log_level="info")
+    uvicorn.run(server.build(), host="0.0.0.0", port=8314, log_level="info")
 
 if __name__ == "__main__":
-    main() 
+    main()

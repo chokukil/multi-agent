@@ -11,6 +11,8 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+from langchain_core.messages import BaseMessage
+from langchain_core.outputs import LLMResult # LLMResult 임포트 추가
 
 from .llm_factory import LLMFactory
 
@@ -105,8 +107,8 @@ class DynamicKnowledgeOrchestrator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        llm_result = await self.llm_client.agenerate(prompt)
+        return self._parse_json_response(llm_result.generations[0].message)
     
     async def _gather_relevant_knowledge(self, requirements: Dict, meta_analysis: Dict) -> Dict:
         """
@@ -148,8 +150,8 @@ class DynamicKnowledgeOrchestrator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        knowledge = self._parse_json_response(response)
+        llm_result = await self.llm_client.agenerate(prompt)
+        knowledge = self._parse_json_response(llm_result.generations[0].message)
         
         # 캐시 저장
         self.knowledge_cache[cache_key] = knowledge
@@ -195,8 +197,8 @@ class DynamicKnowledgeOrchestrator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        llm_result = await self.llm_client.agenerate(prompt)
+        return self._parse_json_response(llm_result.generations[0].message)
     
     async def _refine_through_reflection(self, reasoning: Dict, meta_analysis: Dict) -> Dict:
         """
@@ -235,24 +237,40 @@ class DynamicKnowledgeOrchestrator:
         }}
         """
         
-        response = await self.llm_client.agenerate(prompt)
-        return self._parse_json_response(response)
+        llm_result = await self.llm_client.agenerate(prompt)
+        return self._parse_json_response(llm_result.generations[0].message)
     
-    def _parse_json_response(self, response: str) -> Dict:
+    def _parse_json_response(self, response: Any) -> Dict:
         """JSON 응답 파싱"""
         import json
+        logger.debug(f"Type of response in _parse_json_response: {type(response)}")
+        
+        # Langchain BaseMessage 객체인 경우 content 속성 사용
+        if isinstance(response, BaseMessage):
+            response_str = response.content
+        else:
+            # BaseMessage가 아닌 경우, response 자체를 문자열로 사용
+            response_str = str(response)
+
         try:
-            if "```json" in response:
-                json_start = response.find("```json") + 7
-                json_end = response.find("```", json_start)
-                json_str = response[json_start:json_end].strip()
+            if "```json" in response_str:
+                json_start = response_str.find("```json") + 7
+                json_end = response_str.find("```", json_start)
+                json_str = response_str[json_start:json_end].strip()
             else:
-                json_str = response.strip()
+                # ```json 블록이 없는 경우 전체 문자열을 JSON으로 시도
+                json_str = response_str.strip()
             
             return json.loads(json_str)
-        except Exception as e:
-            logger.warning(f"Failed to parse JSON response: {e}")
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse JSON response (JSONDecodeError): {e}. Raw response: {response_str[:200]}...")
             return {
-                'raw_response': response,
+                'raw_response': response_str,
+                'parse_error': str(e)
+            }
+        except Exception as e:
+            logger.warning(f"Failed to parse JSON response (General Error): {e}. Raw response: {response_str[:200]}...")
+            return {
+                'raw_response': response_str,
                 'parse_error': str(e)
             }

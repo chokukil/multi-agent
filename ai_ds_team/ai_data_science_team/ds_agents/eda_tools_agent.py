@@ -10,10 +10,10 @@ from langgraph.prebuilt.chat_agent_executor import AgentState
 from langgraph.graph import START, END, StateGraph
 from langgraph.types import Checkpointer
 
-from ...templates import BaseAgent
-from ...utils.regex import format_agent_name
+from ai_data_science_team.templates import BaseAgent
+from ai_data_science_team.utils.regex import format_agent_name
 
-from ...tools.eda import (
+from ai_data_science_team.tools.eda import (
     explain_data,
     describe_dataset,
     visualize_missing,
@@ -21,7 +21,7 @@ from ...tools.eda import (
     generate_profiling_report,
     generate_dtale_report,
 )
-from ...utils.messages import get_tool_call_names
+from ai_data_science_team.utils.messages import get_tool_call_names
 
 
 AGENT_NAME = "exploratory_data_analyst_agent"

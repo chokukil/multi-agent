@@ -19,7 +19,7 @@ LOG_DIR="${PROJECT_ROOT}/logs"
 PID_DIR="${PROJECT_ROOT}/pids"
 ENV_FILE="${PROJECT_ROOT}/.env"
 
-# Default configuration
+# Default configuration with environment variable priority
 LLM_PROVIDER=${LLM_PROVIDER:-"ollama"}
 OLLAMA_MODEL=${OLLAMA_MODEL:-"llama2"}
 A2A_PORT_START=${A2A_PORT_START:-8306}
@@ -44,6 +44,17 @@ print_warning() {
 print_error() {
     echo -e "${RED}[$(date '+%H:%M:%S')] ERROR: $1${NC}"
 }
+
+# Load environment variables from .env file
+if [ -f "$ENV_FILE" ]; then
+    print_status "Loading environment variables from .env file"
+    set -a  # automatically export all variables
+    source "$ENV_FILE"
+    set +a  # stop automatically exporting
+    print_status "Environment variables loaded: LLM_PROVIDER=$LLM_PROVIDER, OLLAMA_MODEL=$OLLAMA_MODEL"
+else
+    print_warning ".env file not found at $ENV_FILE"
+fi
 
 # Function to check if a service is running
 is_service_running() {
@@ -121,25 +132,24 @@ start_a2a_agents() {
         # Start A2A agent for this port
         agent_name="a2a_agent_$port"
         
-        # Create agent startup command based on port
+        # Create agent startup command based on port using individual server files
         case $port in
-            8306) agent_type="data_cleaner" ;;
-            8307) agent_type="eda_tools" ;;
-            8308) agent_type="statistical_analyzer" ;;
-            8309) agent_type="visualization" ;;
-            8310) agent_type="ml_modeling" ;;
-            8311) agent_type="text_analytics" ;;
-            8312) agent_type="time_series" ;;
-            8313) agent_type="report_generator" ;;
-            8314) agent_type="data_validator" ;;
-            8315) agent_type="performance_monitor" ;;
-            *) agent_type="generic" ;;
+            8306) agent_file="data_cleaning_server.py" ;;
+            8307) agent_file="data_loader_server.py" ;;
+            8308) agent_file="data_visualization_server.py" ;;
+            8309) agent_file="wrangling_server.py" ;;
+            8310) agent_file="feature_engineering_server.py" ;;
+            8311) agent_file="sql_data_analyst_server.py" ;;
+            8312) agent_file="eda_tools_server.py" ;;
+            8313) agent_file="h2o_ml_server.py" ;;
+            8314) agent_file="mlflow_server.py" ;;
+            8315) agent_file="report_generator_simple_server.py" ;;
+            *) agent_file="data_cleaning_server.py" ;;
         esac
         
         # Start agent in background
         cd "$PROJECT_ROOT"
-        nohup python -m core.universal_engine.a2a_integration.agents."$agent_type" \
-            --port "$port" \
+        nohup python a2a_ds_servers/"$agent_file" \
             > "$LOG_DIR/${agent_name}.log" 2>&1 &
         
         echo $! > "$PID_DIR/${agent_name}.pid"
@@ -187,9 +197,11 @@ initialize_universal_engine() {
     export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
     
     # Initialize system components
-    python -c "
+        python -c "
 import asyncio
 import sys
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 sys.path.insert(0, '$PROJECT_ROOT')
 
 try:

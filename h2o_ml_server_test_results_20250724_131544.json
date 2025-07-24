@@ -1,0 +1,82 @@
+{
+  "timestamp": "20250724_131544",
+  "tests": [
+    {
+      "test_name": "initialization",
+      "status": "PASS",
+      "details": {
+        "executor_created": true,
+        "has_wrapper": true,
+        "llm_initialized": true,
+        "data_processor_ready": true
+      }
+    },
+    {
+      "test_name": "data_parsing_csv",
+      "status": "PASS",
+      "details": {
+        "shape": [
+          8,
+          7
+        ],
+        "columns": [
+          "id",
+          "age",
+          "income",
+          "score",
+          "education",
+          "employed",
+          "target"
+        ],
+        "numeric_cols": 6,
+        "categorical_cols": 1,
+        "suitable_for_ml": true
+      }
+    },
+    {
+      "test_name": "h2o_ml_process",
+      "status": "FAIL",
+      "reason": "insufficient_result"
+    },
+    {
+      "test_name": "automl_functionality",
+      "status": "PASS",
+      "details": {
+        "automl_keywords": [
+          "AutoML",
+          "automl"
+        ]
+      }
+    },
+    {
+      "test_name": "model_evaluation",
+      "status": "PASS",
+      "details": {
+        "evaluation_keywords": [
+          "평가"
+        ]
+      }
+    },
+    {
+      "test_name": "feature_importance",
+      "status": "PASS",
+      "details": {
+        "importance_keywords": [
+          "중요도",
+          "피처"
+        ]
+      }
+    },
+    {
+      "test_name": "guidance_generation",
+      "status": "PASS",
+      "details": {
+        "guide_keywords": [
+          "H2O",
+          "AutoML",
+          "가이드"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "timestamp": "20250723_164322",
+  "tests": [
+    {
+      "test_name": "initialization",
+      "status": "PASS",
+      "details": {
+        "llm_initialized": true,
+        "has_original_agent": false,
+        "data_processor_ready": true
+      }
+    },
+    {
+      "test_name": "data_parsing_csv",
+      "status": "PASS",
+      "details": {
+        "shape": [
+          8,
+          6
+        ],
+        "columns": [
+          "id",
+          "age",
+          "salary",
+          "department",
+          "experience",
+          "rating"
+        ],
+        "numeric_cols": 5,
+        "categorical_cols": 1,
+        "suitable_for_eda": true
+      }
+    },
+    {
+      "test_name": "eda_analysis_process",
+      "status": "PASS",
+      "details": {
+        "result_length": 1499,
+        "eda_keywords_found": [
+          "EDAToolsAgent",
+          "분석",
+          "통계",
+          "상관관계",
+          "Complete"
+        ],
+        "stats_keywords_found": [
+          "평균",
+          "표준편차",
+          "상관"
+        ]
+      }
+    },
+    {
+      "test_name": "descriptive_statistics",
+      "status": "PASS",
+      "details": {
+        "stats_keywords": [
+          "평균",
+          "표준편차"
+        ]
+      }
+    },
+    {
+      "test_name": "correlation_analysis",
+      "status": "PASS",
+      "details": {
+        "correlation_keywords": [
+          "상관",
+          "pearson",
+          "spearman",
+          "관계"
+        ]
+      }
+    },
+    {
+      "test_name": "data_quality_assessment",
+      "status": "PASS",
+      "details": {
+        "quality_keywords": [
+          "품질",
+          "결측",
+          "중복"
+        ]
+      }
+    },
+    {
+      "test_name": "guidance_generation",
+      "status": "PASS",
+      "details": {
+        "guide_keywords": [
+          "EDA",
+          "분석",
+          "통계",
+          "상관관계",
+          "가이드"
+        ]
+      }
+    }
+  ]
+}

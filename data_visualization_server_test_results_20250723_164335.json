@@ -1,0 +1,78 @@
+{
+  "timestamp": "20250723_164335",
+  "tests": [
+    {
+      "test_name": "initialization",
+      "status": "PASS",
+      "details": {
+        "llm_initialized": true,
+        "has_original_agent": false,
+        "data_processor_ready": true
+      }
+    },
+    {
+      "test_name": "data_parsing_csv",
+      "status": "PASS",
+      "details": {
+        "shape": [
+          5,
+          4
+        ],
+        "columns": [
+          "x",
+          "y",
+          "category",
+          "size"
+        ],
+        "numeric_cols": 3,
+        "categorical_cols": 1
+      }
+    },
+    {
+      "test_name": "data_visualization_process",
+      "status": "PASS",
+      "details": {
+        "result_length": 954,
+        "viz_keywords_found": [
+          "DataVisualizationAgent",
+          "시각화",
+          "차트",
+          "Complete"
+        ],
+        "chart_keywords_found": [
+          "scatter",
+          "plot",
+          "chart",
+          "visualization"
+        ]
+      }
+    },
+    {
+      "test_name": "chart_recommendations",
+      "status": "PASS",
+      "details": {
+        "recommendation_keywords": [
+          "bar",
+          "scatter",
+          "line",
+          "histogram",
+          "chart",
+          "plot"
+        ]
+      }
+    },
+    {
+      "test_name": "guidance_generation",
+      "status": "PASS",
+      "details": {
+        "guide_keywords": [
+          "Plotly",
+          "차트",
+          "시각화",
+          "인터랙티브",
+          "기능"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "timestamp": "20250724_135950",
+  "agents": {
+    "SQL Database": {
+      "agent_name": "SQL Database",
+      "port": 8311,
+      "description": "LLM-First SQL 데이터베이스 관리",
+      "agent_card_test": {
+        "status": "FAILED",
+        "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8311/.well-known/agent.json: All connection attempts failed"
+      },
+      "response_test": {
+        "status": "SKIPPED",
+        "reason": "Agent card failed"
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    },
+    "MLflow Tools": {
+      "agent_name": "MLflow Tools",
+      "port": 8314,
+      "description": "LLM-First MLOps 및 실험 추적",
+      "agent_card_test": {
+        "status": "SUCCESS",
+        "agent_card": {
+          "name": "MLflow Tools Agent",
+          "url": "http://localhost:8314/",
+          "version": "1.0.0",
+          "skills_count": 1
+        }
+      },
+      "response_test": {
+        "status": "FAILED",
+        "error": "Invalid response format",
+        "response_data": {
+          "id": "792af824-cdb9-41af-91fb-e7b7938908ac",
+          "jsonrpc": "2.0",
+          "result": {
+            "contextId": "da262105-fb78-4d1f-9a4f-cf1a51f50ce0",
+            "history": [
+              {
+                "contextId": "da262105-fb78-4d1f-9a4f-cf1a51f50ce0",
+                "kind": "message",
+                "messageId": "a25a1c46b23f414587237f72ec86b815",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "text": "새로운 머신러닝 실험을 시작하고 다음 하이퍼파라미터를 추적해주세요: learning_rate=0.01, batch_size=32, epochs=100"
+                  }
+                ],
+                "role": "user",
+                "taskId": "647c0614-7975-4c9a-9c86-7c93702bd9f4"
+              }
+            ],
+            "id": "647c0614-7975-4c9a-9c86-7c93702bd9f4",
+            "kind": "task",
+            "status": {
+              "message": {
+                "kind": "message",
+                "messageId": "62904eea-f5df-47f3-be1b-0f614446276e",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "text": "# 📊 **MLflowToolsAgent 가이드**\n\n## 📝 **요청 내용**\n새로운 머신러닝 실험을 시작하고 다음 하이퍼파라미터를 추적해주세요: learning_rate=0.01, batch_size=32, epochs=100\n\n## 🎯 **MLflowToolsAgent 완전 가이드**\n\n### 1. **MLflow 플랫폼 핵심 개념**\nMLflowToolsAgent는 전체 ML 라이프사이클을 관리합니다:\n\n- **실험 추적**: 파라미터, 메트릭, 아티팩트 기록\n- **모델 관리**: 버전 관리, 스테이징, 배포\n- **모델 서빙**: REST API, 배치 예측\n- **협업**: 팀 워크스페이스, 권한 관리\n\n### 2. **8개 핵심 기능 개별 활용**\n\n#### 🧪 **1. track_experiments**\n```text\n새로운 실험을 시작하고 하이퍼파라미터를 추적해주세요\n```\n\n#### 📚 **2. manage_model_registry**\n```text\n학습된 모델을 등록하고 Staging 단계로 승급해주세요\n```\n\n#### 🚀 **3. serve_models**\n```text\nProduction 모델을 REST API로 배포해주세요\n```\n\n#### 📊 **4. compare_experiments**\n```text\n지난 5번의 실험 결과를 비교분석해주세요\n```\n\n#### 📦 **5. manage_artifacts**\n```text\n모델 아티팩트를 버전별로 관리해주세요\n```\n\n#### 📈 **6. monitor_models**\n```text\nProduction 모델의 성능을 모니터링해주세요\n```\n\n#### ⚙️ **7. orchestrate_pipelines**\n```text\n데이터 전처리부터 모델 배포까지 파이프라인을 구성해주세요\n```\n\n#### 👥 **8. enable_collaboration**\n```text\n팀 워크스페이스를 설정하고 실험을 공유해주세요\n```\n\n### 3. **지원되는 MLflow 기능**\n- **Tracking**: mlflow.log_param(), mlflow.log_metric()\n- **Models**: mlflow.log_model(), mlflow.register_model()\n- **Registry**: Model Stage Management\n- **Serving**: mlflow models serve\n- **Projects**: MLproject 파일 기반 실행\n- **Plugins**: 커스텀 플러그인 지원\n\n### 4. **원본 MLflowToolsAgent 특징**\n- **도구 통합**: track_run, register_model, serve_model\n- **실험 관리**: 비교 분석, 메트릭 시각화\n- **모델 라이프사이클**: 개발 → 스테이징 → 프로덕션\n- **LangGraph 워크플로우**: 단계별 MLOps 과정\n\n## 💡 **MLflow 서버 정보와 함께 다시 요청하면 실제 MLflowToolsAgent 작업을 수행해드릴 수 있습니다!**\n\n**MLflow 설정 예시**:\n```bash\n# MLflow 서버 시작\nmlflow server --host 0.0.0.0 --port 5000\n\n# 환경 변수 설정\nexport MLFLOW_TRACKING_URI=http://localhost:5000\n```\n\n### 🔗 **학습 리소스**\n- MLflow 공식 문서: https://mlflow.org/docs/latest/\n- MLflow 튜토리얼: https://mlflow.org/docs/latest/tutorials-and-examples/\n- MLOps 가이드: https://ml-ops.org/\n\n✅ **MLflowToolsAgent 준비 완료!**\n"
+                  }
+                ],
+                "role": "agent"
+              },
+              "state": "completed",
+              "timestamp": "2025-07-24T04:59:50.815447+00:00"
+            }
+          }
+        }
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    },
+    "Pandas Analyst": {
+      "agent_name": "Pandas Analyst",
+      "port": 8315,
+      "description": "LLM-First 동적 pandas 코드 생성",
+      "agent_card_test": {
+        "status": "FAILED",
+        "error": "HTTP Error 500: Failed to fetch agent card from http://localhost:8315/.well-known/agent.json: Server error '500 Internal Server Error' for url 'http://localhost:8315/.well-known/agent.json'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500"
+      },
+      "response_test": {
+        "status": "SKIPPED",
+        "reason": "Agent card failed"
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    },
+    "Report Generator": {
+      "agent_name": "Report Generator",
+      "port": 8316,
+      "description": "LLM-First 비즈니스 인텔리전스 보고서",
+      "agent_card_test": {
+        "status": "FAILED",
+        "error": "HTTP Error 503: Network communication error fetching agent card from http://localhost:8316/.well-known/agent.json: All connection attempts failed"
+      },
+      "response_test": {
+        "status": "SKIPPED",
+        "reason": "Agent card failed"
+      },
+      "langfuse_test": {
+        "status": "SUCCESS",
+        "langfuse_available": true
+      }
+    }
+  },
+  "summary": {
+    "total_agents": 4,
+    "agent_card_success": 1,
+    "response_success": 0,
+    "langfuse_success": 4,
+    "agent_card_success_rate": "25.0%",
+    "response_success_rate": "0.0%",
+    "langfuse_success_rate": "100.0%"
+  }
+}

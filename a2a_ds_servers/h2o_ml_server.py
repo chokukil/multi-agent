@@ -57,6 +57,15 @@ logger = logging.getLogger(__name__)
 from dotenv import load_dotenv
 load_dotenv()
 
+# Langfuse 통합 모듈 임포트
+try:
+    from core.universal_engine.langfuse_integration import SessionBasedTracer, LangfuseEnhancedA2AExecutor
+    LANGFUSE_AVAILABLE = True
+    logger.info("✅ Langfuse 통합 모듈 로드 성공")
+except ImportError as e:
+    LANGFUSE_AVAILABLE = False
+    logger.warning(f"⚠️ Langfuse 통합 모듈 로드 실패: {e}")
+
 
 class PandasAIDataProcessor:
     """pandas-ai 스타일 데이터 프로세서 - 100% LLM First, 샘플 데이터 생성 절대 금지"""
@@ -124,16 +133,11 @@ class H2OMLServerAgent:
         self.agent = None
         
         try:
-            api_key = os.getenv('OPENAI_API_KEY') or os.getenv('ANTHROPIC_API_KEY') or os.getenv('GOOGLE_API_KEY')
-            if not api_key:
-                raise ValueError("No LLM API key found in environment variables")
-                
-            from core.llm_factory import create_llm_instance
-            # 🔥 원본 기능 보존: ai_data_science_team 에이전트들 사용
-            sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'ai_ds_team'))
-            from ai_data_science_team.ml_agents import H2OMLAgent
+            # 공통 LLM 초기화 유틸리티 사용
+            from base.llm_init_utils import create_llm_with_fallback
             
-            self.llm = create_llm_instance()
+            self.llm = create_llm_with_fallback()
+            from ai_data_science_team.ml_agents import H2OMLAgent
             
             # 🔥 원본 H2OMLAgent 초기화 (100% 원본 파라미터 보존)
             self.agent = H2OMLAgent(
@@ -443,10 +447,24 @@ model_path = agent.get_model_path()
 
 
 class H2OMLAgentExecutor(AgentExecutor):
-    """H2O ML Agent A2A Executor - 성공한 loader_server.py 패턴 적용"""
+    """H2O ML Agent A2A Executor with Langfuse integration"""
     
     def __init__(self):
         self.agent = H2OMLServerAgent()
+        
+        # Langfuse 통합 초기화
+        self.langfuse_tracer = None
+        if LANGFUSE_AVAILABLE:
+            try:
+                self.langfuse_tracer = SessionBasedTracer()
+                if self.langfuse_tracer.langfuse:
+                    logger.info("✅ H2OMLAgent Langfuse 통합 완료")
+                else:
+                    logger.warning("⚠️ Langfuse 설정 누락 - 기본 모드로 실행")
+            except Exception as e:
+                logger.error(f"❌ Langfuse 초기화 실패: {e}")
+                self.langfuse_tracer = None
+        
         logger.info("🤖 H2O ML Agent Executor 초기화 완료")
     
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
@@ -555,13 +573,13 @@ def main():
     )
     
     print("🤖 Starting H2O ML Agent Server")
-    print("🌐 Server starting on http://localhost:8323")
-    print("📋 Agent card: http://localhost:8323/.well-known/agent.json")
+    print("🌐 Server starting on http://localhost:8313")
+    print("📋 Agent card: http://localhost:8313/.well-known/agent.json")
     print("🎯 Features: 원본 ai-data-science-team H2OMLAgent 100% + 성공한 A2A 패턴")
     print("💡 H2O AutoML: 자동 모델 선택, 하이퍼파라미터 튜닝, 성능 평가")
     
-    uvicorn.run(server.build(), host="0.0.0.0", port=8323, log_level="info")
+    uvicorn.run(server.build(), host="0.0.0.0", port=8313, log_level="info")
 
 
 if __name__ == "__main__":
-    main() 
+    main()

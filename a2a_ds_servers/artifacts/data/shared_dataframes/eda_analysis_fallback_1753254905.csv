@@ -1,0 +1,7 @@
+customer_id,name,age,income,Unnamed: 4
+1,Alice,25.0,50000.0,Premium
+2,Bob,,60000.0,Standard
+1,Alice,25.0,50000.0,Premium
+3,Charlie,35.0,,Premium
+4,David,30.0,70000.0,Standard
+5,,28.0,55000.0,Standard

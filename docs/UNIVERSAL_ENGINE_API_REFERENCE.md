@@ -242,17 +242,17 @@ async def check_agent_health(self) -> Dict[str, Any]
 **반환값:**
 - `Dict[str, Any]`: 각 에이전트의 상태 정보
 
-**에이전트 포트 매핑:**
-- 8306: Data Cleaner Agent
-- 8307: EDA Tools Agent  
-- 8308: Statistical Analyzer Agent
-- 8309: Visualization Agent
-- 8310: ML Modeling Agent
-- 8311: Text Analytics Agent
-- 8312: Time Series Agent
-- 8313: Report Generator Agent
-- 8314: Data Validator Agent
-- 8315: Performance Monitor Agent
+**실제 에이전트 포트 매핑:**
+- 8306: Data Cleaning Server (`a2a_ds_servers/data_cleaning_server.py`)
+- 8307: Data Loader Server (`a2a_ds_servers/data_loader_server.py`)
+- 8308: Data Visualization Server (`a2a_ds_servers/data_visualization_server.py`)
+- 8309: Data Wrangling Server (`a2a_ds_servers/wrangling_server.py`)
+- 8310: Feature Engineering Server (`a2a_ds_servers/feature_engineering_server.py`)
+- 8311: SQL Data Analyst Server (`a2a_ds_servers/sql_data_analyst_server.py`)
+- 8312: EDA Tools Server (`a2a_ds_servers/eda_tools_server.py`)
+- 8313: H2O ML Server (`a2a_ds_servers/h2o_ml_server.py`)
+- 8314: MLflow Server (`a2a_ds_servers/mlflow_server.py`)
+- 8315: Report Generator Server (`a2a_ds_servers/report_generator_server.py`)
 
 ---
 

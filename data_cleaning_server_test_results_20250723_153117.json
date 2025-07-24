@@ -1,0 +1,34 @@
+{
+  "timestamp": "20250723_153117",
+  "tests": [
+    {
+      "test_name": "initialization",
+      "status": "PASS",
+      "details": {
+        "llm_initialized": true,
+        "has_original_agent": false,
+        "data_processor_ready": true
+      }
+    },
+    {
+      "test_name": "data_parsing_csv",
+      "status": "FAIL"
+    },
+    {
+      "test_name": "data_cleaning_process",
+      "status": "PASS",
+      "details": {
+        "result_length": 1103,
+        "keywords_found": [
+          "DataCleaningAgent",
+          "데이터",
+          "정리"
+        ]
+      }
+    },
+    {
+      "test_name": "guidance_generation",
+      "status": "PASS"
+    }
+  ]
+}

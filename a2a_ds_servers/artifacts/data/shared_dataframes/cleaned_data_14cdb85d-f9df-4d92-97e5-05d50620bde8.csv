@@ -1,0 +1,6 @@
+product_id,name,price,category,stock
+1,Laptop,1500,Electronics,10.0
+2,Mouse,1500,Electronics,12.5
+3,Keyboard,50,Electronics,20.0
+4,Monitor,999999,Electronics,5.0
+중복 제거,결측값 처리,이상치 수정을 해주세요.,Electronics,12.5

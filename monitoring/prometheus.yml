@@ -23,20 +23,20 @@ scrape_configs:
     scrape_interval: 10s
     scrape_timeout: 5s
 
-  # A2A Agents metrics
+  # A2A Agents metrics - Actual CherryAI Agents
   - job_name: 'a2a-agents'
     static_configs:
       - targets: 
-        - 'universal-engine:8306'  # Data Cleaner
-        - 'universal-engine:8307'  # EDA Tools
-        - 'universal-engine:8308'  # Statistical Analyzer
-        - 'universal-engine:8309'  # Visualization
-        - 'universal-engine:8310'  # ML Modeling
-        - 'universal-engine:8311'  # Text Analytics
-        - 'universal-engine:8312'  # Time Series
-        - 'universal-engine:8313'  # Report Generator
-        - 'universal-engine:8314'  # Data Validator
-        - 'universal-engine:8315'  # Performance Monitor
+        - 'universal-engine:8306'  # Data Cleaning Server
+        - 'universal-engine:8307'  # Data Loader Server
+        - 'universal-engine:8308'  # Data Visualization Server
+        - 'universal-engine:8309'  # Data Wrangling Server
+        - 'universal-engine:8310'  # Feature Engineering Server
+        - 'universal-engine:8311'  # SQL Data Analyst Server
+        - 'universal-engine:8312'  # EDA Tools Server
+        - 'universal-engine:8313'  # H2O ML Server
+        - 'universal-engine:8314'  # MLflow Server
+        - 'universal-engine:8315'  # Report Generator Server
     metrics_path: '/metrics'
     scrape_interval: 15s
     scrape_timeout: 5s

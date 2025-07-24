@@ -1,0 +1,9 @@
+employee_id,name,age,department,salary,join_date,email
+101,Alice Johnson,28.0,Engineering,75000.0,2022-01-15,alice@company.com
+102,Bob Smith,170.0,Marketing,203285.7142857143,2021-11-20,bob@invalid
+103,Charlie Brown,35.0,Sales,65000.0,2020-05-10,charlie@company.com
+104,Diana Prince,591.5,HR,606892.8571428572,2023-03-01,diana@company.com
+105,Eve Wilson,25.0,Engineering,58000.0,invalid-date,eve@company.com
+106,Alice Johnson,30.0,Engineering,70000.0,2022-08-15,alice@company.com
+107,Frank Miller,45.0,Marketing,80000.0,2019-12-01,frank@company.com
+3. 이상치 수정 (나이 999,급여 1000000 등),170.0,Engineering,203285.7142857143,2022-01-15,alice@company.com

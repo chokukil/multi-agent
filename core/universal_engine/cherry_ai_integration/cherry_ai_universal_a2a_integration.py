@@ -19,6 +19,8 @@ import pandas as pd
 from pathlib import Path
 
 from ..universal_query_processor import UniversalQueryProcessor
+from ..smart_query_router import SmartQueryRouter
+from ..llm_first_optimized_orchestrator import LLMFirstOptimizedOrchestrator
 from ..a2a_integration.a2a_agent_discovery import A2AAgentDiscoverySystem
 from ..a2a_integration.llm_based_agent_selector import LLMBasedAgentSelector
 from ..a2a_integration.a2a_workflow_orchestrator import A2AWorkflowOrchestrator
@@ -46,6 +48,8 @@ class CherryAIUniversalA2AIntegration:
         """CherryAIUniversalA2AIntegration 초기화"""
         # Universal Engine 컴포넌트들
         self.universal_engine = UniversalQueryProcessor()
+        self.smart_query_router = SmartQueryRouter()  # 새로운 Smart Query Router
+        self.llm_first_orchestrator = LLMFirstOptimizedOrchestrator()  # 새로운 LLM First Orchestrator
         self.a2a_discovery = A2AAgentDiscoverySystem()
         self.agent_selector = LLMBasedAgentSelector(self.a2a_discovery)
         self.communication_protocol = A2ACommunicationProtocol()
@@ -247,20 +251,83 @@ class CherryAIUniversalA2AIntegration:
     async def _execute_universal_analysis(self, user_query: str):
         """
         완전히 새로운 Universal Engine 분석 실행
-        - 기존 하드코딩된 분석 로직 완전 대체
+        - SmartQueryRouter를 통한 지능형 라우팅
+        - LLM First 원칙 기반 처리
         """
         try:
             # 1. 진행 상황 모니터링 시작
             self.progress_monitor.start_monitoring(total_components=6)
             
-            # 2. Universal Engine 메타 추론 수행
-            st.info("🧠 Universal Engine 메타 추론 중...")
+            # 2. Smart Query Router로 쿼리 라우팅
+            st.info("🚀 Smart Query Router로 최적 경로 결정 중...")
             
-            meta_analysis = await self.universal_engine.meta_reasoning_engine.analyze_request(
+            # 세션 컨텍스트 준비
+            context = self._get_session_context()
+            context['session_id'] = self.session_id
+            context['user_expertise'] = st.session_state.get('user_expertise_level', 'intermediate')
+            
+            # Smart Query Router 실행
+            routing_result = await self.smart_query_router.route_query(
                 query=user_query,
                 data=st.session_state.current_data,
-                context=self._get_session_context()
+                context=context
             )
+            
+            # 처리 모드 표시
+            processing_mode = routing_result.get('processing_mode', 'balanced')
+            mode_info = {
+                'fast_track': ('⚡ 빠른 처리 모드', '5-10초'),
+                'balanced': ('⚖️ 균형 모드', '10-20초'),
+                'thorough': ('🔍 철저한 분석 모드', '30-60초'),
+                'expert_mode': ('🎓 전문가 모드', '30-60초+')
+            }
+            
+            mode_text, time_est = mode_info.get(processing_mode, ('🔄 처리 중', ''))
+            st.info(f"{mode_text} - 예상 시간: {time_est}")
+            
+            # 처리 결과가 성공적인 경우
+            if routing_result.get('success', False):
+                result = routing_result.get('result')
+                agents_used = routing_result.get('agents_used', [])
+                
+                # 에이전트 사용 정보 표시
+                if agents_used and st.session_state.get('show_agent_details', True):
+                    with st.expander("🤖 사용된 에이전트", expanded=False):
+                        for agent in agents_used:
+                            st.write(f"• {agent}")
+                
+                # 결과 표시
+                if isinstance(result, str):
+                    st.markdown(result)
+                elif isinstance(result, dict):
+                    # 구조화된 결과 처리
+                    if 'final_answer' in result:
+                        st.markdown(result['final_answer'])
+                    if 'visualizations' in result:
+                        for viz in result['visualizations']:
+                            st.plotly_chart(viz, use_container_width=True)
+                    if 'code_snippets' in result:
+                        for code in result['code_snippets']:
+                            st.code(code['code'], language=code.get('language', 'python'))
+                else:
+                    st.write(result)
+                
+                # 처리 시간 표시
+                if 'processing_time' in routing_result:
+                    st.caption(f"처리 시간: {routing_result['processing_time']:.2f}초")
+            
+            else:
+                # 오류 처리
+                error_msg = routing_result.get('error', '알 수 없는 오류가 발생했습니다.')
+                st.error(f"❌ 오류: {error_msg}")
+                
+                # 대체 처리 시도
+                st.info("🔄 대체 처리 방법을 시도합니다...")
+                fallback_result = await self.universal_engine.process_query(
+                    query=user_query,
+                    data=st.session_state.current_data,
+                    context=context
+                )
             
             # 진행 상황 업데이트
             from .realtime_analysis_progress import ProgressUpdate, ComponentType, TaskStatus
