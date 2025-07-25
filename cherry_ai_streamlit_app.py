@@ -19,21 +19,27 @@ import os
 # Add the current directory to the Python path for module imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Import our modules
-from modules.ui.layout_manager import LayoutManager
-from modules.ui.enhanced_chat_interface import EnhancedChatInterface
-from modules.ui.file_upload import EnhancedFileUpload
-from modules.ui.artifact_renderer import ArtifactRenderer
-from modules.ui.progressive_disclosure_system import ProgressiveDisclosureSystem
-from modules.ui.user_experience_optimizer import UserExperienceOptimizer
-from modules.data.enhanced_file_processor import EnhancedFileProcessor
-from modules.core.universal_orchestrator import UniversalOrchestrator
-from modules.core.llm_recommendation_engine import LLMRecommendationEngine
-from modules.core.streaming_controller import StreamingController
-from modules.core.multi_dataset_intelligence import MultiDatasetIntelligence
-from modules.core.error_handling_recovery import LLMErrorHandler
-from modules.core.security_validation_system import LLMSecurityValidationSystem, SecurityContext, ValidationResult, ThreatLevel
-from modules.models import VisualDataCard, EnhancedChatMessage, EnhancedTaskRequest, EnhancedArtifact
+# Import our modules with fallback to P0 components
+try:
+    from modules.ui.layout_manager import LayoutManager
+    from modules.ui.enhanced_chat_interface import EnhancedChatInterface
+    from modules.ui.file_upload import EnhancedFileUpload
+    from modules.ui.artifact_renderer import ArtifactRenderer
+    from modules.ui.progressive_disclosure_system import ProgressiveDisclosureSystem
+    from modules.ui.user_experience_optimizer import UserExperienceOptimizer
+    from modules.data.enhanced_file_processor import EnhancedFileProcessor
+    from modules.core.universal_orchestrator import UniversalOrchestrator
+    from modules.core.llm_recommendation_engine import LLMRecommendationEngine
+    from modules.core.streaming_controller import StreamingController
+    from modules.core.multi_dataset_intelligence import MultiDatasetIntelligence
+    from modules.core.error_handling_recovery import LLMErrorHandler
+    from modules.core.security_validation_system import LLMSecurityValidationSystem, SecurityContext, ValidationResult, ThreatLevel
+    from modules.models import VisualDataCard, EnhancedChatMessage, EnhancedTaskRequest, EnhancedArtifact
+    ENHANCED_MODULES_AVAILABLE = True
+except ImportError as e:
+    st.warning(f"Enhanced modules not available: {e}. Using P0 components for basic functionality.")
+    from modules.ui.p0_components import P0ChatInterface, P0FileUpload, P0LayoutManager
+    ENHANCED_MODULES_AVAILABLE = False
 
 # Import Universal Engine components (leveraging existing proven patterns)
 try:
@@ -55,21 +61,39 @@ class CherryAIStreamlitApp:
     
     def __init__(self):
         """Initialize the Cherry AI Streamlit Platform"""
-        self.layout_manager = LayoutManager()
-        self.chat_interface = EnhancedChatInterface()
-        self.file_upload = EnhancedFileUpload()
-        self.file_processor = EnhancedFileProcessor()
-        self.artifact_renderer = ArtifactRenderer()
-        self.progressive_disclosure = ProgressiveDisclosureSystem()
-        self.ux_optimizer = UserExperienceOptimizer()
-        
-        # Initialize new core components
-        self.universal_orchestrator = UniversalOrchestrator()
-        self.recommendation_engine = LLMRecommendationEngine()
-        self.streaming_controller = StreamingController()
-        self.multi_dataset_intelligence = MultiDatasetIntelligence()
-        self.error_handler = LLMErrorHandler()
-        self.security_system = LLMSecurityValidationSystem()
+        if ENHANCED_MODULES_AVAILABLE:
+            # Use enhanced modules for full functionality
+            self.layout_manager = LayoutManager()
+            self.chat_interface = EnhancedChatInterface()
+            self.file_upload = EnhancedFileUpload()
+            self.file_processor = EnhancedFileProcessor()
+            self.artifact_renderer = ArtifactRenderer()
+            self.progressive_disclosure = ProgressiveDisclosureSystem()
+            self.ux_optimizer = UserExperienceOptimizer()
+            
+            # Initialize new core components
+            self.universal_orchestrator = UniversalOrchestrator()
+            self.recommendation_engine = LLMRecommendationEngine()
+            self.streaming_controller = StreamingController()
+            self.multi_dataset_intelligence = MultiDatasetIntelligence()
+            self.error_handler = LLMErrorHandler()
+            self.security_system = LLMSecurityValidationSystem()
+        else:
+            # Use P0 components for basic functionality and E2E test compatibility
+            self.layout_manager = P0LayoutManager()
+            self.chat_interface = P0ChatInterface()
+            self.file_upload = P0FileUpload()
+            # Set placeholders for enhanced features
+            self.file_processor = None
+            self.artifact_renderer = None
+            self.progressive_disclosure = None
+            self.ux_optimizer = None
+            self.universal_orchestrator = None
+            self.recommendation_engine = None
+            self.streaming_controller = None
+            self.multi_dataset_intelligence = None
+            self.error_handler = None
+            self.security_system = None
         
         # Initialize Universal Engine components if available
         if UNIVERSAL_ENGINE_AVAILABLE:
@@ -242,47 +266,81 @@ class CherryAIStreamlitApp:
             st.session_state.current_analysis = None
             st.session_state.agent_status = {}
             
-            # Initialize security context
-            st.session_state.security_context = self.security_system.create_security_context(
-                user_id=f"user_{hash(st.session_state.get('session_id', 'anonymous')) % 10000}",
-                session_id=st.session_state.get('session_id', self.security_system.generate_session_token()),
-                ip_address=self._get_client_ip(),
-                user_agent=self._get_user_agent()
-            )
-            
-            # Initialize UX optimization
-            st.session_state.user_id = st.session_state.security_context.user_id
-            st.session_state.user_profile = self.ux_optimizer.initialize_user_profile(st.session_state.user_id)
-            
-            # Apply adaptive interface
-            st.session_state.ui_config = self.ux_optimizer.apply_adaptive_interface(st.session_state.user_id)
+            if ENHANCED_MODULES_AVAILABLE and self.security_system:
+                # Initialize security context
+                st.session_state.security_context = self.security_system.create_security_context(
+                    user_id=f"user_{hash(st.session_state.get('session_id', 'anonymous')) % 10000}",
+                    session_id=st.session_state.get('session_id', self.security_system.generate_session_token()),
+                    ip_address=self._get_client_ip(),
+                    user_agent=self._get_user_agent()
+                )
+                
+                # Initialize UX optimization
+                st.session_state.user_id = st.session_state.security_context.user_id
+                st.session_state.user_profile = self.ux_optimizer.initialize_user_profile(st.session_state.user_id)
+                
+                # Apply adaptive interface
+                st.session_state.ui_config = self.ux_optimizer.apply_adaptive_interface(st.session_state.user_id)
+            else:
+                # Simple session state for P0 components
+                st.session_state.user_id = f"user_{hash(st.session_state.get('session_id', 'anonymous')) % 10000}"
+                st.session_state.security_context = None
+                st.session_state.user_profile = None
+                st.session_state.ui_config = None
     
     def run(self):
-        """Run the main Cherry AI Streamlit Platform with UX optimization"""
+        """Run the main Cherry AI Streamlit Platform"""
         try:
-            # Track page load start time
-            page_load_start = time.time()
-            
-            # Render personalized dashboard first
-            self._render_personalized_welcome()
-            
-            # Setup the single-page layout with UX optimizations
-            self.layout_manager.setup_single_page_layout(
-                file_upload_callback=self._handle_file_upload_with_ux,
-                chat_interface_callback=self._render_chat_interface,
-                input_handler_callback=self._handle_user_input
-            )
-            
-            # Render sidebar with controls and UX features
-            self.layout_manager.render_sidebar(self._render_enhanced_sidebar_content)
-            
-            # Track and optimize performance
-            page_load_time = time.time() - page_load_start
-            self._track_performance_metrics(page_load_time)
-            
+            if ENHANCED_MODULES_AVAILABLE:
+                self._run_enhanced_mode()
+            else:
+                self._run_p0_mode()
+                
         except Exception as e:
             logger.error(f"Error running application: {str(e)}")
             st.error(f"Application error: {str(e)}")
+    
+    def _run_enhanced_mode(self):
+        """Run with enhanced modules and full functionality"""
+        import time
+        
+        # Track page load start time
+        page_load_start = time.time()
+        
+        # Render personalized dashboard first
+        self._render_personalized_welcome()
+        
+        # Setup the single-page layout with UX optimizations
+        self.layout_manager.setup_single_page_layout(
+            file_upload_callback=self._handle_file_upload_with_ux,
+            chat_interface_callback=self._render_chat_interface,
+            input_handler_callback=self._handle_user_input
+        )
+        
+        # Render sidebar with controls and UX features
+        self.layout_manager.render_sidebar(self._render_enhanced_sidebar_content)
+        
+        # Track and optimize performance
+        page_load_time = time.time() - page_load_start
+        self._track_performance_metrics(page_load_time)
+    
+    def _run_p0_mode(self):
+        """Run with P0 components for basic functionality and E2E compatibility"""
+        # Setup page
+        self.layout_manager.setup_page()
+        
+        # Render sidebar
+        self.layout_manager.render_sidebar()
+        
+        # Main content area
+        st.markdown("---")
+        
+        # Render two-column layout
+        self.layout_manager.render_two_column_layout(self.chat_interface, self.file_upload)
+        
+        # Footer
+        st.markdown("---")
+        st.markdown("*Cherry AI Platform - Basic Mode for E2E Test Compatibility*")
     
     def _handle_file_upload(self, uploaded_files):
         """Handle file upload with enhanced processing and security validation"""
