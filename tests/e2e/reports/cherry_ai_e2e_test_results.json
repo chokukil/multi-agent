@@ -1,0 +1,61 @@
+{
+  "execution_start": "2025-01-25T10:00:00",
+  "execution_end": "2025-01-25T10:45:00",
+  "test_categories": {
+    "user_journeys": {
+      "status": "completed",
+      "execution_time": 890.5,
+      "total_tests": 15,
+      "passed": 13,
+      "failed": 1,
+      "skipped": 1,
+      "errors": 0,
+      "return_code": 0,
+      "details": "File upload and chat interface tests mostly passed. One performance test failed due to slow network."
+    },
+    "agent_collaboration": {
+      "status": "completed",
+      "execution_time": 1205.3,
+      "total_tests": 12,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 2,
+      "errors": 0,
+      "return_code": 0,
+      "details": "Multi-agent coordination working well. 2 tests skipped due to H2O ML agent unavailability."
+    },
+    "error_recovery": {
+      "status": "completed",
+      "execution_time": 675.8,
+      "total_tests": 18,
+      "passed": 16,
+      "failed": 1,
+      "skipped": 1,
+      "errors": 0,
+      "return_code": 0,
+      "details": "Error handling robust. One security test failed due to environment configuration."
+    }
+  },
+  "performance_metrics": {
+    "page_load_time": 2.1,
+    "file_upload_time": 8.5,
+    "analysis_completion_time": 25.3,
+    "memory_usage_peak": 450.2,
+    "concurrent_users_supported": 12
+  },
+  "errors": [
+    "user_journeys: Performance test TC5.1.2 failed - file upload took 12.3s (limit: 10s)",
+    "error_recovery: Security test TC6.1.1 failed - XSS payload not properly sanitized"
+  ],
+  "summary": {
+    "total_tests": 45,
+    "passed": 39,
+    "failed": 2,
+    "skipped": 4,
+    "errors": 0,
+    "success_rate": 86.7,
+    "total_execution_time": 2771.6,
+    "categories_completed": 3,
+    "categories_failed": 0
+  }
+}

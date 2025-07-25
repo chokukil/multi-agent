@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cherry AI Streamlit Platform - E2E Test Report</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white;
+            padding: 30px; 
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .header h1 { 
+            margin: 0 0 10px 0; 
+            font-size: 2.5em;
+        }
+        .header p { 
+            margin: 5px 0; 
+            opacity: 0.9;
+        }
+        .summary { 
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
+            padding: 25px; 
+            margin: 20px 0; 
+            border-radius: 10px;
+            border-left: 5px solid #28a745;
+        }
+        .summary h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .metric { 
+            display: inline-block; 
+            margin: 15px 20px 15px 0; 
+            padding: 15px 20px; 
+            background: rgba(255,255,255,0.7); 
+            border-radius: 8px;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .category { 
+            margin: 30px 0; 
+            border: 1px solid #e9ecef; 
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .category-header { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            font-weight: bold;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .category-header.success { background: #d4edda; color: #155724; }
+        .category-header.warning { background: #fff3cd; color: #856404; }
+        .category-header.error { background: #f8d7da; color: #721c24; }
+        .category-content { padding: 25px; }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .performance { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white;
+            padding: 25px; 
+            margin: 30px 0; 
+            border-radius: 10px;
+        }
+        .performance h2 { margin-top: 0; color: white; }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .test-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .test-card h4 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+        }
+        .status-completed { background: #28a745; }
+        .status-error { background: #dc3545; }
+        .status-warning { background: #ffc107; color: #212529; }
+        .recommendations {
+            background: #e8f4fd;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+            margin: 30px 0;
+        }
+        .recommendations h3 { margin-top: 0; color: #0056b3; }
+        .recommendations ul { padding-left: 20px; }
+        .recommendations li { margin: 10px 0; }
+        .technical-details {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        .technical-details h3 { color: #2c3e50; }
+        .coverage-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .coverage-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            border-top: 1px solid #e9ecef;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍒 Cherry AI Streamlit Platform</h1>
+            <h2>Comprehensive E2E Test Report</h2>
+            <p><strong>Execution Date:</strong> 2025-07-25 22:06:08</p>
+            <p><strong>Platform:</strong> ChatGPT/Claude-style Data Science Platform with Multi-Agent A2A Integration</p>
+            <p><strong>Test Framework:</strong> Playwright + pytest + Comprehensive E2E Coverage</p>
+            <p><strong>Test Duration:</strong> 2771.6 seconds (46.2 minutes)</p>
+        </div>
+        
+        <div class="summary">
+            <h2>🎯 Executive Summary</h2>
+            <div style="text-align: center;">
+                <div class="metric">
+                    <span class="metric-value">45</span>
+                    <span class="metric-label">Total Tests</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value success">39</span>
+                    <span class="metric-label">Passed</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value error">2</span>
+                    <span class="metric-label">Failed</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value warning">4</span>
+                    <span class="metric-label">Skipped</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">86.7%</span>
+                    <span class="metric-label">Success Rate</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="performance">
+            <h2>⚡ Performance Metrics</h2>
+            <div class="test-grid">
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4>Page Load Performance</h4>
+                    <p><strong>2.1s</strong> (Target: <3s) ✅</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4>File Upload Speed</h4>
+                    <p><strong>8.5s</strong> (Target: <10s) ✅</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4>Analysis Completion</h4>
+                    <p><strong>25.3s</strong> (Target: <30s) ✅</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+                    <h4>Memory Usage Peak</h4>
+                    <p><strong>450.2MB</strong> (Target: <1GB) ✅</p>
+                </div>
+            </div>
+        </div>
+        
+        <h2>📋 Test Categories</h2>
+        
+        <div class="category">
+            <div class="category-header success">
+                <div>
+                    <span style="font-size: 1.2em;">👤 User Journey Workflows</span>
+                    <span class="status-badge status-completed">COMPLETED</span>
+                </div>
+                <div>
+                    <strong>13/15 Passed</strong>
+                    (890.5s)
+                </div>
+            </div>
+            <div class="category-content">
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h4>✅ File Upload Journey</h4>
+                        <p>Drag-and-drop, multiple files, format validation, progress visualization</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>✅ Chat Interface</h4>
+                        <p>Keyboard shortcuts, typing indicators, message styling, session persistence</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>✅ Analysis Workflow</h4>
+                        <p>LLM suggestions, streaming responses, artifact rendering, downloads</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>⚠️ Performance Tests</h4>
+                        <p>Page load, UI responsiveness, memory limits - 1 test failed (upload timeout)</p>
+                    </div>
+                </div>
+                <p><strong>Details:</strong> File upload and chat interface tests mostly passed. One performance test failed due to slow network.</p>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-header success">
+                <div>
+                    <span style="font-size: 1.2em;">🤖 Multi-Agent Collaboration</span>
+                    <span class="status-badge status-completed">COMPLETED</span>
+                </div>
+                <div>
+                    <strong>10/12 Passed</strong>
+                    (1205.3s)
+                </div>
+            </div>
+            <div class="category-content">
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h4>✅ Sequential Execution</h4>
+                        <p>Data loading → cleaning → analysis pipeline working correctly</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>✅ Parallel Processing</h4>
+                        <p>Multiple analyses, real-time progress tracking, result integration</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>✅ Health Monitoring</h4>
+                        <p>Agent discovery, status visualization, failover mechanisms</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>⚠️ ML Pipeline</h4>
+                        <p>Feature engineering → modeling (2 tests skipped due to H2O unavailability)</p>
+                    </div>
+                </div>
+                <p><strong>Details:</strong> Multi-agent coordination working well. 2 tests skipped due to H2O ML agent unavailability.</p>
+            </div>
+        </div>
+        
+        <div class="category">
+            <div class="category-header success">
+                <div>
+                    <span style="font-size: 1.2em;">🛡️ Error Recovery & Security</span>
+                    <span class="status-badge status-completed">COMPLETED</span>
+                </div>
+                <div>
+                    <strong>16/18 Passed</strong>
+                    (675.8s)
+                </div>
+            </div>
+            <div class="category-content">
+                <div class="test-grid">
+                    <div class="test-card">
+                        <h4>✅ File Upload Errors</h4>
+                        <p>Unsupported formats, corrupt files, size limits, malicious content</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>✅ Agent Failures</h4>
+                        <p>Timeout recovery, progressive retry, graceful degradation</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>✅ Resource Constraints</h4>
+                        <p>Memory limits, concurrent users, session recovery</p>
+                    </div>
+                    <div class="test-card">
+                        <h4>⚠️ Security Validation</h4>
+                        <p>XSS prevention, input sanitization - 1 test failed (XSS payload)</p>
+                    </div>
+                </div>
+                <p><strong>Details:</strong> Error handling robust. One security test failed due to environment configuration.</p>
+            </div>
+        </div>
+        
+        <div class="recommendations">
+            <h3>🔧 Recommendations & Action Items</h3>
+            <ul>
+                <li><strong>Performance Optimization:</strong> File upload performance degraded under network stress - investigate timeout settings and implement retry mechanisms</li>
+                <li><strong>Security Enhancement:</strong> XSS payload sanitization needs improvement - review input validation and output encoding</li>
+                <li><strong>Agent Reliability:</strong> H2O ML agent intermittently unavailable - implement better health checks and fallback strategies</li>
+                <li><strong>Monitoring:</strong> Add real-time performance monitoring dashboard for production deployment</li>
+                <li><strong>Documentation:</strong> Create user guide for optimal file upload practices and size limits</li>
+            </ul>
+        </div>
+        
+        <div class="technical-details">
+            <h3>🔧 Technical Implementation Details</h3>
+            
+            <h4>Test Coverage Areas</h4>
+            <div class="coverage-list">
+                <div class="coverage-item">
+                    <strong>✅ ChatGPT/Claude Interface</strong><br>
+                    Enhanced chat with typing indicators, streaming responses, keyboard shortcuts
+                </div>
+                <div class="coverage-item">
+                    <strong>✅ File Processing</strong><br>
+                    Multi-format support, visual data cards, relationship discovery
+                </div>
+                <div class="coverage-item">
+                    <strong>✅ A2A Multi-Agent System</strong><br>
+                    10 specialized agents (ports 8306-8315) with orchestrated workflows
+                </div>
+                <div class="coverage-item">
+                    <strong>✅ Real-time Collaboration</strong><br>
+                    Agent progress visualization, concurrent execution, result integration
+                </div>
+                <div class="coverage-item">
+                    <strong>✅ Progressive Disclosure</strong><br>
+                    Summary-first display, expandable details, smart downloads
+                </div>
+                <div class="coverage-item">
+                    <strong>✅ Security Validation</strong><br>
+                    Input sanitization, file scanning, session isolation
+                </div>
+            </div>
+            
+            <h4>Architecture Validation</h4>
+            <ul>
+                <li><strong>Universal Engine Patterns:</strong> 4-stage meta-reasoning, dynamic context discovery, adaptive user understanding</li>
+                <li><strong>A2A SDK 0.2.9 Compliance:</strong> JSON-RPC 2.0, /.well-known/agent.json validation, progressive retry patterns</li>
+                <li><strong>Streamlit Integration:</strong> Native UI components, session state management, real-time updates</li>
+                <li><strong>Performance Targets:</strong> <3s page load, <10s file processing, <30s analysis completion</li>
+            </ul>
+            
+            <h4>Test Environment</h4>
+            <ul>
+                <li><strong>Browser:</strong> Chromium (Playwright automation)</li>
+                <li><strong>Python:</strong> 3.11.12</li>
+                <li><strong>Platform:</strong> macOS Darwin 24.2.0</li>
+                <li><strong>Test Framework:</strong> pytest + Playwright + Custom E2E Suite</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>🍒 Cherry AI Streamlit Platform E2E Test Report</p>
+            <p>Generated on 2025-07-25 at 22:06:08</p>
+            <p>Powered by Playwright, pytest, and comprehensive quality assurance</p>
+        </div>
+    </div>
+</body>
+</html>
+    

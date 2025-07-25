@@ -85,11 +85,21 @@ if stop_service "orchestrator"; then
 fi
 
 echo ""
+echo "🎨 Stopping Cherry AI Streamlit Platform..."
+echo "-------------------------------------------"
+
+# Stop Cherry AI Streamlit Platform
+((TOTAL_COUNT++))
+if stop_service "cherry_ai_streamlit"; then
+    ((SUCCESS_COUNT++))
+fi
+
+echo ""
 echo "🧹 Cleanup..."
 echo "-------------"
 
 # Kill any remaining processes on the ports (safety measure)
-PORTS=(8100 8306 8308 8309 8310 8311 8312 8313 8314 8315 8316)
+PORTS=(8100 8306 8308 8309 8310 8311 8312 8313 8314 8315 8316 8501)
 
 for port in "${PORTS[@]}"; do
     pid=$(lsof -ti :$port 2>/dev/null)

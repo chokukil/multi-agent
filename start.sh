@@ -111,5 +111,47 @@ else
     echo "Check logs/ directory for details"
 fi
 
+echo ""
+echo "🎨 Starting Cherry AI Streamlit Platform..."
+echo "------------------------------------------"
+
+# Check if Streamlit is already running
+if check_port 8501; then
+    echo "⚠️  Cherry AI Streamlit Platform already running on port 8501"
+else
+    echo -n "Starting Cherry AI Streamlit Platform on port 8501... "
+    
+    # Check if start_cherry_ai_streamlit.sh exists
+    if [ -f "./start_cherry_ai_streamlit.sh" ]; then
+        # Make it executable if not already
+        chmod +x ./start_cherry_ai_streamlit.sh
+        
+        # Start in background
+        nohup ./start_cherry_ai_streamlit.sh > logs/cherry_ai_streamlit.log 2>&1 &
+        streamlit_pid=$!
+        echo $streamlit_pid > pids/cherry_ai_streamlit.pid
+        sleep 5
+        
+        if ps -p $streamlit_pid > /dev/null 2>&1; then
+            echo "✅ Started (PID: $streamlit_pid)"
+            echo ""
+            echo "🌟 Cherry AI Streamlit Platform Features:"
+            echo "  • Enhanced ChatGPT/Claude-style interface"
+            echo "  • Real-time agent collaboration visualization"
+            echo "  • Drag-and-drop multi-format file processing"
+            echo "  • Interactive artifacts with smart downloads"
+            echo "  • LLM-powered analysis recommendations"
+            echo ""
+            echo "🔗 Access the platform at: http://localhost:8501"
+        else
+            echo "❌ Failed to start"
+            echo "Check logs/cherry_ai_streamlit.log for details"
+        fi
+    else
+        echo "❌ start_cherry_ai_streamlit.sh not found"
+    fi
+fi
+
+echo ""
 echo "🛑 To stop all services, run: ./stop.sh"
 echo "==========================================="

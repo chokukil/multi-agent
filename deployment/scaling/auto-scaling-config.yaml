@@ -1,0 +1,259 @@
+# Cherry AI Platform Auto-Scaling Configuration
+# 검증된 자동 스케일링 패턴과 최적화 전략
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cherry-ai-scaling-config
+  namespace: cherry-ai
+data:
+  scaling-policy.yaml: |
+    # 수평적 확장 정책 (Horizontal Pod Autoscaler)
+    horizontal_scaling:
+      enabled: true
+      min_replicas: 3
+      max_replicas: 20
+      
+      # CPU 기반 스케일링
+      cpu_scaling:
+        target_utilization: 70
+        scale_up_threshold: 80
+        scale_down_threshold: 50
+        stabilization_window: 300  # 5분
+      
+      # 메모리 기반 스케일링
+      memory_scaling:
+        target_utilization: 75
+        scale_up_threshold: 85
+        scale_down_threshold: 55
+        stabilization_window: 300
+      
+      # 커스텀 메트릭 기반 스케일링
+      custom_metrics:
+        - name: "concurrent_users"
+          target_value: 100
+          scale_up_threshold: 120
+          scale_down_threshold: 80
+          
+        - name: "request_queue_length"
+          target_value: 50
+          scale_up_threshold: 75
+          scale_down_threshold: 25
+          
+        - name: "response_time_p95"
+          target_value: 2000  # ms
+          scale_up_threshold: 3000
+          scale_down_threshold: 1000
+      
+      # 스케일링 행동 설정
+      behavior:
+        scale_up:
+          stabilization_window: 60   # 1분
+          select_policy: "Max"
+          policies:
+            - type: "Percent"
+              value: 100
+              period: 15
+            - type: "Pods"
+              value: 4
+              period: 60
+        
+        scale_down:
+          stabilization_window: 300  # 5분
+          select_policy: "Min"
+          policies:
+            - type: "Percent"
+              value: 10
+              period: 60
+    
+    # 수직적 확장 정책 (Vertical Pod Autoscaler)
+    vertical_scaling:
+      enabled: true
+      update_mode: "Auto"  # Off, Initial, Recreation, Auto
+      
+      # 리소스 정책
+      resource_policy:
+        cpu:
+          min: "100m"
+          max: "2000m"
+          target_utilization: 70
+        
+        memory:
+          min: "256Mi"
+          max: "4Gi"
+          target_utilization: 75
+      
+      # 업데이트 정책
+      update_policy:
+        min_replicas: 2  # 최소 유지할 복제본 수
+        max_unavailable: "25%"
+        max_surge: "25%"
+    
+    # 클러스터 자동 스케일링
+    cluster_scaling:
+      enabled: true
+      
+      # 노드 그룹 설정
+      node_groups:
+        - name: "cherry-ai-compute"
+          min_size: 2
+          max_size: 10
+          desired_size: 3
+          instance_type: "m5.xlarge"
+          
+          # 스케일링 조건
+          scale_up_conditions:
+            - pending_pods_duration: "30s"
+            - resource_shortage_duration: "60s"
+          
+          scale_down_conditions:
+            - node_utilization_threshold: 0.5
+            - unneeded_duration: "10m"
+        
+        - name: "cherry-ai-ml-compute"
+          min_size: 0
+          max_size: 5
+          desired_size: 1
+          instance_type: "m5.2xlarge"
+          
+          # ML 워크로드 전용 노드
+          taints:
+            - key: "workload"
+              value: "ml"
+              effect: "NoSchedule"
+          
+          labels:
+            workload: "ml"
+            gpu: "false"
+    
+    # 예측적 스케일링
+    predictive_scaling:
+      enabled: true
+      
+      # 시간 기반 스케일링
+      time_based_scaling:
+        - name: "business_hours"
+          schedule: "0 9 * * 1-5"  # 평일 오전 9시
+          target_replicas: 8
+          timezone: "Asia/Seoul"
+        
+        - name: "after_hours"
+          schedule: "0 18 * * 1-5"  # 평일 오후 6시
+          target_replicas: 4
+          timezone: "Asia/Seoul"
+        
+        - name: "weekend_low"
+          schedule: "0 0 * * 6,0"  # 주말
+          target_replicas: 2
+          timezone: "Asia/Seoul"
+      
+      # 머신러닝 기반 예측
+      ml_based_scaling:
+        enabled: true
+        model_type: "time_series_forecasting"
+        prediction_window: "30m"
+        confidence_threshold: 0.85
+        
+        # 트레이닝 데이터 소스
+        training_data:
+          metrics:
+            - "cpu_utilization"
+            - "memory_utilization"
+            - "request_rate"
+            - "concurrent_users"
+          history_window: "7d"
+          update_frequency: "1h"
+    
+    # 비용 최적화
+    cost_optimization:
+      enabled: true
+      
+      # 스팟 인스턴스 사용
+      spot_instances:
+        enabled: true
+        max_percentage: 50
+        diversification_strategy: "capacity-optimized"
+      
+      # 예약 인스턴스 활용
+      reserved_instances:
+        enabled: true
+        target_percentage: 70
+      
+      # 리소스 효율성
+      resource_efficiency:
+        cpu_overcommit_ratio: 1.5
+        memory_overcommit_ratio: 1.2
+        
+        # 빈 패킹 전략
+        bin_packing:
+          enabled: true
+          strategy: "best_fit"
+    
+    # 모니터링 및 알림
+    monitoring:
+      enabled: true
+      
+      # 스케일링 이벤트 알림
+      notifications:
+        slack:
+          enabled: true
+          webhook_url: "${SLACK_WEBHOOK_URL}"
+          channels:
+            - "#cherry-ai-ops"
+            - "#cherry-ai-alerts"
+        
+        email:
+          enabled: true
+          recipients:
+            - "ops@cherry-ai.com"
+            - "devops@cherry-ai.com"
+      
+      # 메트릭 수집
+      metrics_collection:
+        prometheus:
+          enabled: true
+          scrape_interval: "30s"
+          retention: "7d"
+        
+        custom_metrics:
+          - name: "scaling_events_total"
+            type: "counter"
+            description: "Total number of scaling events"
+          
+          - name: "scaling_latency_seconds"
+            type: "histogram"
+            description: "Time taken to complete scaling operations"
+          
+          - name: "resource_utilization"
+            type: "gauge"
+            description: "Current resource utilization"
+      
+      # 대시보드
+      dashboards:
+        grafana:
+          enabled: true
+          panels:
+            - "Pod Scaling Overview"
+            - "Resource Utilization"
+            - "Scaling Events Timeline"
+            - "Cost Analysis"
+            - "Performance Impact"
+    
+    # 장애 대응
+    failure_handling:
+      # 스케일링 실패 시 대응
+      scale_failure_policy:
+        retry_attempts: 3
+        retry_interval: "30s"
+        fallback_strategy: "maintain_current_scale"
+      
+      # 노드 실패 시 대응
+      node_failure_policy:
+        replacement_timeout: "5m"
+        drain_timeout: "10m"
+        force_replacement: true
+      
+      # 네트워크 분할 대응
+      network_partition_policy:
+        detection_timeout: "30s"
+        recovery_strategy: "prefer_availability"

@@ -1,0 +1,165 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cherry-ai-config
+  namespace: cherry-ai
+  labels:
+    app: cherry-ai-platform
+data:
+  # Application configuration
+  app_config.json: |
+    {
+      "app_name": "Cherry AI Platform",
+      "version": "1.0.0",
+      "environment": "production",
+      "debug": false,
+      "log_level": "info",
+      "max_upload_size_mb": 1000,
+      "session_timeout_minutes": 60,
+      "rate_limiting": {
+        "enabled": true,
+        "requests_per_minute": 60,
+        "uploads_per_hour": 20
+      },
+      "security": {
+        "enable_file_scanning": true,
+        "enable_input_validation": true,
+        "enable_rate_limiting": true,
+        "block_on_high_threat": true
+      },
+      "features": {
+        "enable_multi_dataset_intelligence": true,
+        "enable_progressive_disclosure": true,
+        "enable_ux_optimization": true,
+        "enable_error_recovery": true
+      }
+    }
+  
+  # Streamlit configuration
+  streamlit_config.toml: |
+    [server]
+    headless = true
+    port = 8501
+    address = "0.0.0.0"
+    enableCORS = false
+    enableXsrfProtection = true
+    maxUploadSize = 1000
+    
+    [client]
+    showErrorDetails = false
+    toolbarMode = "minimal"
+    
+    [logger]
+    level = "info"
+    messageFormat = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    
+    [browser]
+    gatherUsageStats = false
+    
+    [global]
+    developmentMode = false
+    showWarningOnDirectExecution = false
+  
+  # Agent configuration
+  agents_config.yaml: |
+    agents:
+      data_cleaning:
+        port: 8306
+        name: "Data Cleaning Agent"
+        description: "Automated data cleaning and preprocessing"
+        max_workers: 4
+        timeout_seconds: 300
+      
+      data_loader:
+        port: 8307
+        name: "Data Loader Agent"
+        description: "Multi-format data loading and validation"
+        max_workers: 2
+        timeout_seconds: 120
+      
+      visualization:
+        port: 8308
+        name: "Data Visualization Agent"
+        description: "Interactive charts and dashboards"
+        max_workers: 3
+        timeout_seconds: 180
+      
+      statistical_analysis:
+        port: 8309
+        name: "Statistical Analysis Agent"
+        description: "Statistical testing and analysis"
+        max_workers: 4
+        timeout_seconds: 600
+      
+      machine_learning:
+        port: 8310
+        name: "Machine Learning Agent"
+        description: "ML model training and prediction"
+        max_workers: 2
+        timeout_seconds: 1800
+      
+      feature_engineering:
+        port: 8311
+        name: "Feature Engineering Agent"
+        description: "Feature creation and selection"
+        max_workers: 3
+        timeout_seconds: 900
+      
+      h2o_automl:
+        port: 8312
+        name: "H2O AutoML Agent"
+        description: "Automated machine learning with H2O"
+        max_workers: 1
+        timeout_seconds: 3600
+      
+      pandas_analyst:
+        port: 8313
+        name: "Pandas Analyst Agent"
+        description: "Advanced pandas operations"
+        max_workers: 4
+        timeout_seconds: 300
+      
+      sql_database:
+        port: 8314
+        name: "SQL Database Agent"
+        description: "Database operations and queries"
+        max_workers: 3
+        timeout_seconds: 180
+      
+      report_generator:
+        port: 8315
+        name: "Report Generator Agent"
+        description: "Automated report generation"
+        max_workers: 2
+        timeout_seconds: 600
+  
+  # Monitoring configuration
+  monitoring_config.yaml: |
+    metrics:
+      enabled: true
+      port: 8501
+      path: "/metrics"
+      collection_interval: 30
+      
+    logging:
+      level: "info"
+      format: "json"
+      output: "stdout"
+      
+    health_checks:
+      enabled: true
+      path: "/_stcore/health"
+      timeout: 10
+      
+    performance:
+      track_user_interactions: true
+      track_performance_metrics: true
+      optimize_realtime: true
+      
+    alerts:
+      enabled: true
+      thresholds:
+        cpu_usage: 80
+        memory_usage: 85
+        error_rate: 5
+        response_time: 2000
