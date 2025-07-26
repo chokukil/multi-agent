@@ -19,6 +19,7 @@ import uuid
 from ..models import EnhancedTaskRequest, AgentProgressInfo, TaskState, StreamingResponse
 from ..a2a.agent_client import A2AAgentClient
 from .llm_recommendation_engine import LLMRecommendationEngine
+from ..utils import LLMErrorHandler, ErrorContext, ErrorSeverity, error_logger, error_metrics
 
 # Universal Engine 패턴 가져오기 (사용 가능한 경우)
 try:
@@ -111,10 +112,15 @@ class UniversalOrchestrator:
         # Universal Engine 컴포넌트 초기화
         if UNIVERSAL_ENGINE_AVAILABLE:
             self.meta_reasoning_engine = MetaReasoningEngine()
-            self.workflow_orchestrator = A2AWorkflowOrchestrator()
+            # Create communication protocol for workflow orchestrator
+            from core.universal_engine.a2a_integration.a2a_communication_protocol import A2ACommunicationProtocol
+            from core.universal_engine.a2a_integration.a2a_agent_discovery import A2AAgentDiscoverySystem
+            communication_protocol = A2ACommunicationProtocol()
+            discovery_system = A2AAgentDiscoverySystem()
+            self.workflow_orchestrator = A2AWorkflowOrchestrator(communication_protocol)
             self.result_integrator = A2AResultIntegrator()
             self.error_handler = A2AErrorHandler()
-            self.agent_selector = LLMBasedAgentSelector()
+            self.agent_selector = LLMBasedAgentSelector(discovery_system)
             self.llm_client = LLMFactory.create_llm()
         else:
             self.meta_reasoning_engine = None
@@ -132,10 +138,13 @@ class UniversalOrchestrator:
         # LLM 추천 엔진
         self.recommendation_engine = LLMRecommendationEngine()
         
+        # LLM 오류 처리 시스템 초기화
+        self.error_handler = LLMErrorHandler(llm_client=self.llm_client)
+        
         # 활성 태스크 추적
         self.active_tasks: Dict[str, Dict] = {}
         
-        logger.info("Universal Orchestrator initialized with proven patterns")
+        logger.info("Universal Orchestrator initialized with proven patterns and LLM error handling")
     
     async def orchestrate_analysis(self, 
                                  request: EnhancedTaskRequest,
@@ -487,7 +496,7 @@ class UniversalOrchestrator:
                     progress_info=self._create_progress_info(agent_progress)
                 )
                 
-                # A2A 에이전트 호출
+                # A2A 에이전트 호출 (오류 처리 포함)
                 agent_client = self.agent_clients[port]
                 
                 start_time = datetime.now()
@@ -503,8 +512,10 @@ class UniversalOrchestrator:
                     }
                 }
                 
-                # 에이전트 실행
-                result = await agent_client.execute_task(agent_request)
+                # 에이전트 실행 (재시도 로직 포함)
+                result = await self._execute_agent_with_retry(
+                    agent_client, agent_request, port, agent_name
+                )
                 
                 execution_time = (datetime.now() - start_time).total_seconds()
                 
@@ -651,6 +662,149 @@ class UniversalOrchestrator:
         
         return health_status
     
+    async def _execute_agent_with_retry(self, 
+                                       agent_client: A2AAgentClient, 
+                                       agent_request: Dict[str, Any], 
+                                       port: int, 
+                                       agent_name: str) -> Dict[str, Any]:
+        """
+        오류 처리 및 재시도 로직을 포함한 에이전트 실행
+        """
+        retry_count = 0
+        max_retries = 3
+        
+        while retry_count <= max_retries:
+            try:
+                # 에이전트 실행
+                result = await agent_client.execute_task(agent_request)
+                
+                # 성공 시 서킷 브레이커 상태 업데이트
+                self.error_handler._update_circuit_breaker(str(port), failed=False)
+                
+                return result
+                
+            except Exception as e:
+                # 오류 컨텍스트 생성
+                error_context = ErrorContext(
+                    error_type=type(e).__name__,
+                    error_message=str(e),
+                    agent_id=str(port),
+                    user_context={
+                        "agent_name": agent_name,
+                        "port": port,
+                        "request_type": "task_execution"
+                    },
+                    timestamp=datetime.now(),
+                    retry_count=retry_count
+                )
+                
+                # 오류 로깅
+                error_id = error_logger.log_error(e, error_context.__dict__)
+                error_metrics.record_error(str(port), type(e).__name__, recovery_attempted=True)
+                
+                logger.warning(f"Agent {port} execution failed (attempt {retry_count + 1}): {str(e)}")
+                
+                # LLM 오류 처리 시스템 사용
+                error_response = await self.error_handler.handle_error(error_context)
+                
+                if error_response['action'] == 'retry' and retry_count < max_retries:
+                    retry_count += 1
+                    
+                    # 재시도 지연
+                    delay = error_response.get('delay', 5)
+                    await asyncio.sleep(delay)
+                    
+                    logger.info(f"Retrying agent {port} after {delay}s delay")
+                    continue
+                    
+                elif error_response['action'] == 'fallback':
+                    # 폴백 결과 반환
+                    fallback_result = error_response.get('result', {})
+                    
+                    return {
+                        'success': True,
+                        'fallback_used': True,
+                        'fallback_type': fallback_result.get('type', 'unknown'),
+                        'message': fallback_result.get('message', 'Fallback method used'),
+                        'artifacts': [],
+                        'metadata': {
+                            'error_handled': True,
+                            'original_error': str(e),
+                            'fallback_method': fallback_result.get('type')
+                        }
+                    }
+                    
+                elif error_response['action'] == 'circuit_open':
+                    # 서킷 브레이커 열림 - 즉시 폴백
+                    return await self._handle_circuit_breaker_fallback(port, agent_name, e)
+                    
+                else:
+                    # 최종 실패
+                    error_metrics.record_recovery(str(port), success=False, recovery_time=0)
+                    raise e
+        
+        # 모든 재시도 실패
+        error_metrics.record_recovery(str(port), success=False, recovery_time=0)
+        raise Exception(f"Agent {port} failed after {max_retries} retries")
+    
+    async def _handle_circuit_breaker_fallback(self, 
+                                             port: int, 
+                                             agent_name: str, 
+                                             original_error: Exception) -> Dict[str, Any]:
+        """서킷 브레이커 활성화 시 폴백 처리"""
+        
+        error_metrics.record_circuit_breaker_activation(str(port))
+        
+        logger.warning(f"Circuit breaker activated for agent {port}")
+        
+        # 기본 폴백 응답 생성
+        fallback_message = f"{agent_name} 서비스가 일시적으로 사용할 수 없어 기본 방법을 사용합니다."
+        
+        return {
+            'success': True,
+            'circuit_breaker_active': True,
+            'message': fallback_message,
+            'artifacts': [],
+            'metadata': {
+                'circuit_breaker': True,
+                'original_error': str(original_error),
+                'agent_port': port,
+                'fallback_reason': 'circuit_breaker_open'
+            }
+        }
+    
+    async def get_error_metrics(self) -> Dict[str, Any]:
+        """오류 메트릭 조회"""
+        return error_metrics.get_metrics_summary()
+    
+    async def get_agent_health_with_errors(self) -> Dict[str, Any]:
+        """에이전트 헬스 체크 및 오류 상태 조회"""
+        health_status = await self.health_check_agents()
+        error_handler_status = self.error_handler.get_agent_health_status()
+        
+        combined_status = {}
+        
+        for port in self.AGENT_CAPABILITIES.keys():
+            agent_name = self.AGENT_CAPABILITIES[port]['name']
+            
+            combined_status[str(port)] = {
+                'name': agent_name,
+                'port': port,
+                'health_check': health_status.get(port, False),
+                'error_status': error_handler_status.get(str(port), {
+                    'status': 'healthy',
+                    'failure_count': 0,
+                    'last_failure': None,
+                    'fallback_available': True
+                })
+            }
+        
+        return combined_status
+    
+    async def reset_agent_errors(self, port: int) -> bool:
+        """특정 에이전트의 오류 상태 리셋"""
+        return await self.error_handler.reset_circuit_breaker(str(port))
+    
     def get_agent_capabilities_summary(self) -> Dict[str, Any]:
         """에이전트 역량 요약 반환"""
         return {
@@ -663,5 +817,10 @@ class UniversalOrchestrator:
             "expertise_areas": {
                 port: info["expertise"]
                 for port, info in self.AGENT_CAPABILITIES.items()
+            },
+            "error_handling": {
+                "retry_strategy": "progressive_backoff",
+                "circuit_breaker": "enabled",
+                "fallback_methods": "available_for_all_agents"
             }
         }
