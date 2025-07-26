@@ -12,6 +12,7 @@ Enhanced vertical layout with improved UX:
 import streamlit as st
 from typing import Optional, Dict, Any, Callable
 from ..models import UIContext, ScreenSize
+from .file_upload import EnhancedFileUpload
 
 
 class LayoutManager:
@@ -20,6 +21,7 @@ class LayoutManager:
     def __init__(self):
         """Initialize layout manager"""
         self.ui_context = self._detect_ui_context()
+        self.file_upload = EnhancedFileUpload()
         self._inject_global_styles()
     
     def setup_single_page_layout(self, 
@@ -283,7 +285,7 @@ class LayoutManager:
         
         with header_container:
             st.markdown("""
-            <div class="header-section">
+            <div class="header-section" data-testid="app-root">
                 <div class="brand-header">
                     <div class="brand-logo">🍒</div>
                     <div class="brand-title">Cherry AI</div>
@@ -297,83 +299,15 @@ class LayoutManager:
     
     def _render_file_upload_area(self, callback: Optional[Callable] = None):
         """
-        Render enhanced file upload with:
-        - Clear drag-and-drop visual boundaries
-        - Upload progress indicators
-        - Multi-file selection support
-        - File format validation with visual feedback
-        - Immediate processing status display
+        Render enhanced file upload via singleton EnhancedFileUpload class
         """
-        st.markdown("""
-        <div class="file-upload-area" id="file-upload-zone">
-            <div style="font-size: 2rem; margin-bottom: 1rem;">📁</div>
-            <div style="font-size: 1.2rem; font-weight: 500; margin-bottom: 0.5rem;">
-                Drag and drop your data files here
-            </div>
-            <div style="color: #6c757d; margin-bottom: 1rem;">
-                Supports CSV, Excel (.xlsx, .xls), JSON, Parquet, and PKL formats
-            </div>
-            <div style="font-size: 0.9rem; color: #6c757d;">
-                or click to browse files
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # File uploader (hidden behind the custom UI)
-        uploaded_files = st.file_uploader(
-            "Choose files",
-            accept_multiple_files=True,
-            type=['csv', 'xlsx', 'xls', 'json', 'parquet', 'pkl'],
-            label_visibility="collapsed",
-            key="main_file_uploader"
-        )
-        
-        if uploaded_files and callback:
-            callback(uploaded_files)
-        
-        # Inject drag-and-drop JavaScript
-        self._inject_drag_drop_handler()
+        # Use the singleton-protected EnhancedFileUpload class
+        self.file_upload.render()
     
-    def _inject_drag_drop_handler(self):
-        """Inject JavaScript for enhanced drag-and-drop functionality"""
-        st.markdown("""
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const uploadZone = document.getElementById('file-upload-zone');
-            const fileInput = document.querySelector('input[type="file"]');
-            
-            if (uploadZone && fileInput) {
-                uploadZone.addEventListener('click', function() {
-                    fileInput.click();
-                });
-                
-                uploadZone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    uploadZone.classList.add('drag-over');
-                });
-                
-                uploadZone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    uploadZone.classList.remove('drag-over');
-                });
-                
-                uploadZone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    uploadZone.classList.remove('drag-over');
-                    uploadZone.classList.add('upload-success');
-                    
-                    setTimeout(function() {
-                        uploadZone.classList.remove('upload-success');
-                    }, 2000);
-                });
-            }
-        });
-        </script>
-        """, unsafe_allow_html=True)
     
     def _render_chat_section(self, callback: Optional[Callable] = None):
         """Render main chat interface section"""
-        st.markdown('<div class="chat-section">', unsafe_allow_html=True)
+        st.markdown('<div class="chat-section" data-testid="chat-interface">', unsafe_allow_html=True)
         
         if callback:
             callback()

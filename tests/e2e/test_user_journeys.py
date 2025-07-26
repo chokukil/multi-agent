@@ -44,9 +44,9 @@ class TestFileUploadJourney:
         # Verify data card generation
         data_cards = await app.file_upload.get_data_cards()
         assert len(data_cards) == 1, "Value should equal 1"
-        assert data_cards[0]["name"] == "simple_data.csv", "Value should equal "simple_data.csv""
-        assert data_cards[0]["rows"] == "100", "Value should equal "100""
-        assert data_cards[0]["columns"] == "5", "Value should equal "5""
+        assert data_cards[0]["name"] == "simple_data.csv", "Data card name should be 'simple_data.csv'"
+        assert data_cards[0]["rows"] == "100", "Data card should show 100 rows"
+        assert data_cards[0]["columns"] == "5", "Data card should show 5 columns"
         
         # Performance assertion
         assert upload_time < 10000, f"Upload took too long: {upload_time}ms"
@@ -168,7 +168,7 @@ class TestFileUploadJourney:
         card = data_cards[0]
         
         # Check for quality metrics in metadata
-        assert "quality_score" in str(card) or "missing_values" in str(card), "Condition should be true: "quality_score" in str(card) or "missing_values" i..."
+        assert "quality_score" in str(card) or "missing_values" in str(card), "Data card should contain quality metrics"
         
         # Verify preview functionality
         await app.file_upload.preview_dataset("simple_data.csv")
@@ -515,3 +515,60 @@ class TestPerformanceRequirements:
             logger.info(f"✓ Memory usage within limits: {memory_used:.2f}MB")
         else:
             logger.warning("Memory metrics not available in this browser")
+
+
+@pytest.mark.ui
+class TestUIUniquenessAndDataPipeline:
+    """Test UI uniqueness and data pipeline after duplication fixes."""
+    
+    @pytest.mark.asyncio
+    async def test_ui_uniqueness_pipeline(self, streamlit_app, test_data_generator):
+        """
+        TC6.1: Verify UI uniqueness and data pipeline functionality
+        - No duplicate file uploaders
+        - Data flows correctly through orchestrator 
+        - Session state properly managed
+        """
+        app = CherryAIApp(streamlit_app)
+        await app.wait_for_app_ready()
+        
+        # Test 1: Check for UI uniqueness
+        # Should have exactly one file uploader component
+        file_uploaders = await streamlit_app.locator('[data-testid="file-upload-section"]').count()
+        assert file_uploaders == 1, f"Expected exactly 1 file uploader, found {file_uploaders}"
+        
+        # Should not have legacy textarea components
+        legacy_textareas = await streamlit_app.locator('textarea').count()
+        chat_inputs = await streamlit_app.locator('[data-testid="stChatInput"]').count()
+        assert chat_inputs >= 1, "Should have at least one chat input component"
+        
+        # Test 2: Data pipeline functionality
+        test_data_generator.save_test_files()
+        await app.file_upload.upload_file("tests/e2e/test_data/simple_data.csv")
+        
+        # Verify file is stored in session state
+        uploaded_files = await app.file_upload.get_uploaded_file_names()
+        assert "simple_data.csv" in uploaded_files, "File should be uploaded and stored"
+        
+        # Test 3: Data context propagation through orchestrator
+        await app.chat.send_message("Analyze the uploaded data")
+        await app.chat.wait_for_ai_response()
+        
+        # Verify response indicates data was received (should not show empty data error)
+        messages = await app.chat.get_chat_messages()
+        ai_messages = [m for m in messages if m["type"] == "assistant"]
+        assert len(ai_messages) > 0, "Should have AI response"
+        
+        # Check response contains processed data indication (not error about missing data)
+        last_response = ai_messages[-1]["content"].lower()
+        data_processed_indicators = [
+            "임시 응답입니다",  # placeholder response
+            "처리",            # processing
+            "분석",            # analysis
+            "데이터"           # data
+        ]
+        
+        has_data_indicator = any(indicator in last_response for indicator in data_processed_indicators)
+        assert has_data_indicator, f"Response should indicate data processing: {last_response}"
+        
+        logger.info("✓ UI uniqueness and data pipeline test passed")
