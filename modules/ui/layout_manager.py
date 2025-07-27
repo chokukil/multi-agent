@@ -328,14 +328,7 @@ class LayoutManager:
         
         if callback:
             callback()
-        else:
-            # Placeholder input
-            st.text_area(
-                "Message",
-                placeholder="여기에 메시지를 입력하세요... (Shift+Enter로 줄바꿈, Enter로 전송)",
-                height=100,
-                label_visibility="collapsed"
-            )
+        # 추가 텍스트 입력 박스 제거 - chat_input만 사용
         
         st.markdown('</div>', unsafe_allow_html=True)
     

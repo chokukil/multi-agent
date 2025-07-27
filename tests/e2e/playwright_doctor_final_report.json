@@ -1,0 +1,25 @@
+{
+  "timestamp": 1753451235.6919963,
+  "issues_found": 2,
+  "fixes_applied": 0,
+  "overall_status": "MINOR_ISSUES",
+  "issues": [
+    {
+      "category": "browsers",
+      "issue": "Browsers need installation or update",
+      "severity": "medium",
+      "solution": "Run: playwright install"
+    },
+    {
+      "category": "validation",
+      "issue": "Playwright validation test failed",
+      "severity": "high",
+      "solution": "Check test output for details"
+    }
+  ],
+  "fixes": [],
+  "recommendations": [
+    "\ud83d\udccb Address any remaining issues before running full test suite",
+    "\ud83d\udd0d Monitor for dependency conflicts in complex tests"
+  ]
+}

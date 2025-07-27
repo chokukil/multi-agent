@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CherryAI_E2E" tests="8" failures="1" errors="3" time="39.27">
+  <testcase name="App Health Check" time="0.09" />
+  <testcase name="Page Load Performance" time="12.62">
+    <failure message="Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("body") to be visible
+    25 × locator resolved to hidden <body>…</body>
+">Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("body") to be visible
+    25 × locator resolved to hidden <body>…</body>
+</failure>
+  </testcase>
+  <testcase name="UI Elements Presence" time="2.31" />
+  <testcase name="Chat Interface Interaction" time="4.31">
+    <error message="Could not fully interact with chat interface">Could not fully interact with chat interface</error>
+  </testcase>
+  <testcase name="File Upload Interface" time="4.32">
+    <error message="No file upload interface found">No file upload interface found</error>
+  </testcase>
+  <testcase name="Responsive Design" time="11.12">
+    <error message="Some viewport issues detected">Some viewport issues detected</error>
+  </testcase>
+  <testcase name="Accessibility Features" time="2.27" />
+  <testcase name="Performance Metrics" time="2.24" />
+</testsuite>

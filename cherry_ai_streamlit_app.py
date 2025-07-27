@@ -34,25 +34,21 @@ except ImportError as e:
     from datetime import datetime
     import pandas as pd
     
-    @dataclass
-    class VisualDataCard:
-        id: str
-        name: str
-        rows: int
-        columns: int
-        preview: pd.DataFrame
-        quality_indicators: object = None
-    
-    @dataclass 
-    class EnhancedChatMessage:
-        id: str
-        content: str
-        role: str
-        timestamp: datetime
+    # Import VisualDataCard from models module
+    from modules.models import VisualDataCard, EnhancedChatMessage
     
     def create_sample_data_card(name, rows=100, columns=5):
         import uuid
-        return VisualDataCard(str(uuid.uuid4()), name, rows, columns, pd.DataFrame())
+        return VisualDataCard(
+            id=str(uuid.uuid4()),
+            name=name,
+            file_path="",
+            format="CSV",
+            rows=rows,
+            columns=columns,
+            memory_usage="0 KB",
+            preview=pd.DataFrame()
+        )
     
     def create_chat_message(content, role="assistant"):
         import uuid
@@ -419,6 +415,15 @@ class CherryAIStreamlitApp:
         if not uploaded_files:
             return
         
+        # Check if these are MockUploadedFile objects from LayoutManager
+        # If so, the files are already processed and stored in session state
+        if uploaded_files and hasattr(uploaded_files[0], '__class__') and 'MockUploadedFile' in str(uploaded_files[0].__class__):
+            logger.info("Detected MockUploadedFile objects - files already processed by EnhancedFileUpload")
+            # Files are already processed and available in st.session_state.uploaded_datasets
+            # Just trigger the agent activation
+            self._activate_data_loader_agent()
+            return
+        
         # Check if files are already being processed to avoid infinite loops
         if 'processing_files' not in st.session_state:
             st.session_state.processing_files = set()
@@ -445,9 +450,79 @@ class CherryAIStreamlitApp:
                     security_placeholder.text(f"🔒 Security validation: {uploaded_file.name}")
                     
                     # Save file temporarily for validation
-                    temp_path = f"/tmp/{uploaded_file.name}_{int(datetime.now().timestamp())}"
-                    with open(temp_path, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
+                    import tempfile
+                    import os
+                    
+                    # Create temp file with proper extension
+                    file_extension = os.path.splitext(uploaded_file.name)[1]
+                    
+                    # Debug: Log available methods on uploaded_file
+                    logger.info(f"Uploaded file type: {type(uploaded_file)}")
+                    logger.info(f"Available methods: {[method for method in dir(uploaded_file) if not method.startswith('_')]}")
+                    
+                    # Create temp file and write data
+                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=file_extension)
+                    temp_path = temp_file.name
+                    
+                    try:
+                        # Handle Streamlit UploadedFile objects
+                        # Streamlit UploadedFile objects have getvalue() method
+                        if hasattr(uploaded_file, 'getvalue'):
+                            data = uploaded_file.getvalue()
+                            logger.info(f"Got data using getvalue(): {len(data)} bytes")
+                            temp_file.write(data)
+                        elif hasattr(uploaded_file, 'read'):
+                            # Reset file pointer and read
+                            if hasattr(uploaded_file, 'seek'):
+                                uploaded_file.seek(0)
+                            data = uploaded_file.read()
+                            logger.info(f"Got data using read(): {len(data)} bytes")
+                            temp_file.write(data)
+                        else:
+                            # Try to access the file content directly
+                            logger.info(f"Trying direct access to file content...")
+                            # For Streamlit UploadedFile, try accessing the underlying file
+                            if hasattr(uploaded_file, '_file_buffer'):
+                                data = uploaded_file._file_buffer.getvalue()
+                                logger.info(f"Got data using _file_buffer: {len(data)} bytes")
+                                temp_file.write(data)
+                            elif hasattr(uploaded_file, 'file'):
+                                uploaded_file.file.seek(0)
+                                data = uploaded_file.file.read()
+                                logger.info(f"Got data using file attribute: {len(data)} bytes")
+                                temp_file.write(data)
+                            else:
+                                logger.error(f"Cannot access file content. Available attributes: {[attr for attr in dir(uploaded_file) if not attr.startswith('_')]}")
+                                # Try to read the file directly using pandas as a fallback
+                                try:
+                                    import pandas as pd
+                                    if uploaded_file.name.endswith('.csv'):
+                                        df = pd.read_csv(uploaded_file)
+                                        csv_data = df.to_csv(index=False).encode('utf-8')
+                                        temp_file.write(csv_data)
+                                        logger.info(f"Successfully read file using pandas: {len(csv_data)} bytes")
+                                    else:
+                                        temp_file.write(b'')
+                                except Exception as pandas_e:
+                                    logger.error(f"Pandas fallback failed: {str(pandas_e)}")
+                                    temp_file.write(b'')
+                        
+                        # Ensure data is written to disk
+                        temp_file.flush()
+                        os.fsync(temp_file.fileno())
+                        
+                    except Exception as e:
+                        logger.error(f"Error reading file data: {str(e)}")
+                        logger.error(f"Exception type: {type(e)}")
+                        temp_file.write(b'')
+                        temp_file.flush()
+                    finally:
+                        # Close the temp file
+                        temp_file.close()
+                        
+                        # Debug: Check file size after writing
+                        temp_file_size = os.path.getsize(temp_path)
+                        logger.info(f"Temp file size after writing: {temp_file_size} bytes")
                     
                     # Perform security validation (simplified for stability)
                     if self.security_system:
@@ -595,13 +670,35 @@ class CherryAIStreamlitApp:
                 from modules.models import DataQualityInfo
                 
                 # Load the file from temp path
-                if uploaded_file.name.endswith('.csv'):
-                    df = pd.read_csv(temp_path)
-                elif uploaded_file.name.endswith('.xlsx'):
-                    df = pd.read_excel(temp_path)
-                else:
-                    st.warning(f"File format not fully supported: {uploaded_file.name}")
-                    os.unlink(temp_path)  # Clean up
+                try:
+                    # Check if temp file exists and has content
+                    if not os.path.exists(temp_path):
+                        logger.error(f"Temp file does not exist: {temp_path}")
+                        continue
+                    
+                    file_size = os.path.getsize(temp_path)
+                    if file_size == 0:
+                        logger.error(f"Temp file is empty: {temp_path}")
+                        os.unlink(temp_path)
+                        continue
+                    
+                    logger.info(f"Processing file: {uploaded_file.name}, temp_path: {temp_path}, size: {file_size} bytes")
+                    
+                    if uploaded_file.name.endswith('.csv'):
+                        df = pd.read_csv(temp_path)
+                    elif uploaded_file.name.endswith('.xlsx'):
+                        df = pd.read_excel(temp_path)
+                    else:
+                        st.warning(f"File format not fully supported: {uploaded_file.name}")
+                        os.unlink(temp_path)  # Clean up
+                        continue
+                        
+                    logger.info(f"Successfully loaded DataFrame with shape: {df.shape}")
+                    
+                except Exception as e:
+                    logger.error(f"Error loading file {uploaded_file.name}: {str(e)}")
+                    if os.path.exists(temp_path):
+                        os.unlink(temp_path)
                     continue
                 
                 # Sanitize DataFrame if needed (simplified for stability)
@@ -737,6 +834,10 @@ class CherryAIStreamlitApp:
                 st.session_state.last_error = None
                 st.experimental_rerun()
         
+        # Display data cards if datasets are uploaded
+        if st.session_state.uploaded_datasets:
+            self._render_data_cards_section()
+        
         # Render message history
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
@@ -812,42 +913,52 @@ class CherryAIStreamlitApp:
                 # Use real orchestrator if available
                 if hasattr(self, 'universal_orchestrator') and self.universal_orchestrator:
                     try:
-                        # Start orchestrated analysis with streaming
-                        response_generator = self.universal_orchestrator.orchestrate_analysis(
-                            task_request,
-                            progress_callback=self._update_progress
+                        # Debug: Check if datasets are being passed
+                        context_data = task_request.context.__dict__ if hasattr(task_request, 'context') else None
+                        if context_data and 'datasets' in context_data:
+                            st.write(f"🔍 디버그: {len(context_data['datasets'])}개의 데이터셋이 에이전트에 전달됨")
+                            for name, df in context_data['datasets'].items():
+                                st.write(f"  - {name}: {df.shape[0]}행 x {df.shape[1]}열")
+                        
+                        # Start orchestrated analysis
+                        response_result = self.universal_orchestrator.orchestrate_analysis(
+                            task_request.user_message,
+                            data=context_data,
+                            user_context=task_request.__dict__
                         )
                         
-                        # Process streaming response
+                        # Process response result
                         full_response = ""
                         
                         # Create container for assistant response
                         with st.chat_message("assistant"):
                             message_container = st.empty()
                             
-                            # Process each chunk from orchestrator
-                            import asyncio
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
+                            # Handle dict response from orchestrator
+                            if isinstance(response_result, dict):
+                                if 'response' in response_result and response_result['response']:
+                                    full_response = str(response_result['response'])
+                                elif 'result' in response_result and response_result['result']:
+                                    full_response = str(response_result['result'])
+                                elif 'analysis' in response_result and response_result['analysis']:
+                                    full_response = str(response_result['analysis'])
+                                elif response_result:  # Non-empty dict
+                                    # Format the dictionary nicely
+                                    full_response = "**분석 결과:**\n\n"
+                                    for key, value in response_result.items():
+                                        if value:  # Only show non-empty values
+                                            full_response += f"**{key}**: {value}\n\n"
+                                else:
+                                    full_response = "⚠️ 분석 결과가 비어있습니다. 더 구체적인 질문을 해보세요."
+                            else:
+                                full_response = str(response_result) if response_result else "⚠️ 응답이 비어있습니다."
                             
-                            try:
-                                async def process_stream():
-                                    nonlocal full_response
-                                    async for chunk in response_generator:
-                                        if chunk.content:
-                                            full_response += chunk.content + "\n\n"
-                                            message_container.markdown(full_response)
-                                        
-                                        # Handle completion
-                                        if chunk.is_complete:
-                                            break
-                                    
-                                    return full_response
-                                
-                                final_response = loop.run_until_complete(process_stream())
-                                
-                            finally:
-                                loop.close()
+                            # Ensure we have a meaningful response
+                            if not full_response or full_response.strip() == "" or full_response == "{}":
+                                full_response = "🤔 죄송합니다. 해당 요청에 대한 응답을 생성할 수 없었습니다. 데이터를 업로드하거나 더 구체적인 질문을 해보세요."
+                            
+                            message_container.markdown(full_response)
+                            final_response = full_response
                             
                             # Add testability anchor
                             st.markdown('<div data-testid="assistant-message"></div>', unsafe_allow_html=True)
@@ -1104,28 +1215,32 @@ Upload your data files above to get started!"""
     
     def _add_assistant_message(self, content: str):
         """Add assistant message to chat"""
-        message = EnhancedChatMessage(
-            id=f"msg_{datetime.now().timestamp()}",
-            content=content,
-            role="assistant",
-            timestamp=datetime.now()
-        )
+        if 'messages' not in st.session_state:
+            st.session_state.messages = []
         
-        self.chat_interface._add_message_to_history(message)
+        message_dict = {
+            "role": "assistant",
+            "content": content,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        st.session_state.messages.append(message_dict)
         
         # Force refresh to show new message
         st.rerun()
     
     def _add_system_message(self, content: str):
         """Add system message to chat"""
-        message = EnhancedChatMessage(
-            id=f"sys_{datetime.now().timestamp()}",
-            content=content,
-            role="system",
-            timestamp=datetime.now()
-        )
+        if 'messages' not in st.session_state:
+            st.session_state.messages = []
         
-        self.chat_interface._add_message_to_history(message)
+        message_dict = {
+            "role": "system",
+            "content": content,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        st.session_state.messages.append(message_dict)
     
     def _add_error_message(self, content: str):
         """Add error message to chat"""
@@ -1247,6 +1362,36 @@ Upload your data files above to get started!"""
         
         # Add one-click execution buttons for recommendations
         self._render_one_click_recommendation_buttons(data_cards)
+        
+        # Auto-trigger basic analysis for uploaded data
+        self._auto_trigger_data_analysis(data_cards)
+    
+    def _auto_trigger_data_analysis(self, data_cards):
+        """Auto-trigger data analysis after file upload"""
+        try:
+            # Create automatic analysis task
+            auto_message = "데이터가 업로드되었습니다. 기본 분석을 시작합니다."
+            
+            # Add system message about auto-analysis
+            self._add_assistant_message("🤖 **자동 분석 시작**: 업로드된 데이터에 대한 기본 분석을 수행합니다...")
+            
+            # Create task request for automatic analysis
+            task_request = EnhancedTaskRequest(
+                id=f"auto_analysis_{datetime.now().timestamp()}",
+                user_message=auto_message,
+                selected_datasets=[card.id for card in data_cards],
+                context=self._create_data_context(),
+                priority=1,
+                ui_context={"execution_type": "auto_trigger", "analysis_type": "basic_exploration"}
+            )
+            
+            # Execute with orchestrator
+            self._process_with_orchestrator(task_request)
+            
+        except Exception as e:
+            logger.error(f"Auto-trigger analysis error: {str(e)}")
+            # Don't show error to user for auto-trigger, just log it
+            pass
     
     def _process_with_orchestrator(self, task_request: EnhancedTaskRequest):
         """Process request with Universal Orchestrator"""
@@ -1382,8 +1527,17 @@ Our agents will collaborate to deliver comprehensive insights!"""
                     quality_score=100.0,
                     issues=[]
                 ),
-                suggested_analyses=[]
+                suggested_analyses=[],
+                datasets={}  # Add empty datasets dict
             )
+        
+        # Extract actual DataFrames from VisualDataCard objects
+        datasets = {}
+        for card in st.session_state.uploaded_datasets:
+            if hasattr(card, 'data') and card.data is not None:
+                # Use name or file_path as key, or fallback to index
+                key = getattr(card, 'name', getattr(card, 'file_path', f'dataset_{len(datasets)}'))
+                datasets[key] = card.data
         
         # Aggregate quality scores
         quality_scores = [card.quality_indicators.quality_score 
@@ -1402,7 +1556,8 @@ Our agents will collaborate to deliver comprehensive insights!"""
                 quality_score=avg_quality,
                 issues=[]
             ),
-            suggested_analyses=[]
+            suggested_analyses=[],
+            datasets=datasets  # Include actual DataFrames
         )
     
     def _execute_orchestrated_analysis_sync(self, task_request: EnhancedTaskRequest, progress_bar, status_text):
@@ -2545,6 +2700,50 @@ Our agents will collaborate to deliver comprehensive insights!"""
             st.error(f"시스템 오류가 발생했습니다: {str(error)}")
             st.caption("문제가 계속되면 페이지를 새로고침해주세요.")
     
+    def _render_data_cards_section(self):
+        """Render data cards in the main content area"""
+        st.markdown("### 📊 업로드된 데이터셋")
+        
+        # Create columns for data cards layout
+        num_cards = len(st.session_state.uploaded_datasets)
+        if num_cards == 1:
+            cols = [st.container()]
+        elif num_cards == 2:
+            cols = st.columns(2)
+        else:
+            cols = st.columns(3)
+        
+        for i, card in enumerate(st.session_state.uploaded_datasets):
+            col_idx = i % len(cols)
+            with cols[col_idx]:
+                with st.container():
+                    # Card header
+                    st.markdown(f"#### 📄 {card.name}")
+                    
+                    # Card metrics
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("행 수", f"{card.rows:,}")
+                        st.metric("메모리 사용량", card.memory_usage)
+                    with col2:
+                        st.metric("열 수", card.columns)
+                        st.metric("품질 점수", f"{card.quality_indicators.quality_score:.0f}%")
+                    
+                    # Preview section
+                    with st.expander("📖 데이터 미리보기", expanded=False):
+                        st.dataframe(card.preview, use_container_width=True)
+                    
+                    # Metadata section
+                    with st.expander("ℹ️ 메타데이터", expanded=False):
+                        st.json({
+                            "파일 형식": card.format,
+                            "업로드 시간": card.metadata.get('upload_time', 'N/A'),
+                            "컬럼 이름": card.metadata.get('column_names', []),
+                            "데이터 타입": card.metadata.get('column_types', {})
+                        })
+                    
+                    st.markdown("---")
+    
     def _render_sidebar_content(self):
         """Render additional sidebar content"""
         st.markdown("### 📊 Dataset Overview")
@@ -2627,8 +2826,14 @@ Our agents will collaborate to deliver comprehensive insights!"""
             8315: "Pandas Analyst"
         }
         
+        # Perform real-time health check for each agent
         for port in agent_ports:
-            status_color = "🟢" if port in [8315, 8308, 8312] else "🟡"  # Simulate some agents as available
+            try:
+                import requests
+                response = requests.get(f"http://localhost:{port}/.well-known/agent.json", timeout=2)
+                status_color = "🟢" if response.status_code == 200 else "🟡"
+            except:
+                status_color = "🔴"
             st.markdown(f"{status_color} {agent_names[port]} ({port})")
         
         # 오류 시스템 상태

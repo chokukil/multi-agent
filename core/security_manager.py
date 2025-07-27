@@ -13,6 +13,8 @@ import re
 import jwt
 import hashlib
 import secrets
+import mimetypes
+import logging
 import logging
 import mimetypes
 from datetime import datetime, timedelta
@@ -20,7 +22,13 @@ from pathlib import Path
 from typing import Optional, Dict, List, Tuple, Any, Union
 from dataclasses import dataclass
 from enum import Enum
-import magic  # python-magic for file type detection
+# Optional import for file type detection
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+
 import json # Added missing import for json
 
 logger = logging.getLogger(__name__)
@@ -169,7 +177,13 @@ class SecurityManager:
             
             # MIME 타입 검사
             try:
-                mime_type = magic.from_file(str(file_path), mime=True)
+                if MAGIC_AVAILABLE:
+                    mime_type = magic.from_file(str(file_path), mime=True)
+                else:
+                    # fallback to mimetypes module
+                    mime_type, _ = mimetypes.guess_type(str(file_path))
+                    if mime_type is None:
+                        mime_type = "application/octet-stream"
             except:
                 # fallback to mimetypes module
                 mime_type, _ = mimetypes.guess_type(str(file_path))

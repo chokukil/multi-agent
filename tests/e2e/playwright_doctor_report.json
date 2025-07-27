@@ -1,0 +1,39 @@
+{
+  "timestamp": 1753450960.6307294,
+  "issues_found": 4,
+  "fixes_applied": 1,
+  "overall_status": "ISSUES_FOUND",
+  "issues": [
+    {
+      "category": "installation",
+      "issue": "Playwright not installed",
+      "severity": "critical",
+      "solution": "pip install playwright"
+    },
+    {
+      "category": "browsers",
+      "issue": "Browsers need installation or update",
+      "severity": "high",
+      "solution": "Run playwright install"
+    },
+    {
+      "category": "dependencies",
+      "issue": "Pandas version 2.3.1 conflicts with pandasai",
+      "severity": "medium",
+      "solution": "Downgrade pandas to 1.5.x"
+    },
+    {
+      "category": "performance",
+      "issue": "Found 30 sleep() calls in tests",
+      "severity": "medium",
+      "solution": "Replace sleep() with proper wait conditions"
+    }
+  ],
+  "fixes": [
+    "Installed/updated Chromium browser"
+  ],
+  "recommendations": [
+    "Consider replacing sleep() calls with proper wait conditions",
+    "Use virtual environments to avoid dependency conflicts"
+  ]
+}

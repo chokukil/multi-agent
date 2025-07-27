@@ -1,83 +1,95 @@
+# Cherry AI Streamlit Platform - Prometheus Configuration
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
-# Rules for alerting
 rule_files:
-  - "alert_rules.yml"
+  # - "first_rules.yml"
+  # - "second_rules.yml"
 
-# Alertmanager configuration
+scrape_configs:
+  # Cherry AI Main Application
+  - job_name: 'cherry-ai-app'
+    static_configs:
+      - targets: ['cherry-ai-app:8501']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # A2A Agents
+  - job_name: 'data-cleaning-agent'
+    static_configs:
+      - targets: ['data-cleaning-agent:8306']
+    metrics_path: '/metrics'
+
+  - job_name: 'data-loader-agent'
+    static_configs:
+      - targets: ['data-loader-agent:8307']
+    metrics_path: '/metrics'
+
+  - job_name: 'visualization-agent'
+    static_configs:
+      - targets: ['visualization-agent:8308']
+    metrics_path: '/metrics'
+
+  - job_name: 'wrangling-agent'
+    static_configs:
+      - targets: ['wrangling-agent:8309']
+    metrics_path: '/metrics'
+
+  - job_name: 'feature-engineering-agent'
+    static_configs:
+      - targets: ['feature-engineering-agent:8310']
+    metrics_path: '/metrics'
+
+  - job_name: 'sql-database-agent'
+    static_configs:
+      - targets: ['sql-database-agent:8311']
+    metrics_path: '/metrics'
+
+  - job_name: 'eda-tools-agent'
+    static_configs:
+      - targets: ['eda-tools-agent:8312']
+    metrics_path: '/metrics'
+
+  - job_name: 'h2o-ml-agent'
+    static_configs:
+      - targets: ['h2o-ml-agent:8313']
+    metrics_path: '/metrics'
+
+  - job_name: 'mlflow-tools-agent'
+    static_configs:
+      - targets: ['mlflow-tools-agent:8314']
+    metrics_path: '/metrics'
+
+  - job_name: 'pandas-hub-agent'
+    static_configs:
+      - targets: ['pandas-hub-agent:8315']
+    metrics_path: '/metrics'
+
+  # Infrastructure Services
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+
+  - job_name: 'ollama'
+    static_configs:
+      - targets: ['ollama:11434']
+
+  - job_name: 'mlflow'
+    static_configs:
+      - targets: ['mlflow:5000']
+
+  # System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          - alertmanager:9093
-
-# Scrape configurations
-scrape_configs:
-  # Universal Engine metrics
-  - job_name: 'universal-engine'
-    static_configs:
-      - targets: ['universal-engine:8000']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # A2A Agents metrics - Actual CherryAI Agents
-  - job_name: 'a2a-agents'
-    static_configs:
-      - targets: 
-        - 'universal-engine:8306'  # Data Cleaning Server
-        - 'universal-engine:8307'  # Data Loader Server
-        - 'universal-engine:8308'  # Data Visualization Server
-        - 'universal-engine:8309'  # Data Wrangling Server
-        - 'universal-engine:8310'  # Feature Engineering Server
-        - 'universal-engine:8311'  # SQL Data Analyst Server
-        - 'universal-engine:8312'  # EDA Tools Server
-        - 'universal-engine:8313'  # H2O ML Server
-        - 'universal-engine:8314'  # MLflow Server
-        - 'universal-engine:8315'  # Report Generator Server
-    metrics_path: '/metrics'
-    scrape_interval: 15s
-    scrape_timeout: 5s
-
-  # Ollama metrics
-  - job_name: 'ollama'
-    static_configs:
-      - targets: ['ollama:11434']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-    scrape_timeout: 10s
-    
-  # Redis metrics
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis:6379']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
-
-  # PostgreSQL metrics
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres:5432']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
-
-  # System metrics (Node Exporter)
-  - job_name: 'node'
-    static_configs:
-      - targets: ['node-exporter:9100']
-    scrape_interval: 15s
-
-  # Docker metrics
-  - job_name: 'docker'
-    static_configs:
-      - targets: ['cadvisor:8080']
-    scrape_interval: 15s
-    metrics_path: '/metrics'
-
-  # Nginx metrics
-  - job_name: 'nginx'
-    static_configs:
-      - targets: ['nginx:9113']
-    scrape_interval: 15s
+          # - alertmanager:9093

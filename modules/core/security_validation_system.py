@@ -21,9 +21,16 @@ from enum import Enum
 import pandas as pd
 from pathlib import Path
 import mimetypes
-import magic
 import asyncio
 import html
+
+# Optional imports with fallbacks
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+
 try:
     import bleach
     BLEACH_AVAILABLE = True
@@ -229,7 +236,14 @@ class LLMSecurityValidationSystem:
             
             # 3. MIME 타입 검증
             try:
-                mime_type = magic.from_file(file_path, mime=True)
+                if MAGIC_AVAILABLE:
+                    mime_type = magic.from_file(file_path, mime=True)
+                else:
+                    # Fallback to mimetypes module
+                    mime_type, _ = mimetypes.guess_type(file_path)
+                    if mime_type is None:
+                        mime_type = "application/octet-stream"
+                
                 if mime_type not in self.file_upload_limits['allowed_mime_types']:
                     issues_found.append(f"의심스러운 MIME 타입: {mime_type}")
                     threat_level = max(threat_level, ThreatLevel.MEDIUM)

@@ -1,0 +1,133 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "passed": 4,
+    "partial": 3,
+    "failed": 1,
+    "success_rate": 50.0,
+    "timestamp": 1753451687.4188879
+  },
+  "results": [
+    {
+      "test_name": "App Health Check",
+      "status": "PASS",
+      "duration": 0.08854079246520996,
+      "error": null,
+      "details": {
+        "response_size": 1522,
+        "status_code": 200
+      }
+    },
+    {
+      "test_name": "Page Load Performance",
+      "status": "FAIL",
+      "duration": 12.624733924865723,
+      "error": "Page.wait_for_selector: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"body\") to be visible\n    25 \u00d7 locator resolved to hidden <body>\u2026</body>\n",
+      "details": {}
+    },
+    {
+      "test_name": "UI Elements Presence",
+      "status": "PASS",
+      "duration": 2.307481050491333,
+      "error": "Missing elements: ['file_upload']",
+      "details": {
+        "found_elements": {
+          "file_upload": false,
+          "chat_interface": true,
+          "main_content": true,
+          "streamlit_framework": true,
+          "streamlit_structure": true
+        }
+      }
+    },
+    {
+      "test_name": "Chat Interface Interaction",
+      "status": "PARTIAL",
+      "duration": 4.3078131675720215,
+      "error": "Could not fully interact with chat interface",
+      "details": {
+        "text_inputs_found": 0,
+        "interaction_success": false,
+        "test_message": "Hello, this is a test message from E2E testing"
+      }
+    },
+    {
+      "test_name": "File Upload Interface",
+      "status": "PARTIAL",
+      "duration": 4.3167948722839355,
+      "error": "No file upload interface found",
+      "details": {
+        "uploaders_found": 0,
+        "upload_attempted": false
+      }
+    },
+    {
+      "test_name": "Responsive Design",
+      "status": "PARTIAL",
+      "duration": 11.11936902999878,
+      "error": "Some viewport issues detected",
+      "details": {
+        "viewport_results": {
+          "desktop": {
+            "body_visible": false,
+            "content_width": 1920,
+            "viewport_width": 1920,
+            "horizontal_overflow": false
+          },
+          "tablet": {
+            "body_visible": false,
+            "content_width": 768,
+            "viewport_width": 768,
+            "horizontal_overflow": false
+          },
+          "mobile": {
+            "body_visible": false,
+            "content_width": 375,
+            "viewport_width": 375,
+            "horizontal_overflow": false
+          }
+        }
+      }
+    },
+    {
+      "test_name": "Accessibility Features",
+      "status": "PASS",
+      "duration": 2.2654969692230225,
+      "error": null,
+      "details": {
+        "keyboard_navigation": true,
+        "aria_elements": 3,
+        "headings": 0,
+        "images_with_alt": "0/0",
+        "accessibility_score": 75.0
+      }
+    },
+    {
+      "test_name": "Performance Metrics",
+      "status": "PASS",
+      "duration": 2.2408478260040283,
+      "error": null,
+      "details": {
+        "dom_ready_time": 0.520007848739624,
+        "full_load_time": 1.921400785446167,
+        "memory_usage_mb": 28.03802490234375,
+        "browser_metrics": {
+          "dom_content_loaded": 0,
+          "load_complete": 0,
+          "first_paint": 516,
+          "first_contentful_paint": 548
+        },
+        "performance_issues": []
+      }
+    }
+  ],
+  "recommendations": [
+    "\ud83d\udd34 Critical: 1 tests failed - immediate attention required",
+    "   - Fix Page Load Performance: Page.wait_for_selector: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"body\") to be visible\n    25 \u00d7 locator resolved to hidden <body>\u2026</body>\n",
+    "\ud83d\udfe1 Review: 3 tests partially successful - optimization opportunities",
+    "   - Improve Chat Interface Interaction: Could not fully interact with chat interface",
+    "   - Improve File Upload Interface: No file upload interface found",
+    "   - Improve Responsive Design: Some viewport issues detected",
+    "\u267f Accessibility: Improve accessibility score from 75.0% to 90%+"
+  ]
+}

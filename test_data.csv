@@ -1,6 +1,11 @@
-name,age,score,category
-Alice,25,85,A
-Bob,30,92,B
-Charlie,28,78,A
-Diana,35,95,B
-Eve,22,88,A
+name,age,salary,department,experience
+Alice,25,50000,Engineering,2
+Bob,30,60000,Marketing,5
+Charlie,35,70000,Engineering,8
+Diana,28,55000,Sales,3
+Eve,32,65000,Marketing,6
+Frank,29,58000,Engineering,4
+Grace,31,62000,Sales,7
+Henry,26,52000,Engineering,1
+Ivy,33,68000,Marketing,9
+Jack,27,54000,Sales,2

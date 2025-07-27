@@ -443,6 +443,23 @@ class EnhancedChatInterface:
         
         st.session_state.saved_messages.append(saved_message)
     
+    def _add_message_to_history(self, message):
+        """Add message to chat history"""
+        if 'messages' not in st.session_state:
+            st.session_state.messages = []
+        
+        # Convert EnhancedChatMessage to dict format if needed
+        if hasattr(message, 'role'):
+            message_dict = {
+                "role": message.role,
+                "content": message.content,
+                "timestamp": message.timestamp.isoformat() if hasattr(message.timestamp, 'isoformat') else str(message.timestamp)
+            }
+        else:
+            message_dict = message
+        
+        st.session_state.messages.append(message_dict)
+    
     def set_typing_indicator(self, agent_name: str, is_typing: bool):
         """타이핑 인디케이터 설정"""
         self.typing_indicators[agent_name] = is_typing

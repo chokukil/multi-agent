@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-07-26T21:11:52.785974",
+  "checks": {
+    "Python Version": {
+      "name": "Python Version",
+      "status": "pass",
+      "details": {
+        "current_version": "3.11.12",
+        "version_info": "sys.version_info(major=3, minor=11, micro=12, releaselevel='final', serial=0)",
+        "executable": "/Users/gukil/CherryAI/CherryAI_0717/.venv/bin/python",
+        "platform": "darwin"
+      },
+      "recommendations": []
+    },
+    "Virtual Environment": {
+      "name": "Virtual Environment",
+      "status": "pass",
+      "details": {
+        "venv_active": true,
+        "prefix": "/Users/gukil/CherryAI/CherryAI_0717/.venv",
+        "base_prefix": "/Users/gukil/.local/share/uv/python/cpython-3.11.12-macos-aarch64-none",
+        "executable": "/Users/gukil/CherryAI/CherryAI_0717/.venv/bin/python"
+      },
+      "recommendations": []
+    },
+    "Package Manager": {
+      "name": "Package Manager",
+      "status": "pass",
+      "details": {
+        "uv": {
+          "available": true,
+          "version": "uv 0.6.14 (Homebrew 2025-04-09)"
+        },
+        "pip": {
+          "available": false,
+          "error": "/Users/gukil/CherryAI/CherryAI_0717/.venv/bin/python: No module named pip\n"
+        }
+      },
+      "recommendations": []
+    },
+    "Package Dependencies": {
+      "name": "Package Dependencies",
+      "status": "fail",
+      "details": {
+        "numpy": {
+          "installed": true,
+          "version": "2.0.1",
+          "import_success": true
+        },
+        "pandas": {
+          "installed": true,
+          "version": "2.2.2",
+          "import_success": true
+        },
+        "streamlit": {
+          "installed": true,
+          "version": "1.47.0",
+          "import_success": true
+        },
+        "playwright": {
+          "installed": false,
+          "import_success": false,
+          "error": "cannot import name '__version__' from 'playwright' (/Users/gukil/CherryAI/CherryAI_0717/.venv/lib/python3.11/site-packages/playwright/__init__.py)"
+        }
+      },
+      "recommendations": [
+        "Install playwright"
+      ]
+    },
+    "NumPy/Pandas Compatibility": {
+      "name": "NumPy/Pandas Compatibility",
+      "status": "pass",
+      "details": {
+        "numpy_version": "2.0.1",
+        "pandas_version": "2.2.2",
+        "compatibility_test": "passed"
+      },
+      "recommendations": []
+    },
+    "Streamlit Configuration": {
+      "name": "Streamlit Configuration",
+      "status": "pass",
+      "details": {
+        "config_files_checked": [
+          "/Users/gukil/.streamlit/config.toml",
+          "/Users/gukil/CherryAI/CherryAI_0717/.streamlit/config.toml"
+        ],
+        "issues_found": []
+      },
+      "recommendations": []
+    }
+  },
+  "fixes": {
+    "Dependency Fixes": {
+      "name": "Dependency Fixes",
+      "status": "success",
+      "details": {},
+      "actions_taken": [
+        "\u2705 Fixed numpy/pandas with uv: numpy==2.0.1, pandas==2.2.2",
+        "\u2705 Compatibility verified: numpy 2.0.1, pandas 2.2.2"
+      ]
+    },
+    "Streamlit Config Fixes": {
+      "name": "Streamlit Config Fixes",
+      "status": "no_action",
+      "details": {},
+      "actions_taken": []
+    }
+  },
+  "summary": {
+    "total_checks": 6,
+    "passed": 5,
+    "fixed": 1,
+    "failed": 1
+  }
+}

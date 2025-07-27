@@ -12,6 +12,7 @@ Code rendering with:
 import streamlit as st
 import streamlit.components.v1 as components
 import logging
+import ast
 from typing import Dict, Any, Optional
 import pygments
 from pygments.lexers import get_lexer_by_name, guess_lexer

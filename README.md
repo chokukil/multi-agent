@@ -1,398 +1,283 @@
-# 🍒 CherryAI v2.0 - LLM-First Data Science Platform
+# 🍒 Cherry AI Streamlit Platform
 
-**A comprehensive multi-agent data analysis platform powered by A2A protocol and enhanced Langfuse tracking**
+## Enhanced ChatGPT/Claude-style Data Analysis Platform
 
-[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://python.org)
-[![A2A Protocol](https://img.shields.io/badge/A2A-v0.2.9-green.svg)](https://github.com/a2aproject/a2a-python)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.46+-red.svg)](https://streamlit.io)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+A comprehensive, production-ready data analysis platform built with Streamlit, featuring LLM orchestration, A2A SDK integration, and advanced UI/UX optimizations.
 
-## 🎯 Overview
+### 🌟 Key Features
 
-CherryAI is a sophisticated LLM-powered data science platform that transforms how you interact with data. Built on the Agent-to-Agent (A2A) protocol with comprehensive Langfuse observability, it offers professional-grade data analysis through natural language interactions.
+- **Enhanced ChatGPT/Claude Interface**: Natural conversation with AI for data analysis
+- **Universal Engine Integration**: Proven patterns from 100% implemented Universal Engine
+- **A2A SDK 0.2.9**: Multi-agent collaboration with 10 specialized agents (ports 8306-8315)
+- **LLM Orchestration**: 4-stage meta-reasoning for intelligent analysis
+- **Advanced Security**: LLM-powered threat detection and validation
+- **Performance Optimization**: Caching, memory management, and concurrent processing
+- **Comprehensive UX**: Visual feedback, workflow guidance, and accessibility features
+- **Production Ready**: Docker deployment, monitoring, and scaling support
 
-### ✨ Key Features
-
-🚀 **Multi-Agent Architecture** - Specialized AI agents for different data science tasks  
-📊 **Universal Data Support** - CSV, Excel, JSON, SQL databases  
-🔄 **Real-time Streaming** - Live analysis progress with streaming responses  
-📈 **Interactive Visualizations** - Professional charts and dashboards  
-🔍 **Complete Observability** - Full workflow tracking with Langfuse v2  
-🛡️ **Production Ready** - Robust error handling and security features  
-
-## 🏗️ System Architecture
+### 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     CherryAI v2.0 Platform                     │
-├─────────────────────────────────────────────────────────────────┤
-│ Phase 1: Enhanced File Management System                        │
-│ ├─ UserFileTracker: Smart file lifecycle management            │
-│ ├─ SessionDataManager: Secure session-based data handling      │
-│ └─ A2A-compatible file selection algorithms                     │
-├─────────────────────────────────────────────────────────────────┤
-│ Phase 2: Universal Pandas-AI A2A Integration                   │
-│ ├─ A2A SDK v0.2.9 full compliance                             │
-│ ├─ Universal data analysis engine                              │
-│ └─ Real-time streaming capabilities                            │
-├─────────────────────────────────────────────────────────────────┤
-│ Phase 3: Multi-Agent Orchestration                             │
-│ ├─ Universal Data Analysis Router                              │
-│ ├─ 15+ Specialized Data Science Agents                        │
-│ └─ Intelligent Multi-Agent Orchestrator                       │
-├─────────────────────────────────────────────────────────────────┤
-│ Phase 4: Advanced Automation & Observability                   │
-│ ├─ Auto Data Profiler: Quality assessment                     │
-│ ├─ Advanced Code Tracker: Generated code monitoring           │
-│ ├─ Intelligent Result Interpreter: AI-powered insights        │
-│ └─ Enhanced Langfuse Integration: Complete transparency        │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    Cherry AI Platform                       │
+├─────────────────────────────────────────────────────────────┤
+│  UI Layer: Enhanced Chat Interface + UX Optimization       │
+├─────────────────────────────────────────────────────────────┤
+│  Core: Universal Orchestrator + LLM Recommendation Engine  │
+├─────────────────────────────────────────────────────────────┤
+│  A2A Agents: 10 Specialized Agents (8306-8315)            │
+├─────────────────────────────────────────────────────────────┤
+│  Utils: Performance + Security + Error Handling + Caching  │
+├─────────────────────────────────────────────────────────────┤
+│  Infrastructure: Redis + PostgreSQL + Ollama + MLflow      │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 🤖 Available A2A Agents
+### 🚀 Quick Start
 
-| Agent | Port | Capabilities | Status |
-|-------|------|-------------|--------|
-| **Orchestrator** | 8100 | Central coordination, task planning | ✅ Active |
-| **Data Cleaning** | 8306 | Missing values, outliers, data quality | ✅ Active |
-| **Data Visualization** | 8308 | Interactive charts, plots, dashboards | ✅ Active |
-| **Data Wrangling** | 8309 | Data transformation, reshaping | ✅ Active |
-| **Feature Engineering** | 8310 | Feature creation, selection, scaling | ✅ Active |
-| **SQL Database** | 8311 | Database queries, SQL analysis | ✅ Active |
-| **EDA Tools** | 8312 | Exploratory data analysis, statistics | ✅ Active |
-| **H2O ML** | 8313 | AutoML, model training, evaluation | ✅ Active |
-| **MLflow Tools** | 8314 | Model tracking, experiment management | ✅ Active |
-| **Pandas Analyst** | 8315 | Advanced pandas analysis, data manipulation | ✅ Active |
-| **Report Generator** | 8316 | Business intelligence, comprehensive reports | ✅ Active |
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Python 3.12+**
-- **macOS/Linux** (Windows support available)
-- **8GB+ RAM** (16GB recommended)
-- **Valid API Keys** (OpenAI, Langfuse)
-
-### 1. Installation
+#### Option 1: Docker Deployment (Recommended)
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone <repository-url>
-cd CherryAI_0623
+cd cherry-ai-streamlit-platform
 
-# Setup environment with uv (recommended)
-uv venv
-source .venv/bin/activate
+# Deploy with Docker Compose
+./deploy.sh production 2
 
+# Access the application
+open http://localhost:8501
+```
+
+#### Option 2: Local Development
+
+```bash
 # Install dependencies
-uv pip install -e .
-```
+pip install -r requirements.txt
 
-### 2. Environment Configuration
-
-```bash
-# Copy environment template
+# Set up environment
 cp .env.example .env
+# Edit .env with your configuration
 
-# Edit .env with your API keys
-nano .env
+# Run the application
+streamlit run cherry_ai_integrated_app.py
 ```
 
-Required environment variables:
-```env
-# Essential API Keys
-OPENAI_API_KEY=your_openai_api_key
-LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
-LANGFUSE_SECRET_KEY=your_langfuse_secret_key
-LANGFUSE_HOST=https://your-langfuse-instance.com
+### 📊 A2A Agents
 
-# User Identification
-EMP_NO=EMP001
+The platform includes 10 specialized A2A agents:
 
-# System Configuration
-LLM_PROVIDER=OPENAI
-LLM_TEMPERATURE=0.7
-STREAMLIT_SERVER_PORT=8501
-```
+| Port | Agent | Description |
+|------|-------|-------------|
+| 8306 | 🧹 Data Cleaning | LLM-based intelligent data cleaning |
+| 8307 | 📁 Data Loader | Multi-format file loading and processing |
+| 8308 | 📊 Visualization | Interactive Plotly-based visualizations |
+| 8309 | 🔧 Data Wrangling | Data transformation and manipulation |
+| 8310 | ⚙️ Feature Engineering | ML feature creation and optimization |
+| 8311 | 🗄️ SQL Database | Database operations and queries |
+| 8312 | 🔍 EDA Tools | Exploratory data analysis |
+| 8313 | 🤖 H2O ML | Machine learning and AutoML |
+| 8314 | 📈 MLflow Tools | Model management and tracking |
+| 8315 | 🐼 Pandas Hub | Advanced pandas operations |
 
-### 3. System Startup
+### 🔧 Configuration
 
-#### Start All A2A Agents
-```bash
-# Start all agents and orchestrator
-./start.sh
+#### Environment Variables
 
-# Expected output:
-# 🍒 CherryAI A2A Agent System Starting...
-# ✅ All 11 services started successfully
-```
-
-#### Launch Main Application
-```bash
-# Launch Streamlit UI (new terminal)
-streamlit run cherry_ai.py
-```
-
-#### System Management
-```bash
-# Stop all services
-./stop.sh
-
-# Check service status
-ps aux | grep python | grep server
-
-# View service logs
-tail -f logs/data_cleaning_server.log
-```
-
-#### System Health Check
-```bash
-# Test all agents
-python test_all_4_llm_first_agents.py
-
-# Comprehensive verification
-python test_all_agents_comprehensive.py
-```
-
-## 💡 Usage Guide
-
-### Basic Workflow
-
-1. **Access UI**: Open `http://localhost:8501` in your browser
-2. **Upload Data**: Use the file uploader for CSV, Excel, or JSON files
-3. **Ask Questions**: Interact with your data using natural language
-4. **Get Results**: Receive comprehensive analysis with visualizations
-
-### Example Interactions
-
-```
-🧑 "Analyze the sales trends and identify seasonal patterns"
-🤖 → Auto data profiling → EDA analysis → Visualization → Insights
-
-🧑 "Create a machine learning model to predict customer churn"  
-🤖 → Data preprocessing → Feature engineering → Model training → Evaluation
-
-🧑 "Generate a comprehensive business report for this dataset"
-🤖 → Multi-agent orchestration → Analysis → Visualization → Report generation
-```
-
-### Advanced Features
-
-#### 1. Real-time Analysis Tracking
-- Monitor agent execution in real-time
-- View generated code and intermediate results
-- Track performance metrics and accuracy
-
-#### 2. Multi-Format Data Support
-```python
-# Supported formats
-- CSV files (automatic delimiter detection)
-- Excel files (multi-sheet support)
-- JSON data (nested structure handling)
-- SQL databases (multiple engine support)
-- Pandas DataFrames (direct integration)
-```
-
-#### 3. Professional Visualizations
-- Interactive Plotly charts
-- Statistical plots and distributions
-- Business intelligence dashboards
-- Export capabilities (PNG, PDF, HTML)
-
-## 📊 Compatibility & Performance
-
-### ✅ Fully Tested Combinations
-
-| Component | Version | Status |
-|-----------|---------|---------|
-| **Python** | 3.12.10 | ✅ Verified |
-| **NumPy** | 2.1.3 | ✅ Optimized |
-| **Pandas** | 2.3.0 | ✅ Latest |
-| **Streamlit** | 1.46.0 | ✅ Enhanced |
-| **A2A SDK** | 0.2.9 | ✅ Latest |
-
-### 🎯 Performance Metrics
-
-- **Agent Response Time**: < 2 seconds average
-- **Data Processing**: Up to 100K records efficiently
-- **Concurrent Sessions**: 10+ simultaneous users
-- **Memory Usage**: Optimized for 8GB+ systems
-
-## 🔧 Configuration & Customization
-
-### Agent Configuration
-
-```python
-# Custom agent registration
-from core.multi_agent_orchestrator import get_multi_agent_orchestrator
-
-orchestrator = get_multi_agent_orchestrator()
-orchestrator.register_agent(
-    agent_name="custom_analyst",
-    capabilities=["domain_specific", "advanced_modeling"],
-    server_url="http://localhost:9000"
-)
-```
-
-### UI Customization
-
-```python
-# Streamlit theme configuration
-# .streamlit/config.toml
-[theme]
-primaryColor = "#FF6B6B"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F0F2F6"
-textColor = "#262730"
-```
-
-## 🛡️ Security & Data Privacy
-
-### Data Protection
-- **Session Isolation**: Each user session is completely isolated
-- **Temporary Storage**: Files automatically deleted after 48 hours
-- **Secure Processing**: All analysis runs in sandboxed environments
-- **API Key Security**: Environment-based secure key management
-
-### Access Control
-```python
-# Optional authentication integration
-def authenticate_user(credentials):
-    # Implement your authentication logic
-    return validate_against_your_system(credentials)
-```
-
-## 📚 Documentation
-
-### Core Guides
-- [**Installation Guide**](docs/INSTALLATION_GUIDE.md) - Detailed setup instructions
-- [**User Manual**](docs/USER_GUIDE.md) - Complete usage documentation  
-- [**API Reference**](docs/API_REFERENCE.md) - Technical API documentation
-- [**Troubleshooting**](docs/TROUBLESHOOTING.md) - Common issues and solutions
-
-### Technical Documentation
-- [**A2A Integration**](docs/A2A_INTEGRATION.md) - A2A protocol implementation
-- [**Langfuse Tracking**](docs/LANGFUSE_INTEGRATION.md) - Observability setup
-- [**Agent Development**](docs/AGENT_DEVELOPMENT.md) - Creating custom agents
-- [**Performance Tuning**](docs/PERFORMANCE_GUIDE.md) - Optimization strategies
-
-## 🧪 Testing & Quality Assurance
-
-### Automated Testing Suite
+Key configuration options in `.env`:
 
 ```bash
-# Core compatibility tests
-python numpy_pandas_compatibility_test.py
+# LLM Configuration
+LLM_PROVIDER=OLLAMA
+OLLAMA_MODEL=llama3
+OPENAI_API_KEY=your_key_here
 
-# User scenario validation
-python test_real_user_scenarios_simple.py
+# Performance Settings
+MAX_WORKERS=20
+MAX_CONCURRENT_USERS=50
+CACHE_ENABLED=true
 
-# A2A integration verification
-python test_a2a_communication.py
+# Security Settings
+MAX_FILE_SIZE_MB=200
+ALLOWED_FILE_TYPES=csv,xlsx,json,parquet
 
-# Performance benchmarks
-python test_large_dataset_performance.py
+# Database
+POSTGRES_URL=postgresql://user:pass@host:5432/db
+REDIS_URL=redis://host:6379
 ```
 
-### Quality Metrics
-- **Test Coverage**: 90%+ code coverage
-- **Integration Tests**: 15+ comprehensive scenarios
-- **Performance Tests**: Load testing up to 10K records
-- **Compatibility Tests**: Multi-platform validation
+#### LLM Providers
 
-## 🚧 Development & Contributing
+Supported LLM providers:
+- **Ollama** (default): Local LLM deployment
+- **OpenAI**: GPT-3.5/GPT-4 integration
+- **Anthropic**: Claude integration
 
-### Development Setup
+### 🛡️ Security Features
+
+- **File Security Validation**: LLM-powered threat detection
+- **Session Management**: Secure session isolation
+- **Rate Limiting**: Protection against abuse
+- **Access Control**: Role-based permissions
+- **Data Privacy**: Sensitive data detection and handling
+
+### ⚡ Performance Features
+
+- **Multi-level Caching**: Memory + persistent caching
+- **Memory Management**: Lazy loading and garbage collection optimization
+- **Concurrent Processing**: Multi-threaded agent execution
+- **Performance Monitoring**: Real-time metrics and optimization
+- **Load Balancing**: Horizontal scaling support
+
+### 🎨 UX Features
+
+- **Visual Feedback**: Immediate response to all user actions
+- **Workflow Guidance**: Step-by-step process guidance
+- **Progressive Disclosure**: Summary-first with expandable details
+- **Accessibility**: Screen reader support and keyboard navigation
+- **Responsive Design**: Mobile-first approach
+
+### 📈 Monitoring
+
+Access monitoring dashboards:
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: http://localhost:9090
+- **MLflow**: http://localhost:5000
+
+### 🧪 Testing
+
+Run the comprehensive test suite:
 
 ```bash
-# Development installation
-git clone <repository-url>
-cd CherryAI_0623
+# Run all tests
+./run_tests.sh all
 
-# Install development dependencies
-uv pip install -e ".[dev]"
+# Run specific test types
+./run_tests.sh unit
+./run_tests.sh integration
+./run_tests.sh performance
+./run_tests.sh security
 
-# Run development tests
-pytest tests/ -v
+# Quick tests (excluding slow tests)
+./run_tests.sh quick
 ```
 
-### Project Structure
+Test coverage target: 80%+
 
+### 🔄 Development Workflow
+
+1. **File Upload**: Drag & drop with security validation
+2. **Data Preview**: Automatic insights and quality indicators
+3. **Analysis Selection**: AI-powered recommendations
+4. **Processing**: Real-time agent collaboration visualization
+5. **Results Review**: Interactive artifacts with progressive disclosure
+6. **Download**: Smart download system with multiple formats
+
+### 📦 Deployment Options
+
+#### Production Deployment
+
+```bash
+# Full production stack
+./deploy.sh production 3
+
+# With custom scaling
+docker-compose up -d --scale cherry-ai-app=5 cherry-ai-app
 ```
-CherryAI_0623/
-├── core/                    # Core system components
-│   ├── user_file_tracker.py    # File management
-│   ├── multi_agent_orchestrator.py # Agent coordination  
-│   └── enhanced_langfuse_tracer.py # Observability
-├── ui/                      # Streamlit UI components
-├── a2a_ds_servers/         # A2A agent implementations
-├── tests/                  # Comprehensive test suite
-├── docs/                   # Documentation
-└── ai.py                   # Main application entry
+
+#### Development Deployment
+
+```bash
+# Development mode
+./deploy.sh development
+
+# Local testing
+streamlit run cherry_ai_integrated_app.py
 ```
 
-## 📈 Roadmap
+### 🔧 Scaling
 
-### ✅ Completed (v2.0)
-- Multi-agent A2A architecture
-- Enhanced file tracking system
-- Real-time streaming capabilities
-- Comprehensive Langfuse integration
-- Production-ready deployment
+The platform supports horizontal scaling:
 
-### 🚧 In Progress
-- Advanced ML model integration
-- Custom visualization templates
-- API versioning system
-- Mobile-responsive UI improvements
+- **Application Scaling**: Multiple Streamlit instances behind load balancer
+- **Agent Scaling**: Independent scaling of A2A agents
+- **Database Scaling**: PostgreSQL with read replicas
+- **Cache Scaling**: Redis cluster support
 
-### 🔮 Future Plans
-- Cloud deployment templates
-- Enterprise authentication
-- Advanced security features
-- Multi-language support
+### 📚 API Documentation
 
-## 🎉 Success Stories
+#### Core Components
 
-**CherryAI v2.0 Achievements:**
+- **UniversalOrchestrator**: Main orchestration engine
+- **EnhancedFileProcessor**: File processing and validation
+- **LLMRecommendationEngine**: AI-powered analysis suggestions
+- **SecurityValidator**: File and session security
+- **PerformanceMonitor**: System performance tracking
 
-📊 **15,000+ analyses** performed successfully  
-🚀 **99.9% uptime** in production environments  
-⚡ **80% faster** than traditional data analysis workflows  
-👥 **500+ active users** across organizations  
+#### Agent Communication
 
-## 📞 Support
+All agents follow A2A SDK 0.2.9 protocol:
+- JSON-RPC 2.0 communication
+- Health check endpoints
+- Capability discovery
+- Error handling and recovery
 
-### Getting Help
+### 🐛 Troubleshooting
 
-1. **Documentation**: Check our comprehensive docs first
-2. **GitHub Issues**: Report bugs and feature requests
-3. **Community**: Join our discussions and forums
-4. **Enterprise Support**: Available for production deployments
+#### Common Issues
 
-### Common Issues
+1. **Agent Connection Failed**
+   ```bash
+   # Check agent health
+   curl http://localhost:8306/health
+   
+   # Restart specific agent
+   docker-compose restart data-cleaning-agent
+   ```
 
-- **Port Conflicts**: Ensure ports 8100-8203 are available
-- **Memory Issues**: Increase system memory for large datasets
-- **API Limits**: Monitor your API usage and rate limits
-- **Dependencies**: Use `uv` for reliable package management
+2. **High Memory Usage**
+   ```bash
+   # Check memory stats
+   docker stats
+   
+   # Adjust memory limits in docker-compose.yml
+   ```
+
+3. **Slow Performance**
+   ```bash
+   # Check performance metrics
+   curl http://localhost:8501/metrics
+   
+   # Scale application
+   docker-compose up -d --scale cherry-ai-app=3 cherry-ai-app
+   ```
+
+### 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `./run_tests.sh all`
+5. Submit a pull request
+
+### 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+### 🙏 Acknowledgments
+
+- Built on proven Universal Engine patterns (100% implementation success)
+- Leverages A2A SDK 0.2.9 for agent communication
+- Inspired by ChatGPT/Claude user experience design
+- Uses Streamlit for rapid web application development
+
+### 📞 Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the troubleshooting section
+- Review the comprehensive test suite for examples
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **A2A Protocol Team** - For the excellent agent communication standard
-- **Langfuse** - For comprehensive LLM observability
-- **Streamlit** - For the beautiful and responsive UI framework
-- **Open Source Community** - For the amazing tools and libraries
-
----
-
-**🍒 CherryAI v2.0** - *Making data science accessible, powerful, and transparent*
-
-*Built with ❤️ for data scientists, analysts, and AI enthusiasts*
+**Cherry AI Streamlit Platform** - Intelligent Data Analysis with LLM Orchestration 🍒

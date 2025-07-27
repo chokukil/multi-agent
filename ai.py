@@ -49,6 +49,7 @@ import base64
 import contextlib
 from bs4 import BeautifulSoup
 import re
+import io
 
 # 프로젝트 루트 디렉토리를 Python 경로에 추가 (ai.py는 프로젝트 루트에 위치)
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -569,128 +570,121 @@ def display_agent_status():
             </div>""", unsafe_allow_html=True)
 
 def render_artifact(artifact_data: Dict[str, Any]):
-    """아티팩트 렌더링 - A2A SDK 0.2.9 호환성 개선"""
+    """새로운 실시간 아티팩트 렌더링 시스템 사용"""
     try:
-        debug_log(f"🎨 아티팩트 렌더링 시작: {artifact_data.get('name', 'Unknown')}")
+        debug_log(f"🎨 새로운 아티팩트 렌더링 시작: {artifact_data.get('name', 'Unknown')}")
         
-        # 디버깅을 위한 아티팩트 구조 로그
-        debug_log(f"🔍 아티팩트 구조: {list(artifact_data.keys())}")
-        debug_log(f"🔍 메타데이터: {artifact_data.get('metadata', {})}")
+        # 새로운 아티팩트 추출 및 렌더링 시스템 임포트
+        from modules.artifacts.a2a_artifact_extractor import A2AArtifactExtractor
+        from modules.ui.real_time_artifact_renderer import RealTimeArtifactRenderer
+        
+        # 추출기 및 렌더러 초기화
+        extractor = A2AArtifactExtractor()
+        renderer = RealTimeArtifactRenderer()
+        
+        # A2A 응답에서 아티팩트 추출
+        artifacts = asyncio.run(extractor.extract_from_a2a_response(
+            artifact_data, 
+            agent_source=artifact_data.get('agent_source', 'unknown')
+        ))
+        
+        if not artifacts:
+            debug_log("⚠️ 추출된 아티팩트가 없음 - 폴백 렌더링 사용")
+            _render_artifact_fallback(artifact_data)
+            return
+        
+        debug_log(f"✅ {len(artifacts)}개 아티팩트 추출 성공")
+        
+        # 각 아티팩트를 실시간으로 렌더링
+        for artifact in artifacts:
+            try:
+                renderer.render_artifact_immediately(artifact)
+                debug_log(f"✅ 아티팩트 렌더링 완료: {artifact.id}")
+            except Exception as render_error:
+                debug_log(f"❌ 아티팩트 렌더링 실패: {render_error}", "error")
+                st.error(f"아티팩트 렌더링 오류: {render_error}")
+        
+        debug_log("✅ 모든 아티팩트 렌더링 완료")
+        
+    except Exception as e:
+        debug_log(f"💥 새로운 아티팩트 시스템 오류: {e}", "error")
+        debug_log("🔄 기존 렌더링 시스템으로 폴백")
+        _render_artifact_fallback(artifact_data)
+
+def _render_artifact_fallback(artifact_data: Dict[str, Any]):
+    """기존 아티팩트 렌더링 시스템 (폴백용)"""
+    try:
+        debug_log(f"🔄 폴백 아티팩트 렌더링: {artifact_data.get('name', 'Unknown')}")
         
         name = artifact_data.get('name', 'Unknown')
         parts = artifact_data.get('parts', [])
         metadata = artifact_data.get('metadata', {})
         content_type = artifact_data.get('contentType', metadata.get('content_type', 'text/plain'))
         
-        debug_log(f"🔍 감지된 content_type: {content_type}")
-        debug_log(f"🔍 아티팩트 이름: {name}")
-        debug_log(f"🔍 Parts 개수: {len(parts)}")
-        
         # A2A 클라이언트에서 받은 아티팩트가 data 필드에 직접 내용이 있는 경우 처리
         if not parts and 'data' in artifact_data:
-            debug_log("🔄 data 필드 감지 - parts 구조로 변환 중...")
             data_content = artifact_data['data']
             
-            # data 내용을 parts 구조로 변환
             if isinstance(data_content, str):
                 parts = [{"kind": "text", "text": data_content}]
-                debug_log(f"✅ data 필드를 text part로 변환 완료 (크기: {len(data_content)})")
             elif isinstance(data_content, dict):
                 parts = [{"kind": "data", "data": data_content}]
-                debug_log(f"✅ data 필드를 data part로 변환 완료")
             else:
                 parts = [{"kind": "text", "text": str(data_content)}]
-                debug_log(f"✅ data 필드를 문자열 part로 변환 완료")
         
         if not parts:
             st.warning("아티팩트에 표시할 콘텐츠가 없습니다.")
             return
         
-        # 아티팩트별 컨테이너 생성 (중복 방지)
+        # 아티팩트별 컨테이너 생성
         with st.container():
-            # 헤더 표시
             if name != 'Unknown':
                 st.markdown(f"### 📦 {name}")
             
             for i, part in enumerate(parts):
                 try:
-                    debug_log(f"🔍 Part {i} 구조: {type(part)} - {list(part.keys()) if isinstance(part, dict) else 'Not dict'}")
-                    
-                    # A2A SDK 0.2.9 Part 구조 파싱 - root 속성을 통한 접근
+                    # A2A SDK Part 구조 파싱
                     part_kind = None
                     text_content = None
                     data_content = None
                     
                     if hasattr(part, 'root'):
-                        # A2A SDK 0.2.9 표준 방식: part.root.kind, part.root.text
-                        debug_log(f"🔍 Part {i}: A2A SDK Part 객체 감지")
                         if hasattr(part.root, 'kind'):
                             part_kind = part.root.kind
-                            debug_log(f"🔍 Part {i} root.kind: {part_kind}")
-                            
                             if part_kind == "text" and hasattr(part.root, 'text'):
                                 text_content = part.root.text
-                                debug_log(f"🔍 Part {i} root.text length: {len(text_content) if text_content else 0}")
                             elif part_kind == "data" and hasattr(part.root, 'data'):
                                 data_content = part.root.data
-                                debug_log(f"🔍 Part {i} root.data type: {type(data_content)}")
                     elif isinstance(part, dict):
-                        # 폴백: 딕셔너리 형태의 Part 구조
-                        debug_log(f"🔍 Part {i}: Dictionary Part 구조 감지")
                         part_kind = part.get("kind", part.get("type", "unknown"))
-                        debug_log(f"🔍 Part {i} dict kind: {part_kind}")
-                        
                         if part_kind == "text":
                             text_content = part.get("text", "")
                         elif part_kind == "data":
                             data_content = part.get("data", {})
                     else:
-                        # 최종 폴백: 단순 문자열이나 기타 타입
-                        debug_log(f"🔍 Part {i}: 기타 타입 감지 - {type(part)}")
                         text_content = str(part)
                         part_kind = "text"
                     
-                    debug_log(f"🔍 Part {i} 최종 kind: {part_kind}")
-                    
                     # 컨텐츠 타입별 렌더링
                     if part_kind == "text" and text_content:
-                        debug_log(f"🔍 Part {i} text preview: {text_content[:100]}...")
-                        
                         if content_type == "application/vnd.plotly.v1+json":
-                            # Plotly 차트 JSON 데이터 처리
                             _render_plotly_chart(text_content, name, i)
-                            
                         elif (content_type == "text/html" or 
                               name.endswith('.html') or 
-                              any(keyword in text_content.lower() for keyword in ["<!doctype html", "<html", "ydata-profiling", "sweetviz"]) or
-                              any(keyword in metadata.get('report_type', '').lower() for keyword in ["profiling", "eda", "sweetviz"])):
-                            # HTML 컨텐츠 렌더링 (Profiling 리포트 등)
-                            debug_log(f"🌐 HTML 아티팩트 감지됨: {name}")
+                              any(keyword in text_content.lower() for keyword in ["<!doctype html", "<html", "ydata-profiling", "sweetviz"])):
                             _render_html_content(text_content, name, i)
-                            
                         elif content_type == "text/x-python" or "```python" in text_content:
-                            # Python 코드 렌더링
                             _render_python_code(text_content)
-                            
                         elif content_type == "text/markdown" or text_content.startswith("#"):
-                            # 마크다운 렌더링
                             _render_markdown_content(text_content)
-                            
                         else:
-                            # 일반 텍스트 렌더링
                             _render_general_text(text_content)
-                    
                     elif part_kind == "data" and data_content:
-                        # 데이터 Part 처리
-                        debug_log(f"🔍 Plotly 차트 데이터 파싱 시작...")
                         _render_data_content(data_content, content_type, name, i)
-                    
                     else:
-                        # 알 수 없는 타입 또는 빈 내용
                         if part_kind:
                             debug_log(f"⚠️ 빈 내용이거나 처리할 수 없는 part 타입: {part_kind}")
                         else:
-                            debug_log(f"⚠️ 알 수 없는 part 구조")
                             st.json(part)
                         
                 except Exception as part_error:
@@ -699,14 +693,11 @@ def render_artifact(artifact_data: Dict[str, Any]):
                         st.error(f"렌더링 오류: {part_error}")
                         st.json(part)
         
-        debug_log("✅ 아티팩트 렌더링 완료")
-        
     except Exception as e:
-        debug_log(f"💥 아티팩트 렌더링 전체 오류: {e}", "error")
+        debug_log(f"💥 폴백 렌더링 오류: {e}", "error")
         st.error(f"아티팩트 렌더링 중 오류 발생: {e}")
         
-        # 폴백: 원시 데이터 표시
-        with st.expander("🔍 원시 아티팩트 데이터 (폴백)"):
+        with st.expander("🔍 원시 아티팩트 데이터"):
             st.json(artifact_data)
 
 def _render_plotly_chart(json_text: str, name: str, index: int):

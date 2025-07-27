@@ -607,18 +607,27 @@ def create_agent_card() -> AgentCard:
         name="pandas_agent_enhanced",
         description="Comprehensive AI-powered pandas data analysis agent with natural language interface, smart dataframes, auto-visualization, and multi-datasource connectivity",
         version="2.0.0",
+        url="http://localhost:8210",
+        defaultInputModes=["text"],
+        defaultOutputModes=["text"],
         skills=[
             AgentSkill(
+                id="data_analysis",
                 name="data_analysis",
-                description="Perform comprehensive data analysis on pandas dataframes"
+                description="Perform comprehensive data analysis on pandas dataframes",
+                tags=["analysis", "pandas"]
             ),
             AgentSkill(
+                id="data_visualization",
                 name="data_visualization", 
-                description="Generate automatic visualizations based on data characteristics"
+                description="Generate automatic visualizations based on data characteristics",
+                tags=["visualization", "charts"]
             ),
             AgentSkill(
+                id="data_loading",
                 name="data_loading",
-                description="Load data from multiple sources (CSV, Excel, SQL, JSON)"
+                description="Load data from multiple sources (CSV, Excel, SQL, JSON)",
+                tags=["loading", "data"]
             )
         ],
         capabilities=AgentCapabilities(
@@ -641,12 +650,14 @@ def create_pandas_agent_server(port: int = 8210) -> A2AStarletteApplication:
     executor = PandasAgentExecutor()
     
     request_handler = DefaultRequestHandler(
+        agent_executor=executor,
         task_store=task_store,
-        executor=executor,
-        agent_card=create_agent_card()
     )
     
-    return A2AStarletteApplication(request_handler)
+    return A2AStarletteApplication(
+        agent_card=create_agent_card(),
+        http_handler=request_handler,
+    )
 
 
 # Main entry point for running the server
@@ -661,4 +672,4 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8210,
         log_level="info"
-    ) 
+    )

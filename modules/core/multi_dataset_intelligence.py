@@ -1,11 +1,12 @@
 """
 Multi-Dataset Intelligence System - LLM 기반 다중 데이터셋 지능 분석
 
-검증된 Universal Engine 패턴:
-- CrossDatasetRelationshipDiscovery: 데이터셋 간 자동 관계 발견
-- IntelligentDataIntegration: LLM 기반 스마트 데이터 통합
-- MultiModalAnalysisOrchestrator: 다중 데이터셋 분석 오케스트레이션
-- SemanticDataMapping: 의미적 데이터 매핑 및 스키마 정렬
+LLM을 활용한 데이터셋 관계 이해 및 창의적 데이터 조합:
+- LLM 기반 데이터셋 관계 자동 발견
+- 자연어 설명을 통한 데이터 연결 기회 제시
+- 전통적인 스키마 매칭을 넘어선 창의적 조합 제안
+- 세션 상태 관리 및 LLM 메모리 활용
+- 데이터 카드 선택 체크박스 및 메타데이터 인사이트
 """
 
 import asyncio
@@ -17,15 +18,12 @@ from datetime import datetime
 import json
 from dataclasses import asdict, dataclass
 from itertools import combinations
+import uuid
 
-from ..models import VisualDataCard, DataContext, DataQualityInfo
+from ..models import VisualDataCard, DataContext, DataQualityInfo, OneClickRecommendation
 
 # Universal Engine 패턴 가져오기 (사용 가능한 경우)
 try:
-    from core.universal_engine.cross_dataset_relationship_discovery import CrossDatasetRelationshipDiscovery
-    from core.universal_engine.intelligent_data_integration import IntelligentDataIntegration
-    from core.universal_engine.multi_modal_analysis_orchestrator import MultiModalAnalysisOrchestrator
-    from core.universal_engine.semantic_data_mapping import SemanticDataMapping
     from core.universal_engine.llm_factory import LLMFactory
     UNIVERSAL_ENGINE_AVAILABLE = True
 except ImportError:
@@ -37,13 +35,16 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DatasetRelationship:
     """데이터셋 간 관계 정보"""
+    id: str
     source_dataset_id: str
     target_dataset_id: str
-    relationship_type: str  # 'join', 'merge', 'union', 'reference', 'temporal'
+    relationship_type: str  # 'join', 'merge', 'union', 'reference', 'temporal', 'semantic'
     confidence_score: float
     join_keys: List[Tuple[str, str]]  # (source_column, target_column) pairs
     relationship_description: str
     suggested_integration_method: str
+    creative_opportunities: List[str]
+    llm_insights: str
 
 
 @dataclass
@@ -71,11 +72,24 @@ class MultiDatasetIntelligence:
         
         # Universal Engine 컴포넌트 초기화
         if UNIVERSAL_ENGINE_AVAILABLE:
-            self.relationship_discovery = CrossDatasetRelationshipDiscovery()
-            self.data_integration = IntelligentDataIntegration()
-            self.analysis_orchestrator = MultiModalAnalysisOrchestrator()
-            self.semantic_mapping = SemanticDataMapping()
-            self.llm_client = LLMFactory.create_llm()
+            try:
+                from core.universal_engine.data_integration.cross_dataset_relationship_discovery import CrossDatasetRelationshipDiscovery
+                from core.universal_engine.data_integration.intelligent_data_integration import IntelligentDataIntegration
+                from core.universal_engine.orchestration.multi_modal_analysis_orchestrator import MultiModalAnalysisOrchestrator
+                from core.universal_engine.data_integration.semantic_data_mapping import SemanticDataMapping
+                
+                self.relationship_discovery = CrossDatasetRelationshipDiscovery()
+                self.data_integration = IntelligentDataIntegration()
+                self.analysis_orchestrator = MultiModalAnalysisOrchestrator()
+                self.semantic_mapping = SemanticDataMapping()
+                self.llm_client = LLMFactory.create_llm()
+            except ImportError as e:
+                logging.warning(f"Universal Engine components not available: {e}")
+                self.relationship_discovery = None
+                self.data_integration = None
+                self.analysis_orchestrator = None
+                self.semantic_mapping = None
+                self.llm_client = LLMFactory.create_llm() if hasattr(LLMFactory, 'create_llm') else None
         else:
             self.relationship_discovery = None
             self.data_integration = None

@@ -11,6 +11,25 @@
         "4b330216-bab6-4ad4-8a4f-c03b89d05eea",
         "--profile",
         "tense-parrot-p1v3Tb"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "playwright_navigate",
+        "playwright_screenshot",
+        "playwright_get_visible_text",
+        "playwright_click",
+        "playwright_get_visible_html",
+        "playwright_get_visible_html",
+        "playwright_console_logs",
+        "playwright_console_logs",
+        "playwright_fill",
+        "playwright_close",
+        "playwright_upload_file",
+        "start_codegen_session",
+        "playwright_press_key",
+        "end_codegen_session",
+        "playwright_get",
+        "playwright_post"
       ]
     }
   }

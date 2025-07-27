@@ -539,7 +539,7 @@ def main():
     
     with tab1:
         st.markdown('<div class="activity-feed">', unsafe_allow_html=True)
-        for activity in reversed(st.session_state.component_activities['agent_cards']):
+        for activity in agent_activities:
             st.markdown(f"""
             <div class="activity-item">
                 <div class="activity-timestamp">{activity['timestamp']}</div>
@@ -550,10 +550,11 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with tab2:
         st.markdown('<div class="activity-feed">', unsafe_allow_html=True)
-        for activity in reversed(st.session_state.component_activities['thought_stream']):
+        for activity in thought_activities:
             st.markdown(f"""
             <div class="activity-item">
                 <div class="activity-timestamp">{activity['timestamp']}</div>
@@ -564,10 +565,11 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with tab3:
         st.markdown('<div class="activity-feed">', unsafe_allow_html=True)
-        for activity in reversed(st.session_state.component_activities['mcp_monitoring']):
+        for activity in mcp_activities:
             st.markdown(f"""
             <div class="activity-item">
                 <div class="activity-timestamp">{activity['timestamp']}</div>
@@ -578,10 +580,11 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with tab4:
         st.markdown('<div class="activity-feed">', unsafe_allow_html=True)
-        for activity in reversed(st.session_state.component_activities['code_streaming']):
+        for activity in code_activities:
             st.markdown(f"""
             <div class="activity-item">
                 <div class="activity-timestamp">{activity['timestamp']}</div>
@@ -591,6 +594,7 @@ def main():
                 <div class="activity-type">{activity['type']}</div>
             </div>
             """, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
     # 동기화 규칙
@@ -701,4 +705,4 @@ def main():
         st.rerun()
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -1,23 +1,29 @@
 """
 Progressive Disclosure Result Display and Smart Download System
 
-검증된 Progressive Disclosure 패턴:
-- UserLevelAdaptiveDisplay: 사용자 수준별 정보 표시 최적화
-- IncrementalComplexityReveal: 단계적 복잡도 증가
-- ContextAwareDownloads: 상황별 다운로드 형식 제안
-- SmartResultFiltering: 지능적 결과 필터링 및 우선순위
+Enhanced summary display with progressive disclosure:
+- Summary-first display (3-5 key insights, visual highlights, bullet-point format)
+- "📄 View All Details" expandable panel with smooth animations
+- Complete analysis results and agent work history
+- Two-tier download system (raw + enhanced formats)
+- Context-aware format recommendations
+- Collapsible sections with state persistence
+- Visual hierarchy and clear section headers
 """
 
 import streamlit as st
 import pandas as pd
 import json
 import logging
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, Union
 from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
+import uuid
+import base64
+from io import BytesIO
 
-from ..models import EnhancedArtifact, VisualDataCard
+from ..models import EnhancedArtifact, VisualDataCard, AnalysisResult, AgentProgressInfo
 
 logger = logging.getLogger(__name__)
 
@@ -38,15 +44,36 @@ class ComplexityLevel(Enum):
     EXPERT = "expert"
 
 
+class DownloadContext(Enum):
+    """다운로드 컨텍스트"""
+    PRESENTATION = "presentation"
+    DEVELOPMENT = "development"
+    BUSINESS_REPORT = "business_report"
+    ACADEMIC = "academic"
+    SHARING = "sharing"
+
+
 @dataclass
 class ProgressiveDisplayConfig:
     """Progressive Disclosure 설정"""
     user_level: UserExpertiseLevel
-    max_items_per_level: Dict[str, int]
-    show_technical_details: bool
-    enable_advanced_features: bool
-    auto_expand_threshold: float
-    preferred_chart_types: List[str]
+    max_summary_insights: int = 5
+    show_technical_details: bool = False
+    enable_advanced_features: bool = True
+    auto_expand_threshold: float = 0.8
+    preferred_download_formats: List[str] = None
+    show_agent_details: bool = True
+    enable_code_display: bool = True
+    max_items_per_level: Dict[str, int] = None
+    preferred_chart_types: List[str] = None
+    
+    def __post_init__(self):
+        if self.preferred_download_formats is None:
+            self.preferred_download_formats = ['csv', 'xlsx', 'json']
+        if self.max_items_per_level is None:
+            self.max_items_per_level = {'artifacts': 5, 'insights': 8, 'recommendations': 5}
+        if self.preferred_chart_types is None:
+            self.preferred_chart_types = ['bar', 'line', 'scatter']
 
 
 @dataclass
